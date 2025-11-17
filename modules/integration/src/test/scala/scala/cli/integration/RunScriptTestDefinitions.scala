@@ -865,7 +865,8 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
   test("verify drive-relative JAVA_HOME works") {
     TestUtil.retryOnCi() {
       val jvmIndex =
-        if (TestUtil.isJvmCli) Constants.minimumLauncherJavaVersion
+        if TestUtil.isJvmCli && !isScala38OrNewer then Constants.minimumLauncherJavaVersion
+        else if isScala38OrNewer then Constants.defaultJvmVersion
         else 8
       val oldJavaHome =
         os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", jvmIndex).call().out.trim(), os.pwd)
