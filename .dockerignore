@@ -5,6 +5,6 @@
 .scala-build
 .scala
 gifs
-.git
 website
 .github
+Dockerfile
