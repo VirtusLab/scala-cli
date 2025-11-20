@@ -128,6 +128,7 @@ object Artifacts {
     extraCompileOnlyJars: Seq[os.Path],
     extraSourceJars: Seq[os.Path],
     fetchSources: Boolean,
+    jvmVersion: Int,
     addJvmRunner: Option[Boolean],
     addJvmTestRunner: Boolean,
     addJmhDependencies: Option[String],
@@ -146,11 +147,13 @@ object Artifacts {
       scalaVersion = scalaParams.scalaVersion
     } yield scalaVersion).getOrElse(defaultScalaVersion)
 
+    val shouldUseLegacyJava8Runners  = jvmVersion < Constants.scala38MinJavaVersion
     val shouldUseLegacyScala3Runners =
       scalaVersion.startsWith("3") &&
       scalaVersion.coursierVersion < s"$scala3LtsPrefix.0".coursierVersion
     val shouldUseLegacyScala2Runners = scalaVersion.startsWith("2")
-    val shouldUseLegacyRunners       = shouldUseLegacyScala2Runners || shouldUseLegacyScala3Runners
+    val shouldUseLegacyScalaRunners  = shouldUseLegacyScala3Runners || shouldUseLegacyScala2Runners
+    val shouldUseLegacyRunners       = shouldUseLegacyScalaRunners || shouldUseLegacyJava8Runners
 
     val jvmTestRunnerDependencies =
       if addJvmTestRunner then {
@@ -160,12 +163,25 @@ object Artifacts {
           else runnerScala2LegacyVersion
         val testRunnerVersion0 =
           if shouldUseLegacyRunners then {
+            if shouldUseLegacyScalaRunners then
+              logger.message(
+                s"$warnPrefix Scala $scalaVersion is no longer supported by the test-runner module."
+              )
+            if shouldUseLegacyJava8Runners then
+              logger.message(
+                s"$warnPrefix Java $jvmVersion is no longer supported by the test-runner module."
+              )
             logger.message(
-              s"""$warnPrefix Scala $scalaVersion is no longer supported by the test-runner module.
-                 |$warnPrefix Defaulting to a legacy test-runner module version: $runnerLegacyVersion.
-                 |$warnPrefix To use the latest test-runner, upgrade Scala to at least $scala3LtsPrefix."""
-                .stripMargin
+              s"$warnPrefix Defaulting to a legacy test-runner module version: $runnerLegacyVersion."
             )
+            if shouldUseLegacyScalaRunners then
+              logger.message(
+                s"$warnPrefix To use the latest test-runner, upgrade Scala to at least $scala3LtsPrefix."
+              )
+            if shouldUseLegacyJava8Runners then
+              logger.message(
+                s"$warnPrefix To use the latest test-runner, upgrade Java to at least ${Constants.defaultJavaVersion}."
+              )
             runnerLegacyVersion
           }
           else testRunnerVersion
@@ -481,6 +497,25 @@ object Artifacts {
                   if shouldUseLegacyScala3Runners
                   then runnerScala30LegacyVersion
                   else runnerScala2LegacyVersion
+                if shouldUseLegacyScalaRunners then
+                  logger.message(
+                    s"$warnPrefix Scala $scalaVersion is no longer supported by the runner module."
+                  )
+                if shouldUseLegacyJava8Runners then
+                  logger.message(
+                    s"$warnPrefix Java $jvmVersion is no longer supported by the runner module."
+                  )
+                logger.message(
+                  s"$warnPrefix Defaulting to a legacy runner module version: $runnerLegacyVersion."
+                )
+                if shouldUseLegacyScalaRunners then
+                  logger.message(
+                    s"$warnPrefix To use the latest runner, upgrade Scala to at least $scala3LtsPrefix."
+                  )
+                if shouldUseLegacyJava8Runners then
+                  logger.message(
+                    s"$warnPrefix To use the latest runner, upgrade Java to at least ${Constants.defaultJavaVersion}."
+                  )
                 logger.message(
                   s"""$warnPrefix Scala $scalaVersion is no longer supported by the runner module.
                      |$warnPrefix Defaulting to a legacy runner module version: $runnerLegacyVersion.

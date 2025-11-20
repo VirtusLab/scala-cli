@@ -464,7 +464,7 @@ final case class BuildOptions(
     }
     val extraRepositories: Seq[Repository] = value(finalRepositories)
     val maybeArtifacts                     = Artifacts(
-      scalaArtifactsParamsOpt,
+      scalaArtifactsParamsOpt = scalaArtifactsParamsOpt,
       javacPluginDependencies = value(javacPluginDependencies),
       extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
       defaultDependencies = value(defaultDependencies),
@@ -474,6 +474,7 @@ final case class BuildOptions(
       extraCompileOnlyJars = allExtraCompileOnlyJars,
       extraSourceJars = allExtraSourceJars,
       fetchSources = classPathOptions.fetchSources.getOrElse(false),
+      jvmVersion = javaHome().value.version,
       addJvmRunner = addRunnerDependency0,
       addJvmTestRunner = isTests && addJvmTestRunner,
       addJmhDependencies = jmhOptions.finalJmhVersion,
