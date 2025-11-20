@@ -2,7 +2,7 @@
 
 # Adapted from
 
-coursier_version="2.1.25-M19"
+coursier_version="2.1.25-M20"
 COMMAND=$@
 
 # necessary for Windows various shell environments

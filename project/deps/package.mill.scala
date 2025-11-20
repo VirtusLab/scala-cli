@@ -120,7 +120,7 @@ object Deps {
     def ammoniteForScala3Lts = ammonite
     def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault                   = "2.1.25-M19"
+    def coursierDefault                   = "2.1.25-M20"
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierPublish                   = "0.4.3"
