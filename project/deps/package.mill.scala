@@ -11,7 +11,7 @@ object Cli {
 
 object Scala {
   def scala212            = "2.12.20"
-  def scala213            = "2.13.17"
+  def scala213            = "2.13.18"
   def scala3LtsPrefix     = "3.3"                  // used for the LTS version tags
   def scala3Lts           = s"$scala3LtsPrefix.7"  // the LTS version currently used in the build
   def runnerScala3        = scala3Lts
