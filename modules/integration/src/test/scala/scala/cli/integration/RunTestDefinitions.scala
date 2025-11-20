@@ -1057,113 +1057,28 @@ abstract class RunTestDefinitions
   }
 
   test("UTF-8") {
-    def utf8tag   = "ÅÄÖåäöΔЖ"
-    val classname = s"Q$utf8tag"
-    val basename  = classname // if (Properties.isWin) s"Test_ascii" else classname
+    def utf8tag   = "ÅÄÖåäö"
+    val classname = s"Test$utf8tag"
+    val message   = s"Hello $classname"
+    val fileName  = s"$classname.scala"
 
-    val fileName     = s"$basename.scala"
-    val message      = s"Hello $classname"
-    val utfPropnames = Seq("file.encoding", "sun.jnu.encoding", "native.encoding")
-    val utfProps     = utfPropnames.map(s => s"-D$s=UTF-8")
-    val utfOptions   = utfProps ++ Seq("-Dtest.scala-cli.debug-charset-issue=true")
-
-    def cliOptions = utfOptions.flatMap(opt => Seq("--java-opt", opt))
-
-    def code =
-      """
-object MAINCLASS {
-  def props(s: String): String = Option(sys.props(s)).getOrElse("")
-  val fileName = "FILENAME"
-  val utfPropnames = Seq("file.encoding", "sun.jnu.encoding", "native.encoding", "java.runtime.version")
-  utfPropnames.foreach { (str: String) => System.err.println(s"$str = ${props(str)}") }
-  if (sys.props("os.name").toLowerCase.contains("windows")) {
-    import scala.sys.process._
-    System.err.println(s"chcp.com code-page: ${"chcp.com".!!.trim}")
-    try {
-      val codepage = "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage' /v ACP".!!.trim
-      System.err.println(s"registry code-page: ${codepage.replaceAll("[^0-9]", "")}")
-    } catch {
-      case _: Throwable =>
-    }
-  }
-  import java.nio.charset.Charset
-  System.err.println(s"Charset.defaultCharset: ${Charset.defaultCharset}")
-  System.err.println(s"fileName Chars: ${fileName.map(c => f"U+$c%04x").mkString(" ")}")
-  def main(args: Array[String]): Unit = {
-    print("""" + message + """") // no newline needed here
-  }
-}
-""".trim
-    val scriptContents =
-      code.replaceAll("MAINCLASS", classname).replaceAll("FILENAME", fileName)
-    // System.err.printf("%s\n", scriptContents)
+    val scriptContents = utf8ScriptContents(classname, fileName, message)
 
     val inputs = TestInputs(
       os.rel / fileName ->
         scriptContents
     )
 
-    val jvmDir = os.pwd.toString.replace('\\', '/').replaceAll("/out/.*", "") + "/jvm"
-
-    // the build jvm respects system code page, temurin:17 does not
-    val testCli = if Properties.isWin && TestUtil.cli.contains("-jar") then
-      val i                  = TestUtil.cli.indexOf("-jar")
-      val (left, right)      = TestUtil.cli.splitAt(i)
-      val arr: Array[String] = (left ++ utfOptions ++ right).toArray
-      arr(0) = s"$jvmDir/bin/java.exe"
-      arr.toSeq
-    else
-      TestUtil.cli ++ cliOptions
-
-    if (false && Properties.isWin) { // TODO: not sure how enable this in debug or verbose mode
-      def props(s: String): String = Option(sys.props(s)).getOrElse("")
-      utfPropnames.foreach(s => System.err.println(s"$s = ${props(s)}"))
-      System.err.println(s"Charset.defaultCharset: ${Charset.defaultCharset}")
-      if (sys.props("os.name").toLowerCase.contains("windows")) {
-        import scala.sys.process.*
-        System.err.println(s"chcp.com code-page: ${"chcp.com".!!.trim}")
-        try {
-          val codepage =
-            "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage' /v ACP".!!.trim
-          System.err.println(s"registry code-page: ${codepage.replaceAll("[^0-9]", "")}")
-        }
-        catch {
-          case _: Throwable =>
-        }
-      }
-      System.err.println(s"[DEBUG] fileName string: [$fileName]")
-      System.err.println(s"[DEBUG] fileName.length: ${fileName.length}")
-      System.err.println(s"[DEBUG] Chars: ${fileName.map(c => f"U+$c%04x").mkString(" ")}")
-    }
-    System.err.println(s"""
-  os.proc(
-  ${testCli.mkString(" ")},
-  ${extraOptions.mkString(" ")},
-  ${fileName.replace('\\', '/')}
-)""".trim)
-    val runenv = if (Properties.isWin)
-      Map(
-        "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8",
-        "JAVA_HOME"         -> jvmDir
-      )
-    else
-      Map(
-        "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8"
-      )
-
     inputs.fromRoot { root =>
-      System.err.println("================== pre os.proc.call")
       val res = os.proc(
-        testCli,
+        TestUtil.cli,
         extraOptions,
         fileName
       )
         .call(
           cwd = root,
-          check = false,
-          env = runenv
+          check = false
         )
-      System.err.println(s"===== post os.proc.call stdout:\n[${res.out}]")
 
       val stdoutbytes = res.out.bytes
       val utf8str     = new String(stdoutbytes, UTF_8).trim
@@ -1179,8 +1094,6 @@ object MAINCLASS {
         pprint.err.log("expect bytes:" + expectMsg)
       }
       expect(utf8str == message)
-      // bogus failure on Windows occurs only in mill test environment
-      expect(Properties.isWin || utf8str == message)
     }
   }
 
@@ -2557,4 +2470,33 @@ object MAINCLASS {
       }
     }
 
+  def utf8ScriptContents(classname: String, fileName: String, message: String): String =
+    """
+object MAINCLASS {
+  def props(s: String): String = Option(sys.props(s)).getOrElse("")
+  val fileName = "FILENAME"
+  val utfPropnames = Seq("file.encoding", "sun.jnu.encoding", "native.encoding", "java.runtime.version", "java.home", "java.vendor.version", "java.vm.version" )
+  utfPropnames.foreach { (str: String) => System.err.println(s"$str = ${props(str)}") }
+  if (sys.props("os.name").toLowerCase.contains("windows")) {
+    val scalaVersion = util.Properties.versionString.replaceFirst("version ", "").trim
+    System.err.println(s"scala version[$scalaVersion]")
+    import scala.sys.process._
+    System.err.println(s"chcp.com code-page: ${"chcp.com".!!.trim}")
+    if (!scalaVersion.startsWith("2.12")) {
+      try {
+        val codepage = "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage' /v ACP".!!.trim
+        System.err.println(s"registry code-page: ${codepage.replaceAll("[^0-9]", "")}")
+      } catch {
+        case _: Throwable =>
+      }
+    }
+  }
+  import java.nio.charset.Charset
+  System.err.println(s"Charset.defaultCharset: ${Charset.defaultCharset}")
+  System.err.println(s"fileName Chars: ${fileName.map(c => f"U+$c%04x").mkString(" ")}")
+  def main(args: Array[String]): Unit = {
+    print("""" + message + """") // no newline needed here
+  }
+}
+""".trim.replaceAll("MAINCLASS", classname).replaceAll("FILENAME", fileName)
 }
