@@ -90,6 +90,7 @@ object Scala {
 object Java {
   def minimumJavaLauncherJava  = 11
   def minimumBloopJava: Int    = 17
+  def minimumScala38Java: Int  = 17
   def minimumInternalJava: Int = 16
   def defaultJava: Int         = minimumBloopJava
   def cliKeyJavaVersions       = Seq(

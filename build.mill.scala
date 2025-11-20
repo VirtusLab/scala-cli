@@ -524,6 +524,12 @@ trait Core extends ScalaCliCrossSbtModule
          |  def scala3NextPrefix = "${Scala.scala3NextPrefix}"
          |  def scala3LtsPrefix = "${Scala.scala3LtsPrefix}"
          |  def scala3Lts       = "${Scala.scala3Lts}"
+         |  
+         |  def scala38Versions = Seq(${Scala.scala38Versions
+          .sorted
+          .map(s => s"\"$s\"")
+          .mkString(", ")})
+         |  def scala38MinJavaVersion = ${Java.minimumScala38Java}
          |
          |  def workspaceDirName = "$workspaceDirName"
          |  def projectFileName = "$projectFileName"
@@ -1032,6 +1038,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
             .sorted
             .map(s => s"\"$s\"")
             .mkString(", ")})
+           |  def scala38MinJavaVersion        = ${Java.minimumScala38Java}
            |  def defaultScalafmtVersion       = "${Deps.scalafmtCli.dep.versionConstraint.asString}"
            |  def maxAmmoniteScala212Version   = "${Scala.maxAmmoniteScala212Version}"
            |  def maxAmmoniteScala213Version   = "${Scala.maxAmmoniteScala213Version}"
