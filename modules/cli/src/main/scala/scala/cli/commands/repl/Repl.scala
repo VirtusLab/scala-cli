@@ -1,6 +1,4 @@
 package scala.cli.commands.repl
-
-import ai.kien.python.Python
 import caseapp.*
 import caseapp.core.help.HelpFormat
 import coursier.cache.FileCache
@@ -23,7 +21,7 @@ import scala.build.internal.{Constants, Runner}
 import scala.build.options.ScalacOpt.noDashPrefixes
 import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, ScalaVersionUtil, Scope}
 import scala.cli.CurrentParams
-import scala.cli.commands.run.Run.{orPythonDetectionError, pythonPathEnv}
+import scala.cli.commands.run.Run.{createPythonInstance, orPythonDetectionError, pythonPathEnv}
 import scala.cli.commands.run.RunMode
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, ScalacOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
@@ -311,7 +309,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     val (scalapyJavaOpts, scalapyExtraEnv) =
       if (setupPython) {
         val props = value {
-          val python       = Python()
+          val python       = value(createPythonInstance().orPythonDetectionError)
           val propsOrError = python.scalapyProperties
           logger.debug(s"Python Java properties: $propsOrError")
           propsOrError.orPythonDetectionError
