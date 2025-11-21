@@ -1,7 +1,4 @@
 package scala.cli.config
-
-import com.github.plokhotnyuk.jsoniter_scala.core.Key as _
-
 import scala.cli.commands.SpecificationLevel
 
 object Keys {

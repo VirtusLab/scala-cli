@@ -4,6 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.annotation.tailrec
 import scala.cli.integration.Constants.munitVersion
+import scala.cli.integration.TestUtil.StringOps
 
 abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
@@ -1007,4 +1008,37 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       }
     }
   }
+
+  for {
+    javaVersion <-
+      if isScala38OrNewer then
+        Constants.allJavaVersions.filter(_ >= Constants.scala38MinJavaVersion)
+      else Constants.allJavaVersions.filter(_ < 24)
+    expectedMessage = "Hello, world!"
+    expectedWarning = s"Defaulting to a legacy test-runner module version"
+  }
+    test(s"run a simple test with Java $javaVersion") {
+      TestInputs(os.rel / "example.test.scala" ->
+        s"""//> using dep com.novocode:junit-interface:0.11
+           |import org.junit.Test
+           |
+           |class MyTests {
+           |  @Test
+           |  def foo(): Unit = {
+           |    assert(2 + 2 == 4)
+           |    println("$expectedMessage")
+           |  }
+           |}
+           |""".stripMargin).fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "test", ".", extraOptions, "--jvm", javaVersion)
+            .call(cwd = root, stderr = os.Pipe)
+        val out = res.out.trim()
+        expect(out.contains(expectedMessage))
+        if actualScalaVersion.startsWith("2") || javaVersion < Constants.scala38MinJavaVersion then
+          val err = res.err.trim()
+          expect(err.contains(expectedWarning))
+          expect(err.countOccurrences(expectedWarning) == 1)
+      }
+    }
 }

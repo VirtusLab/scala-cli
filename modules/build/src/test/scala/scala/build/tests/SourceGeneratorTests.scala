@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.Console.println
 import scala.build.Ops.EitherThrowOps
-import scala.build.options.{BuildOptions, InternalOptions, Scope}
+import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position}
 

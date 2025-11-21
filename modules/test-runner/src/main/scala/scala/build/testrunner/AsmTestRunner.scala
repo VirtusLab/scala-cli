@@ -1,7 +1,7 @@
 package scala.build.testrunner
 
 import org.objectweb.asm
-import sbt.testing.{Logger as _, *}
+import sbt.testing.*
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 import java.nio.charset.StandardCharsets

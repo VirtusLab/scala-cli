@@ -115,9 +115,6 @@ object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
   override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Seq(
     Deps.bsp4j
   )
-  override def javacOptions: T[Seq[String]] = Task {
-    super.javacOptions() ++ Seq("-target", "8", "-source", "8")
-  }
 }
 object integration extends CliIntegration {
   object test extends IntegrationScalaTests {
@@ -527,6 +524,12 @@ trait Core extends ScalaCliCrossSbtModule
          |  def scala3NextPrefix = "${Scala.scala3NextPrefix}"
          |  def scala3LtsPrefix = "${Scala.scala3LtsPrefix}"
          |  def scala3Lts       = "${Scala.scala3Lts}"
+         |  
+         |  def scala38Versions = Seq(${Scala.scala38Versions
+          .sorted
+          .map(s => s"\"$s\"")
+          .mkString(", ")})
+         |  def scala38MinJavaVersion = ${Java.minimumScala38Java}
          |
          |  def workspaceDirName = "$workspaceDirName"
          |  def projectFileName = "$projectFileName"
@@ -773,14 +776,7 @@ trait Build extends ScalaCliCrossSbtModule
 
 trait SpecificationLevel extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule {
-  override def crossScalaVersion: String     = crossValue
-  override def scalacOptions: T[Seq[String]] = Task {
-    val isScala213   = crossScalaVersion.startsWith("2.13.")
-    val extraOptions =
-      if (isScala213) Seq("-Xsource:3")
-      else Nil
-    super.scalacOptions() ++ extraOptions ++ Seq("-release", "8")
-  }
+  override def crossScalaVersion: String = crossValue
 }
 
 trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
@@ -1038,6 +1034,11 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def scala3Next                   = "${Scala.scala3Next}"
            |  def scala3NextAnnounced          = "${Scala.scala3NextAnnounced}"
            |  def defaultScala                 = "${Scala.defaultUser}"
+           |  def scala38Versions              = Seq(${Scala.scala38Versions
+            .sorted
+            .map(s => s"\"$s\"")
+            .mkString(", ")})
+           |  def scala38MinJavaVersion        = ${Java.minimumScala38Java}
            |  def defaultScalafmtVersion       = "${Deps.scalafmtCli.dep.versionConstraint.asString}"
            |  def maxAmmoniteScala212Version   = "${Scala.maxAmmoniteScala212Version}"
            |  def maxAmmoniteScala213Version   = "${Scala.maxAmmoniteScala213Version}"
@@ -1240,7 +1241,7 @@ trait Runner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++ Seq("-release", "8", "-deprecation")
+    super.scalacOptions() ++ Seq("-deprecation")
   }
   override def mainClass: T[Option[String]] = Some("scala.cli.runner.Runner")
   override def sources: T[Seq[PathRef]]     = Task.Sources {
@@ -1255,7 +1256,7 @@ trait TestRunner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++ Seq("-release", "8", "-deprecation")
+    super.scalacOptions() ++ Seq("-deprecation")
   }
   override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
     Deps.asm,
