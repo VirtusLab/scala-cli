@@ -1072,8 +1072,6 @@ abstract class RunTestDefinitions
       val res = os.proc(
         TestUtil.cli,
         "-Dtest.scala-cli.debug-charset-issue=true",
-        "-Dfile.encoding=UTF-8",
-        "-Dsun.jnu.encoding=UTF-8",
         "run",
         extraOptions,
         fileName
