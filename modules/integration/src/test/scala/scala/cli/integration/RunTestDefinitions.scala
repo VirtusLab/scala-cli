@@ -4,9 +4,9 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets.UTF_8
 
 import scala.cli.integration.util.DockerServer
+import scala.io.Codec
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
@@ -1057,43 +1057,33 @@ abstract class RunTestDefinitions
   }
 
   test("UTF-8") {
-    def utf8tag   = "ÅÄÖåäö"
-    val classname = s"Test$utf8tag"
-    val message   = s"Hello $classname"
-    val fileName  = s"$classname.scala"
-
-    val scriptContents = utf8ScriptContents(classname, fileName, message)
-
-    val inputs = TestInputs(
+    val message  = "Hello from TestÅÄÖåäö"
+    val fileName = "TestÅÄÖåäö.scala"
+    val inputs   = TestInputs(
       os.rel / fileName ->
-        scriptContents
+        s"""object TestÅÄÖåäö {
+           |  def main(args: Array[String]): Unit = {
+           |    println("$message")
+           |  }
+           |}
+           |""".stripMargin
     )
-
     inputs.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+        "-Dtest.scala-cli.debug-charset-issue=true",
+        "-Dfile.encoding=UTF-8",
+        "-Dsun.jnu.encoding=UTF-8",
+        "run",
         extraOptions,
         fileName
       )
-        .call(
-          cwd = root,
-          check = false
-        )
-
-      val stdoutbytes = res.out.bytes
-      val utf8str     = new String(stdoutbytes, UTF_8).trim
-
-      pprint.err.log(utf8str)
-      pprint.err.log(message)
-
-      if (utf8str != message) {
-        val expectbytes = message.getBytes(UTF_8)
-        val expectMsg   = expectbytes.map("%02x".format(_)).mkString(" ")
-        val stdoutMsg   = stdoutbytes.map("%02x".format(_)).mkString(" ")
-        pprint.err.log("stdout bytes:" + stdoutMsg)
-        pprint.err.log("expect bytes:" + expectMsg)
+        .call(cwd = root)
+      if (res.out.text(Codec.UTF8).trim != message) {
+        pprint.err.log(res.out.text(Codec.UTF8).trim)
+        pprint.err.log(message)
       }
-      expect(utf8str == message)
+      expect(res.out.text(Codec.UTF8).trim == message)
     }
   }
 
@@ -2469,34 +2459,4 @@ abstract class RunTestDefinitions
         processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
       }
     }
-
-  def utf8ScriptContents(classname: String, fileName: String, message: String): String =
-    """
-object MAINCLASS {
-  def props(s: String): String = Option(sys.props(s)).getOrElse("")
-  val fileName = "FILENAME"
-  val utfPropnames = Seq("file.encoding", "sun.jnu.encoding", "native.encoding", "java.runtime.version", "java.home", "java.vendor.version", "java.vm.version" )
-  utfPropnames.foreach { (str: String) => System.err.println(s"$str = ${props(str)}") }
-  if (sys.props("os.name").toLowerCase.contains("windows")) {
-    val scalaVersion = util.Properties.versionString.replaceFirst("version ", "").trim
-    System.err.println(s"scala version[$scalaVersion]")
-    import scala.sys.process._
-    System.err.println(s"chcp.com code-page: ${"chcp.com".!!.trim}")
-    if (!scalaVersion.startsWith("2.12")) {
-      try {
-        val codepage = "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage' /v ACP".!!.trim
-        System.err.println(s"registry code-page: ${codepage.replaceAll("[^0-9]", "")}")
-      } catch {
-        case _: Throwable =>
-      }
-    }
-  }
-  import java.nio.charset.Charset
-  System.err.println(s"Charset.defaultCharset: ${Charset.defaultCharset}")
-  System.err.println(s"fileName Chars: ${fileName.map(c => f"U+$c%04x").mkString(" ")}")
-  def main(args: Array[String]): Unit = {
-    print("""" + message + """") // no newline needed here
-  }
-}
-""".trim.replaceAll("MAINCLASS", classname).replaceAll("FILENAME", fileName)
 }
