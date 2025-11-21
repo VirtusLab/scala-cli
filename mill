@@ -70,7 +70,7 @@ function to_bash_syntax {
 if [[ $IS_WINDOWS ]]; then
   # needed for coursier version < 2.1.8, harmless otherwise
   IFS=$'\n'
-  # temurin:17 doesn't support utf8 filenames
+  # temurin:17 (build 17+35) doesn't support utf8 filenames, although some later 17 versions do
   eval "$(to_bash_syntax `"$cs" java --env --jvm zulu:17` || to_bash_syntax `"$cs" java --env --jvm openjdk:1.17.0`)"
   unset IFS
 else
