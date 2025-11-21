@@ -112,8 +112,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ env.REGISTRY_LOGIN }}
+          password: ${{ env.REGISTRY_PASSWORD }}
 
       - name: Docker meta
         id: meta
