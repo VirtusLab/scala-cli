@@ -10,9 +10,12 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
     actualScalaVersion.startsWith("3") && actualScalaVersion.split('.').drop(1).head.toInt >= 5
 
   for {
-    javaVersion <-
-      if (!TestUtil.isJvmCli) Constants.allJavaVersions
-      else Constants.allJavaVersions.filter(_ >= Constants.minimumLauncherJavaVersion)
+    javaVersion <- isScala38OrNewer -> TestUtil.isJvmCli match {
+      case (false, true) =>
+        Constants.allJavaVersions.filter(_ >= Constants.minimumLauncherJavaVersion)
+      case (true, _) => Constants.allJavaVersions.filter(_ >= Constants.defaultJvmVersion)
+      case _         => Constants.allJavaVersions
+    }
     index = javaVersion
     useScalaInstallationWrapper <-
       if (canUseScalaInstallationWrapper) Seq(false, true) else Seq(false)

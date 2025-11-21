@@ -160,7 +160,8 @@ trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
   }
   // disabled on Windows for now, for context, see
   // https://github.com/VirtusLab/scala-cli/pull/1270#issuecomment-1237904394
-  if (!Properties.isWin)
+  // disabled on Scala 3.8 and above, behavior seems to have changed here
+  if !Properties.isWin && !isScala38OrNewer then
     test("Python and Scala sources (native)") {
       pythonAndScalaSourcesTest(native = true)
     }

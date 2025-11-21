@@ -328,58 +328,95 @@ abstract class CompileTestDefinitions
     TestInputs(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isPresent}")
   val scalaJvm11Project: TestInputs =
     TestInputs(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isEmpty}")
+  val scalaJvm17Project: TestInputs =
+    TestInputs(os.rel / "Main.scala" -> s"object Main{java.util.HexFormat.of().toHexDigits(255)}")
+  val scalaJvm23Project: TestInputs =
+    TestInputs(
+      os.rel / "Main.scala" -> s"object Main{System.out.println(javax.print.attribute.standard.OutputBin.LEFT)}"
+    )
   val javaJvm8Project: TestInputs =
     TestInputs(os.rel / "Main.java" -> """|public class Main{
                                           |  public static void main(String[] args) {
                                           |      java.util.Optional.of(1).isPresent();
                                           |  }
                                           |}""".stripMargin)
-
   val javaJvm11Project: TestInputs =
     TestInputs(os.rel / "Main.java" -> """|public class Main{
                                           |  public static void main(String[] args) {
                                           |      java.util.Optional.of(1).isEmpty();
                                           |  }
                                           |}""".stripMargin)
+  val javaJvm17Project: TestInputs =
+    TestInputs(os.rel / "Main.java" -> """|public class Main{
+                                          |  public static void main(String[] args) {
+                                          |      java.util.HexFormat.of().toHexDigits(255);
+                                          |  }
+                                          |}""".stripMargin)
+  val javaJvm23Project: TestInputs =
+    TestInputs(os.rel / "Main.java" -> """|public class Main{
+                                          |  public static void main(String[] args) {
+                                          |      System.out.println(javax.print.attribute.standard.OutputBin.LEFT);
+                                          |  }
+                                          |}""".stripMargin)
 
-  val inputs: Map[(String, Int), TestInputs] = Map(
-    ("scala", 8)  -> scalaJvm8Project,
-    ("scala", 11) -> scalaJvm11Project,
-    ("java", 8)   -> javaJvm8Project,
-    ("java", 11)  -> javaJvm11Project
-  )
+  def inputs: Map[(String, Int), TestInputs] =
+    if isScala38OrNewer
+    then
+      Map(
+        ("scala", 17) -> scalaJvm17Project,
+        ("scala", 23) -> scalaJvm23Project,
+        ("java", 17)  -> javaJvm17Project,
+        ("java", 23)  -> javaJvm23Project
+      )
+    else
+      Map(
+        ("scala", 8)  -> scalaJvm8Project,
+        ("scala", 11) -> scalaJvm11Project,
+        ("scala", 17) -> scalaJvm17Project,
+        ("scala", 23) -> scalaJvm23Project,
+        ("java", 8)   -> javaJvm8Project,
+        ("java", 11)  -> javaJvm11Project,
+        ("java", 17)  -> javaJvm17Project,
+        ("java", 23)  -> javaJvm23Project
+      )
 
-  for {
-    bloopJvm                      <- List(8, 11)
-    targetJvm                     <- List(8, 11)
-    ((lang, sourcesJvm), project) <- inputs
-  } test(s"JvmCompatibilityTest: bloopJvm:$bloopJvm/targetJvm:$targetJvm/lang:$lang/sourcesJvm:$sourcesJvm"
-    .tag(jvmT)) {
-    compileToADifferentJvmThanBloops(
-      bloopJvm.toString,
-      targetJvm.toString,
-      targetJvm >= sourcesJvm,
-      project
-    )
+  {
+    val legacyJvms  = List(8, 11)
+    val currentJvms = List(17, 23)
+    val jvms        = if isScala38OrNewer then currentJvms else legacyJvms ++ currentJvms
+    for {
+      bloopJvm                      <- jvms
+      targetJvm                     <- jvms
+      ((lang, sourcesJvm), project) <- inputs
+    } test(s"JvmCompatibilityTest: bloopJvm:$bloopJvm/targetJvm:$targetJvm/lang:$lang/sourcesJvm:$sourcesJvm"
+      .tag(jvmT)) {
+      compileToADifferentJvmThanBloops(
+        bloopJvm.toString,
+        targetJvm.toString,
+        targetJvm >= sourcesJvm,
+        project
+      )
+    }
   }
 
   test("Scala CLI should not infer scalac --release if --release is passed".tag(jvmT)) {
-    scalaJvm11Project.fromRoot { root =>
+    scalaJvm23Project.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
         "compile",
         extraOptions,
         "--jvm",
-        "11",
+        "23",
         "-release",
-        "8",
+        "17",
         "."
       ).call(cwd = root, check = false, stderr = os.Pipe)
       expect(res.exitCode != 0)
       val errOutput = res.err.trim()
-      expect(errOutput.contains("isEmpty is not a member"))
+      System.err.println(errOutput)
+      expect(errOutput.contains("OutputBin is not a member"))
       expect(errOutput.contains(
-        "Warning: different target JVM (11) and scala compiler target JVM (8) were passed."
+        "Warning: different target JVM (23) and scala compiler target JVM (17) were passed."
       ))
     }
   }
@@ -426,12 +463,13 @@ abstract class CompileTestDefinitions
       )
       val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", targetJvm, ".")
         .call(cwd = root, check = false, stderr = os.Pipe)
-      expect((res.exitCode == 0) == shouldSucceed)
-      if (!shouldSucceed)
+      val succeeded = res.exitCode == 0
+      if succeeded != shouldSucceed then System.err.println(res.err.text())
+      expect(succeeded == shouldSucceed)
+      if !shouldSucceed then
         expect(
-          res.err.text().contains("value isEmpty is not a member") || res.err.text().contains(
-            "cannot find symbol"
-          )
+          res.err.text().contains("is not a member") ||
+          res.err.text().contains("cannot find symbol")
         )
     }
   if (actualScalaVersion.startsWith("2.12"))
@@ -743,7 +781,7 @@ abstract class CompileTestDefinitions
     val filename = "Main.scala"
     val inputs   = TestInputs(
       os.rel / filename ->
-        """|object Main extends App {
+        """|object Main {
            |  val msg: String = "1"
            |}
            |""".stripMargin
@@ -755,17 +793,16 @@ abstract class CompileTestDefinitions
         mergeErrIntoOut = true
       )
 
-      assertEquals(
-        TestUtil.fullStableOutput(result),
-        s"""|Compiling project (Scala $actualScalaVersion, JVM (${Constants
-             .defaultGraalVMJavaVersion}))
-            |Compiled project (Scala $actualScalaVersion, JVM (${Constants
-             .defaultGraalVMJavaVersion}))""".stripMargin
-      )
+      val jvmVersion     = Constants.defaultGraalVMJavaVersion
+      val expectedOutput =
+        s"""|Compiling project (Scala $actualScalaVersion, JVM ($jvmVersion))
+            |Compiled project (Scala $actualScalaVersion, JVM ($jvmVersion))""".stripMargin
+      val actualOutput = TestUtil.fullStableOutput(result)
+      assertEquals(actualOutput, expectedOutput)
 
       os.write.over(
         root / filename,
-        """|object Main extends App {
+        """|object Main {
            |    val msg: String = 1
            |}
            |""".stripMargin
@@ -777,30 +814,29 @@ abstract class CompileTestDefinitions
         mergeErrIntoOut = true
       )
 
-      val expectedError = if (actualScalaVersion.startsWith("2"))
-        """|[error] type mismatch;
-           |[error]  found   : Int(1)
-           |[error]  required: String""".stripMargin
-      else
-        """|[error] Found:    (1 : Int)
-           |[error] Required: String""".stripMargin
+      val expectedError =
+        if actualScalaVersion.startsWith("2") then
+          """|[error] type mismatch;
+             |[error]  found   : Int(1)
+             |[error]  required: String""".stripMargin
+        else
+          """|[error] Found:    (1 : Int)
+             |[error] Required: String""".stripMargin
 
-      assertEquals(
-        TestUtil.fullStableOutput(result2).trim,
-        s"""|Compiling project (Scala $actualScalaVersion, JVM (${Constants
-             .defaultGraalVMJavaVersion}))
+      val actualOutput2   = TestUtil.fullStableOutput(result2).trim
+      val expectedOutput2 =
+        s"""|Compiling project (Scala $actualScalaVersion, JVM ($jvmVersion))
             |[error] .${File.separatorChar}Main.scala:2:23
             |$expectedError
             |[error]     val msg: String = 1
             |[error]                       ^
-            |Error compiling project (Scala $actualScalaVersion, JVM (${Constants
-             .defaultGraalVMJavaVersion}))
+            |Error compiling project (Scala $actualScalaVersion, JVM ($jvmVersion))
             |Compilation failed""".stripMargin
-      )
+      assertEquals(actualOutput2, expectedOutput2)
 
       os.write.over(
         root / filename,
-        """|object Main extends App {
+        """|object Main {
            |    val msg: String = "1"
            |}
            |""".stripMargin
@@ -812,14 +848,11 @@ abstract class CompileTestDefinitions
         mergeErrIntoOut = true
       )
 
-      assertEquals(
-        TestUtil.fullStableOutput(result3),
-        s"""|Compiling project (Scala $actualScalaVersion, JVM (${Constants
-             .defaultGraalVMJavaVersion}))
-            |Compiled project (Scala $actualScalaVersion, JVM (${Constants
-             .defaultGraalVMJavaVersion}))""".stripMargin
-      )
-
+      val actualOutput3   = TestUtil.fullStableOutput(result3)
+      val expectedOutput3 =
+        s"""|Compiling project (Scala $actualScalaVersion, JVM ($jvmVersion))
+            |Compiled project (Scala $actualScalaVersion, JVM ($jvmVersion))""".stripMargin
+      assertEquals(actualOutput3, expectedOutput3)
     }
   }
 
