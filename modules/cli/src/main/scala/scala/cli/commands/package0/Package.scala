@@ -1,6 +1,4 @@
 package scala.cli.commands.package0
-
-import ai.kien.python.Python
 import caseapp.*
 import caseapp.core.help.HelpFormat
 import coursier.core
@@ -34,7 +32,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
 import scala.cli.commands.doc.Doc
 import scala.cli.commands.packaging.Spark
-import scala.cli.commands.run.Run.orPythonDetectionError
+import scala.cli.commands.run.Run.{createPythonInstance, orPythonDetectionError}
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, MainClassOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.util.BuildCommandHelpers.*
@@ -1089,7 +1087,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val pythonLdFlags =
       if setupPython then
         value {
-          val python       = Python()
+          val python       = value(createPythonInstance().orPythonDetectionError)
           val flagsOrError = python.ldflags
           logger.debug(s"Python ldflags: $flagsOrError")
           flagsOrError.orPythonDetectionError
