@@ -149,7 +149,7 @@ object Deps {
     def mavenAppArtifactId                = "maven-app"
     def mavenAppGroupId                   = "com.example"
     def mavenAppVersion                   = "0.1-SNAPSHOT"
-    def scalafix                          = "0.14.3"
+    def scalafix                          = "0.14.4"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
