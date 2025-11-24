@@ -1077,11 +1077,11 @@ abstract class RunTestDefinitions
         fileName
       )
         .call(cwd = root)
-      if (res.out.text(Codec.default).trim != message) {
-        pprint.err.log(res.out.text(Codec.default).trim)
+      if (res.out.text(Codec.UTF8).trim != message) {
+        pprint.err.log(res.out.text(Codec.UTF8).trim)
         pprint.err.log(message)
       }
-      expect(res.out.text(Codec.default).trim == message)
+      expect(res.out.text(Codec.UTF8).trim == message)
     }
   }
 
