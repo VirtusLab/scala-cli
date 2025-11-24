@@ -142,7 +142,7 @@ object Deps {
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.8"
     def bloop                             = "2.0.15"
-    def sbtVersion                        = "1.11.4"
+    def sbtVersion                        = "1.11.7"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
     def mavenExecPluginVersion            = "3.3.0"
