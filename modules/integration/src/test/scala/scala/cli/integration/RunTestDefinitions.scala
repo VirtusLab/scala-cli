@@ -919,8 +919,14 @@ abstract class RunTestDefinitions
       )
       os.proc(cmd).call(cwd = root, stdout = os.Inherit)
       val rootOutput = os.read(root / "output-root").trim
+      System.err.println("===root output===")
+      System.err.println(rootOutput)
+      System.err.println("===end root output===")
       expect(rootOutput == message)
       val userOutput = os.read(root / "output-user").trim
+      System.err.println("===user output===")
+      System.err.println(userOutput)
+      System.err.println("===end user output===")
       expect(userOutput == message)
     }
   }
