@@ -212,7 +212,7 @@ object Deps {
   def nativeTestRunner   = mvn"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools        = mvn"org.scala-native::tools:${Versions.scalaNative}"
   def osLib              = mvn"com.lihaoyi::os-lib:0.11.5"
-  def pprint             = mvn"com.lihaoyi::pprint:0.9.3"
+  def pprint             = mvn"com.lihaoyi::pprint:0.9.5"
   def pythonInterface    = mvn"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs   = mvn"ai.kien::python-native-libs:0.2.5"
   def scalac(sv: String) = mvn"org.scala-lang:scala-compiler:$sv"
