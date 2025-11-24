@@ -158,7 +158,7 @@ object Deps {
   def ammoniteForScala3Lts = mvn"com.lihaoyi:::ammonite:${Versions.ammoniteForScala3Lts}"
   def argonautShapeless    =
     mvn"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"
-  def asm = mvn"org.ow2.asm:asm:9.8"
+  def asm = mvn"org.ow2.asm:asm:9.9"
   // Force using of 2.13 - is there a better way?
   def bloopConfig = mvn"ch.epfl.scala:bloop-config_2.13:2.3.2"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
