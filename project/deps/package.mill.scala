@@ -165,7 +165,7 @@ object Deps {
   def bloopRifle       = mvn"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
   def bsp4j            = mvn"ch.epfl.scala:bsp4j:2.1.1"
   def caseApp          = mvn"com.github.alexarchambault::case-app:2.1.0"
-  def collectionCompat = mvn"org.scala-lang.modules::scala-collection-compat:2.13.0"
+  def collectionCompat = mvn"org.scala-lang.modules::scala-collection-compat:2.14.0"
   // Force using of 2.13 - is there a better way?
   def coursier             = mvn"io.get-coursier:coursier_2.13:${Versions.coursier}"
   def coursierArchiveCache = mvn"io.get-coursier:coursier-archive-cache_2.13:${Versions.coursier}"
