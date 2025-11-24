@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-22.04", "ubuntu-22.04-arm"]
+        os: ["ubuntu-24.04", "ubuntu-24.04-arm"]
     runs-on: ${{ matrix.os }}
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
@@ -89,7 +89,7 @@ jobs:
           retention-days: 1
 
   docker_release_merge:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
