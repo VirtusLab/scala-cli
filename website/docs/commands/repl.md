@@ -189,8 +189,8 @@ scala> :quit
 Since we started the repl with toolkit enabled, we can use the libraries included in the toolkit directly. In the above example, the `os-lib` library from the toolkit is used to print the current path. 
 
 ### Running snippets directly via the REPL
-It is possible to run code snippets via the REPL (with all the internal quirks of the REPL), rather than using standard runner execution.
-While the difference is subtle (and should generally be invisible to users), it is useful for investigating REPL behavior.
+It is possible to run code snippets via the REPL, with all the internal quirks of the REPL, rather than using standard runner execution.
+While the difference is subtle and should generally be invisible to users, it is useful for investigating REPL behavior.
 The key to doing that is to use the both `--repl-init-script` and `--repl-quit-after-init` options together.
 
 <ChainedSnippets>
