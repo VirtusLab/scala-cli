@@ -569,6 +569,70 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("java -XX:* options in using directives") {
+    val (opt1, opt2, opt3) = (
+      "-XX:+UnlockExperimentalVMOptions",
+      "-XX:+AlwaysPreTouch",
+      "-XX:+UseParallelGC"
+    )
+    val scriptPath = os.rel / "something.sc"
+    val testInputs = TestInputs(
+      scriptPath ->
+        s"""//> using javaOpt $opt1 $opt2 $opt3
+           |""".stripMargin
+    )
+    testInputs.withInputs { (root, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        ).orThrow
+
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       =
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        )
+          .orThrow
+      val javaOpts = sources.buildOptions.javaOptions.javaOpts.toSeq.sortBy(_.toString)
+
+      val scriptAbsolutePath = root / scriptPath
+      val startPosX          = 0
+      val startPosY1         = 18
+      expect(
+        javaOpts.head.value.value == opt1,
+        javaOpts.head.positions == Seq(Position.File(
+          Right(scriptAbsolutePath),
+          (startPosX, startPosY1),
+          (startPosX, startPosY1 + opt1.length)
+        ))
+      )
+      val startPosY2 = startPosY1 + opt1.length + 1
+      expect(
+        javaOpts.drop(1).head.value.value == opt2,
+        javaOpts.drop(1).head.positions == Seq(Position.File(
+          Right(scriptAbsolutePath),
+          (startPosX, startPosY2),
+          (startPosX, startPosY2 + opt2.length)
+        ))
+      )
+      val startPosY3 = startPosY2 + opt2.length + 1
+      expect(
+        javaOpts.drop(2).head.value.value == opt3,
+        javaOpts.drop(2).head.positions == Seq(Position.File(
+          Right(scriptAbsolutePath),
+          (startPosX, startPosY3),
+          (startPosX, startPosY3 + opt3.length)
+        ))
+      )
+    }
+  }
+
   test("js options in using directives") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
