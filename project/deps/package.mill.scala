@@ -1,4 +1,5 @@
 package build.project.deps
+import coursier.version.Version
 import mill._
 import scalalib._
 
@@ -19,15 +20,19 @@ object Scala {
   def scala3Next          = s"$scala3NextPrefix.4" // the newest/next version of Scala
   def scala3NextAnnounced =
     s"$scala3NextPrefix.3" // the newest/next version of Scala that's been announced
-  def scala3NextRc          = s"$scala3NextPrefix.4-RC3" // the latest RC version of Scala Next
-  def scala3NextRcAnnounced =
-    s"$scala3NextPrefix.4-RC1" // the latest announced RC version of Scala Next
+  def scala3NextRc        = "3.8.0-RC1"            // the latest RC version of Scala Next
+  def scala3NextRcAnnounced = "3.7.4-RC3" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
 
   // The Scala version used by default to compile user input.
   def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3Next)
+
+  // as Scala 3.8 changes a lot of compatibilities,
+  // these are the cutoff versions for the stable, RC and nightly series,
+  // respectively
+  def scala38Versions = Seq("3.8.0", "3.8.0-RC1", "3.8.0-RC1-bin-20250901-ca400bd-NIGHTLY")
 
   val allScala2           = Seq(scala213, scala212)
   val defaults            = Seq(defaultInternal, defaultUser).distinct

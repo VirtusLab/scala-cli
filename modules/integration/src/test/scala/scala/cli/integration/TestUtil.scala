@@ -12,6 +12,7 @@ import scala.Console.*
 import scala.annotation.tailrec
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Try}
 
 object TestUtil {
@@ -116,9 +117,9 @@ object TestUtil {
     if (uri.startsWith("file:///")) "file:/" + uri.stripPrefix("file:///")
     else uri
 
-  def removeAnsiColors(str: String) = str.replaceAll("\\e\\[[0-9]+m", "")
+  def removeAnsiColors(str: String): String = str.replaceAll("\\e\\[[0-9]+m", "")
 
-  def fullStableOutput(result: os.CommandResult) =
+  def fullStableOutput(result: os.CommandResult): String =
     removeAnsiColors(result.toString).trim().linesIterator.filterNot { str =>
       // these lines are not stable and can easily change
       val shouldNotContain =
@@ -133,6 +134,9 @@ object TestUtil {
         )
       shouldNotContain.exists(str.contains)
     }.mkString(System.lineSeparator())
+
+  def fullStableOutputLines(result: os.CommandResult): Vector[String] =
+    fullStableOutput(result).lines().toList.asScala.toVector
 
   def retry[T](
     maxAttempts: Int = 3,
