@@ -501,7 +501,7 @@ Pass a global dialect for scalafmt. This overrides whatever value is configured 
 
 Aliases: `--fmt-version`
 
-Pass scalafmt version before running it (3.9.10 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.10.1 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -1250,7 +1250,7 @@ Use Ammonite (instead of the default Scala REPL)
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version (3.0.3 by default)
+Set the Ammonite version (3.0.4 by default)
 
 ### `--ammonite-arg`
 

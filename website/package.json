@@ -23,7 +23,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-player": "^2.16.1",
-    "sass": "^1.94.0"
+    "sass": "^1.94.2"
   },
   "browserslist": {
     "production": [

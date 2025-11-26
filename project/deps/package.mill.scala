@@ -1,4 +1,5 @@
 package build.project.deps
+import coursier.version.Version
 import mill._
 import scalalib._
 
@@ -19,15 +20,19 @@ object Scala {
   def scala3Next          = s"$scala3NextPrefix.4" // the newest/next version of Scala
   def scala3NextAnnounced =
     s"$scala3NextPrefix.3" // the newest/next version of Scala that's been announced
-  def scala3NextRc          = s"$scala3NextPrefix.4-RC3" // the latest RC version of Scala Next
-  def scala3NextRcAnnounced =
-    s"$scala3NextPrefix.4-RC1" // the latest announced RC version of Scala Next
+  def scala3NextRc        = "3.8.0-RC1"            // the latest RC version of Scala Next
+  def scala3NextRcAnnounced = "3.7.4-RC3" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
 
   // The Scala version used by default to compile user input.
   def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3Next)
+
+  // as Scala 3.8 changes a lot of compatibilities,
+  // these are the cutoff versions for the stable, RC and nightly series,
+  // respectively
+  def scala38Versions = Seq("3.8.0", "3.8.0-RC1", "3.8.0-RC1-bin-20250901-ca400bd-NIGHTLY")
 
   val allScala2           = Seq(scala213, scala212)
   val defaults            = Seq(defaultInternal, defaultUser).distinct
@@ -116,7 +121,7 @@ object InternalDeps {
 
 object Deps {
   object Versions {
-    def ammonite             = "3.0.3"
+    def ammonite             = "3.0.4"
     def ammoniteForScala3Lts = ammonite
     def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
@@ -125,10 +130,10 @@ object Deps {
     def coursierCli                       = coursierDefault
     def coursierPublish                   = "0.4.3"
     def jmh                               = "1.37"
-    def jsoniterScala                     = "2.38.3"
+    def jsoniterScala                     = "2.38.4"
     def jsoup                             = "1.21.2"
-    def scalaMeta                         = "4.13.9"
-    def scalafmt                          = "3.9.10"
+    def scalaMeta                         = "4.14.1"
+    def scalafmt                          = "3.10.1"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.9"
     def scalaNative                       = scalaNative05
@@ -142,14 +147,14 @@ object Deps {
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.8"
     def bloop                             = "2.0.17"
-    def sbtVersion                        = "1.11.4"
+    def sbtVersion                        = "1.11.7"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
     def mavenExecPluginVersion            = "3.3.0"
     def mavenAppArtifactId                = "maven-app"
     def mavenAppGroupId                   = "com.example"
     def mavenAppVersion                   = "0.1-SNAPSHOT"
-    def scalafix                          = "0.14.3"
+    def scalafix                          = "0.14.4"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
@@ -158,14 +163,14 @@ object Deps {
   def ammoniteForScala3Lts = mvn"com.lihaoyi:::ammonite:${Versions.ammoniteForScala3Lts}"
   def argonautShapeless    =
     mvn"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"
-  def asm = mvn"org.ow2.asm:asm:9.8"
+  def asm = mvn"org.ow2.asm:asm:9.9"
   // Force using of 2.13 - is there a better way?
   def bloopConfig = mvn"ch.epfl.scala:bloop-config_2.13:2.3.3"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def bloopRifle       = mvn"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
   def bsp4j            = mvn"ch.epfl.scala:bsp4j:2.1.1"
   def caseApp          = mvn"com.github.alexarchambault::case-app:2.1.0"
-  def collectionCompat = mvn"org.scala-lang.modules::scala-collection-compat:2.13.0"
+  def collectionCompat = mvn"org.scala-lang.modules::scala-collection-compat:2.14.0"
   // Force using of 2.13 - is there a better way?
   def coursier             = mvn"io.get-coursier:coursier_2.13:${Versions.coursier}"
   def coursierArchiveCache = mvn"io.get-coursier:coursier-archive-cache_2.13:${Versions.coursier}"
@@ -186,7 +191,7 @@ object Deps {
   def expecty       = mvn"com.eed3si9n.expecty::expecty:0.17.1"
   def fansi         = mvn"com.lihaoyi::fansi:0.5.1"
   def giter8        = mvn"org.foundweekends.giter8:giter8:0.16.2"
-  def guava         = mvn"com.google.guava:guava:33.4.8-jre"
+  def guava         = mvn"com.google.guava:guava:33.5.0-jre"
   def javaClassName =
     mvn"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
       .exclude(
@@ -211,8 +216,8 @@ object Deps {
   def munit              = mvn"org.scalameta::munit:1.2.0"
   def nativeTestRunner   = mvn"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools        = mvn"org.scala-native::tools:${Versions.scalaNative}"
-  def osLib              = mvn"com.lihaoyi::os-lib:0.11.5"
-  def pprint             = mvn"com.lihaoyi::pprint:0.9.3"
+  def osLib              = mvn"com.lihaoyi::os-lib:0.11.6"
+  def pprint             = mvn"com.lihaoyi::pprint:0.9.5"
   def pythonInterface    = mvn"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs   = mvn"ai.kien::python-native-libs:0.2.5"
   def scalac(sv: String) = mvn"org.scala-lang:scala-compiler:$sv"

@@ -458,16 +458,17 @@ abstract class BspTestDefinitions extends ScalaCliSuite
   }
 
   test("directives in multiple files diagnostics") {
-    val inputs = TestInputs(
+    val javaVersion = Constants.allJavaVersions.filter(_ > Constants.defaultJvmVersion).min
+    val inputs      = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using scala 3.3.0
+        s"""//> using scala $actualScalaVersion
            |
            |object Foo extends App {
            |  println("Foo")
            |}
            |""".stripMargin,
       os.rel / "Bar.scala"  -> "",
-      os.rel / "Hello.java" -> "//> using jvm 11"
+      os.rel / "Hello.java" -> s"//> using jvm $javaVersion"
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
@@ -522,8 +523,20 @@ abstract class BspTestDefinitions extends ScalaCliSuite
           )
         }
 
-        checkDirectivesInMultipleFilesWarnings("Foo.scala", 0, 0, 0, 21)
-        checkDirectivesInMultipleFilesWarnings("Hello.java", 0, 0, 0, 16)
+        checkDirectivesInMultipleFilesWarnings(
+          fileName = "Foo.scala",
+          expectedStartLine = 0,
+          expectedStartCharacter = 0,
+          expectedEndLine = 0,
+          expectedEndCharacter = 16 + actualScalaVersion.length
+        )
+        checkDirectivesInMultipleFilesWarnings(
+          fileName = "Hello.java",
+          expectedStartLine = 0,
+          expectedStartCharacter = 0,
+          expectedEndLine = 0,
+          expectedEndCharacter = 16
+        )
       }
     }
   }
@@ -2232,7 +2245,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
     if actualScalaVersion.coursierVersion >= "3.5.0".coursierVersion
     scalaVersion =
       if actualScalaVersion == Constants.scala3NextRc then Constants.scala3NextRcAnnounced
-      if actualScalaVersion == Constants.scala3Next then Constants.scala3NextAnnounced
+      else if actualScalaVersion == Constants.scala3Next then Constants.scala3NextAnnounced
       else actualScalaVersion
     withLauncher = (root: os.Path) =>
       (f: Seq[os.Shellable] => Unit) =>
