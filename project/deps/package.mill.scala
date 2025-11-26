@@ -146,7 +146,7 @@ object Deps {
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.8"
-    def bloop                             = "2.0.15"
+    def bloop                             = "2.0.17"
     def sbtVersion                        = "1.11.7"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
@@ -165,7 +165,7 @@ object Deps {
     mvn"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"
   def asm = mvn"org.ow2.asm:asm:9.9"
   // Force using of 2.13 - is there a better way?
-  def bloopConfig = mvn"ch.epfl.scala:bloop-config_2.13:2.3.2"
+  def bloopConfig = mvn"ch.epfl.scala:bloop-config_2.13:2.3.3"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def bloopRifle       = mvn"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
   def bsp4j            = mvn"ch.epfl.scala:bsp4j:2.1.1"
