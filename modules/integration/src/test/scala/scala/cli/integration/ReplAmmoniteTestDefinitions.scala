@@ -2,14 +2,10 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.cli.integration.TestUtil.removeAnsiColors
-import scala.util.Properties
+import scala.cli.integration.TestUtil.{normalizeArgsForWindows, removeAnsiColors}
 
 trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
-  protected val retrieveScalaVersionCode: String = if (actualScalaVersion.startsWith("2."))
-    "scala.util.Properties.versionNumberString"
-  else "dotty.tools.dotc.config.Properties.simpleVersionString"
-
+  protected val ammonitePrefix: String        = "Ammonite REPL:"
   def expectedScalaVersionForAmmonite: String =
     actualScalaVersion match {
       case s
@@ -32,81 +28,101 @@ trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
     }
 
   def actualMaxAmmoniteScalaVersion: String =
-    if (actualScalaVersion.startsWith(Constants.scala3LtsPrefix))
+    if actualScalaVersion.startsWith(Constants.scala3LtsPrefix) then
       Constants.maxAmmoniteScala3LtsVersion
-    else if (actualScalaVersion.startsWith(Constants.scala3NextPrefix))
+    else if actualScalaVersion.startsWith(Constants.scala3NextPrefix) then
       Constants.maxAmmoniteScala3Version
-    else if (actualScalaVersion.startsWith("2.13")) Constants.maxAmmoniteScala213Version
+    else if actualScalaVersion.startsWith("2.13") then Constants.maxAmmoniteScala213Version
     else Constants.maxAmmoniteScala212Version
 
+  def shouldUseMaxAmmoniteScalaVersion: Boolean =
+    actualScalaVersion.coursierVersion > actualMaxAmmoniteScalaVersion.coursierVersion
+
   def ammoniteExtraOptions: Seq[String] =
-    Seq("--scala", actualMaxAmmoniteScalaVersion) ++ TestUtil.extraOptions
+    if !shouldUseMaxAmmoniteScalaVersion then extraOptions
+    else Seq("--scala", actualMaxAmmoniteScalaVersion) ++ TestUtil.extraOptions
 
-  def ammoniteTest(useMaxAmmoniteScalaVersion: Boolean): Unit = {
-    TestInputs.empty.fromRoot { root =>
-      val testExtraOptions = if (useMaxAmmoniteScalaVersion) ammoniteExtraOptions else extraOptions
-      val ammArgs          = Seq(
-        "-c",
-        s"""println("Hello" + " from Scala " + $retrieveScalaVersionCode)"""
-      )
-        .map {
-          if (Properties.isWin)
-            a => if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\"" else a
-          else
-            identity
-        }
-        .flatMap(arg => Seq("--ammonite-arg", arg))
-      val res =
-        os.proc(TestUtil.cli, "--power", "repl", testExtraOptions, "--ammonite", ammArgs)
-          .call(cwd = root, stderr = os.Pipe)
-      val output     = res.out.trim()
-      val expectedSv =
-        if (useMaxAmmoniteScalaVersion) actualMaxAmmoniteScalaVersion
-        else expectedScalaVersionForAmmonite
-      expect(output == s"Hello from Scala $expectedSv")
-      if (useMaxAmmoniteScalaVersion) {
-        // the maximum Scala version supported by ammonite is being used, so we shouldn't downgrade
-        val errOutput = res.err.trim()
-        expect(!errOutput.contains("not yet supported with this version of Ammonite"))
-      }
-    }
-  }
-
-  def ammoniteTestScope(useMaxAmmoniteScalaVersion: Boolean): Unit = {
-    val message = "something something ammonite"
-    TestInputs(
-      os.rel / "example" / "TestScopeExample.test.scala" ->
-        s"""package example
-           |
-           |object TestScopeExample {
-           |  def message: String = "$message"
-           |}
-           |""".stripMargin
-    ).fromRoot { root =>
-      val testExtraOptions = if (useMaxAmmoniteScalaVersion) ammoniteExtraOptions else extraOptions
-      val ammArgs          = Seq("-c", "println(example.TestScopeExample.message)")
-        .map {
-          if (Properties.isWin)
-            a => if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\"" else a
-          else
-            identity
-        }
-        .flatMap(arg => Seq("--ammonite-arg", arg))
-      val res =
+  def runInAmmoniteRepl(
+    codeToRunInRepl: String = "",
+    testInputs: TestInputs = TestInputs.empty,
+    cliOptions: Seq[String] = Seq.empty,
+    extraAmmoniteOptions: Seq[String] = Seq.empty,
+    shouldPipeStdErr: Boolean = false,
+    check: Boolean = true,
+    env: Map[String, String] = Map.empty
+  )(
+    runAfterRepl: os.CommandResult => Unit,
+    runBeforeReplAndGetExtraCliOpts: () => Seq[os.Shellable] = () => Seq.empty
+  ): Unit = {
+    val ammArgs =
+      if codeToRunInRepl.nonEmpty then
+        (Seq("-c", codeToRunInRepl) ++ extraAmmoniteOptions)
+          .normalizeArgsForWindows
+          .flatMap(arg => Seq("--ammonite-arg", arg))
+      else Seq.empty
+    testInputs.fromRoot { root =>
+      val potentiallyExtraCliOpts = runBeforeReplAndGetExtraCliOpts()
+      runAfterRepl(
         os.proc(
           TestUtil.cli,
           "--power",
           "repl",
           ".",
-          testExtraOptions,
-          "--test",
           "--ammonite",
-          ammArgs
+          ammArgs,
+          ammoniteExtraOptions,
+          cliOptions,
+          potentiallyExtraCliOpts
+        ).call(
+          cwd = root,
+          env = env,
+          check = check,
+          stderr = if shouldPipeStdErr then os.Pipe else os.Inherit
         )
-          .call(cwd = root, stderr = os.Pipe)
+      )
+    }
+  }
+
+  def ammoniteTest(): Unit = {
+    TestInputs.empty.fromRoot { root =>
+      runInAmmoniteRepl(
+        codeToRunInRepl = s"""println("Hello" + " from Scala " + $retrieveScalaVersionCode)""",
+        shouldPipeStdErr = true
+      ) { res =>
+        val output     = res.out.trim()
+        val expectedSv =
+          if shouldUseMaxAmmoniteScalaVersion then actualMaxAmmoniteScalaVersion
+          else expectedScalaVersionForAmmonite
+        expect(output == s"Hello from Scala $expectedSv")
+        if shouldUseMaxAmmoniteScalaVersion then {
+          // the maximum Scala version supported by ammonite is being used, so we shouldn't downgrade
+          val errOutput = res.err.trim()
+          expect(!errOutput.contains("not yet supported with this version of Ammonite"))
+        }
+      }
+    }
+  }
+
+  def ammoniteTestScope(): Unit = {
+    val message = "something something ammonite"
+    runInAmmoniteRepl(
+      codeToRunInRepl = "println(example.TestScopeExample.message)",
+      testInputs =
+        TestInputs(
+          os.rel / "example" / "TestScopeExample.test.scala" ->
+            s"""package example
+               |
+               |object TestScopeExample {
+               |  def message: String = "$message"
+               |}
+               |""".stripMargin
+        ),
+      cliOptions = Seq("--test"),
+      shouldPipeStdErr = true
+    ) { res =>
       val output = res.out.trim()
       expect(output == message)
-      if (useMaxAmmoniteScalaVersion) {
+      if shouldUseMaxAmmoniteScalaVersion then {
         // the maximum Scala version supported by ammonite is being used, so we shouldn't downgrade
         val errOutput = res.err.trim()
         expect(!errOutput.contains("not yet supported with this version of Ammonite"))
@@ -114,130 +130,83 @@ trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
     }
   }
 
-  def ammoniteScalapyTest(useMaxAmmoniteScalaVersion: Boolean): Unit = {
-    val testExtraOptions = if (useMaxAmmoniteScalaVersion) ammoniteExtraOptions else extraOptions
-    val inputs           = TestInputs(
-      os.rel / "foo" / "something.py" ->
-        """messageStart = 'Hello from'
-          |messageEnd = 'ScalaPy'
-          |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val ammArgs = Seq(
-        "-c",
-        s"""println("Hello" + " from Scala " + $retrieveScalaVersionCode)
-           |val sth = py.module("foo.something")
-           |py.Dynamic.global.applyDynamicNamed("print")("" -> sth.messageStart, "" -> sth.messageEnd, "flush" -> py.Any.from(true))
-           |""".stripMargin
+  def ammoniteScalapyTest(): Unit = {
+    val codeToRunInRepl =
+      s"""println("Hello" + " from Scala " + $retrieveScalaVersionCode)
+         |val sth = py.module("foo.something")
+         |py.Dynamic.global.applyDynamicNamed("print")("" -> sth.messageStart, "" -> sth.messageEnd, "flush" -> py.Any.from(true))
+         |""".stripMargin
+    val inputs =
+      TestInputs(
+        os.rel / "foo" / "something.py" ->
+          """messageStart = 'Hello from'
+            |messageEnd = 'ScalaPy'
+            |""".stripMargin
       )
-        .map {
-          if (Properties.isWin)
-            a => if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\"" else a
-          else
-            identity
-        }
-        .flatMap(arg => Seq("--ammonite-arg", arg))
-
-      val errorRes = os.proc(
-        TestUtil.cli,
-        "--power",
-        "repl",
-        testExtraOptions,
-        "--ammonite",
-        "--python",
-        ammArgs
-      ).call(
-        cwd = root,
-        env = Map("PYTHONSAFEPATH" -> "foo"),
-        mergeErrIntoOut = true,
-        check = false
-      )
+    runInAmmoniteRepl(
+      codeToRunInRepl = codeToRunInRepl,
+      testInputs = inputs,
+      cliOptions = Seq("--python"),
+      shouldPipeStdErr = true,
+      check = false,
+      env = Map("PYTHONSAFEPATH" -> "foo")
+    ) { errorRes =>
       expect(errorRes.exitCode != 0)
-      val errorOutput = errorRes.out.text()
+      val errorOutput = errorRes.err.trim() + errorRes.out.trim()
       expect(errorOutput.contains("No module named 'foo'"))
-
-      val res = os.proc(
-        TestUtil.cli,
-        "--power",
-        "repl",
-        testExtraOptions,
-        "--ammonite",
-        "--python",
-        ammArgs
-      ).call(cwd = root, stderr = os.Pipe)
+    }
+    runInAmmoniteRepl(
+      codeToRunInRepl = codeToRunInRepl,
+      testInputs = inputs,
+      cliOptions = Seq("--python"),
+      shouldPipeStdErr = true
+    ) { res =>
       val expectedSv =
-        if (useMaxAmmoniteScalaVersion) actualMaxAmmoniteScalaVersion
+        if shouldUseMaxAmmoniteScalaVersion then actualMaxAmmoniteScalaVersion
         else expectedScalaVersionForAmmonite
       val lines = res.out.trim().linesIterator.toVector
       expect(lines == Seq(s"Hello from Scala $expectedSv", "Hello from ScalaPy"))
-      if (useMaxAmmoniteScalaVersion)
+      if shouldUseMaxAmmoniteScalaVersion then
         // the maximum Scala version supported by ammonite is being used, so we shouldn't downgrade
         expect(!res.err.trim().contains("not yet supported with this version of Ammonite"))
     }
   }
 
   def ammoniteMaxVersionString: String =
-    if (actualScalaVersion == actualMaxAmmoniteScalaVersion) ""
+    if actualScalaVersion <= actualMaxAmmoniteScalaVersion then s" with Scala $actualScalaVersion"
     else s" with Scala $actualMaxAmmoniteScalaVersion (the latest supported version)"
 
-  test(s"ammonite$ammoniteMaxVersionString") {
-    ammoniteTest(useMaxAmmoniteScalaVersion = true)
-  }
+  test(s"$ammonitePrefix simple $ammoniteMaxVersionString")(ammoniteTest())
+  test(s"$ammonitePrefix scalapy$ammoniteMaxVersionString")(ammoniteScalapyTest())
+  test(s"$ammonitePrefix with test scope sources$ammoniteMaxVersionString")(ammoniteTestScope())
 
-  test(s"ammonite scalapy$ammoniteMaxVersionString") {
-    ammoniteScalapyTest(useMaxAmmoniteScalaVersion = true)
-  }
-
-  test("ammonite with test scope sources") {
-    ammoniteTestScope(useMaxAmmoniteScalaVersion = true)
-  }
-
-  test("default ammonite version in help") {
-    TestInputs.empty.fromRoot { root =>
-      val res   = os.proc(TestUtil.cli, "--power", "repl", extraOptions, "--help").call(cwd = root)
-      val lines = removeAnsiColors(res.out.trim()).linesIterator.toVector
+  test(s"$ammonitePrefix ammonite version in help$ammoniteMaxVersionString") {
+    runInAmmoniteRepl(cliOptions = Seq("--help")) { res =>
+      val lines          = removeAnsiColors(res.out.trim()).linesIterator.toVector
       val ammVersionHelp = lines.find(_.contains("--ammonite-ver")).getOrElse("")
       expect(ammVersionHelp.contains(s"(${Constants.ammoniteVersion} by default)"))
     }
   }
 
   def ammoniteWithExtraJarTest(): Unit = {
-    TestInputs.empty.fromRoot { root =>
-      val ammArgs = Seq(
-        "-c",
-        """import shapeless._; println("Here's an HList: " + (2 :: true :: "a" :: HNil))"""
-      )
-        .map {
-          if (Properties.isWin)
-            a => if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\"" else a
-          else
-            identity
-        }
-        .flatMap(arg => Seq("--ammonite-arg", arg))
-      val shapelessJar =
-        os.proc(TestUtil.cs, "fetch", "--intransitive", "com.chuusai:shapeless_2.13:2.3.7")
-          .call()
-          .out
-          .text()
-          .trim
-      val cmd = Seq[os.Shellable](
-        TestUtil.cli,
-        "--power",
-        "repl",
-        ammoniteExtraOptions,
-        "--jar",
-        shapelessJar,
-        "--ammonite",
-        ammArgs
-      )
-      val res    = os.proc(cmd).call(cwd = root)
-      val output = res.out.trim()
-      expect(output == "Here's an HList: 2 :: true :: a :: HNil")
-    }
+    runInAmmoniteRepl(codeToRunInRepl =
+      """import shapeless._; println("Here's an HList: " + (2 :: true :: "a" :: HNil))"""
+    )(
+      runBeforeReplAndGetExtraCliOpts = () =>
+        val shapelessJar =
+          os.proc(TestUtil.cs, "fetch", "--intransitive", "com.chuusai:shapeless_2.13:2.3.7")
+            .call()
+            .out
+            .text()
+            .trim
+        Seq("--jar", shapelessJar)
+      ,
+      runAfterRepl = res => expect(res.out.trim() == "Here's an HList: 2 :: true :: a :: HNil")
+    )
   }
 
-  if (actualScalaVersion.startsWith("2.13"))
-    test(s"ammonite with extra JAR$ammoniteMaxVersionString") {
+  if actualScalaVersion.startsWith("2.13") then
+    test(s"$ammonitePrefix with extra JAR$ammoniteMaxVersionString") {
       ammoniteWithExtraJarTest()
     }
 }
