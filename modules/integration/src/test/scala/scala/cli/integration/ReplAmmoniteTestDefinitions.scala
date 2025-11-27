@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.{normalizeArgsForWindows, removeAnsiColors}
 
 trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
-  protected val ammonitePrefix: String        = "Ammonite REPL:"
+  protected val ammonitePrefix: String        = "Running in Ammonite REPL:"
   def expectedScalaVersionForAmmonite: String =
     actualScalaVersion match {
       case s
