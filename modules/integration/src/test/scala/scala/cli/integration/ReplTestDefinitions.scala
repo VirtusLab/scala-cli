@@ -8,41 +8,86 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
-  test("dry run (default)") {
-    TestInputs.empty.fromRoot { root =>
-      os.proc(TestUtil.cli, "repl", extraOptions, "--repl-dry-run").call(cwd = root)
+  protected lazy val canRunInRepl: Boolean =
+    (actualScalaVersion.startsWith("3.3") &&
+      actualScalaVersion.coursierVersion >= "3.3.7".coursierVersion) ||
+    actualScalaVersion.startsWith("3.7") ||
+    actualScalaVersion.coursierVersion >= "3.7.0-RC1".coursierVersion
+
+  protected val dryRunPrefix: String    = "Dry run:"
+  protected val runInReplPrefix: String = "Running in REPL:"
+
+  def runInRepl(
+    codeToRunInRepl: String,
+    testInputs: TestInputs = TestInputs.empty
+  )(f: os.CommandResult => Unit): Unit = {
+    testInputs.fromRoot { root =>
+      f(
+        os.proc(
+          TestUtil.cli,
+          "repl",
+          "--repl-quit-after-init",
+          "--repl-init-script",
+          codeToRunInRepl,
+          extraOptions
+        )
+          .call(cwd = root)
+      )
     }
   }
 
-  test("dry run (with main scope sources)") {
-    TestInputs(
-      os.rel / "Example.scala" ->
-        """object Example extends App {
-          |  println("Hello")
-          |}
-          |""".stripMargin
-    ).fromRoot { root =>
-      os.proc(TestUtil.cli, "repl", ".", extraOptions, "--repl-dry-run").call(cwd = root)
+  def dryRun(
+    testInputs: TestInputs = TestInputs.empty,
+    cliOptions: Seq[String] = Seq.empty,
+    useExtraOptions: Boolean = true
+  ): Unit = {
+    testInputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "repl",
+        "--repl-dry-run",
+        cliOptions,
+        if useExtraOptions then extraOptions else Seq.empty
+      )
+        .call(cwd = root)
     }
   }
 
-  test("dry run (with main and test scope sources, and the --test flag)") {
-    TestInputs(
-      os.rel / "Example.scala" ->
-        """object Example extends App {
-          |  println("Hello")
-          |}
-          |""".stripMargin,
-      os.rel / "Example.test.scala" ->
-        s"""//> using dep org.scalameta::munit::${Constants.munitVersion}
-           |
-           |class Example extends munit.FunSuite {
-           |  test("is true true") { assert(true) }
-           |}
-           |""".stripMargin
-    ).fromRoot { root =>
-      os.proc(TestUtil.cli, "repl", ".", extraOptions, "--repl-dry-run", "--test").call(cwd = root)
-    }
+  test(s"$dryRunPrefix default")(dryRun())
+
+  test(s"$dryRunPrefix with main scope sources") {
+    dryRun(
+      TestInputs(
+        os.rel / "Example.scala" ->
+          """object Example extends App {
+            |  println("Hello")
+            |}
+            |""".stripMargin
+      )
+    )
+  }
+
+  test(s"$dryRunPrefix with main and test scope sources, and the --test flag") {
+    dryRun(
+      TestInputs(
+        os.rel / "Example.scala" ->
+          """object Example extends App {
+            |  println("Hello")
+            |}
+            |""".stripMargin,
+        os.rel / "Example.test.scala" ->
+          s"""//> using dep org.scalameta::munit::${Constants.munitVersion}
+             |
+             |class Example extends munit.FunSuite {
+             |  test("is true true") { assert(true) }
+             |}
+             |""".stripMargin
+      )
+    )
+  }
+
+  test(s"$dryRunPrefix calling repl with a directory with no scala artifacts") {
+    dryRun(TestInputs(os.rel / "Testing.java" -> "public class Testing {}"))
   }
 
   test("default scala version in help") {
@@ -69,44 +114,11 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     expect(output.contains("typer"))
   }
 
-  test("calling repl with a directory with no scala artifacts") {
-    val inputs = TestInputs(
-      os.rel / "Testing.java" -> "public class Testing {}"
-    )
-    val cmd = Seq[os.Shellable](
-      TestUtil.cli,
-      "repl",
-      "--repl-dry-run",
-      ".",
-      extraOptions
-    )
-    inputs.fromRoot { root =>
-      val res = os.proc(cmd)
-        .call(cwd = root)
-      expect(res.exitCode == 0)
-    }
-  }
-
-  if (
-    (actualScalaVersion.startsWith("3.3") &&
-    actualScalaVersion.coursierVersion >= "3.3.7".coursierVersion) ||
-    actualScalaVersion.startsWith("3.7") ||
-    actualScalaVersion.coursierVersion >= "3.7.0-RC1".coursierVersion
-  )
-    test("run hello world from the REPL") {
-      TestInputs.empty.fromRoot { root =>
-        val expectedMessage = "1337"
-        val code            = s"""println($expectedMessage)"""
-        val r               = os.proc(
-          TestUtil.cli,
-          "repl",
-          "--repl-quit-after-init",
-          "--repl-init-script",
-          code,
-          extraOptions
-        )
-          .call(cwd = root)
+  if canRunInRepl then
+    test(s"$runInReplPrefix simple") {
+      val expectedMessage = "1337"
+      runInRepl(s"""println($expectedMessage)""")(r =>
         expect(r.out.trim() == expectedMessage)
-      }
+      )
     }
 }
