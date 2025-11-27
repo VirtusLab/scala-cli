@@ -2430,23 +2430,32 @@ abstract class RunTestDefinitions
     }
   }
 
-  test(
-    s"run a simple hello world with the runner module on the classpath and Scala $actualScalaVersion"
-  ) {
-    val expectedMessage     = "Hello, world!"
-    val legacyRunnerWarning = "Defaulting to a legacy runner module version"
-    TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""")
-      .fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "run", ".", "--runner", extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-        expect(res.out.trim() == expectedMessage)
-        val legacyWarningCheck = {
-          val check = res.err.trim().contains(legacyRunnerWarning)
-          if (actualScalaVersion.startsWith("2")) check else !check
-        }
-        expect(legacyWarningCheck)
-      }
+  for {
+    javaVersion <-
+      if isScala38OrNewer then
+        Constants.allJavaVersions.filter(_ >= Constants.scala38MinJavaVersion)
+      else Constants.allJavaVersions.filter(_ < 24)
   }
+    test(
+      s"run a simple hello world with the runner module on the classpath, Scala $actualScalaVersion and Java $javaVersion"
+    ) {
+      val expectedMessage     = "Hello, world!"
+      val legacyRunnerWarning = "Defaulting to a legacy runner module version"
+      TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""")
+        .fromRoot { root =>
+          val res =
+            os.proc(TestUtil.cli, "run", ".", "--runner", extraOptions, "--jvm", javaVersion)
+              .call(cwd = root, stderr = os.Pipe)
+          expect(res.out.trim() == expectedMessage)
+          val legacyWarningCheck = {
+            val check       = res.err.trim().contains(legacyRunnerWarning)
+            val shouldCheck =
+              javaVersion < Constants.scala38MinJavaVersion || actualScalaVersion.startsWith("2")
+            if shouldCheck then check else !check
+          }
+          expect(legacyWarningCheck)
+        }
+    }
 
   for (parallelInstancesCount <- Seq(2, 5, 10))
     test(
