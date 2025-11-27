@@ -72,11 +72,19 @@ object NativeImage {
       case s                    => s
     }
     // chcp 437 sometimes needed, see https://github.com/oracle/graal/issues/2522
+    // but must save and restore existing code page afterwards
     val script =
-      s"""chcp 437
+      s"""@echo off
+         |rem Save current code page
+         |for /f "tokens=2 delims=:." %%A in ('chcp') do set "OLDCP=%%A"
+         |@echo on
+         |set OLDCP=%OLDCP: =%
+         |chcp 437
          |@call "$vcvars"
          |if %errorlevel% neq 0 exit /b %errorlevel%
          |@call ${escapedCommand.mkString(" ")}
+         |rem Restore original code page
+         |chcp %OLDCP% >nul
          |""".stripMargin
     logger.debug(s"Native image script: '$script'")
     val scriptPath = workingDir / "run-native-image.bat"
