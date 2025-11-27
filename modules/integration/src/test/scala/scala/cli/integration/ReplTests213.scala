@@ -1,16 +1,24 @@
 package scala.cli.integration
 
 class ReplTests213 extends ReplTestDefinitions with ReplAmmoniteTestDefinitions with Test213 {
-  test("repl custom repositories work".flaky) {
-    dryRun(
-      cliOptions =
+  for {
+    withExplicitScala2SnapshotRepo <- Seq(true, false)
+    snapshotVersion     = Constants.scalaSnapshot213
+    scalaVersionOptions = Seq("--scala", snapshotVersion)
+    repoOptions         =
+      if withExplicitScala2SnapshotRepo then
         Seq(
-          "--scala",
-          Constants.scalaSnapshot213,
           "--repository",
-          "https://scala-ci.typesafe.com/artifactory/scala-integration"
-        ),
-      useExtraOptions = false
-    )
+          "https://scala-ci.typesafe.com/artifactory/scala-2.13-snapshots"
+        )
+      else
+        Seq.empty
+    repoString = if withExplicitScala2SnapshotRepo then " with Scala 2 snapshot repo" else ""
   }
+    test(s"$dryRunPrefix repl Scala 2 snapshots: $snapshotVersion$repoString") {
+      dryRun(
+        cliOptions = scalaVersionOptions ++ repoOptions,
+        useExtraOptions = false
+      )
+    }
 }

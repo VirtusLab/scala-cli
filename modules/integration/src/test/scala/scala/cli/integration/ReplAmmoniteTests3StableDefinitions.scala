@@ -2,8 +2,6 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.cli.integration.TestUtil.normalizeArgsForWindows
-
 trait ReplAmmoniteTests3StableDefinitions {
   this: ReplTestDefinitions & ReplAmmoniteTestDefinitions =>
   test(s"$ammonitePrefix https://github.com/scala/scala3/issues/21229$ammoniteMaxVersionString") {
