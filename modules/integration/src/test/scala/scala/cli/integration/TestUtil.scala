@@ -436,4 +436,11 @@ object TestUtil {
     def await: T                         = Await.result(f, Duration.Inf)
     def awaitWithTimeout(d: Duration): T = Await.result(f, d)
   }
+
+  extension (args: Seq[String]) {
+    def normalizeArgsForWindows: Seq[String] =
+      if Properties.isWin then
+        args.map(a => if a.contains(" ") then "\"" + a.replace("\"", "\\\"") + "\"" else a)
+      else args
+  }
 }

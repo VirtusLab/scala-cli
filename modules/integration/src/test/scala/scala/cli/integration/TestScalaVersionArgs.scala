@@ -23,6 +23,11 @@ trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
     Constants.scala38Versions
       .map(_.coursierVersion)
       .exists(_ <= actualScalaVersion.coursierVersion)
+
+  def retrieveScalaVersionCode: String =
+    if actualScalaVersion.startsWith("2.") || isScala38OrNewer then
+      "scala.util.Properties.versionNumberString"
+    else "dotty.tools.dotc.config.Properties.simpleVersionString"
 }
 
 sealed trait TestScalaVersion { this: TestScalaVersionArgs =>
