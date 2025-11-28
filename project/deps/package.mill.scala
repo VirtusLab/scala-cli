@@ -228,12 +228,15 @@ object Deps {
   def scalafmtCli = mvn"org.scalameta:scalafmt-cli_2.13:${Versions.scalafmt}"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
-    mvn"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"
+    mvn"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.1"
+      .exclude("org.scala-js" -> "scalajs-env-nodejs_2.13")
+      .exclude("org.scala-js" -> "scalajs-js-envs_2.13")
   // Force using of 2.13 - is there a better way?
-  def scalaJsEnvNodeJs = mvn"org.scala-js:scalajs-env-nodejs_2.13:1.4.0"
-  def scalaJsLogging   = mvn"org.scala-js:scalajs-logging_2.13:1.1.1"
+  def scalaJsEnvNodeJs = mvn"org.scala-js::scalajs-env-nodejs:1.5.0"
+  def scalaJsLogging   = mvn"org.scala-js::scalajs-logging:1.2.0"
   // Force using of 2.13 - is there a better way?
-  def scalaJsTestAdapter        = mvn"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
+  def scalaJsTestAdapter = mvn"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
+    .exclude("org.scala-js" -> "scalajs-js-envs_2.13")
   def scalaPackager             = mvn"org.virtuslab::scala-packager:${Versions.scalaPackager}"
   def scalaPackagerCli          = mvn"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
   def scalaPy                   = mvn"dev.scalapy::scalapy-core::0.5.3"
