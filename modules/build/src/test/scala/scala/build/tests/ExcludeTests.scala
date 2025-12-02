@@ -76,6 +76,39 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("multiple excludes") {
+    val testInputs = TestInputs(
+      os.rel / "Hello.scala"   -> "object Hello",
+      os.rel / "World.scala"   -> "object World",
+      os.rel / "Main.scala"    -> "object Main",
+      os.rel / "project.scala" -> s"""//> using exclude Hello.scala World.scala"""
+    )
+    testInputs.withInputs { (root, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )(using ScalaCliInvokeData.dummy).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions())
+        .orThrow
+      val sources =
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        )
+          .orThrow
+
+      expect(sources.paths.nonEmpty)
+      expect(sources.paths.length == 2)
+      val paths = Seq(os.rel / "Main.scala", os.rel / "project.scala")
+      expect(sources.paths.map(_._2) == paths)
+    }
+  }
+
   test("exclude relative paths") {
     val testInputs = TestInputs(
       os.rel / "Hello.scala" -> "object Hello",

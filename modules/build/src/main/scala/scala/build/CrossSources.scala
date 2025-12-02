@@ -487,18 +487,22 @@ object CrossSources {
     sources: Seq[PreprocessedSource],
     workspaceDir: os.Path
   ): Either[BuildException, Seq[PreprocessedSource]] = {
-    val excludeDirectives = sources.flatMap(_.options).map(_.internal.exclude).toList.flatten
 
-    excludeDirectives match {
-      case Nil | Seq(_) =>
-        Right(sources)
-      case _ =>
-        val expectedProjectFilePath = workspaceDir / Constants.projectFileName
-        Left(new ExcludeDefinitionError(
-          excludeDirectives.flatMap(_.positions),
-          expectedProjectFilePath
-        ))
+    val excludePositions = for {
+      source   <- sources.flatMap(_.options)
+      exclude  <- source.internal.exclude
+      position <- exclude.positions
+    } yield position
+
+    val expectedProjectFilePath = workspaceDir / Constants.projectFileName
+
+    val singleSourceAtProject = excludePositions.forall {
+      case Position.File(Left(s), _, _, _)  => workspaceDir / s == expectedProjectFilePath
+      case Position.File(Right(p), _, _, _) => p == expectedProjectFilePath
+      case _                                => false
     }
+    if (singleSourceAtProject) Right(sources)
+    else Left(new ExcludeDefinitionError(excludePositions, expectedProjectFilePath))
   }
 
   /** When a source file added by a `using file` directive, itself, contains `using file` directives
