@@ -131,10 +131,10 @@ object Deps {
     def coursierCli                       = coursierDefault
     def coursierPublish                   = "0.4.3"
     def jmh                               = "1.37"
-    def jsoniterScala                     = "2.38.4"
+    def jsoniterScala                     = "2.38.5"
     def jsoup                             = "1.21.2"
     def scalaMeta                         = "4.14.1"
-    def scalafmt                          = "3.10.1"
+    def scalafmt                          = "3.10.2"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.9"
     def scalaNative                       = scalaNative05
@@ -146,7 +146,7 @@ object Deps {
     def signingCli                        = "0.2.11"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
-    def javaClassName                     = "0.1.8"
+    def javaClassName                     = "0.1.9"
     def bloop                             = "2.0.17"
     def sbtVersion                        = "1.11.7"
     def mavenVersion                      = "3.8.1"
@@ -191,7 +191,7 @@ object Deps {
   def dockerClient  = mvn"com.spotify:docker-client:8.16.0"
   def expecty       = mvn"com.eed3si9n.expecty::expecty:0.17.1"
   def fansi         = mvn"com.lihaoyi::fansi:0.5.1"
-  def giter8        = mvn"org.foundweekends.giter8:giter8:0.16.2"
+  def giter8        = mvn"org.foundweekends.giter8:giter8:0.18.0"
   def guava         = mvn"com.google.guava:guava:33.5.0-jre"
   def javaClassName =
     mvn"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
@@ -214,7 +214,7 @@ object Deps {
   def metaconfigTypesafe =
     mvn"org.scalameta::metaconfig-typesafe-config:0.16.0"
       .exclude(("org.scala-lang", "scala-compiler"))
-  def munit              = mvn"org.scalameta::munit:1.2.0"
+  def munit              = mvn"org.scalameta::munit:1.2.1"
   def nativeTestRunner   = mvn"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools        = mvn"org.scala-native::tools:${Versions.scalaNative}"
   def osLib              = mvn"com.lihaoyi::os-lib:0.11.6"
