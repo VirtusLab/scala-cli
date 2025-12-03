@@ -134,7 +134,7 @@ object Deps {
     def jsoniterScala                     = "2.38.5"
     def jsoup                             = "1.21.2"
     def scalaMeta                         = "4.14.1"
-    def scalafmt                          = "3.10.1"
+    def scalafmt                          = "3.10.2"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.9"
     def scalaNative                       = scalaNative05
