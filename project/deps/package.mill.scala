@@ -191,7 +191,7 @@ object Deps {
   def dockerClient  = mvn"com.spotify:docker-client:8.16.0"
   def expecty       = mvn"com.eed3si9n.expecty::expecty:0.17.1"
   def fansi         = mvn"com.lihaoyi::fansi:0.5.1"
-  def giter8        = mvn"org.foundweekends.giter8:giter8:0.16.2"
+  def giter8        = mvn"org.foundweekends.giter8:giter8:0.18.0"
   def guava         = mvn"com.google.guava:guava:33.5.0-jre"
   def javaClassName =
     mvn"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
