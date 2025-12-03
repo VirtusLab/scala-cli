@@ -3,7 +3,12 @@ package scala.cli.signing.util
 // https://stackoverflow.com/questions/28245669/using-bouncy-castle-to-create-public-pgp-key-usable-by-thunderbird
 
 import org.bouncycastle.bcpg.sig.{Features, KeyFlags}
-import org.bouncycastle.bcpg.{HashAlgorithmTags, PublicKeyAlgorithmTags, SymmetricKeyAlgorithmTags}
+import org.bouncycastle.bcpg.{
+  HashAlgorithmTags,
+  PublicKeyAlgorithmTags,
+  PublicKeyPacket,
+  SymmetricKeyAlgorithmTags
+}
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters
 import org.bouncycastle.openpgp.operator.bc.{
@@ -51,13 +56,15 @@ object PgpHelper {
 
     // First create the master (signing) key with the generator.
     val rsakpSign = new BcPGPKeyPair(
-      PublicKeyAlgorithmTags.RSA_SIGN,
+      PublicKeyPacket.VERSION_4,
+      PublicKeyAlgorithmTags.RSA_GENERAL,
       kpg.generateKeyPair(),
       new Date
     )
     // Then an encryption subkey.
     val rsakpEnc = new BcPGPKeyPair(
-      PublicKeyAlgorithmTags.RSA_ENCRYPT,
+      PublicKeyPacket.VERSION_4,
+      PublicKeyAlgorithmTags.RSA_GENERAL,
       kpg.generateKeyPair(),
       new Date
     )

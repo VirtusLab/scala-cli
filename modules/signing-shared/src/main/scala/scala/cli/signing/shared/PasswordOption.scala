@@ -27,7 +27,7 @@ abstract class LowPriorityPasswordOption {
       Right(PasswordOption.Env(str.stripPrefix("env:")))
     else if (str.startsWith("command:["))
       try {
-        val command = readFromString(str.stripPrefix("command:"))(commandCodec)
+        val command = readFromString(str.stripPrefix("command:"))(using commandCodec)
         Right(PasswordOption.Command(command))
       }
       catch {
@@ -78,7 +78,7 @@ object PasswordOption extends LowPriorityPasswordOption {
       Secret(res.out.text(Codec.default)) // should we trim that?
     }
     def asString: Secret[String] = {
-      val json = writeToString(command.toList)(commandCodec)
+      val json = writeToString(command.toList)(using commandCodec)
       Secret(s"command:$json")
     }
   }

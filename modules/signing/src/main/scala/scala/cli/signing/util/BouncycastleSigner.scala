@@ -73,7 +73,8 @@ final case class BouncycastleSigner(
           pgpSecretKey.getPublicKey
             .getAlgorithm,
           HashAlgorithmTags.SHA1
-        ).setProvider("BC")
+        ).setProvider("BC"),
+        pgpSecretKey.getPublicKey
       )
 
       sGen.init(PGPSignature.BINARY_DOCUMENT, pgpPrivKey)
@@ -81,7 +82,7 @@ final case class BouncycastleSigner(
       val it = pgpSecretKey.getPublicKey.getUserIDs
       if (it.hasNext()) {
         val spGen = new PGPSignatureSubpacketGenerator
-        spGen.setSignerUserID(false, it.next().asInstanceOf[String])
+        spGen.addSignerUserID(false, it.next())
         sGen.setHashedSubpackets(spGen.generate())
       }
 
@@ -166,7 +167,7 @@ object BouncycastleSigner {
       throw new IllegalArgumentException("Can't find private key in the key ring.")
     if (!secretKey.isSigningKey)
       throw new IllegalArgumentException("Private key does not allow signing.")
-    if (secretKey.getPublicKey.isRevoked)
+    if (secretKey.getPublicKey.hasRevocation)
       throw new IllegalArgumentException("Private key has been revoked.")
     if (!hasKeyFlags(secretKey.getPublicKey, KeyFlags.SIGN_DATA))
       throw new IllegalArgumentException("Key cannot be used for signing.")
