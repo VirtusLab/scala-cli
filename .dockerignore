@@ -1,0 +1,10 @@
+./out
+.bloop
+.bsp
+.metals
+.scala-build
+.scala
+gifs
+website
+.github
+Dockerfile
