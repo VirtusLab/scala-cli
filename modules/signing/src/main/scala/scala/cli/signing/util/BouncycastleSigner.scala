@@ -51,8 +51,7 @@ final case class BouncycastleSigner(
           .build(passwordOpt.map(_.value.toCharArray).getOrElse(Array.empty))
       )
     }.toEither.left.map {
-      case pgpExc: PGPException
-          if pgpExc.getMessage.contains("checksum mismatch at in checksum of") =>
+      case pgpExc: PGPException if pgpExc.getMessage.contains("checksum mismatch") =>
         passwordOpt match {
           case Some(_) =>
             "Failed to decrypt the PGP secret key, make sure the provided password is correct!"
