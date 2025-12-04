@@ -80,4 +80,21 @@ abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         }
       }
     }
+
+  if actualScalaVersion.startsWith("3") then
+    test("doc with compileOnly.dep") {
+      TestInputs(
+        os.rel / "project.scala" ->
+          s"""//> using compileOnly.dep org.springframework.boot:spring-boot:3.5.6
+             |//> using test.dep org.springframework.boot:spring-boot:3.5.6
+             |""".stripMargin,
+        os.rel / "RootLoggerConfigurer.scala" ->
+          s"""import org.springframework.beans.factory.annotation.Autowired
+             |import scala.compiletime.uninitialized
+             |
+             |class RootLoggerConfigurer:
+             |  @Autowired var sentryClient: String = uninitialized
+             |""".stripMargin
+      ).fromRoot(root => os.proc(TestUtil.cli, "doc", ".", extraOptions).call(cwd = root))
+    }
 }
