@@ -1485,4 +1485,26 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         }
     }
   }
+
+  if actualScalaVersion.startsWith("3") then
+    test("package Scala.js without a main method") {
+      val moduleName = "whatever"
+      TestInputs(
+        os.rel / s"$moduleName.scala" ->
+          s"""import scala.scalajs.js.annotation.*
+             |
+             |object $moduleName {
+             |  @JSExportTopLevel(name = "handler", moduleID = "$moduleName")
+             |  def handler(): Unit = {
+             |    println("Hello world!")
+             |  }
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "package", ".", "--js", "--power", extraOptions)
+            .call(cwd = root, mergeErrIntoOut = true, stderr = os.Pipe)
+        expect(res.out.trim().contains(s"$moduleName.js"))
+      }
+    }
 }
