@@ -1583,7 +1583,7 @@ abstract class RunTestDefinitions
   }
 
   test("BuildInfo fields should be reachable") {
-    val jvmId  = "18"
+    val jvmId  = if TestUtil.isNativeCli then "17" else "18"
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
         s"""//> using dep com.lihaoyi::os-lib:0.9.1
