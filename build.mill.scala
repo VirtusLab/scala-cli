@@ -2,7 +2,7 @@ package build
 
 import $packages._
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
-import $ivy.`io.get-coursier::coursier-launcher:2.1.25-M19`
+import $ivy.`io.get-coursier::coursier-launcher:2.1.25-M21`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.31-1`
 import build.ci.publishVersion
 import build.project.deps
