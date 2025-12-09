@@ -106,7 +106,7 @@ scala-cli ScalaVersion.scala version.scala
 Scala: 2\.12\.
 -->
 
-The output at the time of this writing is "`2.12.18`".
+The output at the time of this writing is "`2.12.21`".
 
 The Scala CLI philosophy is “command line first,” so any configuration information that’s passed to the command line will override `using` directives. So when you run this command with the `-S` option:
 
@@ -114,7 +114,7 @@ The Scala CLI philosophy is “command line first,” so any configuration infor
 scala-cli -S 2.13.15 ScalaVersion.scala version.scala
 ```
 
-the result is "`2.13.15`" (as opposed to "`2.12.18`" in the previous example).
+the result is "`2.13.15`" (as opposed to "`2.12.21`" in the previous example).
 
 <!-- Expected-regex:
 Scala: 2\.13\.15
