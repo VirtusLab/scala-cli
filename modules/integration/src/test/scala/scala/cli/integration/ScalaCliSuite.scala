@@ -3,6 +3,7 @@ package scala.cli.integration
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.util.Properties
 
 abstract class ScalaCliSuite extends munit.FunSuite {
   implicit class BeforeEachOpts(munitContext: BeforeEach) {
@@ -27,6 +28,13 @@ abstract class ScalaCliSuite extends munit.FunSuite {
       System.err.println(
         s"X==== ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
       )
+    }
+
+    override def afterAll(): Unit = {
+      super.afterAll()
+      // Clean up cached JDKs after all tests have run on Linux native CI runners
+      if isCI && Properties.isLinux then TestUtil.cleanCachedJdks()
+      else System.err.println("Skipping cached JDKs cleanup")
     }
   }
 

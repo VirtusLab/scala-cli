@@ -1,6 +1,7 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import coursier.paths.CoursierPaths
 
 import java.io.File
 import java.net.ServerSocket
@@ -442,5 +443,26 @@ object TestUtil {
       if Properties.isWin then
         args.map(a => if a.contains(" ") then "\"" + a.replace("\"", "\\\"") + "\"" else a)
       else args
+  }
+
+  def cleanCoursierCache(pathToCleanContainsAnyKeyword: Seq[String] = Seq.empty): Unit = {
+    val csCache = os.Path(CoursierPaths.cacheDirectoryPath())
+    if pathToCleanContainsAnyKeyword.isEmpty && os.exists(csCache) && os.isDir(csCache) then
+      System.err.println(s"Cleaning Coursier cache at $csCache")
+      os.remove.all(csCache)
+    else if pathToCleanContainsAnyKeyword.nonEmpty then
+      os.walk(csCache)
+        .filter(d => !os.isDir(d)) // skip containing dirs
+        .filter(p => pathToCleanContainsAnyKeyword.exists(p.toString.contains))
+        .foreach { p =>
+          System.err.println(s"Cleaning from Coursier cache: $p")
+          os.remove(p)
+        }
+    else System.err.println("Nothing to clean")
+  }
+
+  def cleanCachedJdks(): Unit = {
+    System.err.println("Cleaning cached JDKs in Coursier cache…")
+    cleanCoursierCache(Seq("zulu", "temurin", "adoptium", "corretto", "liberica", "graalvm"))
   }
 }
