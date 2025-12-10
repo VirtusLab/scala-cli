@@ -2,6 +2,7 @@ package scala.cli.commands.doc
 
 import caseapp.*
 import caseapp.core.help.HelpFormat
+import coursier.Fetch
 import dependency.*
 
 import java.io.File
@@ -147,7 +148,7 @@ object Doc extends ScalaCommand[DocOptions] {
         builds.find(_.scope == Scope.Test).getOrElse(builds.head).project.scaladocDir
       case Some((_, true))        => builds.head.project.scaladocDir
       case Some((scalaParams, _)) =>
-        val res = value {
+        val res: Fetch.Result = value {
           Artifacts.fetchAnyDependencies(
             Seq(Positioned.none(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
             value(builds.head.options.finalRepositories),
@@ -162,7 +163,11 @@ object Doc extends ScalaCommand[DocOptions] {
         val ext      = if Properties.isWin then ".exe" else ""
         val baseArgs = Seq(
           "-classpath",
-          builds.flatMap(_.fullClassPath).distinct.map(_.toString).mkString(File.pathSeparator),
+          builds
+            .flatMap(_.fullCompileClassPath)
+            .distinct
+            .map(_.toString)
+            .mkString(File.pathSeparator),
           "-d",
           destDir.toString
         )

@@ -55,12 +55,15 @@ object Build {
     isPartial: Boolean,
     logger: Logger
   ) extends Build {
-    def success: Boolean                  = true
-    def cancelled: Boolean                = false
-    def successfulOpt: Some[this.type]    = Some(this)
-    def outputOpt: Some[os.Path]          = Some(output)
-    def dependencyClassPath: Seq[os.Path] = sources.resourceDirs ++ artifacts.classPath
-    def fullClassPath: Seq[os.Path]       = Seq(output) ++ dependencyClassPath
+    def success: Boolean                         = true
+    def cancelled: Boolean                       = false
+    def successfulOpt: Some[this.type]           = Some(this)
+    def outputOpt: Some[os.Path]                 = Some(output)
+    def dependencyClassPath: Seq[os.Path]        = sources.resourceDirs ++ artifacts.classPath
+    def dependencyCompileClassPath: Seq[os.Path] =
+      sources.resourceDirs ++ artifacts.compileClassPath
+    def fullClassPath: Seq[os.Path]        = Seq(output) ++ dependencyClassPath
+    def fullCompileClassPath: Seq[os.Path] = fullClassPath ++ dependencyCompileClassPath
     private lazy val mainClassesFoundInProject: Seq[String] = MainClass.find(output, logger).sorted
     private lazy val mainClassesFoundOnExtraClasspath: Seq[String] =
       options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger)).sorted

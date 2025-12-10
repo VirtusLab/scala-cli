@@ -348,4 +348,40 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
       expect(r.out.trim() == expectedMessage)
     }
   }
+
+  if actualScalaVersion.startsWith("3") then
+    test("publish local with compileOnly.dep") {
+      TestInputs(
+        os.rel / "project.scala" ->
+          s"""//> using compileOnly.dep org.springframework.boot:spring-boot:3.5.6
+             |//> using test.dep org.springframework.boot:spring-boot:3.5.6
+             |
+             |//> using publish.organization my.org
+             |//> using publish.name scala-cli-publish-bug
+             |//> using publish.version 1.0.0
+             |""".stripMargin,
+        os.rel / "RootLoggerConfigurer.scala" ->
+          s"""import org.springframework.beans.factory.annotation.Autowired
+             |import scala.compiletime.uninitialized
+             |
+             |class RootLoggerConfigurer:
+             |  @Autowired var sentryClient: String = uninitialized
+             |""".stripMargin
+      ).fromRoot { root =>
+        val scalaVersionArgs =
+          if (actualScalaVersion == Constants.scala3Next)
+            Seq("-S", actualScalaVersion)
+          else Nil
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          "local",
+          ".",
+          scalaVersionArgs,
+          extraOptions
+        )
+          .call(cwd = root)
+      }
+    }
 }
