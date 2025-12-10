@@ -720,14 +720,14 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     isFullOpt <- builds.head.options.scalaJsOptions.fullOpt
     linkerConfig = builds.head.options.scalaJsOptions.linkerConfig(logger)
     linkResult <- linkJs(
-      builds,
-      destPath,
-      mainClass,
+      builds = builds,
+      dest = destPath,
+      mainClassOpt = mainClass,
       addTestInitializer = false,
-      linkerConfig,
-      isFullOpt,
-      builds.head.options.scalaJsOptions.noOpt.getOrElse(false),
-      logger
+      config = linkerConfig,
+      fullOpt = isFullOpt,
+      noOpt = builds.head.options.scalaJsOptions.noOpt.getOrElse(false),
+      logger = logger
     )
   } yield linkResult
 
@@ -1023,20 +1023,27 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           builds.head.options.archiveCache
         )
       }
-      val relMainJs      = os.rel / "main.js"
-      val relSourceMapJs = os.rel / "main.js.map"
-      val mainJs         = linkingDir / relMainJs
-      val sourceMapJs    = linkingDir / relSourceMapJs
-
-      if (os.exists(mainJs))
-        if (
-          os.walk.stream(linkingDir)
-            .filter(_ != mainJs)
-            .filter(_ != sourceMapJs)
-            .headOption
-            .nonEmpty
-        ) {
-          // copy linking dir to dest
+      os.walk.stream(linkingDir).filter(_.ext == "js").toSeq match {
+        case Seq(sourceJs) if os.isFile(sourceJs) && sourceJs.last.endsWith(".js") =>
+          // there's just one js file to link, so we copy it directly
+          logger.debug(
+            s"Scala.js linker generated single file ${sourceJs.last}. Copying it to $dest"
+          )
+          val sourceMapJs = os.Path(sourceJs.toString + ".map")
+          os.copy(sourceJs, dest, replaceExisting = true)
+          if builds.head.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs) then {
+            logger.debug(
+              s"Source maps emission enabled, copying source map file: ${sourceMapJs.last}"
+            )
+            val sourceMapDest =
+              builds.head.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
+            val updatedMainJs = ScalaJsLinker.updateSourceMappingURL(dest)
+            os.write.over(dest, updatedMainJs)
+            os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
+            logger.message(s"Emitted js source maps to: $sourceMapDest")
+          }
+          dest
+        case _ @Seq(jsSource, _*) =>
           os.copy(
             linkingDir,
             dest,
@@ -1045,26 +1052,23 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             mergeFolders = true
           )
           logger.debug(
-            s"Scala.js linker generate multiple files for js multi-modules. Copy files to $dest directory."
+            s"Scala.js linker generated multiple files for js multi-modules. Copied files to $dest directory."
           )
-          dest / "main.js"
-        }
-        else {
-          os.copy(mainJs, dest, replaceExisting = true)
-          if (builds.head.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs)) {
-            val sourceMapDest =
-              builds.head.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
-            val updatedMainJs = ScalaJsLinker.updateSourceMappingURL(dest)
-            os.write.over(dest, updatedMainJs)
-            os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
-            logger.message(s"Emitted js source maps to: $sourceMapDest")
+          val jsFileToReturn = os.rel / {
+            mainClassOpt match {
+              case Some(_) if os.exists(linkingDir / "main.js")  => "main.js"
+              case Some(mc) if os.exists(linkingDir / s"$mc.js") => s"$mc.js"
+              case _                                             => jsSource.relativeTo(linkingDir)
+            }
           }
-
-          dest
-        }
-      else {
-        val found = os.walk(linkingDir).map(_.relativeTo(linkingDir))
-        value(Left(new ScalaJsLinkingError(relMainJs, found)))
+          dest / jsFileToReturn
+        case Nil =>
+          logger.debug("Scala.js linker did not generate any .js files.")
+          val allFilesInLinkingDir = os.walk(linkingDir).map(_.relativeTo(linkingDir))
+          value(Left(new ScalaJsLinkingError(
+            expected = if mainClassOpt.nonEmpty then "main.js" else "<module>.js",
+            foundFiles = allFilesInLinkingDir
+          )))
       }
     }
   }
