@@ -67,7 +67,7 @@ Adds compiler plugins
 `using plugin` _org_`:`_name_`:`_ver_
 
 #### Examples
-`//> using plugin org.typelevel:::kind-projector:0.13.2`
+`//> using plugin org.typelevel:::kind-projector:0.13.4`
 
 ### Compute Version
 
