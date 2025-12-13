@@ -115,13 +115,26 @@ object NativeImage {
     }
     dosDevices.mkString
   }
+
   private def availableDriveLetter(): Char = {
+    // if a drive letter has already been mapped by SUBST, it isn't free
+    val substDrives: Set[Char] =
+      os.proc("cmd", "/c", "subst").call().out.text()
+        .linesIterator
+        .flatMap { line =>
+          // lines look like: "I:\: => C:\path"
+          if (line.length >= 2 && line(1) == ':') Some(line(0))
+          else None
+        }
+        .toSet
 
     @tailrec
     def helper(from: Char): Char =
       if (from > 'Z') sys.error("Cannot find free drive letter")
-      else if (mountedDrives.contains(from)) helper((from + 1).toChar)
-      else from
+      else if (mountedDrives.contains(from) || substDrives.contains(from))
+        helper((from + 1).toChar)
+      else
+        from
 
     helper('D')
   }
@@ -149,32 +162,76 @@ object NativeImage {
       val drivePath = os.Path(s"$driveLetter:" + "\\")
       val newHome   = drivePath / currentHome.last
       logger.debug(s"Aliasing $from to $drivePath")
-      val setupCommand  = s"""subst $driveLetter: "$from""""
-      val disableScript = s"""subst $driveLetter: /d"""
+      val setupCommand          = s"""subst $driveLetter: "$from""""
+      val disableScript         = s"""subst $driveLetter: /d"""
+      val savedCodepage: String = getCodePage(logger) // before visual studio sets code page to 437
+
+      def atexitCleanup(): Unit = {
+        import java.lang.ProcessBuilder
+        try {
+          restoreCodePage(savedCodepage, logger) // best effort
+
+          // cannot use os.proc() because it also installs a shutdown hook
+          val pb = new ProcessBuilder("cmd.exe", "/c", disableScript)
+          pb.inheritIO()
+          val p    = pb.start()
+          val exit = p.waitFor()
+
+          if (exit == 0)
+            logger.debug(s"Unaliased $drivePath")
+          else if (os.exists(drivePath))
+            logger.error(s"Unaliasing attempt exited with exit code $exit")
+            // no throw in a shutdown hook, it might obscure the real cause of the shutdown
+          else
+            logger.debug(
+              s"Failed to unalias $drivePath which seems not to exist anymore, ignoring it"
+            )
+        }
+        catch {
+          case e: Throwable =>
+            logger.error(s"Cleanup failed: ${e.getMessage}")
+        }
+      }
+      // Runs on JVM shutdown, including Ctrl-C; more reliable than a `finally` block for cleanup
+      Runtime.getRuntime.addShutdownHook(new Thread(() => atexitCleanup()))
 
       os.proc("cmd", "/c", setupCommand).call(stdin = os.Inherit, stdout = os.Inherit)
-      try f(newHome)
-      finally {
-        val res = os.proc("cmd", "/c", disableScript).call(
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          check = false
-        )
-        if (res.exitCode == 0)
-          logger.debug(s"Unaliased $drivePath")
-        else if (os.exists(drivePath)) {
-          // ignore errors?
-          logger.debug(s"Unaliasing attempt exited with exit code ${res.exitCode}")
-          throw new os.SubprocessException(res)
-        }
-        else
-          logger.debug(
-            s"Failed to unalias $drivePath which seems not to exist anymore, ignoring it"
-          )
-      }
+      f(newHome) // no need for a try block
     }
     else
       f(currentHome)
+
+  def restoreCodePage(cp: String, logger: Logger): Unit =
+    if (Properties.isWin && cp.nonEmpty)
+      exec(Seq("cmd", "/c", "chcp", cp), logger, s"restore code page to $cp")
+
+  // execute a fire-and-forget windows command without using os.proc during shutdown.
+  private def exec(cmd: Seq[String], logger: Logger, desc: String): Unit = {
+    try {
+      val pb = new ProcessBuilder(cmd: _*)
+      pb.inheritIO()
+      val p    = pb.start()
+      val exit = p.waitFor()
+      if (exit == 0)
+        logger.debug(s"$desc succeeded")
+      else
+        logger.error(s"$desc failed with exit code $exit")
+    }
+    catch {
+      case e: Throwable =>
+        logger.error(s"$desc failed: ${e.getMessage}")
+    }
+  }
+  private def getCodePage(logger: Logger): String =
+    try {
+      val out = os.proc("cmd", "/c", "chcp").call().out.text().trim
+      out.split(":").lastOption.map(_.trim).getOrElse("") // Extract the number
+    }
+    catch {
+      case e: Exception =>
+        logger.debug(s"unable to get initial code page: ${e.getMessage}")
+        ""
+    }
 
   def buildNativeImage(
     builds: Seq[Build.Successful],
