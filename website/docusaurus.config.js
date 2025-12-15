@@ -9,10 +9,10 @@ module.exports = {
   url: 'https://scala-cli.virtuslab.org/',
   baseUrl: '/',
   onBrokenLinks: 'throw',
-  onBrokenAnchors: 'warn',
+  onBrokenAnchors: 'throw',
   markdown: {
     hooks: {
-      onBrokenMarkdownLinks: 'warn'
+      onBrokenMarkdownLinks: 'throw'
     }
   },
   favicon: 'img/favicon.ico',
