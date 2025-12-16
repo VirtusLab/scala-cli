@@ -207,7 +207,7 @@ object NativeImage {
   // execute a fire-and-forget windows command without using os.proc during shutdown.
   private def exec(cmd: Seq[String], logger: Logger, desc: String): Unit = {
     try {
-      val pb = new ProcessBuilder(cmd: _*)
+      val pb = new ProcessBuilder(cmd*)
       pb.inheritIO()
       val p    = pb.start()
       val exit = p.waitFor()

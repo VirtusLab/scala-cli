@@ -8,7 +8,7 @@ import java.nio.file.Files
 import java.util
 import java.util.zip.ZipFile
 
-import scala.cli.integration.TestUtil.removeAnsiColors
+import scala.cli.integration.TestUtil.*
 import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
@@ -842,74 +842,6 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
   }
 
-  private def substedDrives: Set[Char] =
-    if Properties.isWin then
-      os.proc("cmd", "/c", "subst").call().out.text()
-        .linesIterator
-        .flatMap { line =>
-          // lines look like: "I:\: => C:\path"
-          if (line.length >= 2 && line(1) == ':') Some(line(0))
-          else None
-        }
-        .toSet
-    else Set.empty[Char]
-
-  private def availableDriveLetter(): Char = {
-    import scala.annotation.tailrec
-    @tailrec
-    def helper(from: Char): Char =
-      if (from > 'Z') sys.error("Cannot find free drive letter")
-      // neither physical drives nor SUBSTed drives are free
-      else if (mountedDrives.contains(from) || substedDrives.contains(from))
-        helper((from + 1).toChar)
-      else
-        from
-
-    helper('D')
-  }
-
-  private lazy val mountedDrives: String = {
-    val str         = "HKEY_LOCAL_MACHINE/SYSTEM/MountedDevices".replace('/', '\\')
-    val queryDrives = s"reg query $str"
-    val lines       = os.proc("cmd", "/c", queryDrives).call().out.lines()
-    val dosDevices  = lines.filter { s =>
-      s.contains("DosDevices")
-    }.map { s =>
-      s.replaceAll(".DosDevices.", "").replaceAll(":.*", "")
-    }
-    dosDevices.mkString
-  }
-
-  private def aliasDriveLetter(driveLetter: Char, from: String): Unit = {
-    val setupCommand = s"""subst $driveLetter: "$from""""
-    os.proc("cmd", "/c", setupCommand).call(stdin = os.Inherit, stdout = os.Inherit)
-  }
-
-  private def unaliasDriveLetter(driveLetter: Char): Int = {
-    val disableScript = s"""subst $driveLetter: /d"""
-    val (exit, _)     = execWindowsCmd(Seq("cmd.exe", "/c", disableScript))
-    exit
-  }
-  def setCodePage(cp: String): Int =
-    val (exit, _) = execWindowsCmd(Seq("cmd", "/c", s"chcp $cp"))
-    exit
-
-  def getCodePage: String = {
-    val (_, output) = execWindowsCmd(Seq("cmd", "/c", "chcp"))
-    output
-  }
-
-  private def execWindowsCmd(cmd: Seq[String]): (Int, String) =
-    val pb = new ProcessBuilder(cmd*)
-    pb.redirectInput(ProcessBuilder.Redirect.INHERIT)
-    pb.redirectError(ProcessBuilder.Redirect.INHERIT)
-    pb.redirectOutput(ProcessBuilder.Redirect.PIPE)
-    val p = pb.start()
-    // read stdout fully
-    val output   = scala.io.Source.fromInputStream(p.getInputStream, "UTF-8").mkString
-    val exitCode = p.waitFor()
-    (exitCode, output)
-
   private def readEntry(zf: ZipFile, name: String): Array[Byte] = {
     val ent             = zf.getEntry(name)
     var is: InputStream = null
@@ -1081,9 +1013,10 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
              |}
              |""".stripMargin
       )
-
-      val driveLetter   = availableDriveLetter()
-      val substedBefore = substedDrives
+      setCodePage("65001")
+      val codePageBefore = getCodePage
+      val driveLetter    = availableDriveLetter()
+      val substedBefore  = substedDrives
       aliasDriveLetter(driveLetter, "C:\\Windows\\Temp") // trigger for #4005
 
       inputs.fromRoot { root =>
@@ -1112,9 +1045,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
         unaliasDriveLetter(driveLetter) // undo test condition
         val substedAfter = substedDrives
-        printf("substedBefore: [%s]\n", substedBefore.toSet.mkString("|"))
-        printf("substedAfter: [%s]\n", substedAfter.toSet.mkString("|"))
         expect(substedBefore == substedAfter)
+        val codePageAfter = getCodePage
+        expect(codePageBefore == codePageAfter)
       }
     }
 
