@@ -357,10 +357,7 @@ final case class BuildOptions(
               case sv if sv == ScalaVersionUtil.scala3Nightly =>
                 ScalaVersionUtil.GetNightly.scala3(cache)
               case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
-                ScalaVersionUtil.GetNightly.scala3X(
-                  threeSubBinaryNum,
-                  cache
-                )
+                ScalaVersionUtil.GetNightly.scala3X(threeSubBinaryNum, cache)
               case vs if ScalaVersionUtil.scala213Nightly.contains(vs) =>
                 ScalaVersionUtil.GetNightly.scala2("2.13", cache)
               case sv if sv == ScalaVersionUtil.scala212Nightly =>
