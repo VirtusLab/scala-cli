@@ -6,7 +6,7 @@ import coursier.Versions
 import coursier.cache.{ArtifactError, FileCache}
 import coursier.core.{Module, Repository, Versions as CoreVersions}
 import coursier.util.{Artifact, Task}
-import coursier.version.{Latest, Version}
+import coursier.version.Version
 
 import java.io.File
 
@@ -27,12 +27,16 @@ import scala.util.control.NonFatal
 
 object ScalaVersionUtil {
 
-  private def scala2Library = cmod"org.scala-lang:scala-library"
-  private def scala3Library = cmod"org.scala-lang:scala3-library_3"
-  def scala212Nightly       = "2.12.nightly"
-  def scala213Nightly       = List("2.13.nightly", "2.nightly")
-  def scala3Nightly         = "3.nightly"
-  def scala3Lts             = List("3.lts", "lts")
+  private def scala2Library           = cmod"org.scala-lang:scala-library"
+  private def scala3Library           = cmod"org.scala-lang:scala3-library_3"
+  def scala212Nightly                 = "2.12.nightly"
+  def scala213Nightly                 = List("2.13.nightly", "2.nightly")
+  def scala3Nightly                   = "3.nightly"
+  private def rcAlias(prefix: String) = s"$prefix.rc"
+  def scala2LatestRc                  = List(rcAlias("2"), rcAlias("2.12"), rcAlias("2.13"))
+  def scala3LatestRc                  = List("rc", rcAlias("3"))
+  def scala3LtsLatestRc = List(rcAlias("lts"), rcAlias("3.lts"), rcAlias(Constants.scala3LtsPrefix))
+  def scala3Lts         = List("3.lts", "lts")
   // not valid versions, defined only for informative error messages
   def scala2Lts = List("2.13.lts", "2.12.lts", "2.lts")
   extension (cache: FileCache[Task]) {
@@ -126,7 +130,8 @@ object ScalaVersionUtil {
       threeSubBinaryNum: String,
       cache: FileCache[Task]
     ): Either[BuildException, String] = {
-      val res = cache.versionsWithTtl0(scala3Library)
+      val repositories = Seq(RepositoryUtils.scala3NightlyRepository)
+      val res          = cache.versionsWithTtl0(scala3Library, repositories)
         .versions.available0.filter(_.asString.endsWith("-NIGHTLY"))
 
       val threeXNightlies = res.filter(_.asString.startsWith(s"3.$threeSubBinaryNum."))
@@ -152,7 +157,7 @@ object ScalaVersionUtil {
       versions: CoreVersions,
       desc: String
     ): Either[scala.build.errors.ScalaVersionError, String] =
-      versions.latest(Latest.Release) match {
+      versions.latest(coursier.version.Latest.Release) match {
         case Some(versionString) => Right(versionString.asString)
         case None                =>
           val availableVersionsString = versions.available0.map(_.asString).mkString(", ")
@@ -181,53 +186,55 @@ object ScalaVersionUtil {
       cache.versionsWithTtl0(scala3Library, repositories).verify(versionString)
   }
 
-  def validateNonStable(
+  def validate(
+    scalaVersionStringArg: String,
+    cache: FileCache[Task],
+    repositories: Seq[Repository],
+    isExactVersion: Boolean
+  )(validationFunction: String => Boolean): Either[ScalaVersionError, String] = {
+    val versionPool =
+      ScalaVersionUtil.allMatchingVersions(Some(scalaVersionStringArg), cache, repositories)
+        .filter(validationFunction)
+
+    val prefix =
+      if Util.isFullScalaVersion(scalaVersionStringArg) then scalaVersionStringArg
+      else if scalaVersionStringArg.endsWith(".") then scalaVersionStringArg
+      else scalaVersionStringArg + "."
+    val matchingVersions = versionPool.filter(_.startsWith(prefix)).map(Version(_))
+    if matchingVersions.isEmpty ||
+      (isExactVersion && !matchingVersions.contains(scalaVersionStringArg))
+    then Left(new InvalidBinaryScalaVersionError(scalaVersionStringArg))
+    else {
+      val supportedMatchingVersions = matchingVersions.filter(v => isSupportedVersion(v.repr))
+      supportedMatchingVersions.find(_.repr == scalaVersionStringArg) match {
+        case Some(v)                                                       => Right(v.repr)
+        case None if supportedMatchingVersions.nonEmpty && !isExactVersion =>
+          Right(supportedMatchingVersions.max.repr)
+        case _ => Left(new UnsupportedScalaVersionError(scalaVersionStringArg))
+      }
+    }
+  }
+
+  def validateExactVersion(
     scalaVersionStringArg: String,
     cache: FileCache[Task],
     repositories: Seq[Repository]
-  ): Either[ScalaVersionError, String] = {
-    val versionPool =
-      ScalaVersionUtil.allMatchingVersions(Some(scalaVersionStringArg), cache, repositories)
-
-    if (versionPool.contains(scalaVersionStringArg))
-      if (isSupportedVersion(scalaVersionStringArg))
-        Right(scalaVersionStringArg)
-      else
-        Left(new UnsupportedScalaVersionError(scalaVersionStringArg))
-    else
-      Left(new InvalidBinaryScalaVersionError(scalaVersionStringArg))
-  }
+  ): Either[ScalaVersionError, String] =
+    validate(scalaVersionStringArg, cache, repositories, isExactVersion = true)(_ => true)
 
   def validateStable(
     scalaVersionStringArg: String,
     cache: FileCache[Task],
     repositories: Seq[Repository]
-  ): Either[ScalaVersionError, String] = {
-    val versionPool =
-      ScalaVersionUtil.allMatchingVersions(Some(scalaVersionStringArg), cache, repositories)
-        .filter(ScalaVersionUtil.isStable)
+  ): Either[ScalaVersionError, String] =
+    validate(scalaVersionStringArg, cache, repositories, isExactVersion = false)(isStable)
 
-    val prefix =
-      if (Util.isFullScalaVersion(scalaVersionStringArg)) scalaVersionStringArg
-      else if (scalaVersionStringArg.endsWith(".")) scalaVersionStringArg
-      else scalaVersionStringArg + "."
-    val matchingStableVersions = versionPool.filter(_.startsWith(prefix)).map(Version(_))
-    if (matchingStableVersions.isEmpty)
-      Left(new InvalidBinaryScalaVersionError(scalaVersionStringArg))
-    else {
-      val supportedMatchingStableVersions =
-        matchingStableVersions.filter(v => isSupportedVersion(v.repr))
-
-      supportedMatchingStableVersions.find(_.repr == scalaVersionStringArg) match {
-        case Some(v)                                          => Right(v.repr)
-        case None if supportedMatchingStableVersions.nonEmpty =>
-          Right(supportedMatchingStableVersions.max.repr)
-        case _ => Left(
-            new UnsupportedScalaVersionError(scalaVersionStringArg)
-          )
-      }
-    }
-  }
+  def validateRc(
+    scalaVersionStringArg: String,
+    cache: FileCache[Task],
+    repositories: Seq[Repository]
+  ): Either[ScalaVersionError, String] =
+    validate(scalaVersionStringArg, cache, repositories, isExactVersion = false)(isRc)
 
   private def isSupportedVersion(version: String): Boolean =
     version.startsWith("2.12.") || version.startsWith("2.13.") || version.startsWith("3.")
@@ -240,6 +247,12 @@ object ScalaVersionUtil {
     (version.startsWith("3") && version.endsWith("-NIGHTLY")) || version == scala3Nightly
   def isStable(version: String): Boolean =
     !version.exists(_.isLetter)
+  def isRc(version: String): Boolean = {
+    val lowerCasedVersion = version.toLowerCase
+    lowerCasedVersion.contains("rc") &&
+    !lowerCasedVersion.contains("-nightly") &&
+    !lowerCasedVersion.contains("-snapshot")
+  }
 
   def allMatchingVersions(
     maybeScalaVersionArg: Option[String],
