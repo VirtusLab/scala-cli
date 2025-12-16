@@ -842,6 +842,74 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
   }
 
+  private def substedDrives: Set[Char] =
+    if Properties.isWin then
+      os.proc("cmd", "/c", "subst").call().out.text()
+        .linesIterator
+        .flatMap { line =>
+          // lines look like: "I:\: => C:\path"
+          if (line.length >= 2 && line(1) == ':') Some(line(0))
+          else None
+        }
+        .toSet
+    else Set.empty[Char]
+
+  private def availableDriveLetter(): Char = {
+    import scala.annotation.tailrec
+    @tailrec
+    def helper(from: Char): Char =
+      if (from > 'Z') sys.error("Cannot find free drive letter")
+      // neither physical drives nor SUBSTed drives are free
+      else if (mountedDrives.contains(from) || substedDrives.contains(from))
+        helper((from + 1).toChar)
+      else
+        from
+
+    helper('D')
+  }
+
+  private lazy val mountedDrives: String = {
+    val str         = "HKEY_LOCAL_MACHINE/SYSTEM/MountedDevices".replace('/', '\\')
+    val queryDrives = s"reg query $str"
+    val lines       = os.proc("cmd", "/c", queryDrives).call().out.lines()
+    val dosDevices  = lines.filter { s =>
+      s.contains("DosDevices")
+    }.map { s =>
+      s.replaceAll(".DosDevices.", "").replaceAll(":.*", "")
+    }
+    dosDevices.mkString
+  }
+
+  private def aliasDriveLetter(driveLetter: Char, from: String): Unit = {
+    val setupCommand = s"""subst $driveLetter: "$from""""
+    os.proc("cmd", "/c", setupCommand).call(stdin = os.Inherit, stdout = os.Inherit)
+  }
+
+  private def unaliasDriveLetter(driveLetter: Char): Int = {
+    val disableScript = s"""subst $driveLetter: /d"""
+    val (exit, _)     = execWindowsCmd(Seq("cmd.exe", "/c", disableScript))
+    exit
+  }
+  def setCodePage(cp: String): Int =
+    val (exit, _) = execWindowsCmd(Seq("cmd", "/c", s"chcp $cp"))
+    exit
+
+  def getCodePage: String = {
+    val (_, output) = execWindowsCmd(Seq("cmd", "/c", "chcp"))
+    output
+  }
+
+  private def execWindowsCmd(cmd: Seq[String]): (Int, String) =
+    val pb = new ProcessBuilder(cmd*)
+    pb.redirectInput(ProcessBuilder.Redirect.INHERIT)
+    pb.redirectError(ProcessBuilder.Redirect.INHERIT)
+    pb.redirectOutput(ProcessBuilder.Redirect.PIPE)
+    val p = pb.start()
+    // read stdout fully
+    val output   = scala.io.Source.fromInputStream(p.getInputStream, "UTF-8").mkString
+    val exitCode = p.waitFor()
+    (exitCode, output)
+
   private def readEntry(zf: ZipFile, name: String): Array[Byte] = {
     val ent             = zf.getEntry(name)
     var is: InputStream = null
@@ -997,6 +1065,58 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(output == message)
     }
   }
+
+  if (Properties.isWin)
+    test("availableDriveLetter") {
+      val message    = "Hello from native-image"
+      val dest       = "hello"
+      val actualDest =
+        if (Properties.isWin) "hello.exe"
+        else "hello"
+      val inputs = TestInputs(
+        os.rel / "Hello.scala" ->
+          s"""object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println("$message")
+             |}
+             |""".stripMargin
+      )
+
+      val driveLetter   = availableDriveLetter()
+      val substedBefore = substedDrives
+      aliasDriveLetter(driveLetter, "C:\\Windows\\Temp") // trigger for #4005
+
+      inputs.fromRoot { root =>
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          extraOptions,
+          ".",
+          "--native-image",
+          "-o",
+          dest,
+          "--",
+          "--no-fallback"
+        ).call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit
+        )
+
+        expect(os.isFile(root / actualDest))
+
+        val res    = os.proc(root / actualDest).call(cwd = root)
+        val output = res.out.trim()
+        expect(output == message)
+
+        unaliasDriveLetter(driveLetter) // undo test condition
+        val substedAfter = substedDrives
+        printf("substedBefore: [%s]\n", substedBefore.toSet.mkString("|"))
+        printf("substedAfter: [%s]\n", substedAfter.toSet.mkString("|"))
+        expect(substedBefore == substedAfter)
+      }
+    }
 
   test("correctly list main classes") {
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")

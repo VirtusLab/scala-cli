@@ -133,8 +133,7 @@ object NativeImage {
       if (from > 'Z') sys.error("Cannot find free drive letter")
       else if (mountedDrives.contains(from) || substDrives.contains(from))
         helper((from + 1).toChar)
-      else
-        from
+      else from
 
     helper('D')
   }
