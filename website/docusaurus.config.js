@@ -9,9 +9,10 @@ module.exports = {
   url: 'https://scala-cli.virtuslab.org/',
   baseUrl: '/',
   onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
   markdown: {
     hooks: {
-      onBrokenMarkdownLinks: 'warn'
+      onBrokenMarkdownLinks: 'throw'
     }
   },
   favicon: 'img/favicon.ico',
@@ -39,7 +40,7 @@ module.exports = {
         {
          // type: 'doc',
           label: "Use cases",
-          to: '/#use_cases',
+          to: '/',
           items: [
             {
               to: '/education',
