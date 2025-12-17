@@ -6,7 +6,7 @@ import coursier.Versions
 import coursier.cache.{ArtifactError, FileCache}
 import coursier.core.{Module, Repository, Versions as CoreVersions}
 import coursier.util.{Artifact, Task}
-import coursier.version.{Latest, Version}
+import coursier.version.Version
 
 import java.io.File
 
@@ -126,7 +126,8 @@ object ScalaVersionUtil {
       threeSubBinaryNum: String,
       cache: FileCache[Task]
     ): Either[BuildException, String] = {
-      val res = cache.versionsWithTtl0(scala3Library)
+      val repositories = Seq(RepositoryUtils.scala3NightlyRepository)
+      val res          = cache.versionsWithTtl0(scala3Library, repositories)
         .versions.available0.filter(_.asString.endsWith("-NIGHTLY"))
 
       val threeXNightlies = res.filter(_.asString.startsWith(s"3.$threeSubBinaryNum."))
@@ -152,7 +153,7 @@ object ScalaVersionUtil {
       versions: CoreVersions,
       desc: String
     ): Either[scala.build.errors.ScalaVersionError, String] =
-      versions.latest(Latest.Release) match {
+      versions.latest(coursier.version.Latest.Release) match {
         case Some(versionString) => Right(versionString.asString)
         case None                =>
           val availableVersionsString = versions.available0.map(_.asString).mkString(", ")
