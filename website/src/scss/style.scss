@@ -1,21 +1,16 @@
 
-$theme-red: #F23135;
-$theme-yellow: #FFD583;
+@use 'variables' as *;
+@use 'components/section-base' as *;
+@use 'components/section-image-box' as *;
+@use 'components/section-features' as *;
+@use 'components/section-about' as *;
+@use 'components/section-yellow-banner' as *;
+@use 'components/section-use-tiles' as *;
+@use 'components/section-install-cli' as *;
+@use 'components/tooltip' as *;
+@use 'components/runnable-sample' as *;
 
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap');
-
-@import 'components/section-base';
-
-@import 'components/section-image-box';
-@import 'components/section-features';
-@import 'components/section-about';
-
-@import "./components/section-yellow-banner";
-@import "./components/section-use-tiles";
-@import "./components/section-install-cli";
-
-@import "./components/tooltip";
-@import "./components/runnable-sample";
 
 @font-face {
     font-family: "Roboto Mono", monospace;
