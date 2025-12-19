@@ -54,34 +54,38 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
       expect(output.filterNot(_.isWhitespace) == "[\"-deprecation\"]")
     }
 
-  def jvmTestCompilerPlugin(mainClass: String, exportArgs: Seq[String]): Unit =
-    ExportTestProjects.jvmTest(actualScalaVersion, mainClass).withMillJvmOpts.fromRoot { root =>
-      exportCommand(exportArgs :+ "."*).call(cwd = root, stdout = os.Inherit)
-      locally {
-        // scalacPluginIvyDeps
-        val res =
-          buildToolCommand(
-            root,
-            Some(mainClass),
-            "--disable-ticker",
-            "show",
-            s"$millDefaultProjectName.scalacPluginIvyDeps"
-          )
-            .call(cwd = root / outputDir)
-        val output = res.out.text(Charset.defaultCharset())
-        expect(output.contains("com.olegpy"))
-        expect(output.contains("better-monadic-for"))
+  def jvmTestCompilerPlugin(mainClass: String, exportArgs: Seq[String]): Unit = {
+    val message = "Hello"
+    ExportTestProjects.jvmTestWithCompilerPlugin(
+      scalaVersion = actualScalaVersion,
+      mainClassName = mainClass,
+      message = message
+    )
+      .withMillJvmOpts.fromRoot { root =>
+        exportCommand(exportArgs :+ "."*).call(cwd = root, stdout = os.Inherit)
+        locally {
+          val millDepsCommand =
+            if millVersion.startsWith("1.") then "scalacPluginMvnDeps" else "scalacPluginIvyDeps"
+          val res =
+            buildToolCommand(
+              root,
+              Some(mainClass),
+              "show",
+              s"$millDefaultProjectName.$millDepsCommand"
+            )
+              .call(cwd = root / outputDir)
+          val output = res.out.text(Charset.defaultCharset())
+          expect(output.contains("hearth-cross-quotes"))
+        }
+        locally {
+          val res =
+            buildToolCommand(root, Some(mainClass), s"$millDefaultProjectName.run")
+              .call(cwd = root / outputDir)
+          val output = res.out.text(Charset.defaultCharset())
+          expect(output.contains(message))
+        }
       }
-      locally {
-        // test
-        val res =
-          buildToolCommand(root, Some(mainClass), s"$millDefaultProjectName.test").call(cwd =
-            root / outputDir
-          )
-        val output = res.out.text(Charset.defaultCharset())
-        expect(output.contains("1 succeeded"))
-      }
-    }
+  }
 
   if runExportTests then {
     test(s"JVM custom project name$commonTestDescriptionSuffix") {
@@ -100,6 +104,12 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
         jvmTestScalacOptions(className = "Hello", exportArgs = defaultExportCommandArgs)
       }
     }
+    if !actualScalaVersion.startsWith("2.12") then
+      test(s"JVM with a compiler plugin$commonTestDescriptionSuffix") {
+        TestUtil.retryOnCi() {
+          jvmTestCompilerPlugin(mainClass = "Hello", exportArgs = defaultExportCommandArgs)
+        }
+      }
   }
 }
 

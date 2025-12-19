@@ -6,9 +6,8 @@ import scala.cli.integration.Constants.munitVersion
 
 object ExportTestProjects {
   def jvmTest(scalaVersion: String, mainClassName: String): TestInputs = {
-
     val mainFile =
-      if (scalaVersion.startsWith("3."))
+      if scalaVersion.startsWith("3.") then
         s"""//> using scala $scalaVersion
            |//> using resourceDir ./input
            |//> using dep org.scala-lang::scala3-compiler:$scalaVersion
@@ -68,6 +67,24 @@ object ExportTestProjects {
            |2""".stripMargin
     )
   }
+
+  def jvmTestWithCompilerPlugin(
+    scalaVersion: String,
+    mainClassName: String,
+    message: String
+  ): TestInputs =
+    TestInputs(
+      os.rel / s"$mainClassName.scala" -> s"""//> using scala $scalaVersion
+                                             |//> using option -deprecation
+                                             |//> using plugin com.kubuszok::hearth-cross-quotes:0.2.0
+                                             |
+                                             |object $mainClassName {
+                                             |  def main(args: Array[String]): Unit = {
+                                             |    println("$message")
+                                             |  }
+                                             |}
+                                             |""".stripMargin
+    )
 
   def jsTest(scalaVersion: String): TestInputs = {
 
