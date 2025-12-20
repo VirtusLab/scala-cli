@@ -510,21 +510,20 @@ object TestUtil {
   }
 
   def unaliasDriveLetter(driveLetter: Char): Int = {
-    val disableScript = s"""subst $driveLetter: /d"""
-    val (exit, _)     = execWindowsCmd(Seq("cmd.exe", "/c", disableScript))
+    val (exit, _) = execWindowsCmd("cmd.exe", "/c", s"subst $driveLetter: /d")
     exit
   }
 
   def setCodePage(cp: String): Int =
-    val (exit, _) = execWindowsCmd(Seq("cmd", "/c", s"chcp $cp"))
+    val (exit, _) = execWindowsCmd("cmd", "/c", s"chcp $cp")
     exit
 
   def getCodePage: String = {
-    val (_, output) = execWindowsCmd(Seq("cmd", "/c", "chcp"))
+    val (_, output) = execWindowsCmd("cmd", "/c", "chcp")
     output
   }
 
-  private def execWindowsCmd(cmd: Seq[String]): (Int, String) =
+  private def execWindowsCmd(cmd: String*): (Int, String) =
     val pb = new ProcessBuilder(cmd*)
     pb.redirectInput(ProcessBuilder.Redirect.INHERIT)
     pb.redirectError(ProcessBuilder.Redirect.INHERIT)

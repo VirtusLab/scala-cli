@@ -5,7 +5,7 @@ import java.io.File
 import scala.annotation.tailrec
 import scala.build.internal.{ManifestJar, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
-import scala.build.internals.EnvVar
+import scala.build.internals.{EnvVar, MsvcEnvironment, WindowsProcessLauncher}
 import scala.build.{Build, Logger, Positioned, coursierVersion}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
@@ -60,48 +60,35 @@ object NativeImage {
       .toList
       .headOption
 
-  private def runFromVcvarsBat(
+  private def runNativeImage(
     command: Seq[String],
     vcvars: os.Path,
     workingDir: os.Path,
     logger: Logger
   ): Int = {
     logger.debug(s"Using vcvars script $vcvars")
-    val escapedCommand = command.map {
-      case s if s.contains(" ") => "\"" + s + "\""
-      case s                    => s
-    }
-    // chcp 437 sometimes needed, see https://github.com/oracle/graal/issues/2522
-    // but must save and restore existing code page afterwards
-    val script =
-      s"""@echo off
-         |rem Save current code page
-         |for /f "tokens=2 delims=:." %%A in ('chcp') do set "OLDCP=%%A"
-         |@echo on
-         |set OLDCP=%OLDCP: =%
-         |chcp 437
-         |@call "$vcvars"
-         |if %errorlevel% neq 0 exit /b %errorlevel%
-         |@call ${escapedCommand.mkString(" ")}
-         |rem Restore original code page
-         |chcp %OLDCP% >nul
-         |""".stripMargin
-    logger.debug(s"Native image script: '$script'")
-    val scriptPath = workingDir / "run-native-image.bat"
-    logger.debug(s"Writing native image script at $scriptPath")
-    os.write.over(scriptPath, script.getBytes, createFolders = true)
 
-    val finalCommand = Seq("cmd", "/c", scriptPath.toString)
-    logger.debug(s"Running $finalCommand")
-    val res = os.proc(finalCommand).call(
-      cwd = os.pwd,
-      check = false,
-      stdin = os.Inherit,
-      stdout = os.Inherit
-    )
-    logger.debug(s"Command $finalCommand exited with exit code ${res.exitCode}")
+    val msvcEnv = MsvcEnvironment.captureVcvarsEnv(Seq("x64"))
+    val baseEnv = sys.env
 
-    res.exitCode
+    val mergedPath =
+      msvcEnv.getOrElse("PATH", "") + ";" + baseEnv.getOrElse("PATH", "")
+
+    val mergedEnv =
+      baseEnv ++ msvcEnv +
+        ("PATH"                                 -> mergedPath) +
+        ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
+
+    logger.debug(s"Launching native-image.exe with args: $command")
+
+    // GraalVM code page 437 requirement, run, restore CP
+    val exitCode =
+      WindowsProcessLauncher.runInNewGroup(
+        command = command,
+        cwd = workingDir,
+        env = mergedEnv
+      )
+    exitCode
   }
 
   private lazy val mountedDrives: String = {
@@ -160,67 +147,79 @@ object NativeImage {
       val from      = currentHome / os.up
       val drivePath = os.Path(s"$driveLetter:" + "\\")
       val newHome   = drivePath / currentHome.last
-      logger.debug(s"Aliasing $from to $drivePath")
-      val setupCommand          = s"""subst $driveLetter: "$from""""
-      val disableScript         = s"""subst $driveLetter: /d"""
+
       val savedCodepage: String = getCodePage(logger) // before visual studio sets code page to 437
 
+      val cleanupLock                  = new Object()
+      var shutdownHook: Option[Thread] = None
+
       def atexitCleanup(): Unit = {
-        import java.lang.ProcessBuilder
-        try {
-          restoreCodePage(savedCodepage, logger) // best effort
+        cleanupLock.synchronized {
+          shutdownHook.foreach { hook =>
+            shutdownHook = None
+            try
+              Runtime.getRuntime.removeShutdownHook(hook)
+            catch {
+              case _: IllegalStateException => // Already shutting down, that's fine
+            }
 
-          // cannot use os.proc() because it also installs a shutdown hook
-          val pb = new ProcessBuilder("cmd.exe", "/c", disableScript)
-          pb.inheritIO()
-          val p    = pb.start()
-          val exit = p.waitFor()
-
-          if (exit == 0)
-            logger.debug(s"Unaliased $drivePath")
-          else if (os.exists(drivePath))
-            logger.error(s"Unaliasing attempt exited with exit code $exit")
-            // no throw in a shutdown hook, it might obscure the real cause of the shutdown
-          else
-            logger.debug(
-              s"Failed to unalias $drivePath which seems not to exist anymore, ignoring it"
-            )
-        }
-        catch {
-          case e: Throwable =>
-            logger.error(s"Cleanup failed: ${e.getMessage}")
+            try {
+              setCodePage(savedCodepage)
+              val exit = unaliasDriveLetter(driveLetter)
+              if (exit == 0)
+                logger.debug(s"Unaliased $drivePath")
+              else if (os.exists(drivePath))
+                logger.error(s"Unaliasing attempt exited with exit code $exit")
+              else
+                logger.debug(s"Failed to unalias $drivePath (not aliased, ignoring it)")
+            }
+            catch {
+              case e: Throwable =>
+                logger.error(s"Cleanup failed: ${e.getMessage}")
+            }
+          }
         }
       }
-      // Runs on JVM shutdown, including Ctrl-C; more reliable than a `finally` block for cleanup
-      Runtime.getRuntime.addShutdownHook(new Thread(() => atexitCleanup()))
 
-      os.proc("cmd", "/c", setupCommand).call(stdin = os.Inherit, stdout = os.Inherit)
-      f(newHome) // no need for a try block
+      // Create and register cleanup hook
+      shutdownHook = Some(new Thread(() => atexitCleanup()))
+      Runtime.getRuntime.addShutdownHook(shutdownHook.get)
+
+      logger.debug(s"Aliasing $from to $drivePath")
+      aliasDriveLetter(driveLetter, from.toString)
+      try
+        f(newHome)
+      finally
+        atexitCleanup()
     }
     else
       f(currentHome)
 
-  def restoreCodePage(cp: String, logger: Logger): Unit =
-    if (Properties.isWin && cp.nonEmpty)
-      exec(Seq("cmd", "/c", "chcp", cp), logger, s"restore code page to $cp")
+  def setCodePage(cp: String): Int =
+    execWindowsCmd("cmd", "/c", s"chcp $cp")._1
 
-  // execute a fire-and-forget windows command without using os.proc during shutdown.
-  private def exec(cmd: Seq[String], logger: Logger, desc: String): Unit = {
-    try {
-      val pb = new ProcessBuilder(cmd*)
-      pb.inheritIO()
-      val p    = pb.start()
-      val exit = p.waitFor()
-      if (exit == 0)
-        logger.debug(s"$desc succeeded")
-      else
-        logger.error(s"$desc failed with exit code $exit")
-    }
-    catch {
-      case e: Throwable =>
-        logger.error(s"$desc failed: ${e.getMessage}")
-    }
+  def getCodePage: String = {
+    val out = execWindowsCmd("cmd", "/c", "chcp")._2
+    out.split(":").lastOption.map(_.trim).getOrElse("") // Extract the number
   }
+
+  def aliasDriveLetter(driveLetter: Char, from: String): Unit =
+    execWindowsCmd("cmd", "/c", s"subst $driveLetter: \"$from\"")
+
+  def unaliasDriveLetter(driveLetter: Char): Int =
+    execWindowsCmd("cmd", "/c", s"subst $driveLetter: /d")._1
+
+  private def execWindowsCmd(cmd: String*): (Int, String) =
+    val pb = new ProcessBuilder(cmd*)
+    pb.redirectInput(ProcessBuilder.Redirect.INHERIT)
+    pb.redirectError(ProcessBuilder.Redirect.INHERIT)
+    pb.redirectOutput(ProcessBuilder.Redirect.PIPE)
+    val p = pb.start()
+    // read stdout fully
+    val output   = scala.io.Source.fromInputStream(p.getInputStream, "UTF-8").mkString
+    val exitCode = p.waitFor()
+    (exitCode, output)
+
   private def getCodePage(logger: Logger): String =
     try {
       val out = os.proc("cmd", "/c", "chcp").call().out.text().trim
@@ -305,10 +304,16 @@ object NativeImage {
           }
           else (processedClassPath, Seq[os.Path](), Seq[String]())
 
+        def stripSuffixIgnoreCase(s: String, suffix: String): String =
+          if (s.toLowerCase.endsWith(suffix.toLowerCase))
+            s.substring(0, s.length - suffix.length)
+          else
+            s
+
         try {
           val args = extraOptions ++ scala3extraOptions ++ Seq(
             s"-H:Path=${dest / os.up}",
-            s"-H:Name=${dest.last.stripSuffix(".exe")}", // FIXME Case-insensitive strip suffix?
+            s"-H:Name=${stripSuffixIgnoreCase(dest.last, ".exe")}", // Case-insensitive strip suffix
             "-cp",
             classPath.map(_.toString).mkString(File.pathSeparator),
             mainClass
@@ -322,7 +327,7 @@ object NativeImage {
             val exitCode =
               if Properties.isWin then
                 vcvarsOpt match {
-                  case Some(vcvars) => runFromVcvarsBat(command, vcvars, nativeImageWorkDir, logger)
+                  case Some(vcvars) => runNativeImage(command, vcvars, nativeImageWorkDir, logger)
                   case None         => Runner.run(command, logger).waitFor()
                 }
               else Runner.run(command, logger).waitFor()
