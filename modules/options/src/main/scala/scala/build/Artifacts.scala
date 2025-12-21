@@ -195,7 +195,11 @@ object Artifacts {
     val maybeSnapshotRepo = {
       val hasSnapshots = jvmTestRunnerDependencies.exists(_.version.endsWith("SNAPSHOT")) ||
         scalaArtifactsParamsOpt.flatMap(_.scalaNativeCliVersion).exists(_.endsWith("SNAPSHOT"))
-      if hasSnapshots then
+      val hasNightlies = scalaArtifactsParamsOpt.exists(a =>
+        a.params.scalaVersion.endsWith("-NIGHTLY") ||
+        a.params.scalaBinaryVersion.endsWith("-NIGHTLY")
+      )
+      if hasSnapshots || hasNightlies then
         Seq(
           coursier.Repositories.sonatype("snapshots"),
           coursier.Repositories.sonatypeS01("snapshots"),

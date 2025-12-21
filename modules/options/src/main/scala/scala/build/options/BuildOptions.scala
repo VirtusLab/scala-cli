@@ -17,7 +17,11 @@ import scala.build.errors.*
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.*
 import scala.build.internal.Constants.*
-import scala.build.internal.Regexes.scala3NightlyNicknameRegex
+import scala.build.internal.Regexes.{
+  scala3NightlyNicknameRegex,
+  scala3RcNicknameRegex,
+  scala3RcRegex
+}
 import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.internals.EnvVar
 import scala.build.options.validation.BuildOptionsRule
@@ -345,22 +349,27 @@ final case class BuildOptions(
           val sv = value {
             svInput match {
               case sv if ScalaVersionUtil.scala3Lts.contains(sv) =>
-                ScalaVersionUtil.validateStable(
-                  Constants.scala3LtsPrefix,
-                  cache,
-                  repositories
-                )
+                ScalaVersionUtil.validateStable(Constants.scala3LtsPrefix, cache, repositories)
+              case sv if ScalaVersionUtil.scala3LatestRc.contains(sv.toLowerCase) =>
+                ScalaVersionUtil.validateRc("3", cache, repositories)
+              case sv if ScalaVersionUtil.scala3LtsLatestRc.contains(sv.toLowerCase) =>
+                ScalaVersionUtil.validateRc(Constants.scala3LtsPrefix, cache, repositories)
+              case scala3RcRegex(threeSubBinarySuffix) =>
+                ScalaVersionUtil.validateRc(s"3.$threeSubBinarySuffix", cache, repositories)
+              case scala3RcNicknameRegex(threeSubBinarySuffix) =>
+                ScalaVersionUtil.validateRc(s"3.$threeSubBinarySuffix", cache, repositories)
               case sv if ScalaVersionUtil.scala2Lts.contains(sv) =>
                 Left(new ScalaVersionError(
                   s"Invalid Scala version: $sv. There is no official LTS version for Scala 2."
                 ))
+              case sv if ScalaVersionUtil.scala2LatestRc.contains(sv) =>
+                Left(new ScalaVersionError(
+                  s"Invalid Scala version: $sv. In the case of Scala 2, a particular nightly version serves as a release candidate."
+                ))
               case sv if sv == ScalaVersionUtil.scala3Nightly =>
                 ScalaVersionUtil.GetNightly.scala3(cache)
               case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
-                ScalaVersionUtil.GetNightly.scala3X(
-                  threeSubBinaryNum,
-                  cache
-                )
+                ScalaVersionUtil.GetNightly.scala3X(threeSubBinaryNum, cache)
               case vs if ScalaVersionUtil.scala213Nightly.contains(vs) =>
                 ScalaVersionUtil.GetNightly.scala2("2.13", cache)
               case sv if sv == ScalaVersionUtil.scala212Nightly =>
@@ -379,7 +388,7 @@ final case class BuildOptions(
                 )
                   .map(_ => versionString)
               case versionString if versionString.exists(_.isLetter) =>
-                ScalaVersionUtil.validateNonStable(
+                ScalaVersionUtil.validateExactVersion(
                   versionString,
                   cache,
                   repositories

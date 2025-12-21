@@ -42,6 +42,16 @@ are assumed to be Scala compiler options and will be propagated to Scala Compile
 
 
 
+## Benchmarking options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
+
 ## Compilation server options
 
 Available in commands:
@@ -185,6 +195,16 @@ Aliases: `-f`
 `SHOULD have` per Scala Runner specification
 
 Force overwriting values for key
+
+## Cross options
+
+Available in commands:
+
+[`compile`](./commands.md#compile), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
 
 ## Debug options
 
@@ -664,6 +684,26 @@ Aliases: `--list-main-class`, `--list-main-classes`, `--list-main-method`, `--li
 
 List main classes available in the current context
 
+## Markdown options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
+
+## Pgp scala signing options
+
+Available in commands:
+
+[`config`](./commands.md#config)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
+
 ## Power options
 
 Available in commands:
@@ -677,6 +717,16 @@ Available in commands:
 `MUST have` per Scala Runner specification
 
 Allows to use restricted & experimental features
+
+## Python options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
 
 ## Run options
 
@@ -1159,6 +1209,16 @@ Allows to execute a passed string as Java code
 `IMPLEMENTATION specific` per Scala Runner specification
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
+
+## Source generator options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
 
 ## Suppress warning options
 

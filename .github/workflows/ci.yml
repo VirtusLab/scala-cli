@@ -30,7 +30,7 @@ jobs:
     - name: Copy bootstrapped launcher
       run: ./mill -i copyJvmBootstrappedLauncher --directory artifacts/
       if: runner.os == 'Linux'
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       if: runner.os == 'Linux'
       with:
         name: jvm-launchers
@@ -47,7 +47,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc unit-tests 'Scala CLI Unit Tests' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-unit-tests
@@ -92,7 +92,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc jvm-bootstrapped-tests 'Scala CLI JVM Bootstrapped Tests' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-jvm-bootstrapped-tests
@@ -117,7 +117,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc jvm-tests-1 'Scala CLI JVM Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-jvm-tests-1
@@ -142,7 +142,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc jvm-tests-2 'Scala CLI JVM Tests (2)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-jvm-tests-2
@@ -167,7 +167,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc jvm-tests-3 'Scala CLI JVM Tests (3)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-jvm-tests-3
@@ -192,7 +192,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc jvm-tests-4 'Scala CLI JVM Tests (4)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-jvm-tests-4
@@ -217,7 +217,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc jvm-tests-5 'Scala CLI JVM Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-jvm-tests-5
@@ -242,7 +242,7 @@ jobs:
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
       run: ./mill -i copyDefaultLauncher --directory artifacts/
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: linux-launchers
         path: artifacts/
@@ -261,7 +261,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: linux-launchers
         path: artifacts/
@@ -276,7 +276,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc linux-tests-1 'Scala CLI Linux Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-linux-tests-1
@@ -294,7 +294,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: linux-launchers
         path: artifacts/
@@ -309,7 +309,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc linux-tests-2 'Scala CLI Linux Tests (2)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-linux-tests-2
@@ -327,7 +327,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: linux-launchers
         path: artifacts/
@@ -342,7 +342,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc linux-tests-3 'Scala CLI Linux Tests (3)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-linux-tests-3
@@ -360,7 +360,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: linux-launchers
           path: artifacts/
@@ -375,7 +375,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc linux-tests-4 'Scala CLI Linux Tests (4)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-linux-tests-4
@@ -393,7 +393,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: linux-launchers
           path: artifacts/
@@ -408,7 +408,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc linux-tests-5 'Scala CLI Linux Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-linux-tests-5
@@ -430,7 +430,7 @@ jobs:
         env:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: linux-aarch64-launchers
           path: artifacts/
@@ -458,7 +458,7 @@ jobs:
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
       run: ./mill -i copyDefaultLauncher --directory artifacts/
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: macos-launchers
         path: artifacts/
@@ -479,7 +479,7 @@ jobs:
         jvm: "temurin:17"
     - name: Ensure it's not running on aarch64
       run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: macos-launchers
         path: artifacts/
@@ -494,7 +494,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc macos-tests-1 'Scala CLI MacOS Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-macos-tests-1
@@ -514,7 +514,7 @@ jobs:
           jvm: "temurin:17"
       - name: Ensure it's not running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: macos-launchers
           path: artifacts/
@@ -529,7 +529,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc macos-tests-5 'Scala CLI MacOS Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-macos-tests-5
@@ -556,7 +556,7 @@ jobs:
         run: .github/scripts/generate-os-packages.sh
       - name: Copy artifacts
         run: ./mill -i copyDefaultLauncher --directory artifacts/
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: macos-m1-launchers
           path: artifacts/
@@ -577,7 +577,7 @@ jobs:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: macos-m1-launchers
           path: artifacts/
@@ -592,7 +592,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc macos-m1-tests-1 'Scala CLI MacOS M1 Tests (1)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-macos-m1-tests-1
@@ -612,7 +612,7 @@ jobs:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: macos-m1-launchers
           path: artifacts/
@@ -627,7 +627,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc macos-m1-tests-2 'Scala CLI MacOS M1 Tests (2)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-macos-m1-tests-2
@@ -647,7 +647,7 @@ jobs:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: macos-m1-launchers
           path: artifacts/
@@ -662,7 +662,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc macos-m1-tests-3 'Scala CLI MacOS M1 Tests (3)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-macos-m1-tests-3
@@ -682,7 +682,7 @@ jobs:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: macos-m1-launchers
           path: artifacts/
@@ -697,7 +697,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc macos-m1-tests-4 'Scala CLI MacOS M1 Tests (4)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-macos-m1-tests-4
@@ -717,7 +717,7 @@ jobs:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: macos-m1-launchers
           path: artifacts/
@@ -732,7 +732,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc macos-m1-tests-5 'Scala CLI MacOS M1 Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-macos-m1-tests-5
@@ -766,7 +766,7 @@ jobs:
       shell: bash
     - name: Copy artifacts
       run: ./mill -i copyDefaultLauncher --directory artifacts/
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: windows-launchers
         path: artifacts/
@@ -796,7 +796,7 @@ jobs:
     - name: Get latest coursier launcher
       run: .github/scripts/get-latest-cs.sh
       shell: bash
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: windows-launchers
         path: artifacts/
@@ -812,7 +812,7 @@ jobs:
       if: success() || failure()
       run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-1 'Scala CLI Windows Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-windows-tests-1
@@ -841,7 +841,7 @@ jobs:
     - name: Get latest coursier launcher
       run: .github/scripts/get-latest-cs.sh
       shell: bash
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: windows-launchers
         path: artifacts/
@@ -857,7 +857,7 @@ jobs:
       if: success() || failure()
       run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-2 'Scala CLI Windows Tests (2)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-windows-tests-2
@@ -886,7 +886,7 @@ jobs:
     - name: Get latest coursier launcher
       run: .github/scripts/get-latest-cs.sh
       shell: bash
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: windows-launchers
         path: artifacts/
@@ -902,7 +902,7 @@ jobs:
       if: success() || failure()
       run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-3 'Scala CLI Windows Tests (3)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-windows-tests-3
@@ -931,7 +931,7 @@ jobs:
       - name: Get latest coursier launcher
         run: .github/scripts/get-latest-cs.sh
         shell: bash
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: windows-launchers
           path: artifacts/
@@ -947,7 +947,7 @@ jobs:
         if: success() || failure()
         run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-4 'Scala CLI Windows Tests (4)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-windows-tests-4
@@ -976,7 +976,7 @@ jobs:
       - name: Get latest coursier launcher
         run: .github/scripts/get-latest-cs.sh
         shell: bash
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: windows-launchers
           path: artifacts/
@@ -992,7 +992,7 @@ jobs:
         if: success() || failure()
         run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-5 'Scala CLI Windows Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-windows-tests-5
@@ -1014,7 +1014,7 @@ jobs:
       shell: bash
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher --directory artifacts/
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: mostly-static-launchers
         path: artifacts/
@@ -1033,7 +1033,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: mostly-static-launchers
         path: artifacts/
@@ -1053,7 +1053,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-1 'Scala CLI Native Mostly Static Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-native-mostly-static-tests-1
@@ -1080,7 +1080,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: mostly-static-launchers
         path: artifacts/
@@ -1095,7 +1095,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-2 'Scala CLI Native Mostly Static Tests (2)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-native-mostly-static-tests-2
@@ -1113,7 +1113,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: mostly-static-launchers
         path: artifacts/
@@ -1128,7 +1128,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-3 'Scala CLI Native Mostly Static Tests (3)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-native-mostly-static-tests-3
@@ -1146,7 +1146,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: mostly-static-launchers
           path: artifacts/
@@ -1161,7 +1161,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-4 'Scala CLI Native Mostly Static Tests (4)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-native-mostly-static-tests-4
@@ -1179,7 +1179,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: mostly-static-launchers
           path: artifacts/
@@ -1194,7 +1194,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-5 'Scala CLI Native Mostly Static Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-native-mostly-static-tests-5
@@ -1217,7 +1217,7 @@ jobs:
       shell: bash
     - name: Copy artifacts
       run: ./mill -i copyStaticLauncher --directory artifacts/
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: static-launchers
         path: artifacts/
@@ -1236,7 +1236,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: static-launchers
         path: artifacts/
@@ -1256,7 +1256,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-static-tests-1 'Scala CLI Native Static Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-native-static-tests-1
@@ -1283,7 +1283,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: static-launchers
         path: artifacts/
@@ -1300,7 +1300,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-static-tests-2 'Scala CLI Native Static Tests (2)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-native-static-tests-2
@@ -1318,7 +1318,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: static-launchers
         path: artifacts/
@@ -1335,7 +1335,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-static-tests-3 'Scala CLI Native Static Tests (3)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-native-static-tests-3
@@ -1353,7 +1353,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: static-launchers
           path: artifacts/
@@ -1370,7 +1370,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc native-static-tests-4 'Scala CLI Native Static Tests (4)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-native-static-tests-4
@@ -1388,7 +1388,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: static-launchers
           path: artifacts/
@@ -1405,7 +1405,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc native-static-tests-5 'Scala CLI Native Static Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
           name: test-results-native-static-tests-5
@@ -1433,7 +1433,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc docs-tests 'Scala CLI Docs Tests' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-results-docs-tests
@@ -1550,7 +1550,7 @@ jobs:
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.copyVcRedist
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: vc-redist-launchers
         path: artifacts/
@@ -1698,47 +1698,47 @@ jobs:
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.setShouldPublish
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: linux-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: linux-aarch64-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: macos-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: macos-m1-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: windows-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: mostly-static-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: static-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: jvm-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: vc-redist-launchers
@@ -1763,35 +1763,35 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: linux-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: linux-aarch64-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: macos-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: macos-m1-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: windows-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: mostly-static-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: static-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: jvm-launchers
           path: artifacts/
@@ -1859,7 +1859,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         name: windows-launchers
         path: artifacts/

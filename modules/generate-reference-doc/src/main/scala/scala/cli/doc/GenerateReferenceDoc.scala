@@ -144,6 +144,9 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
           (k, v.map(_._2).distinct.sortBy(_.name))
       }
 
+    // Collect all origins that are referenced by commands, even if they have no args
+    val allReferencedOrigins = commandOriginsMap.keySet ++ argsByOrigin.keySet
+
     val mainOptionsContent   = new StringBuilder
     val hiddenOptionsContent = new StringBuilder
 
@@ -167,13 +170,15 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
     mainOptionsContent.section(scalacOptionForwarding)
 
-    for ((origin, originArgs) <- argsByOrigin.toVector.sortBy(_._1)) {
+    for (origin <- allReferencedOrigins.toVector.sortBy(identity)) {
+      val originArgs            = argsByOrigin.getOrElse(origin, Nil)
       val distinctArgs          = originArgs.map(_.withOrigin(None)).distinct
       val originCommands        = commandOriginsMap.getOrElse(origin, Nil)
       val onlyForHiddenCommands = originCommands.nonEmpty && originCommands.forall(_.hidden)
-      val allArgsHidden         = distinctArgs.forall(_.noHelp)
-      val isInternal            = onlyForHiddenCommands || allArgsHidden
-      val b                     = if (isInternal) hiddenOptionsContent else mainOptionsContent
+      // Empty option groups should not be treated as internal if they're referenced by commands
+      val allArgsHidden = distinctArgs.nonEmpty && distinctArgs.forall(_.noHelp)
+      val isInternal    = onlyForHiddenCommands || allArgsHidden
+      val b             = if (isInternal) hiddenOptionsContent else mainOptionsContent
       if (originCommands.nonEmpty) {
         val formattedOrigin   = formatOrigin(origin)
         val formattedCommands = originCommands.map { c =>
@@ -194,35 +199,41 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
              |""".stripMargin
         )
 
-        for (arg <- distinctArgs) {
-          import caseapp.core.util.NameOps._
-          arg.name.option(nameFormatter)
-          val names = (arg.name +: arg.extraNames).map(_.option(nameFormatter))
-          b.append(s"### `${names.head}`\n\n")
-          if (names.tail.nonEmpty)
-            b.append(
-              names
-                .tail
-                .sortBy(_.dropWhile(_ == '-'))
-                .map {
-                  case name if arg.deprecatedOptionAliases.contains(name) =>
-                    s"[deprecated] `$name`"
-                  case name => s"`$name`"
-                }
-                .mkString("Aliases: ", ", ", "\n\n")
-            )
+        if (distinctArgs.nonEmpty)
+          for (arg <- distinctArgs) {
+            import caseapp.core.util.NameOps._
+            arg.name.option(nameFormatter)
+            val names = (arg.name +: arg.extraNames).map(_.option(nameFormatter))
+            b.append(s"### `${names.head}`\n\n")
+            if (names.tail.nonEmpty)
+              b.append(
+                names
+                  .tail
+                  .sortBy(_.dropWhile(_ == '-'))
+                  .map {
+                    case name if arg.deprecatedOptionAliases.contains(name) =>
+                      s"[deprecated] `$name`"
+                    case name => s"`$name`"
+                  }
+                  .mkString("Aliases: ", ", ", "\n\n")
+              )
 
-          if (onlyRestricted)
-            b.section(s"`${arg.level.md}` per Scala Runner specification")
-          else if (isInternal || arg.noHelp) b.append("[Internal]\n")
+            if (onlyRestricted)
+              b.section(s"`${arg.level.md}` per Scala Runner specification")
+            else if (isInternal || arg.noHelp) b.append("[Internal]\n")
 
-          for (desc <- arg.helpMessage.map(_.referenceDocMessage))
-            b.append(
-              s"""$desc
-                 |
-                 |""".stripMargin
-            )
-        }
+            for (desc <- arg.helpMessage.map(_.referenceDocMessage))
+              b.append(
+                s"""$desc
+                   |
+                   |""".stripMargin
+              )
+          }
+        else
+          // Empty option group - add a note
+          b.append(
+            "*This section was automatically generated and may be empty if no options were available.*\n\n"
+          )
       }
     }
 
