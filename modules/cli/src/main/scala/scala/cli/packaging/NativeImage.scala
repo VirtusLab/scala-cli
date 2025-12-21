@@ -5,7 +5,7 @@ import java.io.File
 import scala.annotation.tailrec
 import scala.build.internal.{ManifestJar, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
-import scala.build.internals.{EnvVar, MsvcEnvironment, WindowsProcessLauncher}
+import scala.build.internals.{EnvVar, MsvcEnvironment}
 import scala.build.{Build, Logger, Positioned, coursierVersion}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
@@ -68,7 +68,7 @@ object NativeImage {
   ): Int = {
     logger.debug(s"Using vcvars script $vcvars")
 
-    val msvcEnv = MsvcEnvironment.captureVcvarsEnv(Seq("x64"))
+    val msvcEnv = MsvcEnvironment.captureVcvarsEnv(vcvars)
     val baseEnv = sys.env
 
     val mergedPath =
@@ -80,10 +80,10 @@ object NativeImage {
         ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
 
     logger.debug(s"Launching native-image.exe with args: $command")
+    logger.debug(s"Merged PATH = $mergedPath")
 
-    // GraalVM code page 437 requirement, run, restore CP
     val exitCode =
-      WindowsProcessLauncher.runInNewGroup(
+      MsvcEnvironment.runNativeImageProcess(
         command = command,
         cwd = workingDir,
         env = mergedEnv
@@ -148,7 +148,8 @@ object NativeImage {
       val drivePath = os.Path(s"$driveLetter:" + "\\")
       val newHome   = drivePath / currentHome.last
 
-      val savedCodepage: String = getCodePage(logger) // before visual studio sets code page to 437
+      val savedCodepage: String =
+        getCodePage(logger) // before visual studio alters code page
 
       val cleanupLock                  = new Object()
       var shutdownHook: Option[Thread] = None
