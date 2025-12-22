@@ -6,7 +6,7 @@ import $ivy.`io.get-coursier::coursier-launcher:2.1.25-M21`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.31-1`
 import build.ci.publishVersion
 import build.project.deps
-import deps.{Cli, Deps, Docker, InternalDeps, Java, Scala, TestDeps}
+import deps.{Cli, Deps, Docker, Java, Scala, TestDeps}
 import build.project.publish
 import publish.{ScalaCliPublishModule, finalPublishVersion, ghName, ghOrg, organization}
 import build.project.settings
@@ -492,8 +492,7 @@ trait Core extends ScalaCliCrossSbtModule
          |
          |  def ammoniteVersion = "${Deps.Versions.ammonite}"
          |  def ammoniteVersionForScala3Lts = "${Deps.Versions.ammoniteForScala3Lts}"
-         |  def millVersion = "${InternalDeps.Versions.mill}"
-         |  def lefouMillwRef = "${InternalDeps.Versions.lefouMillwRef}"
+         |  def millVersion = "${_root_.mill.main.BuildInfo.millVersion}"
          |  def maxScalaNativeForMillExport = "${Deps.Versions.maxScalaNativeForMillExport}"
          |
          |  def scalafmtOrganization = "${Deps.scalafmtCli.dep.module.organization.value}"

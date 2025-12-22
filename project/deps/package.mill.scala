@@ -113,13 +113,6 @@ object TestDeps {
     "archlinux@sha256:b15db21228c7cd5fd3ab364a97193ba38abfad0e8b9593c15b71850b74738153"
 }
 
-object InternalDeps {
-  object Versions {
-    def mill: String  = _root_.mill.main.BuildInfo.millVersion
-    def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
-  }
-}
-
 object Deps {
   object Versions {
     def ammonite             = "3.0.6"
