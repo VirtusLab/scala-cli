@@ -83,7 +83,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
          |  val tests = Tests {
          |    test("foo") {
          |      assert(2 + 2 == 4)
-         |      Zone { implicit z =>
+         |      Zone { ${if actualScalaVersion.startsWith("3") then "" else "implicit z =>"}
          |       val io = StdioHelpers(stdio)
          |       io.printf(c"%s %s", c"Hello from", c"tests")
          |      }
@@ -346,10 +346,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from tests"))
     }
 
-  if (actualScalaVersion.startsWith("2."))
-    test("successful test native") {
-      TestUtil.retryOnCi()(successfulNativeTest())
-    }
+  test("successful test native") {
+    TestUtil.retryOnCi()(successfulNativeTest())
+  }
 
   test("failing test") {
     failingTestInputs.fromRoot { root =>
@@ -377,10 +376,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from tests"))
     }
 
-  if (actualScalaVersion.startsWith("2."))
-    test("failing test native") {
-      TestUtil.retryOnCi()(failingNativeTest())
-    }
+  test("failing test native") {
+    TestUtil.retryOnCi()(failingNativeTest())
+  }
 
   test("failing test return code") {
     failingTestInputs.fromRoot { root =>
@@ -448,10 +446,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
-  if (actualScalaVersion.startsWith("2."))
-    test("utest native") {
-      TestUtil.retryOnCi()(utestNative())
-    }
+  test("utest native") {
+    TestUtil.retryOnCi()(utestNative())
+  }
 
   test("junit") {
     successfulJunitInputs.fromRoot { root =>
