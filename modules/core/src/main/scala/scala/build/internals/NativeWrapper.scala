@@ -1,6 +1,4 @@
 package scala.build.internals
-
-import java.nio.file.{Files, Paths}
 import java.util.Locale
 
 /*
@@ -53,14 +51,27 @@ object MsvcEnvironment {
     env: Map[String, String]
   ): Int = {
 
+    def resolveNativeImage(graalHome: os.Path): Option[os.Path] = {
+      val candidates = Seq(
+        graalHome / "lib" / "svm" / "bin" / "native-image.exe",
+        graalHome / "bin" / "native-image.exe",
+        graalHome / "native-image.exe"
+      )
+      candidates.find(os.exists)
+    }
+
     // 1. Replace native-image.cmd with native-image.exe, if applicable
-    val updatedCommand =
+    val updatedCommand: Seq[String] =
       command.headOption match {
         case Some(cmd) if cmd.toLowerCase.endsWith("native-image.cmd") =>
-          val graalHome = Paths.get(cmd).getParent.getParent
-          val realExe   = graalHome.resolve("lib/svm/bin/native-image.exe")
-          if (Files.exists(realExe)) realExe.toString +: command.tail
-          else command
+          val cmdPath   = os.Path(cmd, os.pwd)
+          val graalHome = cmdPath / os.up / os.up
+          resolveNativeImage(graalHome) match {
+            case Some(exe) =>
+              exe.toString +: command.tail
+            case None =>
+              command // fall back to the .cmd wrapper
+          }
         case _ =>
           command
       }
