@@ -57,6 +57,10 @@ final case class ExportOptions(
   @HelpMessage("Version of SBT to be used for the export")
     sbtVersion: Option[String] = None,
   @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.restricted)
+  @HelpMessage("Version of Mill to be used for the export")
+    millVersion: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.experimental)
   @HelpMessage("Version of Maven Compiler Plugin to be used for the export")
     mvnVersion: Option[String] = None,

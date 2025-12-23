@@ -11,6 +11,7 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
     with ExportScalaOrientedBuildToolsTestDefinitions
     with MillTestHelper { this: TestScalaVersion =>
   override val prepareTestInputs: TestInputs => TestInputs = _.withMillJvmOpts
+  override def commonTestDescriptionSuffix = s" (Mill ${Constants.defaultMillVersion})"
 
   override val outputDir: RelPath                    = millOutputDir
   override def exportCommand(args: String*): os.proc =
@@ -34,9 +35,9 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
   override def runTestsArgs(mainClass: Option[String]): Seq[String] =
     Seq(s"$millDefaultProjectName.test")
 
-  def jvmTestScalacOptions(className: String): Unit =
+  def jvmTestScalacOptions(className: String, exportArgs: Seq[String]): Unit =
     ExportTestProjects.jvmTest(actualScalaVersion, className).withMillJvmOpts.fromRoot { root =>
-      exportCommand(".").call(cwd = root, stdout = os.Inherit)
+      exportCommand(exportArgs :+ "."*).call(cwd = root, stdout = os.Inherit)
       val res =
         buildToolCommand(
           root,
@@ -50,9 +51,9 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
       expect(output.filterNot(_.isWhitespace) == "[\"-deprecation\"]")
     }
 
-  def jvmTestCompilerPlugin(mainClass: String): Unit =
+  def jvmTestCompilerPlugin(mainClass: String, exportArgs: Seq[String]): Unit =
     ExportTestProjects.jvmTest(actualScalaVersion, mainClass).withMillJvmOpts.fromRoot { root =>
-      exportCommand(".").call(cwd = root, stdout = os.Inherit)
+      exportCommand(exportArgs :+ "."*).call(cwd = root, stdout = os.Inherit)
       locally {
         // scalacPluginIvyDeps
         val res =
@@ -79,38 +80,43 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
       }
     }
 
-  if (runExportTests) {
-    test("JVM custom project name") {
+  for {
+    millVersion <- Constants.supportedMillVersions
+    millVersionArgs = Seq("--mill-version", millVersion)
+    if runExportTests
+  } {
+    test(s"JVM custom project name (Mill $millVersion)") {
       TestUtil.retryOnCi() {
         val customProjectName = "newproject"
         jvmTest(
           mainArgs = Seq(s"$customProjectName.run"),
           testArgs = Seq(s"$customProjectName.test"),
-          extraExportArgs = Seq("-p", customProjectName),
+          extraExportArgs = Seq("-p", customProjectName) ++ millVersionArgs,
           mainClassName = "Hello"
         )
       }
     }
-    test("JVM scalac options") {
+    test(s"JVM scalac options (Mill $millVersion)") {
       TestUtil.retryOnCi() {
-        jvmTestScalacOptions("Hello")
+        jvmTestScalacOptions(className = "Hello", exportArgs = millVersionArgs)
       }
     }
-  }
-  if (runExportTests && !actualScalaVersion.startsWith("3."))
-    test("JVM with compiler plugin") {
-      TestUtil.retryOnCi() {
-        jvmTestCompilerPlugin("Hello")
+    if !actualScalaVersion.startsWith("3.") then
+      test(s"JVM with compiler plugin (Mill $millVersion)") {
+        TestUtil.retryOnCi() {
+          jvmTestCompilerPlugin(mainClass = "Hello", exportArgs = millVersionArgs)
+        }
       }
-    }
 
-  test("Scala Native") {
-    // FIXME this should be adjusted to Scala Native 0.5.x syntax once Mill gets support for it
-    TestUtil.retryOnCi() {
-      simpleTest(
-        ExportTestProjects.nativeTest(actualScalaVersion),
-        mainClass = None
-      )
+    test(s"Scala Native (Mill $millVersion)") {
+      // FIXME this should be adjusted to Scala Native 0.5.x syntax once Mill gets support for it
+      TestUtil.retryOnCi() {
+        simpleTest(
+          inputs = ExportTestProjects.nativeTest(actualScalaVersion),
+          mainClass = None,
+          extraExportArgs = millVersionArgs
+        )
+      }
     }
   }
 }

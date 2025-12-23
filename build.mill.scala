@@ -36,7 +36,7 @@ import java.util.Locale
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.github.alexarchambault.millnativeimage.upload.Upload
 import mill._
-import mill.api.{BuildCtx, Loose}
+import mill.api.{BuildCtx, BuildInfo, Loose}
 import scalalib.{publish => _, _}
 import mill.contrib.bloop.Bloop
 import mill.define.Task.Simple
@@ -492,7 +492,7 @@ trait Core extends ScalaCliCrossSbtModule
          |
          |  def ammoniteVersion = "${Deps.Versions.ammonite}"
          |  def ammoniteVersionForScala3Lts = "${Deps.Versions.ammoniteForScala3Lts}"
-         |  def millVersion = "${_root_.mill.main.BuildInfo.millVersion}"
+         |  def millVersion = "${BuildInfo.millVersion}"
          |  def maxScalaNativeForMillExport = "${Deps.Versions.maxScalaNativeForMillExport}"
          |
          |  def scalafmtOrganization = "${Deps.scalafmtCli.dep.module.organization.value}"
@@ -1089,6 +1089,8 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def jmhOrg = "${Deps.jmhCore.dep.module.organization.value}"
            |  def jmhCoreModule = "${Deps.jmhCore.dep.module.name.value}"
            |  def jmhGeneratorBytecodeModule = "${Deps.jmhGeneratorBytecode.dep.module.name.value}"
+           |  def defaultMillVersion = "${BuildInfo.millVersion}"
+           |  def supportedMillVersions = Seq("${Deps.supportedMillVersions.mkString("\", \"")}")
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)

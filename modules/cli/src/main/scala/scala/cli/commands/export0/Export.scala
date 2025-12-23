@@ -271,7 +271,7 @@ object Export extends ScalaCommand[ExportOptions] {
           millProjectDescriptor(
             cache = options.shared.coursierCache,
             projectName = options.project,
-            millVersion = Constants.millVersion, // TODO: Allow to pass the Mill version
+            millVersion = options.millVersion.getOrElse(Constants.millVersion),
             logger = logger
           )
         else if shouldExportToMaven then

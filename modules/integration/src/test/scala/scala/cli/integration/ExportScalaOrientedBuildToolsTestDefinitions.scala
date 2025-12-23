@@ -70,23 +70,25 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
       expect(output.contains("Hello"))
     }
 
-  if (runExportTests) {
-    test("compile-time only for jsoniter macros") {
+  if runExportTests then {
+    test(s"compile-time only for jsoniter macros$commonTestDescriptionSuffix") {
       TestUtil.retryOnCi() {
         compileOnlyTest("main")
       }
     }
-    test("Scala.js") {
+    test(s"Scala.js$commonTestDescriptionSuffix") {
       TestUtil.retryOnCi() {
         simpleTest(ExportTestProjects.jsTest(actualScalaVersion), mainClass = None)
       }
     }
-    test("zio test") {
+    test(s"zio test$commonTestDescriptionSuffix") {
       TestUtil.retryOnCi() {
         testZioTest("ZioSpec")
       }
     }
-    test("Ensure test framework NPE is not thrown when depending on logback") {
+    test(
+      s"Ensure test framework NPE is not thrown when depending on logback$commonTestDescriptionSuffix"
+    ) {
       TestUtil.retryOnCi() {
         logbackBugCase("main")
       }

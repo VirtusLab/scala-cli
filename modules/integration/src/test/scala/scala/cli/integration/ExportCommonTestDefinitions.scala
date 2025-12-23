@@ -10,6 +10,8 @@ trait ExportCommonTestDefinitions { this: ScalaCliSuite & TestScalaVersionArgs =
   protected lazy val extraOptions: Seq[String] =
     scalaVersionArgs ++ TestUtil.extraOptions ++ Seq("--suppress-experimental-warning")
 
+  protected def commonTestDescriptionSuffix: String = ""
+
   protected def runExportTests: Boolean = Properties.isMac
   protected def exportCommand(args: String*): os.proc
 
@@ -98,30 +100,34 @@ trait ExportCommonTestDefinitions { this: ScalaCliSuite & TestScalaVersionArgs =
   private val scalaVersionsInDir: Seq[String] = Seq("2.12", "2.13", "2", "3", "3.lts")
 
   if (runExportTests) {
-    test("JVM") {
+    test(s"JVM$commonTestDescriptionSuffix") {
       TestUtil.retryOnCi() {
         jvmTest(runMainArgs(Some("Main")), runTestsArgs(Some("Main")), mainClassName = "Main")
       }
     }
-    test("extra source from a directive introducing a dependency") {
+    test(s"extra source from a directive introducing a dependency$commonTestDescriptionSuffix") {
       TestUtil.retryOnCi() {
         extraSourceFromDirectiveWithExtraDependency("Main", "Main.scala")
       }
     }
-    test("extra source passed both via directive and from command line") {
+    test(
+      s"extra source passed both via directive and from command line$commonTestDescriptionSuffix"
+    ) {
       TestUtil.retryOnCi() {
         extraSourceFromDirectiveWithExtraDependency("Main", ".")
       }
     }
     scalaVersionsInDir.foreach { scalaV =>
-      test(s"check export for project with scala version in directive as $scalaV") {
+      test(
+        s"check export for project with scala version in directive as $scalaV$commonTestDescriptionSuffix"
+      ) {
         TestUtil.retryOnCi() {
           scalaVersionTest(scalaV, "Main")
         }
       }
     }
 
-    test("just test scope") {
+    test(s"just test scope$commonTestDescriptionSuffix") {
       // Keeping the test name ends with Test to support maven convention
       TestUtil.retryOnCi() {
         justTestScope("MyTest")
