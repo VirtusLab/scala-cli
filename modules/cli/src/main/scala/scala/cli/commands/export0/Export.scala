@@ -102,8 +102,8 @@ object Export extends ScalaCommand[ExportOptions] {
     logger: Logger
   ): MillProjectDescriptor = {
     val launcherArtifacts = Seq(
-      os.rel / "mill" -> s"https://github.com/com-lihaoyi/mill/raw/${Constants.millVersion}/mill",
-      os.rel / "mill.bat" -> s"https://github.com/com-lihaoyi/mill/raw/${Constants.millVersion}/mill.bat"
+      os.rel / "mill"     -> s"https://github.com/com-lihaoyi/mill/raw/$millVersion/mill",
+      os.rel / "mill.bat" -> s"https://github.com/com-lihaoyi/mill/raw/$millVersion/mill.bat"
     )
     val launcherTasks = launcherArtifacts.map {
       case (path, url) =>

@@ -10,8 +10,7 @@ import scala.cli.commands.shared.{
   MainClassOptions,
   SharedOptions
 }
-import scala.cli.commands.tags
-import scala.cli.commands.Constants
+import scala.cli.commands.{Constants, tags}
 
 @HelpMessage(ExportOptions.helpMessage, "", ExportOptions.detailedHelpMessage)
 final case class ExportOptions(
