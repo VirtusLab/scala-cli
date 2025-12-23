@@ -1,7 +1,8 @@
 package build.project.deps
-import coursier.version.Version
-import mill._
-import scalalib._
+
+import mill.*
+import mill.api.BuildInfo
+import scalalib.*
 
 object Cli {
   def runnerScala30LegacyVersion =
