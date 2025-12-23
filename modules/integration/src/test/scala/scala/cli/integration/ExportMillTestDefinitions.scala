@@ -103,10 +103,11 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
   }
 }
 
-sealed trait TestMillVersion: 
+sealed trait TestMillVersion:
   def millVersion: String
-trait TestMill012 extends TestMillVersion: 
-  self: ExportMillTestDefinitions => override def millVersion: String = Constants.mill012Version
-trait TestMill10 extends TestMillVersion: 
-  self: ExportMillTestDefinitions => override def millVersion: String = Constants.mill10Version
-
+trait TestMill012 extends TestMillVersion:
+  self: ExportMillTestDefinitions =>
+  override def millVersion: String = Constants.mill012Version
+trait TestMill10 extends TestMillVersion:
+  self: ExportMillTestDefinitions =>
+  override def millVersion: String = Constants.mill10Version

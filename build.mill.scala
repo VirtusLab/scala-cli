@@ -841,6 +841,13 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
          |  def scalaPyVersion = "${Deps.scalaPy.dep.versionConstraint.asString}"
          |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
+         |  def defaultMillVersion = "${BuildInfo.millVersion}"
+         |  def mill012Version = "${Deps.Versions.mill012Version}"
+         |  def mill10Version = "${Deps.Versions.mill10Version}"
+         |  def defaultSbtVersion = "${Deps.Versions.sbtVersion}"
+         |  def defaultMavenVersion = "${Deps.Versions.mavenVersion}"
+         |  def defaultMavenScalaCompilerPluginVersion = "${Deps.Versions.mavenScalaCompilerPluginVersion}"
+         |  def defaultMavenExecPluginVersion = "${Deps.Versions.mavenExecPluginVersion}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)

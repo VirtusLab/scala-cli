@@ -11,66 +11,74 @@ import scala.cli.commands.shared.{
   SharedOptions
 }
 import scala.cli.commands.tags
+import scala.cli.commands.Constants
 
-// format: off
 @HelpMessage(ExportOptions.helpMessage, "", ExportOptions.detailedHelpMessage)
 final case class ExportOptions(
   // FIXME There might be too many options for 'scala-cli export' there
   @Recurse
-    shared: SharedOptions = SharedOptions(),
+  shared: SharedOptions = SharedOptions(),
   @Recurse
-    mainClass: MainClassOptions = MainClassOptions(),
-
+  mainClass: MainClassOptions = MainClassOptions(),
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to SBT")
-    sbt: Option[Boolean] = None,
+  sbt: Option[Boolean] = None,
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.experimental)
   @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to Maven")
   @Name("mvn")
-    maven: Option[Boolean] = None,
+  maven: Option[Boolean] = None,
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to Mill")
-    mill: Option[Boolean] = None,
+  mill: Option[Boolean] = None,
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @Group(HelpGroup.BuildToolExport.toString)
   @HelpMessage("Sets the export format to Json")
-    json: Option[Boolean] = None,
-
+  json: Option[Boolean] = None,
   @Name("setting")
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
-    sbtSetting: List[String] = Nil,
+  sbtSetting: List[String] = Nil,
   @Name("p")
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
   @HelpMessage("Project name to be used on Mill build file")
-    project: Option[String] = None,
+  project: Option[String] = None,
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
-  @HelpMessage("Version of SBT to be used for the export")
-    sbtVersion: Option[String] = None,
+  @HelpMessage(
+    s"Version of SBT to be used for the export (${Constants.defaultSbtVersion} by default)"
+  )
+  sbtVersion: Option[String] = None,
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
-  @HelpMessage("Version of Mill to be used for the export")
-    millVersion: Option[String] = None,
+  @HelpMessage(
+    s"Version of Mill to be used for the export (${Constants.defaultMillVersion} by default)"
+  )
+  millVersion: Option[String] = None,
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.experimental)
-  @HelpMessage("Version of Maven Compiler Plugin to be used for the export")
-    mvnVersion: Option[String] = None,
+  @HelpMessage(
+    s"Version of Maven Compiler Plugin to be used for the export (${Constants.defaultMavenVersion} by default)"
+  )
+  mvnVersion: Option[String] = None,
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.experimental)
-  @HelpMessage("Version of Maven Scala Plugin to be used for the export")
+  @HelpMessage(
+    s"Version of Maven Scala Plugin to be used for the export (${Constants.defaultMavenScalaCompilerPluginVersion} by default)"
+  )
   mvnScalaVersion: Option[String] = None,
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.experimental)
-  @HelpMessage("Version of Maven Exec Plugin to be used for the export")
+  @HelpMessage(
+    s"Version of Maven Exec Plugin to be used for the export (${Constants.defaultMavenExecPluginVersion} by default)"
+  )
   mvnExecPluginVersion: Option[String] = None,
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.experimental)
@@ -87,9 +95,8 @@ final case class ExportOptions(
   @Name("o")
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
-    output: Option[String] = None,
+  output: Option[String] = None
 ) extends HasSharedOptions
-// format: on
 object ExportOptions {
   implicit lazy val parser: Parser[ExportOptions] = Parser.derive
   implicit lazy val help: Help[ExportOptions]     = Help.derive
