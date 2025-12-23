@@ -143,8 +143,8 @@ object Deps {
     def javaClassName                     = "0.1.9"
     def bloop                             = "2.0.17"
     def sbtVersion                        = "1.11.7"
-    def mill012Version                    = "0.12.17"
-    def mill10Version                     = "1.0.6"
+    def mill012Version                    = if (BuildInfo.millVersion.startsWith("0.12.")) BuildInfo.millVersion else "0.12.17"
+    def mill10Version                     = if (BuildInfo.millVersion.startsWith("1.0.")) BuildInfo.millVersion else "1.0.6"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
     def mavenExecPluginVersion            = "3.3.0"
@@ -153,13 +153,6 @@ object Deps {
     def mavenAppVersion                   = "0.1-SNAPSHOT"
     def scalafix                          = "0.14.4"
   }
-
-  // Supported Mill versions for exported builds as covered by integration tests
-  def supportedMillVersions = Seq(
-    BuildInfo.millVersion,
-    Deps.Versions.mill012Version,
-    Deps.Versions.mill10Version
-  ).distinct
 
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions

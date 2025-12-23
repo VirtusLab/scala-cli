@@ -1090,7 +1090,8 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def jmhCoreModule = "${Deps.jmhCore.dep.module.name.value}"
            |  def jmhGeneratorBytecodeModule = "${Deps.jmhGeneratorBytecode.dep.module.name.value}"
            |  def defaultMillVersion = "${BuildInfo.millVersion}"
-           |  def supportedMillVersions = Seq("${Deps.supportedMillVersions.mkString("\", \"")}")
+           |  def mill012Version = "${Deps.Versions.mill012Version}"
+           |  def mill10Version = "${Deps.Versions.mill10Version}"
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)
