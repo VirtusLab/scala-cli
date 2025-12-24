@@ -60,7 +60,7 @@ object NativeImage {
       .toList
       .headOption
 
-  private def runNativeImage(
+  private def windowsNativeImage(
     command: Seq[String],
     vcvars: os.Path,
     workingDir: os.Path,
@@ -71,8 +71,12 @@ object NativeImage {
     val msvcEnv = MsvcEnvironment.captureVcvarsEnv(vcvars)
     val baseEnv = sys.env
 
+    val msvcPath = msvcEnv.getOrElse("PATH", "")
+    val basePath = baseEnv.getOrElse("PATH", "")
+    logger.message(s"basePath[$basePath]")
+    logger.message(s"msvcPath[$msvcPath]")
     val mergedPath =
-      msvcEnv.getOrElse("PATH", "") + ";" + baseEnv.getOrElse("PATH", "")
+      msvcPath + ";" + basePath
 
     val mergedEnv =
       baseEnv ++ msvcEnv +
@@ -83,7 +87,7 @@ object NativeImage {
     logger.debug(s"Merged PATH = $mergedPath")
 
     val exitCode =
-      MsvcEnvironment.runNativeImageProcess(
+      MsvcEnvironment.windowsNativeImageProcess(
         command = command,
         cwd = workingDir,
         env = mergedEnv
@@ -326,9 +330,12 @@ object NativeImage {
 
             val exitCode =
               if Properties.isWin then
-                vcvarsOpt match {
-                  case Some(vcvars) => runNativeImage(command, vcvars, nativeImageWorkDir, logger)
-                  case None         => Runner.run(command, logger).waitFor()
+                val vars = vcvarsOpt
+                logger.message(s"vcvarsOpt[$vars]")
+                vars match {
+                  case Some(vcvars) =>
+                    windowsNativeImage(command, vcvars, nativeImageWorkDir, logger)
+                  case None => Runner.run(command, logger).waitFor()
                 }
               else Runner.run(command, logger).waitFor()
             if exitCode == 0 then {
