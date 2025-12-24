@@ -10,8 +10,11 @@ trait ExportCommonTestDefinitions { this: ScalaCliSuite & TestScalaVersionArgs =
   protected lazy val extraOptions: Seq[String] =
     scalaVersionArgs ++ TestUtil.extraOptions ++ Seq("--suppress-experimental-warning")
 
+  protected def commonTestDescriptionSuffix: String = ""
+
   protected def runExportTests: Boolean = Properties.isMac
   protected def exportCommand(args: String*): os.proc
+  protected def defaultExportCommandArgs: Seq[String] = Nil
 
   protected def buildToolCommand(root: os.Path, mainClass: Option[String], args: String*): os.proc
 
@@ -62,32 +65,40 @@ trait ExportCommonTestDefinitions { this: ScalaCliSuite & TestScalaVersionArgs =
         ) // maven returns 'BUILD SUCCESS'
     }
 
-  protected def scalaVersionTest(scalaVersion: String, mainClass: String): Unit =
+  protected def scalaVersionTest(
+    scalaVersion: String,
+    mainClass: String,
+    extraExportArgs: Seq[String] = Nil
+  ): Unit =
     prepareTestInputs(ExportTestProjects.scalaVersionTest(scalaVersion, mainClass)).fromRoot {
       root =>
-        exportCommand(".").call(cwd = root, stdout = os.Inherit)
+        exportCommand("." +: extraExportArgs*).call(cwd = root, stdout = os.Inherit)
         val res = buildToolCommand(root, Some(mainClass), runMainArgs(Some(mainClass))*)
           .call(cwd = root / outputDir)
         val output = res.out.text(Charset.defaultCharset())
         expect(output.contains("Hello"))
     }
 
-  def extraSourceFromDirectiveWithExtraDependency(mainClass: String, inputs: String*): Unit =
+  def extraSourceFromDirectiveWithExtraDependency(
+    mainClass: String,
+    extraExportArgs: Seq[String],
+    inputs: String*
+  ): Unit =
     prepareTestInputs(
       ExportTestProjects.extraSourceFromDirectiveWithExtraDependency(actualScalaVersion, mainClass)
     ).fromRoot { root =>
-      exportCommand(inputs*).call(cwd = root, stdout = os.Inherit)
+      exportCommand(extraExportArgs ++ inputs*).call(cwd = root, stdout = os.Inherit)
       val res = buildToolCommand(root, Some(mainClass), runMainArgs(Some(mainClass))*)
         .call(cwd = root / outputDir)
       val output = res.out.trim(Charset.defaultCharset())
       expect(output.contains(root.toString))
     }
 
-  def justTestScope(mainClass: String): Unit = {
+  def justTestScope(mainClass: String, extraExportArgs: Seq[String] = Nil): Unit = {
     val expectedMessage = "exporting just the test scope actually works!"
     prepareTestInputs(ExportTestProjects.justTestScope(mainClass, expectedMessage))
       .fromRoot { root =>
-        exportCommand(".").call(cwd = root)
+        exportCommand("." +: extraExportArgs*).call(cwd = root)
         val testRes = buildToolCommand(root, Some(mainClass), runTestsArgs(Some(mainClass))*)
           .call(cwd = root / outputDir)
         val testOutput = testRes.out.text()
@@ -95,36 +106,57 @@ trait ExportCommonTestDefinitions { this: ScalaCliSuite & TestScalaVersionArgs =
       }
   }
 
-  private val scalaVersionsInDir: Seq[String] = Seq("2.12", "2.13", "2", "3", "3.lts")
+  protected val scalaVersionsInDir: Seq[String] = Seq("2.12", "2.13", "2", "3", "3.lts")
 
   if (runExportTests) {
-    test("JVM") {
+    test(s"JVM$commonTestDescriptionSuffix") {
       TestUtil.retryOnCi() {
-        jvmTest(runMainArgs(Some("Main")), runTestsArgs(Some("Main")), mainClassName = "Main")
+        jvmTest(
+          mainArgs = runMainArgs(Some("Main")),
+          testArgs = runTestsArgs(Some("Main")),
+          mainClassName = "Main",
+          extraExportArgs = defaultExportCommandArgs
+        )
       }
     }
-    test("extra source from a directive introducing a dependency") {
+    test(s"extra source from a directive introducing a dependency$commonTestDescriptionSuffix") {
       TestUtil.retryOnCi() {
-        extraSourceFromDirectiveWithExtraDependency("Main", "Main.scala")
+        extraSourceFromDirectiveWithExtraDependency(
+          mainClass = "Main",
+          extraExportArgs = defaultExportCommandArgs,
+          inputs = "Main.scala"
+        )
       }
     }
-    test("extra source passed both via directive and from command line") {
+    test(
+      s"extra source passed both via directive and from command line$commonTestDescriptionSuffix"
+    ) {
       TestUtil.retryOnCi() {
-        extraSourceFromDirectiveWithExtraDependency("Main", ".")
+        extraSourceFromDirectiveWithExtraDependency(
+          mainClass = "Main",
+          extraExportArgs = defaultExportCommandArgs,
+          inputs = "."
+        )
       }
     }
     scalaVersionsInDir.foreach { scalaV =>
-      test(s"check export for project with scala version in directive as $scalaV") {
+      test(
+        s"check export for project with scala version in directive as $scalaV$commonTestDescriptionSuffix"
+      ) {
         TestUtil.retryOnCi() {
-          scalaVersionTest(scalaV, "Main")
+          scalaVersionTest(
+            scalaVersion = scalaV,
+            mainClass = "Main",
+            extraExportArgs = defaultExportCommandArgs
+          )
         }
       }
     }
 
-    test("just test scope") {
+    test(s"just test scope$commonTestDescriptionSuffix") {
       // Keeping the test name ends with Test to support maven convention
       TestUtil.retryOnCi() {
-        justTestScope("MyTest")
+        justTestScope(mainClass = "MyTest", extraExportArgs = defaultExportCommandArgs)
       }
     }
 

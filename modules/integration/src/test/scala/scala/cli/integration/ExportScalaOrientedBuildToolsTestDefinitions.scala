@@ -11,12 +11,12 @@ import java.nio.charset.Charset
 trait ExportScalaOrientedBuildToolsTestDefinitions {
   this: ExportCommonTestDefinitions & ScalaCliSuite & TestScalaVersionArgs =>
 
-  def compileOnlyTest(mainClass: String): Unit = {
+  def compileOnlyTest(mainClass: String, extraExportArgs: Seq[String] = Nil): Unit = {
     val userName = "John"
     prepareTestInputs(
       ExportTestProjects.compileOnlySource(actualScalaVersion, userName = userName)
     ).fromRoot { root =>
-      exportCommand(".").call(cwd = root, stdout = os.Inherit)
+      exportCommand("." +: extraExportArgs*).call(cwd = root, stdout = os.Inherit)
       val res = buildToolCommand(root, None, runMainArgs(Some(mainClass))*)
         .call(cwd = root / outputDir)
       val output = res.out.trim(Charset.defaultCharset())
@@ -25,7 +25,7 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
     }
   }
 
-  def testZioTest(testClassName: String): Unit = {
+  def testZioTest(testClassName: String, extraExportArgs: Seq[String] = Nil): Unit = {
     val testInput = TestInputs(
       // todo: remove this hack after the PR https://github.com/VirtusLab/scala-cli/pull/3046 is merged
       os.rel / "Hello.scala"    -> """object Hello extends App""",
@@ -53,7 +53,7 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
     )
 
     prepareTestInputs(testInput).fromRoot { root =>
-      val exportArgs     = Seq(".")
+      val exportArgs     = "." +: extraExportArgs
       val testArgsToPass = runTestsArgs(None)
       exportCommand(exportArgs*).call(cwd = root, stdout = os.Inherit)
       val testRes    = buildToolCommand(root, None, testArgsToPass*).call(cwd = root / outputDir)
@@ -61,34 +61,40 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
       expect(testOutput.contains("1 succeeded"))
     }
   }
-  protected def logbackBugCase(mainClass: String): Unit =
+  protected def logbackBugCase(mainClass: String, extraExportArgs: Seq[String] = Nil): Unit =
     prepareTestInputs(ExportTestProjects.logbackBugCase(actualScalaVersion)).fromRoot { root =>
-      exportCommand(".").call(cwd = root, stdout = os.Inherit)
+      exportCommand("." +: extraExportArgs*).call(cwd = root, stdout = os.Inherit)
       val res = buildToolCommand(root, Some(mainClass), runMainArgs(Some(mainClass))*)
         .call(cwd = root / outputDir)
       val output = res.out.text(Charset.defaultCharset())
       expect(output.contains("Hello"))
     }
 
-  if (runExportTests) {
-    test("compile-time only for jsoniter macros") {
+  if runExportTests then {
+    test(s"compile-time only for jsoniter macros$commonTestDescriptionSuffix") {
       TestUtil.retryOnCi() {
-        compileOnlyTest("main")
+        compileOnlyTest(mainClass = "main", extraExportArgs = defaultExportCommandArgs)
       }
     }
-    test("Scala.js") {
+    test(s"Scala.js$commonTestDescriptionSuffix") {
       TestUtil.retryOnCi() {
-        simpleTest(ExportTestProjects.jsTest(actualScalaVersion), mainClass = None)
+        simpleTest(
+          inputs = ExportTestProjects.jsTest(actualScalaVersion),
+          mainClass = None,
+          extraExportArgs = defaultExportCommandArgs
+        )
       }
     }
-    test("zio test") {
+    test(s"zio test$commonTestDescriptionSuffix") {
       TestUtil.retryOnCi() {
-        testZioTest("ZioSpec")
+        testZioTest(testClassName = "ZioSpec", extraExportArgs = defaultExportCommandArgs)
       }
     }
-    test("Ensure test framework NPE is not thrown when depending on logback") {
+    test(
+      s"Ensure test framework NPE is not thrown when depending on logback$commonTestDescriptionSuffix"
+    ) {
       TestUtil.retryOnCi() {
-        logbackBugCase("main")
+        logbackBugCase(mainClass = "main", extraExportArgs = defaultExportCommandArgs)
       }
     }
   }

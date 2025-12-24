@@ -98,11 +98,12 @@ object Export extends ScalaCommand[ExportOptions] {
   def millProjectDescriptor(
     cache: FileCache[Task],
     projectName: Option[String],
+    millVersion: String,
     logger: Logger
   ): MillProjectDescriptor = {
     val launcherArtifacts = Seq(
-      os.rel / "mill" -> s"https://github.com/com-lihaoyi/mill/raw/${Constants.millVersion}/mill",
-      os.rel / "mill.bat" -> s"https://github.com/com-lihaoyi/mill/raw/${Constants.millVersion}/mill.bat"
+      os.rel / "mill"     -> s"https://github.com/com-lihaoyi/mill/raw/$millVersion/mill",
+      os.rel / "mill.bat" -> s"https://github.com/com-lihaoyi/mill/raw/$millVersion/mill.bat"
     )
     val launcherTasks = launcherArtifacts.map {
       case (path, url) =>
@@ -117,7 +118,12 @@ object Export extends ScalaCommand[ExportOptions] {
     }
     val launchersTask = cache.logger.using(Task.gather.gather(launcherTasks))
     val launchers     = launchersTask.unsafeRun()(using cache.ec)
-    MillProjectDescriptor(Constants.millVersion, projectName, launchers, logger)
+    MillProjectDescriptor(
+      millVersion = millVersion,
+      projectName = projectName,
+      launchers = launchers,
+      logger = logger
+    )
   }
 
   def jsonProjectDescriptor(
@@ -261,21 +267,30 @@ object Export extends ScalaCommand[ExportOptions] {
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
 
       val projectDescriptor =
-        if (shouldExportToMill)
-          millProjectDescriptor(options.shared.coursierCache, options.project, logger)
-        else if (shouldExportToMaven)
-          mavenProjectDescriptor(
-            defaultMavenCompilerVersion,
-            defaultScalaMavenCompilerVersion,
-            defaultMavenExecPluginVersion,
-            Nil,
-            defaultMavenGroupId,
-            defaultMavenArtifactId,
-            defaultMavenVersion,
-            logger
+        if shouldExportToMill then
+          millProjectDescriptor(
+            cache = options.shared.coursierCache,
+            projectName = options.project,
+            millVersion = options.millVersion.getOrElse(Constants.millVersion),
+            logger = logger
           )
-        else if (shouldExportToJson)
-          jsonProjectDescriptor(options.project, inputs.workspace, logger)
+        else if shouldExportToMaven then
+          mavenProjectDescriptor(
+            mavenPluginVersion = defaultMavenCompilerVersion,
+            mavenScalaPluginVersion = defaultScalaMavenCompilerVersion,
+            mavenExecPluginVersion = defaultMavenExecPluginVersion,
+            extraSettings = Nil,
+            mavenGroupId = defaultMavenGroupId,
+            mavenArtifactId = defaultMavenArtifactId,
+            mavenVersion = defaultMavenVersion,
+            logger = logger
+          )
+        else if shouldExportToJson then
+          jsonProjectDescriptor(
+            projectName = options.project,
+            workspace = inputs.workspace,
+            logger = logger
+          )
         else // shouldExportToSbt isn't checked, as it's treated as default
           sbtProjectDescriptor0
 
