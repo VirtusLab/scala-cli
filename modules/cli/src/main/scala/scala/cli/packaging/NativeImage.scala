@@ -102,7 +102,6 @@ object NativeImage {
     }
     dosDevices.mkString
   }
-
   private def availableDriveLetter(): Char = {
     // if a drive letter has already been mapped by SUBST, it isn't free
     val substDrives: Set[Char] =

@@ -20,7 +20,7 @@ object MsvcEnvironment {
     val cmd = Seq(
       "cmd.exe",
       "/c",
-      s"""call "$vcvarsCmd" & set"""
+      s"""call "$vcvarsCmd" && set"""
     )
 
     val out = new StringBuilder
@@ -30,7 +30,7 @@ object MsvcEnvironment {
       check = false
     )
 
-    if res.exitCode != 0 then
+    val baseEnv = if res.exitCode != 0 then
       System.err.println(s"vcvars call failed with exit code ${res.exitCode}")
       Map.empty
     else
@@ -43,6 +43,8 @@ object MsvcEnvironment {
             case _           => None
         }
         .toMap
+
+    baseEnv
   }
 
   def runNativeImageProcess(
