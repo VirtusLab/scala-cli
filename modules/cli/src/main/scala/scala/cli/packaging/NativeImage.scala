@@ -73,8 +73,8 @@ object NativeImage {
 
     val msvcPath = msvcEnv.getOrElse("PATH", "")
     val basePath = baseEnv.getOrElse("PATH", "")
-    logger.message(s"basePath[$basePath]")
-    logger.message(s"msvcPath[$msvcPath]")
+    logger.debug(s"basePath[$basePath]")
+    logger.debug(s"msvcPath[$msvcPath]")
     val mergedPath =
       msvcPath + ";" + basePath
 

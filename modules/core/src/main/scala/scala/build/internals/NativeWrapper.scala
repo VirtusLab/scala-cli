@@ -87,7 +87,6 @@ object MsvcEnvironment {
     pb.directory(cwd.toIO)
 
     val pbEnv = pb.environment()
-    pbEnv.clear()
     augmentedEnv.foreach { case (k, v) => pbEnv.put(k, v) }
 
     // 4. Inherit IO so Ctrl-C works normally
