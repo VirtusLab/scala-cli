@@ -2,10 +2,10 @@ package scala.cli.packaging
 
 import java.io.File
 
-import scala.annotation.tailrec
 import scala.build.internal.{ManifestJar, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
-import scala.build.internals.{EnvVar, MsvcEnvironment}
+import scala.build.internals.MsvcEnvironment
+import scala.build.internals.MsvcEnvironment.*
 import scala.build.{Build, Logger, Positioned, coursierVersion}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
@@ -35,97 +35,6 @@ object NativeImage {
     }
 
     nativeImage
-  }
-
-  private def vcVersions                              = Seq("2022", "2019", "2017")
-  private def vcEditions                              = Seq("Enterprise", "Community", "BuildTools")
-  private lazy val vcVarsCandidates: Iterable[String] =
-    EnvVar.Misc.vcVarsAll.valueOpt ++ {
-      for {
-        isX86   <- Seq(false, true)
-        version <- vcVersions
-        edition <- vcEditions
-      } yield {
-        val programFiles = if (isX86) "Program Files (x86)" else "Program Files"
-        """C:\""" + programFiles + """\Microsoft Visual Studio\""" + version + "\\" + edition + """\VC\Auxiliary\Build\vcvars64.bat"""
-      }
-    }
-
-  private def vcvarsOpt: Option[os.Path] =
-    vcVarsCandidates
-      .iterator
-      .map(os.Path(_, os.pwd))
-      .filter(os.exists(_))
-      .take(1)
-      .toList
-      .headOption
-
-  private def windowsNativeImage(
-    command: Seq[String],
-    vcvars: os.Path,
-    workingDir: os.Path,
-    logger: Logger
-  ): Int = {
-    logger.debug(s"Using vcvars script $vcvars")
-
-    val msvcEnv = MsvcEnvironment.captureVcvarsEnv(vcvars)
-    val baseEnv = sys.env
-
-    val msvcPath = msvcEnv.getOrElse("PATH", "")
-    val basePath = baseEnv.getOrElse("PATH", "")
-    logger.debug(s"basePath[$basePath]")
-    logger.debug(s"msvcPath[$msvcPath]")
-    val mergedPath =
-      msvcPath + ";" + basePath
-
-    val mergedEnv =
-      baseEnv ++ msvcEnv +
-        ("PATH"                                 -> mergedPath) +
-        ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
-
-    logger.debug(s"Launching native-image.exe with args: $command")
-    logger.debug(s"Merged PATH = $mergedPath")
-
-    val exitCode =
-      MsvcEnvironment.windowsNativeImageProcess(
-        command = command,
-        cwd = workingDir,
-        env = mergedEnv
-      )
-    exitCode
-  }
-
-  private lazy val mountedDrives: String = {
-    val str         = "HKEY_LOCAL_MACHINE/SYSTEM/MountedDevices".replace('/', '\\')
-    val queryDrives = s"reg query $str"
-    val lines       = os.proc("cmd", "/c", queryDrives).call().out.lines()
-    val dosDevices  = lines.filter { s =>
-      s.contains("DosDevices")
-    }.map { s =>
-      s.replaceAll(".DosDevices.", "").replaceAll(":.*", "")
-    }
-    dosDevices.mkString
-  }
-  private def availableDriveLetter(): Char = {
-    // if a drive letter has already been mapped by SUBST, it isn't free
-    val substDrives: Set[Char] =
-      os.proc("cmd", "/c", "subst").call().out.text()
-        .linesIterator
-        .flatMap { line =>
-          // lines look like: "I:\: => C:\path"
-          if (line.length >= 2 && line(1) == ':') Some(line(0))
-          else None
-        }
-        .toSet
-
-    @tailrec
-    def helper(from: Char): Char =
-      if (from > 'Z') sys.error("Cannot find free drive letter")
-      else if (mountedDrives.contains(from) || substDrives.contains(from))
-        helper((from + 1).toChar)
-      else from
-
-    helper('D')
   }
 
   /** Alias currentHome to the root of a drive, so that its files can be accessed with shorter paths
@@ -198,42 +107,6 @@ object NativeImage {
     }
     else
       f(currentHome)
-
-  def setCodePage(cp: String): Int =
-    execWindowsCmd("cmd", "/c", s"chcp $cp")._1
-
-  def getCodePage: String = {
-    val out = execWindowsCmd("cmd", "/c", "chcp")._2
-    out.split(":").lastOption.map(_.trim).getOrElse("") // Extract the number
-  }
-
-  def aliasDriveLetter(driveLetter: Char, from: String): Unit =
-    execWindowsCmd("cmd", "/c", s"subst $driveLetter: \"$from\"")
-
-  def unaliasDriveLetter(driveLetter: Char): Int =
-    execWindowsCmd("cmd", "/c", s"subst $driveLetter: /d")._1
-
-  private def execWindowsCmd(cmd: String*): (Int, String) =
-    val pb = new ProcessBuilder(cmd*)
-    pb.redirectInput(ProcessBuilder.Redirect.INHERIT)
-    pb.redirectError(ProcessBuilder.Redirect.INHERIT)
-    pb.redirectOutput(ProcessBuilder.Redirect.PIPE)
-    val p = pb.start()
-    // read stdout fully
-    val output   = scala.io.Source.fromInputStream(p.getInputStream, "UTF-8").mkString
-    val exitCode = p.waitFor()
-    (exitCode, output)
-
-  private def getCodePage(logger: Logger): String =
-    try {
-      val out = os.proc("cmd", "/c", "chcp").call().out.text().trim
-      out.split(":").lastOption.map(_.trim).getOrElse("") // Extract the number
-    }
-    catch {
-      case e: Exception =>
-        logger.debug(s"unable to get initial code page: ${e.getMessage}")
-        ""
-    }
 
   def buildNativeImage(
     builds: Seq[Build.Successful],
@@ -330,13 +203,11 @@ object NativeImage {
 
             val exitCode =
               if Properties.isWin then
-                val vars = vcvarsOpt
-                logger.message(s"vcvarsOpt[$vars]")
-                vars match {
-                  case Some(vcvars) =>
-                    windowsNativeImage(command, vcvars, nativeImageWorkDir, logger)
-                  case None => Runner.run(command, logger).waitFor()
-                }
+                MsvcEnvironment.msvcNativeImageProcess(
+                  command = command,
+                  workingDir = nativeImageWorkDir,
+                  logger = logger
+                )
               else Runner.run(command, logger).waitFor()
             if exitCode == 0 then {
               val actualDest =
