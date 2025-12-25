@@ -48,7 +48,7 @@ object MsvcEnvironment {
         .toMap
 
     val substMap: Map[Char, String] = aliasedDriveLetters
-    substMap.foreach((k, v) => logger.message(s"$k:/ -> $v"))
+    substMap.foreach((k, v) => logger.message(s"subst $k: -> $v"))
     rewriteEnvWithSubst(msvcEnv, substMap)
   }
 
@@ -57,33 +57,46 @@ object MsvcEnvironment {
     substMap: Map[Char, String]
   ): Map[String, String] =
     env.map { case (k, v) =>
-      if k == "PATH" then
+      if k.toUpperCase == "PATH" then
         val rewritten = v
           .split(";")
           .map(p => rewriteWithSubst(p, substMap))
           .mkString(";")
         k -> rewritten
-      else if v.contains(":\\") then
+      else if v.replace('\\', '/').contains(":/") then
         k -> rewriteWithSubst(v, substMap)
       else
         k -> v
     }
 
   def rewriteWithSubst(path: String, substMap: Map[Char, String]): String =
-    // Find the longest matching target path prefix
+    // Normalize both sides to forward slashes for matching
+    val normPath = path.replace('\\', '/')
+
+    // Normalize subst targets too
+    val normSubst = substMap.map { case (d, tgt) =>
+      d -> tgt.replace('\\', '/')
+    }
+
+    // Find longest matching prefix
     val matchOpt =
-      substMap.values
-        .filter(path.startsWith)
+      normSubst.values
+        .filter(normPath.startsWith)
         .toSeq
         .sortBy(_.length)
         .lastOption
 
     matchOpt match
-      case None             => path
-      case Some(longPrefix) =>
+      case None                 => path
+      case Some(longPrefixNorm) =>
         // Find the drive letter that maps to this prefix
-        val drive = substMap.collectFirst { case (d, tgt) if tgt == longPrefix => d }.get
-        s"$drive:\\" + path.substring(longPrefix.length)
+        val drive = normSubst.collectFirst {
+          case (d, tgtNorm) if tgtNorm == longPrefixNorm => d
+        }.get
+
+        // Compute rewritten path using original (non-normalized) prefix length
+        val originalPrefix = substMap(drive)
+        s"$drive:\\" + path.substring(originalPrefix.length)
 
   def resolveNativeImage(graalHome: os.Path): Option[os.Path] = {
     val candidates = Seq(
@@ -92,6 +105,21 @@ object MsvcEnvironment {
       graalHome / "native-image.exe"
     )
     candidates.find(os.exists)
+  }
+
+  def canonicalize(p: String): String =
+    try os.Path(p).toString
+    catch { case _: Throwable => p }
+
+  def dedupePaths(paths: Seq[String]): Seq[String] =
+    paths.map(_.trim).filter(_.nonEmpty).map(canonicalize).distinct
+
+  def findOnPath(exe: String, path: String): Option[os.Path] = {
+    val segments = path.split(";").map(_.trim).filter(_.nonEmpty)
+    segments.iterator
+      .map(os.Path(_, os.pwd))
+      .map(_ / exe)
+      .find(os.exists)
   }
 
   def msvcNativeImageProcess(
@@ -127,7 +155,7 @@ object MsvcEnvironment {
 
           case Some(msvcToolsDir) =>
             val clDir = msvcToolsDir / "bin" / "Hostx64" / "x64"
-
+            logger.debug(s"clDir[$clDir]")
             if (!os.exists(clDir)) {
               logger.message(s"cl.exe directory missing: $clDir")
               -1
@@ -141,48 +169,62 @@ object MsvcEnvironment {
               logger.debug(s"basePath[$basePath]")
               logger.debug(s"msvcPath[$msvcPath]")
 
-              val mergedPath = msvcPath + ";" + basePath
+              val mergedPath = dedupePaths(
+                Seq(clDir.toString) ++ msvcPath.split(";") ++ basePath.split(";")
+              ).mkString(";")
+              logger.message(s"basePath.length = ${basePath.length}")
+              logger.message(s"msvcPath.length = ${msvcPath.length}")
+              logger.message(s"deduped mergedPath[$mergedPath]")
+              val clOnPath = findOnPath("cl.exe", mergedPath)
+              clOnPath match {
+                case None =>
+                  logger.message("cl.exe not found on merged PATH — aborting before native-image")
+                  -1
 
-              val mergedEnv =
-                baseEnv ++ msvcEnv +
-                  ("PATH"                                 -> mergedPath) +
-                  ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
+                case Some(found) =>
+                  logger.debug(s"Verified cl.exe on PATH at: $found")
 
-              logger.debug(s"Launching native-image.exe with args: $command")
-              logger.debug(s"Merged PATH = $mergedPath")
+                  val mergedEnv =
+                    baseEnv ++ msvcEnv +
+                      ("PATH"                                 -> mergedPath) +
+                      ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
 
-              // 1. Replace native-image.cmd with native-image.exe, if applicable
-              val updatedCommand: Seq[String] =
-                command.headOption match {
-                  case Some(cmd) if cmd.toLowerCase.endsWith("native-image.cmd") =>
-                    val cmdPath   = os.Path(cmd, os.pwd)
-                    val graalHome = cmdPath / os.up / os.up
-                    resolveNativeImage(graalHome) match {
-                      case Some(exe) =>
-                        exe.toString +: command.tail
-                      case None =>
-                        command // fall back to the .cmd wrapper
+                  logger.debug(s"Launching native-image.exe with args: $command")
+                  logger.debug(s"Merged PATH = $mergedPath")
+
+                  // 1. Replace native-image.cmd with native-image.exe, if applicable
+                  val updatedCommand: Seq[String] =
+                    command.headOption match {
+                      case Some(cmd) if cmd.toLowerCase.endsWith("native-image.cmd") =>
+                        val cmdPath   = os.Path(cmd, os.pwd)
+                        val graalHome = cmdPath / os.up / os.up
+                        resolveNativeImage(graalHome) match {
+                          case Some(exe) =>
+                            exe.toString +: command.tail
+                          case None =>
+                            command // fall back to the .cmd wrapper
+                        }
+                      case _ =>
+                        command
                     }
-                  case _ =>
-                    command
-                }
 
-              // 2. Augment environment (equivalent to what the .cmd wrapper does)
-              val augmentedEnv =
-                mergedEnv + ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
+                  // 2. Augment environment (equivalent to what the .cmd wrapper does)
+                  val augmentedEnv =
+                    mergedEnv + ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
 
-              // 3. Launch using ProcessBuilder (works in JVM + native-image)
-              val pb = new ProcessBuilder(updatedCommand*)
-              pb.directory(workingDir.toIO)
+                  // 3. Launch using ProcessBuilder (works in JVM + native-image)
+                  val pb = new ProcessBuilder(updatedCommand*)
+                  pb.directory(workingDir.toIO)
 
-              val pbEnv = pb.environment()
-              augmentedEnv.foreach { case (k, v) => pbEnv.put(k, v) }
+                  val pbEnv = pb.environment()
+                  augmentedEnv.foreach { case (k, v) => pbEnv.put(k, v) }
 
-              // 4. Inherit IO so Ctrl-C works normally
-              val proc = pb.inheritIO().start()
+                  // 4. Inherit IO so Ctrl-C works normally
+                  val proc = pb.inheritIO().start()
 
-              // 5. Wait for completion
-              proc.waitFor()
+                  // 5. Wait for completion
+                  proc.waitFor()
+              }
             }
         }
     }

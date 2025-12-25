@@ -50,8 +50,8 @@ object NativeImage {
   )(
     f: os.Path => T
   ): T =
-    // not sure about the 180 limit, we might need to lower it
-    if (Properties.isWin && currentHome.toString.length >= 180) {
+    // not sure about the 80 limit, we might need to lower it
+    if (Properties.isWin && currentHome.toString.length >= 80) {
       val driveLetter = availableDriveLetter()
       // aliasing the parent dir, as it seems GraalVM native-image (as of 22.0.0)
       // isn't fine with being put at the root of a drive - it tries to look for
