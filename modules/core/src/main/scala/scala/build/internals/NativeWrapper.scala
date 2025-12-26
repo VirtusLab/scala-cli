@@ -48,7 +48,7 @@ object MsvcEnvironment {
         .toMap
 
     val substMap: Map[Char, String] = aliasedDriveLetters
-    substMap.foreach((k, v) => logger.message(s"subst $k: -> $v"))
+    substMap.foreach((k, v) => logger.message(s"substMap  $k: -> $v"))
     rewriteEnvWithSubst(msvcEnv, substMap)
   }
 
@@ -107,12 +107,16 @@ object MsvcEnvironment {
     candidates.find(os.exists)
   }
 
-  def canonicalize(p: String): String =
-    try os.Path(p).toString
-    catch { case _: Throwable => p }
-
-  def dedupePaths(paths: Seq[String]): Seq[String] =
-    paths.map(_.trim).filter(_.nonEmpty).map(canonicalize).distinct
+  private def dedupePaths(entries: Seq[String]): Seq[String] =
+    entries
+      .flatMap(_.split(";")) // flatten any accidental PATH strings
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .map { p =>
+        try os.Path(p).toString // normalize slashes, remove trailing separators
+        catch { case _: Throwable => p }
+      }
+      .distinct
 
   def findOnPath(exe: String, path: String): Option[os.Path] = {
     val segments = path.split(";").map(_.trim).filter(_.nonEmpty)
@@ -170,11 +174,12 @@ object MsvcEnvironment {
               logger.debug(s"msvcPath[$msvcPath]")
 
               val mergedPath = dedupePaths(
-                Seq(clDir.toString) ++ msvcPath.split(";") ++ basePath.split(";")
-              ).mkString(";")
+                msvcPath.split(";") ++ basePath.split(";")
+              ).toSeq.mkString(";")
+
               logger.message(s"basePath.length = ${basePath.length}")
               logger.message(s"msvcPath.length = ${msvcPath.length}")
-              logger.message(s"deduped mergedPath[$mergedPath]")
+              logger.message(s"deduped length  = ${mergedPath.length}")
               val clOnPath = findOnPath("cl.exe", mergedPath)
               clOnPath match {
                 case None =>
@@ -185,7 +190,8 @@ object MsvcEnvironment {
                   logger.debug(s"Verified cl.exe on PATH at: $found")
 
                   val mergedEnv =
-                    baseEnv ++ msvcEnv +
+                    minimalBaseEnv ++
+                      msvcEnv +
                       ("PATH"                                 -> mergedPath) +
                       ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
 
@@ -208,16 +214,12 @@ object MsvcEnvironment {
                         command
                     }
 
-                  // 2. Augment environment (equivalent to what the .cmd wrapper does)
-                  val augmentedEnv =
-                    mergedEnv + ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
-
                   // 3. Launch using ProcessBuilder (works in JVM + native-image)
                   val pb = new ProcessBuilder(updatedCommand*)
                   pb.directory(workingDir.toIO)
 
                   val pbEnv = pb.environment()
-                  augmentedEnv.foreach { case (k, v) => pbEnv.put(k, v) }
+                  mergedEnv.foreach { case (k, v) => pbEnv.put(k, v) }
 
                   // 4. Inherit IO so Ctrl-C works normally
                   val proc = pb.inheritIO().start()
@@ -230,6 +232,7 @@ object MsvcEnvironment {
     }
   }
 
+  // newest VS first, Enterprise > Community > BuildTools
   private def vcVersions                              = Seq("2022", "2019", "2017")
   private def vcEditions                              = Seq("Enterprise", "Community", "BuildTools")
   private lazy val vcVarsCandidates: Iterable[String] =
@@ -243,15 +246,34 @@ object MsvcEnvironment {
         """C:\""" + programFiles + """\Microsoft Visual Studio\""" + version + "\\" + edition + """\VC\Auxiliary\Build\vcvars64.bat"""
       }
     }
+  private val windowsCoreEnvKeys = Set(
+    "SystemRoot",
+    "ComSpec",
+    "PATHEXT",
+    "TEMP",
+    "TMP",
+    "NUMBER_OF_PROCESSORS",
+    "PROCESSOR_ARCHITECTURE"
+  )
 
-  private def vcvarsOpt: Option[os.Path] =
-    vcVarsCandidates
-      .iterator
-      .map(os.Path(_, os.pwd))
-      .filter(os.exists(_))
-      .take(1)
-      .toList
-      .headOption
+  private def minimalBaseEnv: Map[String, String] =
+    sys.env.filter { case (k, _) => windowsCoreEnvKeys.contains(k) }
+
+  private def vcvarsOpt: Option[os.Path] = {
+    val candidates =
+      vcVarsCandidates
+        .iterator
+        .map(os.Path(_, os.pwd))
+        .filter(os.exists(_))
+        .toSeq
+
+    if (candidates.isEmpty) None
+    else {
+      // Sort lexicographically; newest VS installs always sort last
+      val sorted = candidates.sortBy(_.toString)
+      sorted.lastOption
+    }
+  }
 
   def aliasedDriveLetters: Map[Char, String] =
     val (_, output) = execWindowsCmd("cmd", "/c", "subst")
