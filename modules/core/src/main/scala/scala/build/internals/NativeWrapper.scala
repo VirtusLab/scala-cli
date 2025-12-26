@@ -24,7 +24,6 @@ object MsvcEnvironment {
     logger: Logger
   ): Int = {
     val vcvOpt = vcvarsOpt
-    logger.message(s"vcvarsOpt[$vcvOpt]")
     vcvOpt match {
       case None =>
         logger.debug(s"not found: vcvars64.bat")
@@ -57,23 +56,27 @@ object MsvcEnvironment {
               -1
             }
             else {
-              val msvcEnv  = captureVcvarsEnv(vcvars)
-              val msvcPath = msvcEnv.getOrElse("PATH", "")
+              val msvcEnv: Map[String, String] = captureVcvarsEnv(vcvars)
+              val msvcPath: String             = msvcEnv.getOrElse("PATH", "")
+              val msvcEntries: Seq[String]     = msvcPath.split(";").toSeq
 
-              val mergedPath = dedupePaths(
-                msvcPath.split(";").toSeq ++ baseEntries
-              ).mkString(";")
+              val mergedEntries = dedupePaths(msvcEntries ++ baseEntries)
+              val mergedPath    = mergedEntries.mkString(";")
 
-              logger.message(s"basePath.length = ${basePath.length}")
-              logger.message(s"msvcPath.length = ${msvcPath.length}")
-              logger.message(s"deduped length  = ${mergedPath.length}")
-              logger.message(s"deduped entries:")
-              mergedPath.split(";").foreach { entry =>
-                logger.message(s"$entry;")
+              logger.debug(s"base PATH entries   = ${baseEntries.size}")
+              logger.debug(s"msvc PATH entries   = ${msvcEntries.size}")
+              logger.debug(s"merged PATH entries = ${mergedEntries.size}")
+              logger.debug(s"minimalBaseEnv.size = ${minimalBaseEnv.size}")
+              logger.debug(s"msvcEnv.size        = ${msvcEnv.size}")
+
+              logger.debug(s"msvc PATH entries:")
+              msvcEntries.foreach { entry =>
+                logger.debug(s"$entry;")
               }
 
               logger.debug(s"basePath[$basePath]")
 
+              // show aliased drive map
               val substMap: Map[Char, String] = aliasedDriveLetters
               substMap.foreach((k, v) => logger.message(s"substMap  $k: -> $v"))
 
@@ -85,7 +88,8 @@ object MsvcEnvironment {
 
                 case Some(found) =>
                   logger.debug(s"Verified cl.exe on PATH at: $found")
-
+                  logger.debug(s"minimalBaseEnv.size: ${minimalBaseEnv.size}")
+                  logger.debug(s"msvcEnv.size: ${msvcEnv.size}")
                   val mergedEnv =
                     minimalBaseEnv ++
                       msvcEnv +
@@ -111,18 +115,16 @@ object MsvcEnvironment {
                         command
                     }
 
-                  // 3. Launch using ProcessBuilder (works in JVM + native-image)
-                  val pb = new ProcessBuilder(updatedCommand*)
-                  pb.directory(workingDir.toIO)
+                  val result =
+                    os.proc(updatedCommand)
+                      .call(
+                        cwd = workingDir,
+                        env = mergedEnv,
+                        stdout = os.Inherit,
+                        stderr = os.Inherit
+                      )
 
-                  val pbEnv = pb.environment()
-                  mergedEnv.foreach { case (k, v) => pbEnv.put(k, v) }
-
-                  // 4. Inherit IO so Ctrl-C works normally
-                  val proc = pb.inheritIO().start()
-
-                  // 5. Wait for completion
-                  proc.waitFor()
+                  result.exitCode
               }
             }
         }
@@ -206,6 +208,13 @@ object MsvcEnvironment {
   private def captureVcvarsEnv(vcvars: os.Path): Map[String, String] = {
     val vcvarsCmd = vcvars.toIO.getAbsolutePath
 
+    val minimalEnv = Map(
+      "SystemRoot" -> systemRoot,
+      "ComSpec"    -> cmdExe,
+      "PATH"       -> windowsCorePathEntries.mkString(";"),
+      "PATHEXT"    -> ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC"
+    )
+
     val cmd = Seq(
       cmdExe,
       "/c",
@@ -214,26 +223,25 @@ object MsvcEnvironment {
 
     val out = new StringBuilder
     val res = os.proc(cmd).call(
+      env = minimalEnv,
       stdout = os.ProcessOutput.Readlines(line => out.append(line).append("\n")),
       stderr = os.Inherit,
       check = false
     )
 
-    val msvcEnv = if res.exitCode != 0 then
+    if res.exitCode != 0 then
       System.err.println(s"vcvars call failed with exit code ${res.exitCode}")
       Map.empty
     else
       out.result().linesIterator
         .map(_.trim.replaceAll("\r$", "").replace('\\', '/'))
         .filter(_.contains("="))
-        .flatMap { line =>
-          line.split("=", 2) match
+        .flatMap {
+          _.split("=", 2) match
             case Array(k, v) => Some(k.toUpperCase(Locale.ROOT) -> v)
             case _           => None
         }
         .toMap
-
-    msvcEnv
   }
 
   private def resolveNativeImage(graalHome: os.Path): Option[os.Path] = {
@@ -266,7 +274,6 @@ object MsvcEnvironment {
 
   private def dedupePaths(entries: Seq[String]): Seq[String] =
     entries
-      .flatMap(_.split(";")) // flatten any accidental PATH strings
       .map(_.trim)
       .filter(_.nonEmpty)
       .map { p =>
@@ -282,9 +289,6 @@ object MsvcEnvironment {
       .map(_ / exe)
       .find(os.exists)
   }
-
-  private def normalize(p: String): String =
-    p.stripSuffix("\\").stripSuffix("/").toLowerCase
 
   // newest VS first, Enterprise > Community > BuildTools
   private def vcVersions                              = Seq("2022", "2019", "2017")
@@ -335,21 +339,24 @@ object MsvcEnvironment {
       s"$systemRoot\\System32\\OpenSSH"
     )
 
-  // Extract only entries that belong to Windows core
-  lazy val extractedWindowsEntries: Seq[String] =
+  private def normalize(p: String): String =
+    p.stripSuffix("\\").stripSuffix("/").toLowerCase
+
+  // all PATH entries that belong to Windows core
+  lazy val baseWindowsEntries: Seq[String] =
     sys.env.getOrElse("PATH", "")
       .split(";")
       .filter(_.nonEmpty)
       .filter(p => normalize(p).startsWith(normalize(systemRoot)))
       .toSeq
 
-  // Merge extracted entries with missing defaults
+  // Merge base entries with missing defaults
   lazy val baseEntries: Seq[String] =
-    if extractedWindowsEntries.isEmpty then
+    if baseWindowsEntries.isEmpty then
       windowsCorePathEntries
     else
-      (extractedWindowsEntries ++ windowsCorePathEntries).distinct
+      (baseWindowsEntries ++ windowsCorePathEntries).distinct
 
-  lazy val basePath = baseEntries.mkString(";")
+  lazy val basePath: String = baseEntries.mkString(";")
 
 }
