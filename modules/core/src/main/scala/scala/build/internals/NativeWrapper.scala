@@ -59,8 +59,30 @@ object MsvcEnvironment {
             }
             else {
               val msvcEnv: Map[String, String] = captureVcvarsEnv(vcvars, workingDir)
-              val msvcEntries: Seq[String]     = msvcEnv.getOrElse("PATH", "").split(";").toSeq
-              val mergedEntries                = dedupePaths(msvcEntries ++ baseEntries, workingDir)
+
+              val clBin: String = {
+                val baseDirOpt = msvcEnv.get("VCTOOLSINSTALLDIR")
+
+                val baseDir = baseDirOpt match {
+                  case None =>
+                    logger.error("VCTOOLSINSTALLDIR not defined by vcvars64.bat")
+                    ""
+                  case Some(dir) =>
+                    dir.replaceFirst("[/\\\\]+$", "")
+                }
+
+                if baseDir.isEmpty then ""
+                else s"$baseDir/bin/Hostx64/x64"
+              }
+
+              val msvcEntries: Seq[String] = {
+                val entries = msvcEnv.getOrElse("PATH", "").split(";").toSeq
+                if clBin.isEmpty then entries else clBin +: entries
+              }
+
+              val mergedEntries = dedupePaths(msvcEntries ++ baseEntries, workingDir)
+
+              // Prepend to PATH
 
               logger.debug(s"base PATH entries   = ${baseEntries.size}")
               logger.debug(s"msvc PATH entries   = ${msvcEntries.size}")
@@ -72,10 +94,13 @@ object MsvcEnvironment {
                   logger.message(s"$entry;")
                 }
               }
-              def logEnvDiffs(): Unit = {
-                val diff = msvcEnv.toSet.diff(sys.env.toSet)
-                logger.message(s"msvc ENV diffs:")
-                diff.foreach { case (k, v) => logger.message(s"$k=$v") }
+              def logMsvcEnv(): Unit = {
+                val diff = msvcEnv.toSet
+                logger.message(s"msvc ENV:")
+                diff.foreach { case (k, v) =>
+                  if v.contains("MSVC") then
+                    logger.message(s"$k=$v")
+                }
               }
               // show aliased drive map
               val substMap: Map[Char, String] = aliasedDriveLetters
@@ -86,7 +111,7 @@ object MsvcEnvironment {
                 case None =>
                   logger.message("error: cl.exe not found")
                   logMergedEntries()
-                  logEnvDiffs()
+                  logMsvcEnv()
                   logger.message(s"sys.env.size: ${sys.env.size}")
                   logger.message(s"msvcEnv.size: ${msvcEnv.size}")
                   logger.message("cl.exe not on merged PATH before native-image call")
@@ -104,7 +129,7 @@ object MsvcEnvironment {
                   logger.debug(s"Launching native-image.exe with args: $command")
                   logMergedEntries()
 
-                  // 1. Replace native-image.cmd with native-image.exe, if applicable
+                  // Replace native-image.cmd with native-image.exe, if applicable
                   val updatedCommand: Seq[String] =
                     command.headOption match {
                       case Some(cmd) if cmd.toLowerCase.endsWith("native-image.cmd") =>
@@ -368,11 +393,16 @@ object MsvcEnvironment {
     )
 
   // all PATH entries
-  lazy val basePathEntries: Seq[String] =
+  lazy val basePathEntries: Seq[String] = {
+    def normalize(p: String): String =
+      p.replace('/', '\\').stripSuffix("\\").toLowerCase
+
     sys.env.getOrElse("PATH", "")
       .split(";")
+      .filter(p => normalize(p).startsWith(normalize(systemRoot)))
       .filter(_.nonEmpty)
       .toSeq
+  }
 
   // Merge base entries with missing defaults
   lazy val baseEntries: Seq[String] =
