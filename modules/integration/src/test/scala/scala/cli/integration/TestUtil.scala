@@ -465,4 +465,72 @@ object TestUtil {
     System.err.println("Cleaning cached JDKs in Coursier cache…")
     cleanCoursierCache(Seq("zulu", "temurin", "adoptium", "corretto", "liberica", "graalvm"))
   }
+
+  def substedDrives: Set[Char] =
+    if Properties.isWin then
+      os.proc("cmd", "/c", "subst").call().out.text()
+        .linesIterator
+        .flatMap { line =>
+          // lines look like: "I:\: => C:\path"
+          if (line.length >= 2 && line(1) == ':') Some(line(0))
+          else None
+        }
+        .toSet
+    else Set.empty[Char]
+
+  def availableDriveLetter(): Char = {
+    import scala.annotation.tailrec
+    @tailrec
+    def helper(from: Char): Char =
+      if (from > 'Z') sys.error("Cannot find free drive letter")
+      // neither physical drives nor SUBSTed drives are free
+      else if (mountedDrives.contains(from) || substedDrives.contains(from))
+        helper((from + 1).toChar)
+      else
+        from
+
+    helper('D')
+  }
+
+  lazy val mountedDrives: String = {
+    val str         = "HKEY_LOCAL_MACHINE/SYSTEM/MountedDevices".replace('/', '\\')
+    val queryDrives = s"reg query $str"
+    val lines       = os.proc("cmd", "/c", queryDrives).call().out.lines()
+    val dosDevices  = lines.filter { s =>
+      s.contains("DosDevices")
+    }.map { s =>
+      s.replaceAll(".DosDevices.", "").replaceAll(":.*", "")
+    }
+    dosDevices.mkString
+  }
+
+  def aliasDriveLetter(driveLetter: Char, from: String): Unit = {
+    val setupCommand = s"""subst $driveLetter: "$from""""
+    os.proc("cmd", "/c", setupCommand).call(stdin = os.Inherit, stdout = os.Inherit)
+  }
+
+  def unaliasDriveLetter(driveLetter: Char): Int = {
+    val (exit, _) = execWindowsCmd("cmd.exe", "/c", s"subst $driveLetter: /d")
+    exit
+  }
+
+  def setCodePage(cp: String): Int =
+    val (exit, _) = execWindowsCmd("cmd", "/c", s"chcp $cp")
+    exit
+
+  def getCodePage: String = {
+    val (_, output) = execWindowsCmd("cmd", "/c", "chcp")
+    output
+  }
+
+  private def execWindowsCmd(cmd: String*): (Int, String) =
+    val pb = new ProcessBuilder(cmd*)
+    pb.redirectInput(ProcessBuilder.Redirect.INHERIT)
+    pb.redirectError(ProcessBuilder.Redirect.INHERIT)
+    pb.redirectOutput(ProcessBuilder.Redirect.PIPE)
+    val p = pb.start()
+    // read stdout fully
+    val output   = scala.io.Source.fromInputStream(p.getInputStream, "UTF-8").mkString
+    val exitCode = p.waitFor()
+    (exitCode, output)
 }
