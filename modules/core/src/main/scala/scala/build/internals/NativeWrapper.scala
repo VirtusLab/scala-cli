@@ -3,6 +3,8 @@ import java.util.Locale
 
 import scala.annotation.tailrec
 import scala.build.Logger
+import scala.io.Source
+import scala.util.Using
 
 /*
  * Directly invoke `native-image.exe`:
@@ -56,48 +58,51 @@ object MsvcEnvironment {
               -1
             }
             else {
-              val msvcEnv: Map[String, String] = captureVcvarsEnv(vcvars)
-              val msvcPath: String             = msvcEnv.getOrElse("PATH", "")
-              val msvcEntries: Seq[String]     = msvcPath.split(";").toSeq
-
-              val mergedEntries = dedupePaths(msvcEntries ++ baseEntries)
-              val mergedPath    = mergedEntries.mkString(";")
+              val msvcEnv: Map[String, String] = captureVcvarsEnv(vcvars, workingDir)
+              val msvcEntries: Seq[String]     = msvcEnv.getOrElse("PATH", "").split(";").toSeq
+              val mergedEntries                = dedupePaths(msvcEntries ++ baseEntries, workingDir)
 
               logger.debug(s"base PATH entries   = ${baseEntries.size}")
               logger.debug(s"msvc PATH entries   = ${msvcEntries.size}")
               logger.debug(s"merged PATH entries = ${mergedEntries.size}")
-              logger.debug(s"minimalBaseEnv.size = ${minimalBaseEnv.size}")
-              logger.debug(s"msvcEnv.size        = ${msvcEnv.size}")
 
-              logger.debug(s"msvc PATH entries:")
-              msvcEntries.foreach { entry =>
-                logger.debug(s"$entry;")
+              def logMergedEntries(): Unit = {
+                logger.message(s"merged PATH entries:")
+                mergedEntries.foreach { entry =>
+                  logger.message(s"$entry;")
+                }
               }
-
-              logger.debug(s"basePath[$basePath]")
-
+              def logEnvDiffs(): Unit = {
+                val diff = msvcEnv.toSet.diff(sys.env.toSet)
+                logger.message(s"msvc ENV diffs:")
+                diff.foreach { case (k, v) => logger.message(s"$k=$v") }
+              }
               // show aliased drive map
               val substMap: Map[Char, String] = aliasedDriveLetters
               substMap.foreach((k, v) => logger.message(s"substMap  $k: -> $v"))
 
-              val clOnPath = findOnPath("cl.exe", mergedPath)
+              val clOnPath = findOnPath("cl.exe", mergedEntries)
               clOnPath match {
                 case None =>
-                  logger.message("cl.exe not found on merged PATH — aborting before native-image")
+                  logger.message("error: cl.exe not found")
+                  logMergedEntries()
+                  logEnvDiffs()
+                  logger.message(s"sys.env.size: ${sys.env.size}")
+                  logger.message(s"msvcEnv.size: ${msvcEnv.size}")
+                  logger.message("cl.exe not on merged PATH before native-image call")
                   -1
 
                 case Some(found) =>
                   logger.debug(s"Verified cl.exe on PATH at: $found")
-                  logger.debug(s"minimalBaseEnv.size: ${minimalBaseEnv.size}")
-                  logger.debug(s"msvcEnv.size: ${msvcEnv.size}")
-                  val mergedEnv =
+                  val mergedPath = mergedEntries.mkString(";")
+                  val mergedEnv  =
                     minimalBaseEnv ++
                       msvcEnv +
                       ("PATH"                                 -> mergedPath) +
                       ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
 
                   logger.debug(s"Launching native-image.exe with args: $command")
-                  logger.debug(s"Merged PATH = $mergedPath")
+                  logMergedEntries()
 
                   // 1. Replace native-image.cmd with native-image.exe, if applicable
                   val updatedCommand: Seq[String] =
@@ -132,26 +137,31 @@ object MsvcEnvironment {
   }
 
   def aliasedDriveLetters: Map[Char, String] =
-    val (_, output) = execWindowsCmd(cmdExe, "/c", "subst")
-    output
-      .linesIterator
-      .flatMap { line =>
-        // Example: "X:\: => C:\path\to\something"
-        val parts = line.split("=>").map(_.trim)
-        if parts.length == 2 then
-          val drivePart = parts(0) // "X:\:"
-          val target    = parts(1) // "C:\path\to\something"
+    try
+      val (exitCode, output) = execWindowsCmd(cmdExe, "/c", "subst")
+      if exitCode != 0 then Map.empty
+      else
+        output
+          .linesIterator
+          .flatMap { line =>
+            // Example: "X:\: => C:\path\to\something"
+            val parts = line.split("=>").map(_.trim)
+            if parts.length == 2 then
+              val drivePart = parts(0) // "X:\:"
+              val target    = parts(1) // "C:\path\to\something"
 
-          // Extract the drive letter safely
-          val maybeDrive: Option[Char] =
-            if drivePart.length >= 2 && drivePart(1) == ':' then
-              Some(drivePart(0)) // 'X'
+              // Extract the drive letter safely
+              val maybeDrive: Option[Char] =
+                if drivePart.length >= 2 && drivePart(1) == ':' then
+                  Some(drivePart(0)) // 'X'
+                else None
+
+              maybeDrive.map(_ -> target)
             else None
-
-          maybeDrive.map(_ -> target)
-        else None
-      }
-      .toMap
+          }
+          .toMap
+    catch
+      case _: Throwable => Map.empty
 
   def availableDriveLetter(): Char = {
     // if a drive letter has already been mapped by SUBST, it isn't free
@@ -179,7 +189,10 @@ object MsvcEnvironment {
     pb.redirectOutput(ProcessBuilder.Redirect.PIPE)
     val p = pb.start()
     // read stdout fully
-    val output   = scala.io.Source.fromInputStream(p.getInputStream, "UTF-8").mkString
+    val output = Using(Source.fromInputStream(p.getInputStream, "UTF-8")) { source =>
+      source.mkString
+    }.getOrElse("")
+
     val exitCode = p.waitFor()
     (exitCode, output)
 
@@ -205,7 +218,7 @@ object MsvcEnvironment {
   // =========================
   // Capture MSVC environment
   // =========================
-  private def captureVcvarsEnv(vcvars: os.Path): Map[String, String] = {
+  private def captureVcvarsEnv(vcvars: os.Path, workingDir: os.Path): Map[String, String] = {
     val vcvarsCmd = vcvars.toIO.getAbsolutePath
 
     val minimalEnv = Map(
@@ -222,7 +235,9 @@ object MsvcEnvironment {
     )
 
     val out = new StringBuilder
+
     val res = os.proc(cmd).call(
+      cwd = workingDir, // run vcvars from the working directory
       env = minimalEnv,
       stdout = os.ProcessOutput.Readlines(line => out.append(line).append("\n")),
       stderr = os.Inherit,
@@ -272,23 +287,36 @@ object MsvcEnvironment {
     }
   }
 
-  private def dedupePaths(entries: Seq[String]): Seq[String] =
-    entries
-      .map(_.trim)
-      .filter(_.nonEmpty)
-      .map { p =>
-        try os.Path(p).toString // normalize slashes, remove trailing separators
-        catch { case _: Throwable => p }
-      }
-      .distinct
+  def isAbs(p: String): Boolean =
+    try os.Path(p).root.nonEmpty
+    catch case _: Throwable => false
 
-  private def findOnPath(exe: String, path: String): Option[os.Path] = {
-    val segments = path.split(";").map(_.trim).filter(_.nonEmpty)
-    segments.iterator
+  def canonicalKey(p: String, cwd: os.Path): String =
+    try
+      val resolved = cwd.toNIO.resolve(p).normalize()
+      resolved.toRealPath().toString
+        .replace('\\', '/')
+        .stripSuffix("/")
+        .toLowerCase
+    catch
+      case _: Throwable =>
+        p.replace('\\', '/').stripSuffix("/").toLowerCase
+
+  def dedupePaths(entries: Seq[String], cwd: os.Path): Seq[String] =
+    val seen = scala.collection.mutable.HashSet[String]()
+    val out  = scala.collection.mutable.ArrayBuffer[String]()
+    for p <- entries.map(_.trim).filter(_.nonEmpty) do
+      val key = canonicalKey(p, cwd)
+      if !seen.contains(key) then
+        seen += key
+        out += p // preserve original form
+    out.toSeq
+
+  private def findOnPath(exe: String, entries: Seq[String]): Option[os.Path] =
+    entries.iterator
       .map(os.Path(_, os.pwd))
       .map(_ / exe)
       .find(os.exists)
-  }
 
   // newest VS first, Enterprise > Community > BuildTools
   private def vcVersions                              = Seq("2022", "2019", "2017")
@@ -339,24 +367,18 @@ object MsvcEnvironment {
       s"$systemRoot\\System32\\OpenSSH"
     )
 
-  private def normalize(p: String): String =
-    p.stripSuffix("\\").stripSuffix("/").toLowerCase
-
-  // all PATH entries that belong to Windows core
-  lazy val baseWindowsEntries: Seq[String] =
+  // all PATH entries
+  lazy val basePathEntries: Seq[String] =
     sys.env.getOrElse("PATH", "")
       .split(";")
       .filter(_.nonEmpty)
-      .filter(p => normalize(p).startsWith(normalize(systemRoot)))
       .toSeq
 
   // Merge base entries with missing defaults
   lazy val baseEntries: Seq[String] =
-    if baseWindowsEntries.isEmpty then
+    if basePathEntries.isEmpty then
       windowsCorePathEntries
     else
-      (baseWindowsEntries ++ windowsCorePathEntries).distinct
-
-  lazy val basePath: String = baseEntries.mkString(";")
+      dedupePaths(basePathEntries ++ windowsCorePathEntries, os.pwd)
 
 }
