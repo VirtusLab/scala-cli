@@ -38,7 +38,7 @@ object MsvcEnvironment {
           captureVcvarsEnv(vcvars, workingDir, logger)
 
         debugEcho.foreach { dbg =>
-          logger.message(s"$dbg")
+          logger.debug(s"$dbg")
         }
 
         // show aliased drive map
@@ -49,9 +49,9 @@ object MsvcEnvironment {
           msvcEnv +
             ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
 
-        logger.message(s"msvc PATH entries:")
+        logger.debug(s"msvc PATH entries:")
         finalEnv.getOrElse("PATH", "").split(";").toSeq.foreach { entry =>
-          logger.message(s"$entry;")
+          logger.debug(s"$entry;")
         }
         Seq(
           "VCToolsInstallDir",
@@ -63,7 +63,7 @@ object MsvcEnvironment {
           "LIB",
           "LIBPATH"
         ).foreach { key =>
-          logger.message(s"""$key=${msvcEnv.getOrElse(key, "<missing>")}""")
+          logger.debug(s"""$key=${msvcEnv.getOrElse(key, "<missing>")}""")
         }
 
         // Replace native-image.cmd with native-image.exe, if applicable
@@ -82,7 +82,7 @@ object MsvcEnvironment {
               command
           }
 
-        logger.message(s"native-image w/args: $command")
+        logger.debug(s"native-image w/args: $updatedCommand")
 
         val result =
           os.proc(updatedCommand)
@@ -194,25 +194,25 @@ object MsvcEnvironment {
         fileEnv.keySet.diff(captEnv.keySet).map(k => k -> fileEnv(k))
 
       if differingValues.nonEmpty then
-        logger.message("=== keys with different values ===")
+        logger.debug("=== keys with different values ===")
         differingValues.foreach { case (k, v1, v2) =>
-          logger.message(s"$k:\n  captured = $v1\n  file     = $v2")
+          logger.debug(s"$k:\n  captured = $v1\n  file     = $v2")
         }
 
       if onlyInCaptured.nonEmpty then
-        logger.message("=== only in captured env ===")
+        logger.debug("=== only in captured env ===")
         onlyInCaptured.foreach { case (k, v) =>
-          logger.message(s"$k = $v")
+          logger.debug(s"$k = $v")
         }
 
       if onlyInFile.nonEmpty then
-        logger.message("=== only in file env ===")
+        logger.debug("=== only in file env ===")
         onlyInFile.foreach { case (k, v) =>
-          logger.message(s"$k = $v")
+          logger.debug(s"$k = $v")
         }
 
       if differingValues.isEmpty && onlyInCaptured.isEmpty && onlyInFile.isEmpty then
-        logger.message("envReport: no differences")
+        logger.debug("envReport: no differences")
   }
 
   def aliasedDriveLetters: Map[Char, String] =
