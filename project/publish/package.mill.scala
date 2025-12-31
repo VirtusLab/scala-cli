@@ -6,6 +6,7 @@ import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCreden
 import settings.{PublishLocalNoFluff, workspaceDirName}
 import de.tobiasroeser.mill.vcs.version._
 import mill._
+import mill.api.BuildCtx
 import mill.javalib.publish.Artifact
 import scalalib._
 import org.eclipse.jgit.api.Git
@@ -143,13 +144,16 @@ trait ScalaCliPublishModule extends SonatypeCentralPublishModule with PublishLoc
   override def sourceJar: T[PathRef]     = Task {
     import mill.util.Jvm.createJar
     val allSources0 = allSources().map(_.path).filter(os.exists).toSet
+    val jar         = Task.dest / "sources.jar"
     createJar(
-      allSources0 ++ resources().map(_.path).filter(os.exists),
-      manifest(),
-      (input, relPath) =>
+      jar = jar,
+      inputPaths = allSources0 ++ resources().map(_.path).filter(os.exists),
+      manifest = manifest(),
+      fileFilter = (input, relPath) =>
         !allSources0(input) ||
         (!relPath.segments.contains(".scala") && !relPath.segments.contains(workspaceDirName))
     )
+    PathRef(jar)
   }
 }
 
@@ -235,7 +239,7 @@ def setShouldPublish() = Task.Command {
   val charSet = Charset.defaultCharset()
   val nl      = System.lineSeparator()
   os.write.append(
-    os.Path(envFile, Task.workspace),
+    os.Path(envFile, BuildCtx.workspaceRoot),
     s"SHOULD_PUBLISH=${shouldPublish()}$nl".getBytes(charSet)
   )
 }

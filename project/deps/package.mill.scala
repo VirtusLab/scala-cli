@@ -20,7 +20,7 @@ object Scala {
   def scala3Next          = s"$scala3NextPrefix.4" // the newest/next version of Scala
   def scala3NextAnnounced =
     s"$scala3NextPrefix.3" // the newest/next version of Scala that's been announced
-  def scala3NextRc        = "3.8.0-RC3"            // the latest RC version of Scala Next
+  def scala3NextRc        = "3.8.0-RC4"            // the latest RC version of Scala Next
   def scala3NextRcAnnounced = "3.7.4-RC3" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
@@ -111,13 +111,6 @@ object TestDeps {
 
   def archLinuxImage: String =
     "archlinux@sha256:b15db21228c7cd5fd3ab364a97193ba38abfad0e8b9593c15b71850b74738153"
-}
-
-object InternalDeps {
-  object Versions {
-    def mill: String  = _root_.mill.main.BuildInfo.millVersion
-    def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
-  }
 }
 
 object Deps {

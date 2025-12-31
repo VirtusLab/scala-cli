@@ -6,7 +6,7 @@ import $ivy.`io.get-coursier::coursier-launcher:2.1.25-M21`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.31-1`
 import build.ci.publishVersion
 import build.project.deps
-import deps.{Cli, Deps, Docker, InternalDeps, Java, Scala, TestDeps}
+import deps.{Cli, Deps, Docker, Java, Scala, TestDeps}
 import build.project.publish
 import publish.{ScalaCliPublishModule, finalPublishVersion, ghName, ghOrg, organization}
 import build.project.settings
@@ -36,7 +36,7 @@ import java.util.Locale
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.github.alexarchambault.millnativeimage.upload.Upload
 import mill._
-import mill.api.Loose
+import mill.api.{BuildCtx, Loose}
 import scalalib.{publish => _, _}
 import mill.contrib.bloop.Bloop
 import mill.define.Task.Simple
@@ -200,17 +200,17 @@ trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with HasTests
 
   object test extends ScalaCliTests with ScalaCliScalafixModule {
     override def forkEnv: T[Map[String, String]] = super.forkEnv() ++ extraEnv() ++ Seq(
-      "SCALA_CLI_EXAMPLES"      -> (Task.workspace / "examples").toString,
-      "SCALA_CLI_GIF_SCENARIOS" -> (Task.workspace / "gifs" / "scenarios").toString,
-      "SCALA_CLI_WEBSITE_IMG"   -> (Task.workspace / "website" / "static" / "img").toString,
-      "SCALA_CLI_GIF_RENDERER_DOCKER_DIR" -> (Task.workspace / "gifs").toString,
-      "SCALA_CLI_SVG_RENDERER_DOCKER_DIR" -> (Task.workspace / "gifs" / "svg_render").toString
+      "SCALA_CLI_EXAMPLES"      -> (BuildCtx.workspaceRoot / "examples").toString,
+      "SCALA_CLI_GIF_SCENARIOS" -> (BuildCtx.workspaceRoot / "gifs" / "scenarios").toString,
+      "SCALA_CLI_WEBSITE_IMG"   -> (BuildCtx.workspaceRoot / "website" / "static" / "img").toString,
+      "SCALA_CLI_GIF_RENDERER_DOCKER_DIR" -> (BuildCtx.workspaceRoot / "gifs").toString,
+      "SCALA_CLI_SVG_RENDERER_DOCKER_DIR" -> (BuildCtx.workspaceRoot / "gifs" / "svg_render").toString
     )
     override def resources: T[Seq[PathRef]] = Task.Sources {
       // Adding markdown directories here, so that they're watched for changes in watch mode
       Seq(
-        PathRef(Task.workspace / "website" / "docs" / "commands"),
-        PathRef(Task.workspace / "website" / "docs" / "cookbooks")
+        PathRef(BuildCtx.workspaceRoot / "website" / "docs" / "commands"),
+        PathRef(BuildCtx.workspaceRoot / "website" / "docs" / "cookbooks")
       ) ++ super.resources()
     }
   }
@@ -306,7 +306,7 @@ trait BuildMacros extends ScalaCliCrossSbtModule
     }
 
     def testNegativeCompilation(): Command[Unit] = Task.Command(exclusive = true) {
-      val base          = Task.workspace / "modules" / "build-macros" / "src"
+      val base          = BuildCtx.workspaceRoot / "modules" / "build-macros" / "src"
       val negativeTests = Seq(
         "MismatchedLeft.scala" -> Seq(
           "Found: +EE1".r,
@@ -333,7 +333,7 @@ trait BuildMacros extends ScalaCliCrossSbtModule
         ).call(
           check = false,
           mergeErrIntoOut = true,
-          cwd = Task.workspace
+          cwd = BuildCtx.workspaceRoot
         )
       val compileResult = compile()
       if (compileResult.exitCode != 0) {
@@ -492,8 +492,7 @@ trait Core extends ScalaCliCrossSbtModule
          |
          |  def ammoniteVersion = "${Deps.Versions.ammonite}"
          |  def ammoniteVersionForScala3Lts = "${Deps.Versions.ammoniteForScala3Lts}"
-         |  def millVersion = "${InternalDeps.Versions.mill}"
-         |  def lefouMillwRef = "${InternalDeps.Versions.lefouMillwRef}"
+         |  def millVersion = "${_root_.mill.main.BuildInfo.millVersion}"
          |  def maxScalaNativeForMillExport = "${Deps.Versions.maxScalaNativeForMillExport}"
          |
          |  def scalafmtOrganization = "${Deps.scalafmtCli.dep.module.organization.value}"
@@ -1006,7 +1005,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       val dir                    = Task.dest / "constants"
       val dest                   = dir / "Constants.scala"
       val mostlyStaticDockerfile =
-        Task.workspace / ".github" / "scripts" / "docker" / "ScalaCliSlimDockerFile"
+        BuildCtx.workspaceRoot / ".github" / "scripts" / "docker" / "ScalaCliSlimDockerFile"
       assert(
         os.exists(mostlyStaticDockerfile),
         s"Error: $mostlyStaticDockerfile not found"
@@ -1108,7 +1107,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
         val dir = Option(System.getenv("SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY")).getOrElse {
           sys.error("SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY not set")
         }
-        val content = importedLauncher(dir, Task.workspace)
+        val content = importedLauncher(dir, BuildCtx.workspaceRoot)
         os.write(
           launcher,
           content,
@@ -1125,7 +1124,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
         val dir = Option(System.getenv("SCALA_CLI_IT_FORCED_STATIC_LAUNCHER_DIRECTORY")).getOrElse {
           sys.error("SCALA_CLI_IT_FORCED_STATIC_LAUNCHER_DIRECTORY not set")
         }
-        val content = importedLauncher(dir, Task.workspace)
+        val content = importedLauncher(dir, BuildCtx.workspaceRoot)
         os.write(launcher, content, createFolders = true)
       }
       PathRef(launcher)
@@ -1138,7 +1137,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
           Option(System.getenv("SCALA_CLI_IT_FORCED_MOSTLY_STATIC_LAUNCHER_DIRECTORY")).getOrElse {
             sys.error("SCALA_CLI_IT_FORCED_MOSTLY_STATIC_LAUNCHER_DIRECTORY not set")
           }
-        val content = importedLauncher(dir, Task.workspace)
+        val content = importedLauncher(dir, BuildCtx.workspaceRoot)
         os.write(launcher, content, createFolders = true)
       }
       PathRef(launcher)
@@ -1318,14 +1317,14 @@ def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = Task.Co
   publish.publishSonatype(
     data = define.Task.sequence(tasks.value)(),
     log = Task.ctx().log,
-    workspace = Task.workspace,
+    workspace = BuildCtx.workspaceRoot,
     env = Task.env,
     bundleName = bundleName
   )
 }
 
 def copyTo(task: mill.main.Tasks[PathRef], dest: String): Command[Unit] = Task.Command {
-  val destPath = os.Path(dest, Task.workspace)
+  val destPath = os.Path(dest, BuildCtx.workspaceRoot)
   if (task.value.length > 1)
     sys.error("Expected a single task")
   val ref = task.value.head()
@@ -1334,7 +1333,7 @@ def copyTo(task: mill.main.Tasks[PathRef], dest: String): Command[Unit] = Task.C
 }
 
 def writePackageVersionTo(dest: String): Command[Unit] = Task.Command {
-  val destPath   = os.Path(dest, Task.workspace)
+  val destPath   = os.Path(dest, BuildCtx.workspaceRoot)
   val rawVersion = cli(Scala.defaultInternal).publishVersion()
   val version    =
     if (rawVersion.contains("+")) rawVersion.stripSuffix("-SNAPSHOT")
@@ -1343,7 +1342,7 @@ def writePackageVersionTo(dest: String): Command[Unit] = Task.Command {
 }
 
 def writeShortPackageVersionTo(dest: String): Command[Unit] = Task.Command {
-  val destPath   = os.Path(dest, Task.workspace)
+  val destPath   = os.Path(dest, BuildCtx.workspaceRoot)
   val rawVersion = cli(Scala.defaultInternal).publishVersion()
   val version    = rawVersion.takeWhile(c => c != '-' && c != '+')
   os.write.over(destPath, version)
@@ -1384,7 +1383,7 @@ def copyLauncher(directory: String = "artifacts"): Command[os.Path] = Task.Comma
     directory = directory,
     name = "scala-cli",
     compress = true,
-    workspace = Task.workspace
+    workspace = BuildCtx.workspaceRoot
   )
 }
 
@@ -1392,7 +1391,7 @@ def copyJvmLauncher(directory: String = "artifacts"): Command[Unit] = Task.Comma
   val launcher = cli(Scala.defaultInternal).standaloneLauncher().path
   os.copy(
     launcher,
-    os.Path(directory, Task.workspace) / s"scala-cli$platformExecutableJarExtension",
+    os.Path(directory, BuildCtx.workspaceRoot) / s"scala-cli$platformExecutableJarExtension",
     createFolders = true,
     replaceExisting = true
   )
@@ -1401,7 +1400,7 @@ def copyJvmBootstrappedLauncher(directory: String = "artifacts"): Command[Unit] 
   val launcher = cliBootstrapped.jar().path
   os.copy(
     launcher,
-    os.Path(directory, Task.workspace) / s"scala-cli.jar",
+    os.Path(directory, BuildCtx.workspaceRoot) / s"scala-cli.jar",
     createFolders = true,
     replaceExisting = true
   )
@@ -1410,7 +1409,7 @@ def copyJvmBootstrappedLauncher(directory: String = "artifacts"): Command[Unit] 
 def uploadLaunchers(directory: String = "artifacts"): Command[Unit] = Task.Command {
   val version = cli(Scala.defaultInternal).publishVersion()
 
-  val path      = os.Path(directory, Task.workspace)
+  val path      = os.Path(directory, BuildCtx.workspaceRoot)
   val launchers = os.list(path).filter(os.isFile(_)).map { path =>
     path -> path.last
   }
@@ -1461,7 +1460,7 @@ def copyMostlyStaticLauncher(directory: String = "artifacts"): Command[os.Path] 
     directory = directory,
     name = "scala-cli",
     compress = true,
-    workspace = Task.workspace,
+    workspace = BuildCtx.workspaceRoot,
     suffix = "-mostly-static"
   )
 }
@@ -1473,7 +1472,7 @@ def copyStaticLauncher(directory: String = "artifacts"): Command[os.Path] = Task
     directory = directory,
     name = "scala-cli",
     compress = true,
-    workspace = Task.workspace,
+    workspace = BuildCtx.workspaceRoot,
     suffix = "-static"
   )
 }
@@ -1516,7 +1515,7 @@ object ci extends Module {
   def updateScalaCliSetup(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
-    val targetDir       = Task.workspace / "target-scala-cli-setup"
+    val targetDir       = BuildCtx.workspaceRoot / "target-scala-cli-setup"
     val mainDir         = targetDir / "scala-cli-setup"
     val setupScriptPath = mainDir / "src" / "main.ts"
 
@@ -1545,7 +1544,7 @@ object ci extends Module {
   def updateStandaloneLauncher(): Command[os.CommandResult] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
-    val targetDir                     = Task.workspace / "target"
+    val targetDir                     = BuildCtx.workspaceRoot / "target"
     val scalaCliDir                   = targetDir / "scala-cli"
     val standaloneLauncherPath        = scalaCliDir / "scala-cli.sh"
     val standaloneWindowsLauncherPath = scalaCliDir / "scala-cli.bat"
@@ -1614,7 +1613,7 @@ object ci extends Module {
   def updateScalaCliBrewFormula(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
-    val targetDir          = Task.workspace / "target"
+    val targetDir          = BuildCtx.workspaceRoot / "target"
     val homebrewFormulaDir = targetDir / "homebrew-scala-cli"
 
     // clean target directory
@@ -1634,13 +1633,15 @@ object ci extends Module {
     val arm64LauncherURL =
       s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-aarch64-apple-darwin.gz"
 
-    val x86LauncherPath = os.Path("artifacts", Task.workspace) / "scala-cli-x86_64-apple-darwin.gz"
+    val x86LauncherPath =
+      os.Path("artifacts", BuildCtx.workspaceRoot) / "scala-cli-x86_64-apple-darwin.gz"
     val arm64LauncherPath =
-      os.Path("artifacts", Task.workspace) / "scala-cli-aarch64-apple-darwin.gz"
+      os.Path("artifacts", BuildCtx.workspaceRoot) / "scala-cli-aarch64-apple-darwin.gz"
     val (x86Sha256, arm64Sha256) = brewLaunchersSha(x86LauncherPath, arm64LauncherPath, targetDir)
 
-    val templateFormulaPath = Task.workspace / ".github" / "scripts" / "scala-cli.rb.template"
-    val template            = os.read(templateFormulaPath)
+    val templateFormulaPath =
+      BuildCtx.workspaceRoot / ".github" / "scripts" / "scala-cli.rb.template"
+    val template = os.read(templateFormulaPath)
 
     val updatedFormula = template
       .replace("@X86_LAUNCHER_URL@", x86LauncherURL)
@@ -1657,7 +1658,7 @@ object ci extends Module {
   def updateScalaExperimentalBrewFormula(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
-    val targetDir          = Task.workspace / "target"
+    val targetDir          = BuildCtx.workspaceRoot / "target"
     val homebrewFormulaDir = targetDir / "homebrew-scala-experimental"
 
     // clean homebrew-scala-experimental directory
@@ -1677,12 +1678,13 @@ object ci extends Module {
     val arm64LauncherURL =
       s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-aarch64-apple-darwin.gz"
 
-    val x86LauncherPath = os.Path("artifacts", Task.workspace) / "scala-cli-x86_64-apple-darwin.gz"
+    val x86LauncherPath =
+      os.Path("artifacts", BuildCtx.workspaceRoot) / "scala-cli-x86_64-apple-darwin.gz"
     val arm64LauncherPath =
-      os.Path("artifacts", Task.workspace) / "scala-cli-aarch64-apple-darwin.gz"
+      os.Path("artifacts", BuildCtx.workspaceRoot) / "scala-cli-aarch64-apple-darwin.gz"
     val (x86Sha256, arm64Sha256) = brewLaunchersSha(x86LauncherPath, arm64LauncherPath, targetDir)
 
-    val templateFormulaPath = Task.workspace / ".github" / "scripts" / "scala.rb.template"
+    val templateFormulaPath = BuildCtx.workspaceRoot / ".github" / "scripts" / "scala.rb.template"
     val template            = os.read(templateFormulaPath)
 
     val updatedFormula = template
@@ -1700,7 +1702,7 @@ object ci extends Module {
   def updateInstallationScript(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
-    val targetDir              = Task.workspace / "target"
+    val targetDir              = BuildCtx.workspaceRoot / "target"
     val packagesDir            = targetDir / "scala-cli-packages"
     val installationScriptPath = packagesDir / "scala-setup.sh"
 
@@ -1727,7 +1729,7 @@ object ci extends Module {
   def updateDebianPackages(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
-    val targetDir   = Task.workspace / "target"
+    val targetDir   = BuildCtx.workspaceRoot / "target"
     val packagesDir = targetDir / "scala-cli-packages"
     val debianDir   = packagesDir / "debian"
 
@@ -1745,7 +1747,7 @@ object ci extends Module {
 
     // copy deb package to repository
     os.copy(
-      os.Path("artifacts", Task.workspace) / "scala-cli-x86_64-pc-linux.deb",
+      os.Path("artifacts", BuildCtx.workspaceRoot) / "scala-cli-x86_64-pc-linux.deb",
       debianDir / s"scala-cli_$version.deb"
     )
 
@@ -1795,12 +1797,12 @@ object ci extends Module {
   def updateChocolateyPackage(): Command[os.CommandResult] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
-    val packagesDir = Task.workspace / "target" / "scala-cli-packages"
-    val chocoDir    = Task.workspace / ".github" / "scripts" / "choco"
+    val packagesDir = BuildCtx.workspaceRoot / "target" / "scala-cli-packages"
+    val chocoDir    = BuildCtx.workspaceRoot / ".github" / "scripts" / "choco"
 
     val msiPackagePath = packagesDir / s"scala-cli_$version.msi"
     os.copy(
-      Task.workspace / "artifacts" / "scala-cli-x86_64-pc-win32.msi",
+      BuildCtx.workspaceRoot / "artifacts" / "scala-cli-x86_64-pc-win32.msi",
       msiPackagePath,
       createFolders = true
     )
@@ -1839,7 +1841,7 @@ object ci extends Module {
   def updateCentOsPackages(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
-    val targetDir   = Task.workspace / "target"
+    val targetDir   = BuildCtx.workspaceRoot / "target"
     val packagesDir = targetDir / "scala-cli-packages"
     val centOsDir   = packagesDir / "CentOS"
 
@@ -1857,7 +1859,7 @@ object ci extends Module {
 
     // copy rpm package to repository
     os.copy(
-      os.Path("artifacts", Task.workspace) / "scala-cli-x86_64-pc-linux.rpm",
+      os.Path("artifacts", BuildCtx.workspaceRoot) / "scala-cli-x86_64-pc-linux.rpm",
       centOsDir / "Packages" / s"scala-cli_$version.rpm"
     )
 
@@ -1928,7 +1930,7 @@ object ci extends Module {
                 .mkString(System.lineSeparator())
           )
         }
-      val destDir = os.Path(directory, Task.workspace)
+      val destDir = os.Path(directory, BuildCtx.workspaceRoot)
       os.copy(orig, destDir / distName, createFolders = true, replaceExisting = true)
     }
   def writeWixConfigExtra(dest: String = "wix-visual-cpp-redist.xml"): Command[Unit] =
@@ -1972,7 +1974,7 @@ object ci extends Module {
            |  <MergeRef Id="VCRedist"/>
            |</Feature>
            |""".stripMargin
-      val dest0 = os.Path(dest, Task.workspace)
+      val dest0 = os.Path(dest, BuildCtx.workspaceRoot)
       os.write.over(dest0, content.getBytes(Charset.defaultCharset()), createFolders = true)
     }
   def setShouldPublish(): Command[Unit] = publish.setShouldPublish()
@@ -1991,9 +1993,9 @@ object ci extends Module {
         "--ttl",
         "0"
       )
-      val baseJavaHome = os.Path(command.!!.trim, Task.workspace)
+      val baseJavaHome = os.Path(command.!!.trim, BuildCtx.workspaceRoot)
       System.err.println(s"Initial Java home $baseJavaHome")
-      val destJavaHome = os.Path(dest, Task.workspace)
+      val destJavaHome = os.Path(dest, BuildCtx.workspaceRoot)
       os.copy(baseJavaHome, destJavaHome, createFolders = true)
       System.err.println(s"New Java home $destJavaHome")
       destJavaHome
@@ -2001,10 +2003,10 @@ object ci extends Module {
 
   def checkScalaVersions(): Command[Unit] = Task.Command {
     website.checkMainScalaVersions(
-      Task.workspace / "website" / "docs" / "reference" / "scala-versions.md"
+      BuildCtx.workspaceRoot / "website" / "docs" / "reference" / "scala-versions.md"
     )
     website.checkScalaJsVersions(
-      Task.workspace / "website" / "docs" / "guides" / "advanced" / "scala-js.md"
+      BuildCtx.workspaceRoot / "website" / "docs" / "guides" / "advanced" / "scala-js.md"
     )
   }
 }
