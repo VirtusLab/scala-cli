@@ -3,6 +3,7 @@ import java.util.Locale
 
 import scala.annotation.tailrec
 import scala.build.Logger
+import scala.collection.immutable.TreeMap
 import scala.io.Source
 import scala.util.Using
 
@@ -34,25 +35,35 @@ object MsvcEnvironment {
         logger.debug(s"Using vcvars script $vcvars")
 
         val (debugEcho: Seq[String], msvcEnv: Map[String, String]) =
-          captureVcvarsEnv(vcvars, workingDir)
+          captureVcvarsEnv(vcvars, workingDir, logger)
+
         debugEcho.foreach { dbg =>
           logger.message(s"$dbg")
         }
-        val msvcEntries: Seq[String] = msvcEnv.getOrElse("PATH", "").split(";").toSeq
 
         // show aliased drive map
         val substMap: Map[Char, String] = aliasedDriveLetters
         substMap.foreach((k, v) => logger.message(s"substMap  $k: -> $v"))
 
-        val finalPath = msvcEntries.mkString(";")
-        val finalEnv  =
+        val finalEnv =
           msvcEnv +
-            ("PATH"                                 -> finalPath) +
             ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
 
         logger.message(s"msvc PATH entries:")
-        msvcEntries.foreach { entry =>
+        finalEnv.getOrElse("PATH", "").split(";").toSeq.foreach { entry =>
           logger.message(s"$entry;")
+        }
+        Seq(
+          "VCToolsInstallDir",
+          "VCToolsVersion",
+          "VCINSTALLDIR",
+          "WindowsSdkDir",
+          "WindowsSdkVersion",
+          "INCLUDE",
+          "LIB",
+          "LIBPATH"
+        ).foreach { key =>
+          logger.message(s"""$key=${msvcEnv.getOrElse(key, "<missing>")}""")
         }
 
         // Replace native-image.cmd with native-image.exe, if applicable
@@ -84,6 +95,124 @@ object MsvcEnvironment {
 
         result.exitCode
     }
+  }
+
+  // =========================
+  // Capture MSVC environment
+  // =========================
+  private def captureVcvarsEnv(
+    vcvars: os.Path,
+    workingDir: os.Path,
+    logger: Logger
+  ): (Seq[String], Map[String, String]) = {
+
+    val vcvarsCmd = vcvars.toIO.getAbsolutePath
+
+    val sentinel = "vcvSentinel_7f4a2b"
+    val cmd      = Seq(
+      cmdExe,
+      "/c",
+      s"""set "VSCMD_DEBUG=1" & call "$vcvarsCmd" & echo $sentinel & where cl & where link & where lib & cl /Bv & set"""
+    )
+
+    val out = new StringBuilder
+    val err = new StringBuilder
+
+    val res = os.proc(cmd).call(
+      cwd = workingDir,
+      env = sys.env,
+      stdout = os.ProcessOutput.Readlines(line => out.append(line).append("\n")),
+      stderr = os.ProcessOutput.Readlines(line => err.append(line).append("\n")),
+      check = false
+    )
+
+    if res.exitCode != 0 then
+      logger.error(s"vcvars call failed with exit code ${res.exitCode}")
+      (Seq.empty, Map.empty)
+    else
+      def toVec(iter: Iterator[String]): Vector[String] =
+        iter.map(_.trim).filter(_.nonEmpty).toVector
+      val errlines = toVec(
+        err.result().linesIterator
+      ).filter(_ != "cl : Command line error D8003 : missing source filename")
+      val outlines = toVec(out.result().linesIterator)
+
+      // Split at sentinel
+      val (debugLog, afterSentinel) = outlines.span(_ != sentinel)
+
+      // Drop the sentinel itself
+      val envLines   = afterSentinel.drop(1)
+      val debugLines = errlines ++ debugLog
+
+      given Ordering[String] =
+        Ordering.by[String, String](_.toLowerCase(Locale.ROOT))(using Ordering.String)
+
+      // Parse KEY=VALUE lines, preserving original key casing
+      val envMap =
+        TreeMap.empty[String, String] ++
+          envLines.flatMap { line =>
+            line.split("=", 2) match
+              case Array(k, v) => Some(k -> v) // preserve original spelling
+              case _           => None
+          }
+
+      envReport(envMap, "C:/tmp/dd_vsdevcmd17_env.log", logger)
+      (debugLines, envMap)
+  }
+
+  def envReport(captEnv: Map[String, String], logfile: String, logger: Logger): Unit = {
+    import java.nio.file.{Files, Paths}
+    import scala.jdk.CollectionConverters.*
+
+    val path = Paths.get(logfile)
+
+    if !Files.exists(path) then
+      logger.message(s"not found: $logfile")
+    else
+      // Parse KEY=VALUE lines from the file
+      val fileEnv: Map[String, String] =
+        Files.readAllLines(path).asScala.flatMap { line =>
+          line.split("=", 2) match
+            case Array(k, v) => Some(k -> v)
+            case _           => None
+        }.toMap
+
+      // Keys present in both but with different values
+      val differingValues =
+        for
+          (k, v1) <- captEnv
+          v2      <- fileEnv.get(k)
+          if v1 != v2
+        yield (k, v1, v2)
+
+      // Keys only in captured env
+      val onlyInCaptured =
+        captEnv.keySet.diff(fileEnv.keySet).map(k => k -> captEnv(k))
+
+      // Keys only in file env
+      val onlyInFile =
+        fileEnv.keySet.diff(captEnv.keySet).map(k => k -> fileEnv(k))
+
+      if differingValues.nonEmpty then
+        logger.message("=== keys with different values ===")
+        differingValues.foreach { case (k, v1, v2) =>
+          logger.message(s"$k:\n  captured = $v1\n  file     = $v2")
+        }
+
+      if onlyInCaptured.nonEmpty then
+        logger.message("=== only in captured env ===")
+        onlyInCaptured.foreach { case (k, v) =>
+          logger.message(s"$k = $v")
+        }
+
+      if onlyInFile.nonEmpty then
+        logger.message("=== only in file env ===")
+        onlyInFile.foreach { case (k, v) =>
+          logger.message(s"$k = $v")
+        }
+
+      if differingValues.isEmpty && onlyInCaptured.isEmpty && onlyInFile.isEmpty then
+        logger.message("envReport: no differences")
   }
 
   def aliasedDriveLetters: Map[Char, String] =
@@ -165,62 +294,6 @@ object MsvcEnvironment {
         ""
     }
 
-  // =========================
-  // Capture MSVC environment
-  // =========================
-  private def captureVcvarsEnv(
-    vcvars: os.Path,
-    workingDir: os.Path
-  ): (Seq[String], Map[String, String]) = {
-
-    val vcvarsCmd = vcvars.toIO.getAbsolutePath
-
-    val sentinel = "::sentinel"
-    val cmd      = Seq(
-      cmdExe,
-      "/c",
-      s"""set "VSCMD_DEBUG=1" & call "$vcvarsCmd" & echo $sentinel & set"""
-    )
-
-    val out = new StringBuilder
-
-    val res = os.proc(cmd).call(
-      cwd = workingDir,
-      env = sys.env,
-      stdout = os.ProcessOutput.Readlines(line => out.append(line).append("\n")),
-      stderr = os.Inherit,
-      check = false
-    )
-
-    if res.exitCode != 0 then
-      System.err.println(s"vcvars call failed with exit code ${res.exitCode}")
-      (Seq.empty, Map.empty)
-    else
-      val lines = out.result().linesIterator.map(_.trim).filter(_.nonEmpty).toVector
-
-      // Split at sentinel
-      val (debugLines, afterSentinel) = lines.span(_ != sentinel)
-
-      // Drop the sentinel itself
-      val envLines = afterSentinel.drop(1)
-
-      // Parse KEY=VALUE lines
-      val envMap =
-        envLines
-          .flatMap { line =>
-            if line.contains("=") then
-              line.split("=", 2) match
-                case Array(k, v) =>
-                  Some(k.toUpperCase(Locale.ROOT) -> v)
-                case _ =>
-                  None
-            else None
-          }
-          .toMap
-
-      (debugLines, envMap)
-  }
-
   private def resolveNativeImage(graalHome: os.Path): Option[os.Path] = {
     val candidates = Seq(
       graalHome / "lib" / "svm" / "bin" / "native-image.exe",
@@ -242,6 +315,7 @@ object MsvcEnvironment {
     else {
       // Sort lexicographically; newest VS installs always sort last
       val sorted = candidates.sortBy(_.toString)
+      sorted.foreach(s => System.err.printf("candidate: %s\n", s))
       sorted.lastOption
     }
   }
