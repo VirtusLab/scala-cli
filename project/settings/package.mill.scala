@@ -17,7 +17,7 @@ import coursier.Repository
 import de.tobiasroeser.mill.vcs.version.{VcsState, VcsVersion}
 import io.github.alexarchambault.millnativeimage.NativeImage
 import mill._
-import mill.api.Loose
+import mill.api.{BuildCtx, Loose}
 import mill.scalalib._
 import upickle.default._
 
@@ -105,7 +105,7 @@ def cs: T[String] = Task(persistent = true) {
           case t: Throwable =>
             throw new Exception(s"Error getting and extracting $url", t)
         }
-      val f    = maybeFile.fold(ex => throw new Exception(ex), os.Path(_, Task.workspace))
+      val f    = maybeFile.fold(ex => throw new Exception(ex), os.Path(_, BuildCtx.workspaceRoot))
       val exec =
         if (Properties.isWin && os.isDir(f) && f.last.endsWith(".zip"))
           os.list(f).find(_.last.endsWith(".exe")).getOrElse(
@@ -278,14 +278,14 @@ trait CliLaunchers extends SbtModule { self =>
       os.makeDir.all(dir)
 
       if (Properties.isWin) {
-        copyLibsodiumStaticTo(cs(), dir, Task.workspace)
-        copyLibsodiumjniTo(cs(), dir, Task.workspace)
-        copyCsjniutilTo(cs(), dir, Task.workspace)
+        copyLibsodiumStaticTo(cs(), dir, BuildCtx.workspaceRoot)
+        copyLibsodiumjniTo(cs(), dir, BuildCtx.workspaceRoot)
+        copyCsjniutilTo(cs(), dir, BuildCtx.workspaceRoot)
       }
 
       if (launcherKind == "static") {
-        copyAlpineLibsodiumTo(cs(), dir, Task.workspace)
-        copyLibsodiumjniTo(cs(), dir, Task.workspace)
+        copyAlpineLibsodiumTo(cs(), dir, BuildCtx.workspaceRoot)
+        copyLibsodiumjniTo(cs(), dir, BuildCtx.workspaceRoot)
       }
 
       PathRef(dir)
@@ -354,7 +354,7 @@ trait CliLaunchers extends SbtModule { self =>
     }
     def buildHelperImage: T[Unit] = Task {
       os.proc("docker", "build", "-t", Docker.customMuslBuilderImageName, ".")
-        .call(cwd = Task.workspace / "project" / "musl-image", stdout = os.Inherit)
+        .call(cwd = BuildCtx.workspaceRoot / "project" / "musl-image", stdout = os.Inherit)
       ()
     }
     override def writeDefaultNativeImageScript(scriptDest: String): Command[Unit] =
@@ -432,7 +432,9 @@ trait CliLaunchers extends SbtModule { self =>
       stdin = os.Inherit,
       stdout = os.Inherit
     )
-    Task.log.streams.out.println(s"Config generated in ${outputDir.relativeTo(Task.workspace)}")
+    Task.log.streams.out.println(
+      s"Config generated in ${outputDir.relativeTo(BuildCtx.workspaceRoot)}"
+    )
   }
 
   @unused
@@ -479,7 +481,7 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   def standaloneLauncher: T[PathRef] = Task {
-    val cachePath = os.Path(coursier.cache.FileCache().location, Task.workspace)
+    val cachePath = os.Path(coursier.cache.FileCache().location, BuildCtx.workspaceRoot)
     def urlOf(path: os.Path): Option[String] =
       if (path.startsWith(cachePath)) {
         val segments = path.relativeTo(cachePath).segments
@@ -560,21 +562,29 @@ trait PublishLocalNoFluff extends SonatypeCentralPublishModule {
   // writes empty zips as source and doc JARs
   def publishLocalNoFluff(localIvyRepo: String = null): define.Command[PathRef] = Task.Command {
 
-    import mill.scalalib.publish.LocalIvyPublisher
+    import mill.scalalib.publish.{LocalIvyPublisher, PublishInfo}
+    import mill.api.PathRef
     val publisher = localIvyRepo match {
       case null => LocalIvyPublisher
       case repo =>
-        new LocalIvyPublisher(os.Path(repo.replace("{VERSION}", publishVersion()), Task.workspace))
+        new LocalIvyPublisher(os.Path(
+          repo.replace("{VERSION}", publishVersion()),
+          BuildCtx.workspaceRoot
+        ))
     }
 
+    // PublishInfo parameters: file, classifier, ext, ivyConfig, ivyType
+    val mainArtifacts = Seq(
+      PublishInfo(PathRef(jar().path), None, "jar", "compile", "jar"),                 // jar
+      PublishInfo(PathRef(emptyZip().path), Some("sources"), "jar", "compile", "src"), // sources
+      PublishInfo(PathRef(emptyZip().path), Some("javadoc"), "jar", "compile", "doc")  // doc
+    )
+
     publisher.publishLocal(
-      jar = jar().path,
-      sourcesJar = emptyZip().path,
-      docJar = emptyZip().path,
       pom = pom().path,
-      ivy = ivy().path,
+      ivy = Right(ivy().path),
       artifact = artifactMetadata(),
-      extras = extraPublish()
+      publishInfos = mainArtifacts ++ extraPublish()
     )
 
     jar()
@@ -604,7 +614,7 @@ trait LocalRepo extends Module {
     val repoVer = vcsState().format()
     val ver     = version()
     localRepo()
-    val repoDir = Task.workspace / "out" / "repo" / ver
+    val repoDir = BuildCtx.workspaceRoot / "out" / "repo" / ver
     val destDir = Task.dest / ver / "repo.zip"
     val dest    = destDir / "repo.zip"
 
@@ -749,7 +759,7 @@ trait FormatNativeImageConf extends JavaModule {
       for (f <- needsFormatting)
         System.err.println(
           s"  ${
-              if (f.startsWith(Task.workspace)) f.relativeTo(Task.workspace).toString
+              if (f.startsWith(BuildCtx.workspaceRoot)) f.relativeTo(BuildCtx.workspaceRoot).toString
               else f.toString
             }"
         )
@@ -777,18 +787,18 @@ trait ScalaCliScalafixModule extends ScalafixModule {
 
   def scalafixConfig: T[Option[os.Path]] = Task {
     if (scalaVersion().startsWith("2.")) super.scalafixConfig()
-    else Some(Task.workspace / ".scalafix3.conf")
+    else Some(BuildCtx.workspaceRoot / ".scalafix3.conf")
   }
   def scalacPluginIvyDeps: T[Loose.Agg[Dep]] = super.scalacPluginIvyDeps() ++ {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
     else Nil
   }
   // Explicitly setting sourceroot, so that Scala CLI doesn't use a wrong one.
-  // Using Task.workspace is more or less required, for scalafix stuff to work fine.
+  // Using BuildCtx.workspaceRoot is more or less required, for scalafix stuff to work fine.
   def scalacOptions: T[Seq[String]] = Task {
     val sv            = scalaVersion()
     val isScala2      = sv.startsWith("2.")
-    val sourceRoot    = Task.workspace
+    val sourceRoot    = BuildCtx.workspaceRoot
     val parentOptions = {
       val l = super.scalacOptions()
       if (isScala2) l.filterNot(_.startsWith("-P:semanticdb:sourceroot:"))
