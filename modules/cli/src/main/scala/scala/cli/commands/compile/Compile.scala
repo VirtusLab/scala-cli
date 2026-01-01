@@ -103,6 +103,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
 
     val shouldBuildTestScope = options.shared.scope.test.getOrElse(false)
     if (options.watch.watchMode) {
+      var isFirstRun = true
       val watcher = Build.watch(
         inputs,
         buildOptions,
@@ -115,6 +116,9 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
+        if (options.watch.watchClearScreen && !isFirstRun)
+          WatchUtil.clearScreen()
+        isFirstRun = false
         for (builds <- res.orReport(logger))
           postBuild(builds, allowExit = false)
       }

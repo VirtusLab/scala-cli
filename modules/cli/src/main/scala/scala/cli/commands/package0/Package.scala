@@ -89,6 +89,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val withTestScope = options.shared.scope.test.getOrElse(false)
     if options.watch.watchMode then {
       var expectedModifyEpochSecondOpt = Option.empty[Long]
+      var isFirstRun                   = true
       val watcher                      = Build.watch(
         inputs,
         initialBuildOptions,
@@ -101,6 +102,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
+        if (options.watch.watchClearScreen && !isFirstRun)
+          WatchUtil.clearScreen()
+        isFirstRun = false
         res.orReport(logger).map(_.builds).foreach {
           case b if b.forall(_.success) =>
             val successfulBuilds = b.collect { case s: Build.Successful => s }

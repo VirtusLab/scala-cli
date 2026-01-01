@@ -22,6 +22,16 @@ object WatchUtil {
     s"$gray$message$reset"
   }
 
+  /** Clears the terminal screen using ANSI escape codes. This prints the escape sequence to clear
+    * the entire screen and moves the cursor to the top-left corner.
+    */
+  def clearScreen(): Unit = {
+    // \u001b[2J clears the entire screen
+    // \u001b[H moves the cursor to the top-left corner (home position)
+    System.out.print("\u001b[2J\u001b[H")
+    System.out.flush()
+  }
+
   def printWatchMessage(): Unit =
     System.err.println(waitMessage("Watching sources"))
 

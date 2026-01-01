@@ -255,7 +255,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       publishLocal = false,
       forceSigningExternally = options.signingCli.forceSigningExternally.getOrElse(false),
       parallelUpload = options.parallelUpload,
-      options.watch.watch,
+      watch = options.watch.watch,
+      watchClearScreen = options.watch.watchClearScreen,
       isCi = options.publishParams.isCi,
       () => configDb,
       options.mainClass,
@@ -279,6 +280,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     watch: Boolean,
+    watchClearScreen: Boolean,
     isCi: Boolean,
     configDb: () => ConfigDb,
     mainClassOptions: MainClassOptions,
@@ -288,6 +290,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val actionableDiagnostics = configDb().get(Keys.actions).getOrElse(None)
 
     if watch then {
+      var isFirstRun = true
       val watcher = Build.watch(
         inputs = inputs,
         options = initialBuildOptions,
@@ -299,8 +302,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
-      ) {
-        _.orReport(logger).foreach { builds =>
+      ) { res =>
+        if (watchClearScreen && !isFirstRun)
+          WatchUtil.clearScreen()
+        isFirstRun = false
+        res.orReport(logger).foreach { builds =>
           maybePublish(
             builds = builds,
             workingDir = workingDir,

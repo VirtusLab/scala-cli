@@ -252,6 +252,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         */
       val mainThreadOpt = AtomicReference(Option.empty[Thread])
 
+      var isFirstRun = true
       val watcher = Build.watch(
         inputs = inputs,
         options = initialBuildOptions,
@@ -266,6 +267,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           if processOpt.get().exists(_._1.isAlive()) then WatchUtil.printWatchWhileRunningMessage()
           else WatchUtil.printWatchMessage()
       ) { res =>
+        if (options.sharedRun.watch.watchClearScreen && !isFirstRun)
+          WatchUtil.clearScreen()
+        isFirstRun = false
         for ((process, onExitProcess) <- processOpt.get()) {
           onExitProcess.cancel(true)
           ProcUtil.interruptProcess(process, logger)

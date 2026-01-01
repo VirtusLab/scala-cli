@@ -146,6 +146,7 @@ object Test extends ScalaCommand[TestOptions] {
       }
 
     if (options.watch.watchMode) {
+      var isFirstRun = true
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
@@ -158,6 +159,9 @@ object Test extends ScalaCommand[TestOptions] {
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
+        if (options.watch.watchClearScreen && !isFirstRun)
+          WatchUtil.clearScreen()
+        isFirstRun = false
         for (builds <- res.orReport(logger))
           maybeTest(builds, allowExit = false)
       }

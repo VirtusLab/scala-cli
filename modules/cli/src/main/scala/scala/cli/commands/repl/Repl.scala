@@ -208,6 +208,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       }
     }
     else if (options.sharedRepl.watch.watchMode) {
+      var isFirstRun = true
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
@@ -220,6 +221,9 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
+        if (options.sharedRepl.watch.watchClearScreen && !isFirstRun)
+          WatchUtil.clearScreen()
+        isFirstRun = false
         for (builds <- res.orReport(logger))
           postBuild(builds, allowExit = false) {
             successfulBuilds =>
