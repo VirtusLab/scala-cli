@@ -26,7 +26,7 @@ object MsvcEnvironment {
     workingDir: os.Path,
     logger: Logger
   ): Int = {
-    val vcvOpt = vcvarsOpt
+    val vcvOpt = vcvarsOpt(logger)
     vcvOpt match {
       case None =>
         logger.debug(s"not found: vcvars64.bat")
@@ -34,16 +34,10 @@ object MsvcEnvironment {
       case Some(vcvars) =>
         logger.debug(s"Using vcvars script $vcvars")
 
-        val (debugEcho: Seq[String], msvcEnv: Map[String, String]) =
-          captureVcvarsEnv(vcvars, workingDir, logger)
-
-        debugEcho.foreach { dbg =>
-          logger.debug(s"$dbg")
-        }
+        val msvcEnv: Map[String, String] = captureVcvarsEnv(vcvars, workingDir, logger)
 
         // show aliased drive map
-        val substMap: Map[Char, String] = aliasedDriveLetters
-        substMap.foreach((k, v) => logger.message(s"substMap  $k: -> $v"))
+        getSubstMappings.foreach((k, v) => logger.message(s"substMap  $k: -> $v"))
 
         val finalEnv =
           msvcEnv +
@@ -104,7 +98,7 @@ object MsvcEnvironment {
     vcvars: os.Path,
     workingDir: os.Path,
     logger: Logger
-  ): (Seq[String], Map[String, String]) = {
+  ): Map[String, String] = {
 
     val vcvarsCmd = vcvars.toIO.getAbsolutePath
 
@@ -128,7 +122,7 @@ object MsvcEnvironment {
 
     if res.exitCode != 0 then
       logger.error(s"vcvars call failed with exit code ${res.exitCode}")
-      (Seq.empty, Map.empty)
+      Map.empty
     else
       def toVec(iter: Iterator[String]): Vector[String] =
         iter.map(_.trim).filter(_.nonEmpty).toVector
@@ -156,8 +150,16 @@ object MsvcEnvironment {
               case _           => None
           }
 
-      envReport(envMap, "C:/tmp/dd_vsdevcmd17_env.log", logger)
-      (debugLines, envMap)
+      if logger.verbosity > 0 then
+        debugLines.foreach(dbg => logger.debug(s"$dbg"))
+        debugLines.find(_.contains("Writing post-execution environment to ")) match {
+          case None    =>
+          case Some(s) =>
+            val envMapFile = s.replaceFirst(".* environment to ", "")
+            envReport(envMap, envMapFile, logger)
+        }
+
+      envMap
   }
 
   def envReport(captEnv: Map[String, String], logfile: String, logger: Logger): Unit = {
@@ -215,7 +217,7 @@ object MsvcEnvironment {
         logger.debug("envReport: no differences")
   }
 
-  def aliasedDriveLetters: Map[Char, String] =
+  def getSubstMappings: Map[Char, String] =
     try
       val (exitCode, output) = execWindowsCmd(cmdExe, "/c", "subst")
       if exitCode != 0 then Map.empty
@@ -242,9 +244,74 @@ object MsvcEnvironment {
     catch
       case _: Throwable => Map.empty
 
-  def availableDriveLetter(): Char = {
+  // Reduce duplicate drive aliases to no more than one;
+  // @return Some(single-alias) or None.
+  private def consolidateAliases(
+    targetPath: os.Path,
+    logger: Logger
+  ): Option[Char] = {
+    val mappings  = getSubstMappings
+    val targetStr = targetPath.toString.toLowerCase
+
+    // Find all drives pointing to our target (case-insensitive on Windows)
+    val matchingDrives = mappings.filter { case (_, target) =>
+      target.toLowerCase == targetStr
+    }.keys.toList.sorted
+
+    matchingDrives match {
+      case Nil =>
+        // No existing aliases for this target
+        None
+
+      case kept :: duples =>
+        // Keep first one, remove the rest
+        duples.foreach { drive =>
+          logger.debug(s"Removing duplicate alias $drive: -> $targetStr")
+          try
+            unaliasDriveLetter(drive)
+          catch {
+            case e: Exception =>
+              logger.debug(s"Failed to remove duplicate alias $drive: ${e.getMessage}")
+          }
+        }
+
+        if (duples.isEmpty)
+          logger.debug(s"Reusing existing alias $kept: -> $targetStr")
+        else
+          logger.debug(
+            s"Consolidated ${duples.size + 1} aliases to $kept:, removed: ${duples.mkString(", ")}"
+          )
+
+        Some(kept)
+    }
+  }
+
+  // Find or create a shortened alias for the given path
+  def getShortenedPath(
+    currentHome: os.Path,
+    logger: Logger
+  ): (Char, os.Path) = {
+    val from = currentHome / os.up
+
+    val driveLetter = consolidateAliases(from, logger) match {
+      case Some(existingDrive) =>
+        existingDrive // Reuse existing alias
+
+      case None =>
+        // Create new alias
+        val driveLetter = availableDriveLetter()
+        logger.debug(s"Creating drive alias $driveLetter: -> $from")
+        aliasDriveLetter(driveLetter, from.toString)
+        driveLetter
+    }
+    val drivePath = os.Path(s"$driveLetter:" + "\\")
+    val newHome   = drivePath / currentHome.last
+    (driveLetter, newHome)
+  }
+
+  private def availableDriveLetter(): Char = {
     // if a drive letter has already been mapped by SUBST, it isn't free
-    val substDrives: Set[Char] = aliasedDriveLetters.keySet
+    val substDrives: Set[Char] = getSubstMappings.keySet
     @tailrec
     def helper(from: Char): Char =
       if (from > 'Z') sys.error("Cannot find free drive letter")
@@ -303,7 +370,7 @@ object MsvcEnvironment {
     candidates.find(os.exists)
   }
 
-  private def vcvarsOpt: Option[os.Path] = {
+  private def vcvarsOpt(logger: Logger): Option[os.Path] = {
     val candidates =
       vcVarsCandidates
         .iterator
@@ -315,7 +382,7 @@ object MsvcEnvironment {
     else {
       // Sort lexicographically; newest VS installs always sort last
       val sorted = candidates.sortBy(_.toString)
-      sorted.foreach(s => System.err.printf("candidate: %s\n", s))
+      sorted.foreach(s => logger.debug(s"candidate: $s"))
       sorted.lastOption
     }
   }

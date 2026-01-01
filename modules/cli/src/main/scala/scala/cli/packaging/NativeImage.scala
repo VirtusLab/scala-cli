@@ -50,60 +50,17 @@ object NativeImage {
   )(
     f: os.Path => T
   ): T =
-    // not sure about the 80 limit, we might need to lower it
-    if (Properties.isWin && currentHome.toString.length >= 80) {
-      val driveLetter = availableDriveLetter()
-      // aliasing the parent dir, as it seems GraalVM native-image (as of 22.0.0)
-      // isn't fine with being put at the root of a drive - it tries to look for
-      // things like 'D:lib' (missing '\') at some point.
-      val from      = currentHome / os.up
-      val drivePath = os.Path(s"$driveLetter:" + "\\")
-      val newHome   = drivePath / currentHome.last
-
-      val savedCodepage: String =
-        getCodePage(logger) // before visual studio alters code page
-
-      val cleanupLock                  = new Object()
-      var shutdownHook: Option[Thread] = None
-
-      def atexitCleanup(): Unit = {
-        cleanupLock.synchronized {
-          shutdownHook.foreach { hook =>
-            shutdownHook = None
-            try
-              Runtime.getRuntime.removeShutdownHook(hook)
-            catch {
-              case _: IllegalStateException => // Already shutting down, that's fine
-            }
-
-            try {
-              setCodePage(savedCodepage)
-              val exit = unaliasDriveLetter(driveLetter)
-              if (exit == 0)
-                logger.debug(s"Unaliased $drivePath")
-              else if (os.exists(drivePath))
-                logger.error(s"Unaliasing attempt exited with exit code $exit")
-              else
-                logger.debug(s"Failed to unalias $drivePath (not aliased, ignoring it)")
-            }
-            catch {
-              case e: Throwable =>
-                logger.error(s"Cleanup failed: ${e.getMessage}")
-            }
-          }
+    if (Properties.isWin && currentHome.toString.length >= 180) {
+      val (driveLetter, newHome) = getShortenedPath(currentHome, logger)
+      val savedCodepage: String  = getCodePage(logger)
+      val result                 =
+        try
+          f(newHome)
+        finally {
+          unaliasDriveLetter(driveLetter)
+          setCodePage(savedCodepage)
         }
-      }
-
-      // Create and register cleanup hook
-      shutdownHook = Some(new Thread(() => atexitCleanup()))
-      Runtime.getRuntime.addShutdownHook(shutdownHook.get)
-
-      logger.debug(s"Aliasing $from to $drivePath")
-      aliasDriveLetter(driveLetter, from.toString)
-      try
-        f(newHome)
-      finally
-        atexitCleanup()
+      result
     }
     else
       f(currentHome)
