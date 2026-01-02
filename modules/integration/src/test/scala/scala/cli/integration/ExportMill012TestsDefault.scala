@@ -1,0 +1,3 @@
+package scala.cli.integration
+
+class ExportMill012TestsDefault extends ExportMillTestDefinitions with TestDefault with TestMill012
