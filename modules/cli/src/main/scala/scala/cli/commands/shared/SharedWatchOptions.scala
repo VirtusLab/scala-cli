@@ -20,9 +20,10 @@ final case class SharedWatchOptions(
   @Name("revolver")
     restart: Boolean = false,
   @Group(HelpGroup.Watch.toString)
-  @HelpMessage("Clear the screen each time the watch mode detects changes and re-compiles or re-runs")
+  @HelpMessage("Clear the screen each time watch mode detects changes and re-compiles or re-runs")
   @Tag(tags.implementation)
-  @Name("watch-cls")
+  @Name("watchCls")
+  @Name("watchClear")
     watchClearScreen: Boolean = false
 ) { // format: on
 

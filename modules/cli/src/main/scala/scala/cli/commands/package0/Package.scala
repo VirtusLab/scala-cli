@@ -16,6 +16,7 @@ import packager.windows.WindowsPackage
 
 import java.io.{ByteArrayOutputStream, OutputStream}
 import java.nio.file.attribute.FileTime
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.*
@@ -89,7 +90,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val withTestScope = options.shared.scope.test.getOrElse(false)
     if options.watch.watchMode then {
       var expectedModifyEpochSecondOpt = Option.empty[Long]
-      var isFirstRun                   = true
+      val isFirstRun                   = new AtomicBoolean(true)
       val watcher                      = Build.watch(
         inputs,
         initialBuildOptions,
@@ -102,9 +103,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
-        if (options.watch.watchClearScreen && !isFirstRun)
+        if (options.watch.watchClearScreen && !isFirstRun.getAndSet(false))
           WatchUtil.clearScreen()
-        isFirstRun = false
         res.orReport(logger).map(_.builds).foreach {
           case b if b.forall(_.success) =>
             val successfulBuilds = b.collect { case s: Build.Successful => s }

@@ -9,6 +9,7 @@ import java.util
 import java.util.zip.ZipFile
 
 import scala.cli.integration.TestUtil.removeAnsiColors
+import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
@@ -1505,6 +1506,40 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           os.proc(TestUtil.cli, "package", ".", "--js", "--power", extraOptions)
             .call(cwd = root, mergeErrIntoOut = true, stderr = os.Pipe)
         expect(res.out.trim().contains(s"$moduleName.js"))
+      }
+    }
+
+  // TODO make this pass reliably on Mac CI
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("package --watch with --watch-clear-screen clears screen on repackage") {
+      val inputPath = os.rel / "example.scala"
+
+      def code(message: String) =
+        s"""object Example extends App { println("$message") }"""
+
+      TestInputs(inputPath -> code("Hello1")).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "--power",
+            "package",
+            inputPath.toString(),
+            "--watch",
+            "--watch-clear-screen",
+            extraOptions
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          var line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains("Watching sources"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          os.write.over(root / inputPath, code("Hello2"))
+          line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains("Watching sources") && !line.contains("\u001b[2J"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(line.contains("Watching sources") || line.contains("\u001b[2J"))
+        }
       }
     }
 }

@@ -428,4 +428,42 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
     test("watch mode doesnt hang on Bloop when rebuilding repeatedly") {
       testRepeatedRerunsWithWatch()
     }
+
+  // TODO make this pass reliably on Mac CI
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("--watch with --watch-clear-screen clears screen on rerun") {
+      val expectedMessage1 = "Hello1"
+      val expectedMessage2 = "Hello2"
+      val inputPath        = os.rel / "example.scala"
+
+      def code(message: String) = s"""object Example extends App { println("$message") }"""
+
+      TestInputs(inputPath -> code(expectedMessage1)).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "run",
+            inputPath.toString(),
+            "--watch",
+            "--watch-clear-screen",
+            extraOptions
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output1 == expectedMessage1)
+          var line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains("Watching sources"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          os.write.over(root / inputPath, code(expectedMessage2))
+          line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains(expectedMessage2) && !line.contains("\u001b[2J"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains(expectedMessage2))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(line.contains(expectedMessage2))
+        }
+      }
+    }
 }

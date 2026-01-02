@@ -1459,6 +1459,14 @@ Aliases: `--revolver`
 
 Run the application in the background, automatically kill the process and restart if sources have been changed
 
+### `--watch-clear-screen`
+
+Aliases: `--watch-clear`, `--watch-cls`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Clear the screen each time watch mode detects changes and re-compiles or re-runs
+
 ## Internal options 
 ### Bsp options
 

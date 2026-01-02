@@ -6,6 +6,7 @@ import coursier.error.ResolutionError
 import dependency.*
 
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.ZipFile
 
 import scala.build.*
@@ -208,7 +209,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       }
     }
     else if (options.sharedRepl.watch.watchMode) {
-      var isFirstRun = true
+      val isFirstRun = new AtomicBoolean(true)
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
@@ -221,9 +222,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
-        if (options.sharedRepl.watch.watchClearScreen && !isFirstRun)
+        if (options.sharedRepl.watch.watchClearScreen && !isFirstRun.getAndSet(false))
           WatchUtil.clearScreen()
-        isFirstRun = false
         for (builds <- res.orReport(logger))
           postBuild(builds, allowExit = false) {
             successfulBuilds =>

@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.build.*
 import scala.build.EitherCps.{either, value}
@@ -290,7 +291,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val actionableDiagnostics = configDb().get(Keys.actions).getOrElse(None)
 
     if watch then {
-      var isFirstRun = true
+      val isFirstRun = new AtomicBoolean(true)
       val watcher = Build.watch(
         inputs = inputs,
         options = initialBuildOptions,
@@ -303,9 +304,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
-        if (watchClearScreen && !isFirstRun)
+        if (watchClearScreen && !isFirstRun.getAndSet(false))
           WatchUtil.clearScreen()
-        isFirstRun = false
         res.orReport(logger).foreach { builds =>
           maybePublish(
             builds = builds,
