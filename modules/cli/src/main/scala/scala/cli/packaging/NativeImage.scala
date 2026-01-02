@@ -2,10 +2,10 @@ package scala.cli.packaging
 
 import java.io.File
 
-import scala.annotation.tailrec
 import scala.build.internal.{ManifestJar, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
-import scala.build.internals.EnvVar
+import scala.build.internals.MsvcEnvironment
+import scala.build.internals.MsvcEnvironment.*
 import scala.build.{Build, Logger, Positioned, coursierVersion}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
@@ -37,95 +37,6 @@ object NativeImage {
     nativeImage
   }
 
-  private def vcVersions                              = Seq("2022", "2019", "2017")
-  private def vcEditions                              = Seq("Enterprise", "Community", "BuildTools")
-  private lazy val vcVarsCandidates: Iterable[String] =
-    EnvVar.Misc.vcVarsAll.valueOpt ++ {
-      for {
-        isX86   <- Seq(false, true)
-        version <- vcVersions
-        edition <- vcEditions
-      } yield {
-        val programFiles = if (isX86) "Program Files (x86)" else "Program Files"
-        """C:\""" + programFiles + """\Microsoft Visual Studio\""" + version + "\\" + edition + """\VC\Auxiliary\Build\vcvars64.bat"""
-      }
-    }
-
-  private def vcvarsOpt: Option[os.Path] =
-    vcVarsCandidates
-      .iterator
-      .map(os.Path(_, os.pwd))
-      .filter(os.exists(_))
-      .take(1)
-      .toList
-      .headOption
-
-  private def runFromVcvarsBat(
-    command: Seq[String],
-    vcvars: os.Path,
-    workingDir: os.Path,
-    logger: Logger
-  ): Int = {
-    logger.debug(s"Using vcvars script $vcvars")
-    val escapedCommand = command.map {
-      case s if s.contains(" ") => "\"" + s + "\""
-      case s                    => s
-    }
-    // chcp 437 sometimes needed, see https://github.com/oracle/graal/issues/2522
-    // but must save and restore existing code page afterwards
-    val script =
-      s"""@echo off
-         |rem Save current code page
-         |for /f "tokens=2 delims=:." %%A in ('chcp') do set "OLDCP=%%A"
-         |@echo on
-         |set OLDCP=%OLDCP: =%
-         |chcp 437
-         |@call "$vcvars"
-         |if %errorlevel% neq 0 exit /b %errorlevel%
-         |@call ${escapedCommand.mkString(" ")}
-         |rem Restore original code page
-         |chcp %OLDCP% >nul
-         |""".stripMargin
-    logger.debug(s"Native image script: '$script'")
-    val scriptPath = workingDir / "run-native-image.bat"
-    logger.debug(s"Writing native image script at $scriptPath")
-    os.write.over(scriptPath, script.getBytes, createFolders = true)
-
-    val finalCommand = Seq("cmd", "/c", scriptPath.toString)
-    logger.debug(s"Running $finalCommand")
-    val res = os.proc(finalCommand).call(
-      cwd = os.pwd,
-      check = false,
-      stdin = os.Inherit,
-      stdout = os.Inherit
-    )
-    logger.debug(s"Command $finalCommand exited with exit code ${res.exitCode}")
-
-    res.exitCode
-  }
-
-  private lazy val mountedDrives: String = {
-    val str         = "HKEY_LOCAL_MACHINE/SYSTEM/MountedDevices".replace('/', '\\')
-    val queryDrives = s"reg query $str"
-    val lines       = os.proc("cmd", "/c", queryDrives).call().out.lines()
-    val dosDevices  = lines.filter { s =>
-      s.contains("DosDevices")
-    }.map { s =>
-      s.replaceAll(".DosDevices.", "").replaceAll(":.*", "")
-    }
-    dosDevices.mkString
-  }
-  private def availableDriveLetter(): Char = {
-
-    @tailrec
-    def helper(from: Char): Char =
-      if (from > 'Z') sys.error("Cannot find free drive letter")
-      else if (mountedDrives.contains(from)) helper((from + 1).toChar)
-      else from
-
-    helper('D')
-  }
-
   /** Alias currentHome to the root of a drive, so that its files can be accessed with shorter paths
     * (hopefully not going above the ~260 char limit of some Windows apps, such as cl.exe).
     *
@@ -139,39 +50,17 @@ object NativeImage {
   )(
     f: os.Path => T
   ): T =
-    // not sure about the 180 limit, we might need to lower it
     if (Properties.isWin && currentHome.toString.length >= 180) {
-      val driveLetter = availableDriveLetter()
-      // aliasing the parent dir, as it seems GraalVM native-image (as of 22.0.0)
-      // isn't fine with being put at the root of a drive - it tries to look for
-      // things like 'D:lib' (missing '\') at some point.
-      val from      = currentHome / os.up
-      val drivePath = os.Path(s"$driveLetter:" + "\\")
-      val newHome   = drivePath / currentHome.last
-      logger.debug(s"Aliasing $from to $drivePath")
-      val setupCommand  = s"""subst $driveLetter: "$from""""
-      val disableScript = s"""subst $driveLetter: /d"""
-
-      os.proc("cmd", "/c", setupCommand).call(stdin = os.Inherit, stdout = os.Inherit)
-      try f(newHome)
-      finally {
-        val res = os.proc("cmd", "/c", disableScript).call(
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          check = false
-        )
-        if (res.exitCode == 0)
-          logger.debug(s"Unaliased $drivePath")
-        else if (os.exists(drivePath)) {
-          // ignore errors?
-          logger.debug(s"Unaliasing attempt exited with exit code ${res.exitCode}")
-          throw new os.SubprocessException(res)
+      val (driveLetter, newHome) = getShortenedPath(currentHome, logger)
+      val savedCodepage: String  = getCodePage(logger)
+      val result                 =
+        try
+          f(newHome)
+        finally {
+          unaliasDriveLetter(driveLetter)
+          setCodePage(savedCodepage)
         }
-        else
-          logger.debug(
-            s"Failed to unalias $drivePath which seems not to exist anymore, ignoring it"
-          )
-      }
+      result
     }
     else
       f(currentHome)
@@ -249,10 +138,16 @@ object NativeImage {
           }
           else (processedClassPath, Seq[os.Path](), Seq[String]())
 
+        def stripSuffixIgnoreCase(s: String, suffix: String): String =
+          if (s.toLowerCase.endsWith(suffix.toLowerCase))
+            s.substring(0, s.length - suffix.length)
+          else
+            s
+
         try {
           val args = extraOptions ++ scala3extraOptions ++ Seq(
             s"-H:Path=${dest / os.up}",
-            s"-H:Name=${dest.last.stripSuffix(".exe")}", // FIXME Case-insensitive strip suffix?
+            s"-H:Name=${stripSuffixIgnoreCase(dest.last, ".exe")}", // Case-insensitive strip suffix
             "-cp",
             classPath.map(_.toString).mkString(File.pathSeparator),
             mainClass
@@ -265,10 +160,11 @@ object NativeImage {
 
             val exitCode =
               if Properties.isWin then
-                vcvarsOpt match {
-                  case Some(vcvars) => runFromVcvarsBat(command, vcvars, nativeImageWorkDir, logger)
-                  case None         => Runner.run(command, logger).waitFor()
-                }
+                MsvcEnvironment.msvcNativeImageProcess(
+                  command = command,
+                  workingDir = nativeImageWorkDir,
+                  logger = logger
+                )
               else Runner.run(command, logger).waitFor()
             if exitCode == 0 then {
               val actualDest =
