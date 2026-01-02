@@ -999,6 +999,59 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
   }
 
+  if (Properties.isWin)
+    test("availableDriveLetter") {
+      val message    = "Hello from native-image"
+      val dest       = "hello"
+      val actualDest =
+        if (Properties.isWin) "hello.exe"
+        else "hello"
+      val inputs = TestInputs(
+        os.rel / "Hello.scala" ->
+          s"""object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println("$message")
+             |}
+             |""".stripMargin
+      )
+      setCodePage("65001")
+      val codePageBefore = getCodePage
+      val driveLetter    = availableDriveLetter()
+      val substedBefore  = substedDrives
+      aliasDriveLetter(driveLetter, "C:\\Windows\\Temp") // trigger for #4005
+
+      inputs.fromRoot { root =>
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          extraOptions,
+          ".",
+          "--native-image",
+          "-o",
+          dest,
+          "--",
+          "--no-fallback"
+        ).call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit
+        )
+
+        expect(os.isFile(root / actualDest))
+
+        val res    = os.proc(root / actualDest).call(cwd = root)
+        val output = res.out.trim()
+        expect(output == message)
+
+        unaliasDriveLetter(driveLetter) // undo test condition
+        val substedAfter = substedDrives
+        expect(substedBefore == substedAfter)
+        val codePageAfter = getCodePage
+        expect(codePageBefore == codePageAfter)
+      }
+    }
+
   test("correctly list main classes") {
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val scriptsDir                           = "scripts"

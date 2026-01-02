@@ -384,19 +384,23 @@ Project name to be used on Mill build file
 
 ### `--sbt-version`
 
-Version of SBT to be used for the export
+Version of SBT to be used for the export (1.11.7 by default)
+
+### `--mill-version`
+
+Version of Mill to be used for the export (0.12.17 by default)
 
 ### `--mvn-version`
 
-Version of Maven Compiler Plugin to be used for the export
+Version of Maven Compiler Plugin to be used for the export (3.8.1 by default)
 
 ### `--mvn-scala-version`
 
-Version of Maven Scala Plugin to be used for the export
+Version of Maven Scala Plugin to be used for the export (4.9.1 by default)
 
 ### `--mvn-exec-plugin-version`
 
-Version of Maven Exec Plugin to be used for the export
+Version of Maven Exec Plugin to be used for the export (3.3.0 by default)
 
 ### `--mvn-app-artifact-id`
 

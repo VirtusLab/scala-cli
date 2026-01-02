@@ -81,7 +81,7 @@ jobs:
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: digests-${{ matrix.os }}
           path: /tmp/digests/*
@@ -99,7 +99,7 @@ jobs:
     if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
     steps:
       - name: Download digests
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: digests-*
           path: /tmp/digests
