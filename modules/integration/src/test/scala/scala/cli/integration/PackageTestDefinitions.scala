@@ -8,7 +8,7 @@ import java.nio.file.Files
 import java.util
 import java.util.zip.ZipFile
 
-import scala.cli.integration.TestUtil.removeAnsiColors
+import scala.cli.integration.TestUtil.*
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
