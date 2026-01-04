@@ -3,6 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.TestUtil.removeAnsiColors
+import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 
 abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
@@ -287,4 +288,37 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         }
     }
   }
+
+  // TODO make this pass reliably on Mac CI
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("repl --watch with --watch-clear-screen clears screen on rerun") {
+      val inputPath = os.rel / "deps.scala"
+
+      def code(value: Int) = s"""object Deps { val x = $value }"""
+
+      TestInputs(inputPath -> code(1)).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "repl",
+            inputPath.toString(),
+            "--watch",
+            "--watch-clear-screen",
+            "--repl-dry-run",
+            extraOptions
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          var line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains("Watching sources"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          os.write.over(root / inputPath, code(2))
+          line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains("Watching sources") && !line.contains("\u001b[2J"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(line.contains("Watching sources") || line.contains("\u001b[2J"))
+        }
+      }
+    }
 }
