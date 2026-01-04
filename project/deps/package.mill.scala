@@ -1,8 +1,9 @@
 package build.project.deps
+
 import coursier.version.Version
-import mill._
+import mill.*
 import mill.api.BuildInfo
-import scalalib._
+import scalalib.*
 
 object Cli {
   def runnerScala30LegacyVersion =
@@ -143,9 +144,8 @@ object Deps {
     def javaClassName                     = "0.1.9"
     def bloop                             = "2.0.17"
     def sbtVersion                        = "1.11.7"
-    def mill012Version                    =
-      if (BuildInfo.millVersion.startsWith("0.12.")) BuildInfo.millVersion else "0.12.17"
-    def mill10Version =
+    def mill012Version                    = "0.12.17"
+    def mill10Version                     =
       if (BuildInfo.millVersion.startsWith("1.0.")) BuildInfo.millVersion else "1.0.6"
     def mavenVersion                    = "3.8.1"
     def mavenScalaCompilerPluginVersion = "4.9.1"

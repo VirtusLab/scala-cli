@@ -1,6 +1,5 @@
 package build.project.settings
-import $ivy.`com.goyeau::mill-scalafix::0.5.1`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.31-1`
+
 import build.project.deps
 import deps.{
   Deps,
@@ -14,20 +13,20 @@ import build.project.utils
 import utils.isArmArchitecture
 import com.goyeau.mill.scalafix.ScalafixModule
 import coursier.Repository
-import de.tobiasroeser.mill.vcs.version.{VcsState, VcsVersion}
 import io.github.alexarchambault.millnativeimage.NativeImage
-import mill._
-import mill.api.{BuildCtx, Loose}
-import mill.scalalib._
-import upickle.default._
+import mill.*
+import mill.scalalib.*
+import upickle.default.*
 
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 import scala.annotation.unused
 import scala.util.Properties
+import mill.util.{Tasks, VcsVersion}
+import mill.api.{BuildCtx, Task}
 
-private def isCI = System.getenv("CI") != null
+def isCI = System.getenv("CI") != null
 
 def fromPath(name: String): String =
   if (Properties.isWin) {
@@ -100,7 +99,7 @@ def cs: T[String] = Task(persistent = true) {
       val archiveCache = coursier.cache.ArchiveCache().withCache(cache)
       val task         = cache.logger.using(archiveCache.get(coursier.util.Artifact(url)))
       val maybeFile    =
-        try task.unsafeRun()(cache.ec)
+        try task.unsafeRun()(using cache.ec)
         catch {
           case t: Throwable =>
             throw new Exception(s"Error getting and extracting $url", t)
@@ -142,6 +141,13 @@ def platformSuffix: String = {
 
 def localRepoResourcePath = "local-repo.zip"
 
+trait LocatedInModules extends Module {
+  override def moduleDir: os.Path = {
+    val oldModuleDir: os.Path = super.moduleDir
+    oldModuleDir / os.up / "modules" / oldModuleDir.last
+  }
+}
+
 trait CliLaunchers extends SbtModule { self =>
 
   def launcherTypeResourcePath: os.RelPath =
@@ -149,6 +155,7 @@ trait CliLaunchers extends SbtModule { self =>
   def defaultFilesResourcePath: os.RelPath = os.rel / "scala" / "cli" / "commands" / "publish"
 
   trait CliNativeImage extends NativeImage {
+    override def generateNativeImageWithFileSystemChecker: Boolean = false
 
     def writeDefaultNativeImageScript(scriptDest: String): Command[Unit] =
       Task.Command(super.writeNativeImageScript(scriptDest, "")())
@@ -274,21 +281,23 @@ trait CliLaunchers extends SbtModule { self =>
       proc.call(stdin = os.Inherit, stdout = os.Inherit)
     }
     def staticLibDir: T[PathRef] = Task {
-      val dir = nativeImageDockerWorkingDir() / staticLibDirName
-      os.makeDir.all(dir)
+      BuildCtx.withFilesystemCheckerDisabled {
+        val dir = nativeImageDockerWorkingDir() / staticLibDirName
+        os.makeDir.all(dir)
 
-      if (Properties.isWin) {
-        copyLibsodiumStaticTo(cs(), dir, BuildCtx.workspaceRoot)
-        copyLibsodiumjniTo(cs(), dir, BuildCtx.workspaceRoot)
-        copyCsjniutilTo(cs(), dir, BuildCtx.workspaceRoot)
+        if (Properties.isWin) {
+          copyLibsodiumStaticTo(cs(), dir, BuildCtx.workspaceRoot)
+          copyLibsodiumjniTo(cs(), dir, BuildCtx.workspaceRoot)
+          copyCsjniutilTo(cs(), dir, BuildCtx.workspaceRoot)
+        }
+
+        if (launcherKind == "static") {
+          copyAlpineLibsodiumTo(cs(), dir, BuildCtx.workspaceRoot)
+          copyLibsodiumjniTo(cs(), dir, BuildCtx.workspaceRoot)
+        }
+
+        PathRef(dir)
       }
-
-      if (launcherKind == "static") {
-        copyAlpineLibsodiumTo(cs(), dir, BuildCtx.workspaceRoot)
-        copyLibsodiumjniTo(cs(), dir, BuildCtx.workspaceRoot)
-      }
-
-      PathRef(dir)
     }
   }
 
@@ -382,7 +391,7 @@ trait CliLaunchers extends SbtModule { self =>
     mainClass().getOrElse(sys.error("Don't know what main class to use"))
   }
 
-  def transitiveJarsAgg: T[Agg[PathRef]] = {
+  def transitiveJarsSeq: T[Seq[PathRef]] = {
     def allModuleDeps(todo: List[JavaModule]): List[JavaModule] =
       todo match {
         case Nil    => Nil
@@ -391,7 +400,7 @@ trait CliLaunchers extends SbtModule { self =>
       }
 
     Task {
-      mill.define.Task.traverse(allModuleDeps(this :: Nil).distinct)(m =>
+      Task.traverse(allModuleDeps(this :: Nil).distinct)(m =>
         Task.Anon(m.jar())
       )()
     }
@@ -428,7 +437,7 @@ trait CliLaunchers extends SbtModule { self =>
       cp,
       mainClass0
     ) ++ args
-    os.proc(command.map(x => x: os.Shellable): _*).call(
+    os.proc(command.map(x => x: os.Shellable)*).call(
       stdin = os.Inherit,
       stdout = os.Inherit
     )
@@ -442,7 +451,7 @@ trait CliLaunchers extends SbtModule { self =>
     val cp         = jarClassPath().map(_.path).mkString(File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val command    = Seq("java", "-cp", cp, mainClass0) ++ args
-    os.proc(command.map(x => x: os.Shellable): _*).call(
+    os.proc(command.map(x => x: os.Shellable)*).call(
       stdin = os.Inherit,
       stdout = os.Inherit
     )
@@ -453,7 +462,7 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   def jarClassPath: T[Seq[PathRef]] = Task {
-    val cp = runClasspath() ++ transitiveJarsAgg()
+    val cp = runClasspath() ++ transitiveJarsSeq()
     cp.filter(ref => os.exists(ref.path) && !os.isDir(ref.path))
   }
 
@@ -533,7 +542,7 @@ trait HasTests extends SbtModule {
     super.scalacOptions() ++ extraOptions
   }
   trait ScalaCliTests extends ScalaCliModule with super.SbtTests with TestModule.Munit {
-    override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
+    override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
       Deps.expecty,
       Deps.munit
     )
@@ -560,7 +569,7 @@ trait PublishLocalNoFluff extends SonatypeCentralPublishModule {
   }
   // adapted from https://github.com/com-lihaoyi/mill/blob/fea79f0515dda1def83500f0f49993e93338c3de/scalalib/src/PublishModule.scala#L70-L85
   // writes empty zips as source and doc JARs
-  def publishLocalNoFluff(localIvyRepo: String = null): define.Command[PathRef] = Task.Command {
+  def publishLocalNoFluff(localIvyRepo: String = null): Command[PathRef] = Task.Command {
 
     import mill.scalalib.publish.{LocalIvyPublisher, PublishInfo}
     import mill.api.PathRef
@@ -580,12 +589,21 @@ trait PublishLocalNoFluff extends SonatypeCentralPublishModule {
       PublishInfo(PathRef(emptyZip().path), Some("javadoc"), "jar", "compile", "doc")  // doc
     )
 
-    publisher.publishLocal(
-      pom = pom().path,
-      ivy = Right(ivy().path),
-      artifact = artifactMetadata(),
-      publishInfos = mainArtifacts ++ extraPublish()
+    val artifact  = artifactMetadata()
+    val jarPath   = jar().path
+    val pomPath   = pom().path
+    val ivyPath   = ivy().path
+    val emptyPath = emptyZip().path
+
+    val contents = Map[os.SubPath, Array[Byte]](
+      os.sub / "jars" / s"${artifact.id}.jar"         -> os.read.bytes(jarPath),
+      os.sub / "srcs" / s"${artifact.id}-sources.jar" -> os.read.bytes(emptyPath),
+      os.sub / "docs" / s"${artifact.id}-javadoc.jar" -> os.read.bytes(emptyPath),
+      os.sub / "poms" / s"${artifact.id}.pom"         -> os.read.bytes(pomPath),
+      os.sub / "ivys" / "ivy.xml"                     -> os.read.bytes(ivyPath)
     )
+
+    publisher.publishLocal(artifact, contents)
 
     jar()
   }
@@ -595,13 +613,13 @@ trait LocalRepo extends Module {
   def stubsModules: Seq[PublishLocalNoFluff]
   def version: T[String]
 
-  def localRepo: T[Seq[PathRef]] = Task {
-    val repoRoot = os.rel / "out" / "repo" / "{VERSION}"
-    val tasks    = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
-    define.Task.sequence(tasks)
+  def localRepo: T[Seq[PathRef]] = {
+    val repoRoot                     = os.rel / "out" / "repo" / "{VERSION}"
+    val tasks: Seq[Command[PathRef]] = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
+    Task.sequence(tasks)()
   }
 
-  private def vcsState: T[VcsState] =
+  private def vcsState: T[VcsVersion.State] =
     if (isCI)
       Task(persistent = true) {
         VcsVersion.vcsState()
@@ -611,48 +629,50 @@ trait LocalRepo extends Module {
         VcsVersion.vcsState()
       }
   def localRepoZip: T[PathRef] = Task {
-    val repoVer = vcsState().format()
-    val ver     = version()
-    localRepo()
-    val repoDir = BuildCtx.workspaceRoot / "out" / "repo" / ver
-    val destDir = Task.dest / ver / "repo.zip"
-    val dest    = destDir / "repo.zip"
+    BuildCtx.withFilesystemCheckerDisabled {
+      val repoVer = vcsState().format()
+      val ver     = version()
+      localRepo()
+      val repoDir = BuildCtx.workspaceRoot / "out" / "repo" / ver
+      val destDir = Task.dest / ver / "repo.zip"
+      val dest    = destDir / "repo.zip"
 
-    import java.io._
-    import java.util.zip._
-    os.makeDir.all(destDir)
-    var fos: FileOutputStream = null
-    var zos: ZipOutputStream  = null
-    try {
-      fos = new FileOutputStream(dest.toIO)
-      zos = new ZipOutputStream(new BufferedOutputStream(fos))
+      import java.io._
+      import java.util.zip._
+      os.makeDir.all(destDir)
+      var fos: FileOutputStream = null
+      var zos: ZipOutputStream  = null
+      try {
+        fos = new FileOutputStream(dest.toIO)
+        zos = new ZipOutputStream(new BufferedOutputStream(fos))
 
-      val versionEntry = new ZipEntry("version")
-      versionEntry.setTime(0L)
-      zos.putNextEntry(versionEntry)
-      zos.write(repoVer.getBytes(StandardCharsets.UTF_8))
-      zos.flush()
+        val versionEntry = new ZipEntry("version")
+        versionEntry.setTime(0L)
+        zos.putNextEntry(versionEntry)
+        zos.write(repoVer.getBytes(StandardCharsets.UTF_8))
+        zos.flush()
 
-      os.walk(repoDir).filter(_ != repoDir).foreach { p =>
-        val isDir = os.isDir(p)
-        val name  = p.relativeTo(repoDir).toString + (if (isDir) "/" else "")
-        val entry = new ZipEntry(name)
-        entry.setTime(os.mtime(p))
-        zos.putNextEntry(entry)
-        if (!isDir) {
-          zos.write(os.read.bytes(p))
-          zos.flush()
+        os.walk(repoDir).filter(_ != repoDir).foreach { p =>
+          val isDir = os.isDir(p)
+          val name  = p.relativeTo(repoDir).toString + (if (isDir) "/" else "")
+          val entry = new ZipEntry(name)
+          entry.setTime(os.mtime(p))
+          zos.putNextEntry(entry)
+          if (!isDir) {
+            zos.write(os.read.bytes(p))
+            zos.flush()
+          }
+          zos.closeEntry()
         }
-        zos.closeEntry()
+        zos.finish()
       }
-      zos.finish()
-    }
-    finally {
-      if (zos != null) zos.close()
-      if (fos != null) fos.close()
-    }
+      finally {
+        if (zos != null) zos.close()
+        if (fos != null) fos.close()
+      }
 
-    PathRef(dest)
+      PathRef(dest)
+    }
   }
 
   def localRepoJar: T[PathRef] = Task {
@@ -712,12 +732,12 @@ private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path
                   entries -= "methods"
                 ujson.Obj(entries)
               }
-            ujson.Arr(values: _*)
+            ujson.Arr(values*)
           }
         else if (sortByName(name))
           json.arrOpt.fold(json) { arr =>
             val values = arr.toVector.sortBy(_("name").str)
-            ujson.Arr(values: _*)
+            ujson.Arr(values*)
           }
         else
           json
@@ -789,7 +809,7 @@ trait ScalaCliScalafixModule extends ScalafixModule {
     if (scalaVersion().startsWith("2.")) super.scalafixConfig()
     else Some(BuildCtx.workspaceRoot / ".scalafix3.conf")
   }
-  def scalacPluginIvyDeps: T[Loose.Agg[Dep]] = super.scalacPluginIvyDeps() ++ {
+  def scalacPluginMvnDeps: T[Seq[Dep]] = super.scalacPluginMvnDeps() ++ {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
     else Nil
   }
