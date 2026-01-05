@@ -11,9 +11,9 @@ val modules =
 
 for { module <- modules } {
   println(s"Checking for $module...")
-  val depRegex            = "\\[\\d+]\\s+[│└├─\\S\\s]+\\s([\\w.-]+):([\\w.-]+):([\\w\\s\\S.-]+)".r
+  val depRegex            = "[│└├─\\S\\s]+\\s([\\w.-]+):([\\w.-]+):([\\w\\s\\S.-]+)".r
   val scalaDepSuffixRegex = "^(.+?)(_[23](?:\\.\\d{2})?)?$".r
-  val deps                = os.proc(os.pwd / "mill", "-i", s"$module.ivyDepsTree")
+  val deps                = os.proc(os.pwd / "mill", "-i", s"$module.showMvnDepsTree")
     .call(cwd = os.pwd)
     .out
     .lines()
