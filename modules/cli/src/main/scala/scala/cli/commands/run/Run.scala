@@ -253,7 +253,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       val mainThreadOpt = AtomicReference(Option.empty[Thread])
 
       val isFirstRun = new AtomicBoolean(true)
-      val watcher = Build.watch(
+      val watcher    = Build.watch(
         inputs = inputs,
         options = initialBuildOptions,
         compilerMaker = compilerMaker,

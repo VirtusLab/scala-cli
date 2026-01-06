@@ -105,7 +105,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
     val shouldBuildTestScope = options.shared.scope.test.getOrElse(false)
     if (options.watch.watchMode) {
       val isFirstRun = new AtomicBoolean(true)
-      val watcher = Build.watch(
+      val watcher    = Build.watch(
         inputs,
         buildOptions,
         compilerMaker,

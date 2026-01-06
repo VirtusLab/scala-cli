@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.annotation.tailrec
 import scala.cli.integration.TestUtil.ProcOps
 import scala.concurrent.duration.DurationInt
 import scala.util.{Properties, Try}
@@ -451,18 +452,121 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
             .spawn(cwd = root, mergeErrIntoOut = true),
           timeout = 120.seconds
         ) { (proc, timeout, ec) =>
-          val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
+          def readLine(): String = TestUtil.readLine(proc.stdout, ec, timeout)
+          @tailrec
+          def readNextStableLine(): String = {
+            val line = readLine()
+            if (line.contains("Compiling project") || line.contains("Compiled project"))
+              readNextStableLine()
+            else line
+          }
+          val output1 = readNextStableLine()
           expect(output1 == expectedMessage1)
-          var line = TestUtil.readLine(proc.stdout, ec, timeout)
+          var line = readLine()
           while (!line.contains("Watching sources"))
-            line = TestUtil.readLine(proc.stdout, ec, timeout)
+            line = readLine()
+          Thread.sleep(1000)
           os.write.over(root / inputPath, code(expectedMessage2))
-          line = TestUtil.readLine(proc.stdout, ec, timeout)
+          line = readLine()
           while (!line.contains(expectedMessage2) && !line.contains("\u001b[2J"))
-            line = TestUtil.readLine(proc.stdout, ec, timeout)
+            line = readLine()
           while (!line.contains(expectedMessage2))
-            line = TestUtil.readLine(proc.stdout, ec, timeout)
+            line = readLine()
           expect(line.contains(expectedMessage2))
+        }
+      }
+    }
+
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("compile --watch with --watch-clear-screen clears screen on rerun") {
+      val inputPath = os.rel / "example.scala"
+      def code      = s"""object Example extends App { println("Hello") }"""
+
+      TestInputs(inputPath -> code).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "compile",
+            inputPath.toString(),
+            "--watch",
+            "--watch-clear-screen",
+            extraOptions
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          def readLine(): String = TestUtil.readLine(proc.stdout, ec, timeout)
+          @tailrec
+          def readNextStableLine(): String = {
+            val line = readLine()
+            if (line.contains("Compiling project") || line.contains("Compiled project"))
+              readNextStableLine()
+            else line
+          }
+          // First run
+          var line = readLine()
+          while (!line.contains("Watching sources"))
+            line = readLine()
+
+          Thread.sleep(1000)
+          os.write.append(root / inputPath, "\n// comment")
+
+          line = readLine()
+          // We expect the clear screen escape code to be present before the next "Compiling project" or "Watching sources"
+          while (!line.contains("\u001b[2J") && !line.contains("Watching sources"))
+            line = readLine()
+
+          expect(line.contains("\u001b[2J"))
+        }
+      }
+    }
+
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("test --watch with --watch-clear-screen clears screen on rerun") {
+      val inputPath             = os.rel / "example.test.scala"
+      def code(message: String) =
+        s"""//> using dep org.scalameta::munit::0.7.29
+           |class MyTests extends munit.FunSuite {
+           |    test("test") { println("$message"); assert(true) }
+           |}
+           |""".stripMargin
+
+      TestInputs(inputPath -> code("Hello1")).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "test",
+            inputPath.toString(),
+            "--watch",
+            "--watch-clear-screen",
+            extraOptions
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          def readLine(): String = TestUtil.readLine(proc.stdout, ec, timeout)
+          @tailrec
+          def readNextStableLine(): String = {
+            val line = readLine()
+            if (line.contains("Compiling project") || line.contains("Compiled project"))
+              readNextStableLine()
+            else line
+          }
+
+          // Wait for first run to finish
+          var line = readLine()
+          while (!line.contains("Watching sources"))
+            line = readLine()
+
+          Thread.sleep(1000)
+          os.write.over(root / inputPath, code("Hello2"))
+
+          line = readLine()
+          // We expect the clear screen escape code to be present
+          while (!line.contains("\u001b[2J") && !line.contains("Hello2"))
+            line = readLine()
+
+          expect(line.contains("\u001b[2J"))
         }
       }
     }

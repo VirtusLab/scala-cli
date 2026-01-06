@@ -292,7 +292,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     if watch then {
       val isFirstRun = new AtomicBoolean(true)
-      val watcher = Build.watch(
+      val watcher    = Build.watch(
         inputs = inputs,
         options = initialBuildOptions,
         compilerMaker = compilerMaker,

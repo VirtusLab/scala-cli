@@ -148,7 +148,7 @@ object Test extends ScalaCommand[TestOptions] {
 
     if (options.watch.watchMode) {
       val isFirstRun = new AtomicBoolean(true)
-      val watcher = Build.watch(
+      val watcher    = Build.watch(
         inputs,
         initialBuildOptions,
         compilerMaker,

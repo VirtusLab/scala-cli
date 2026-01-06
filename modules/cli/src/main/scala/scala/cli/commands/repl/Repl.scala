@@ -210,7 +210,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     }
     else if (options.sharedRepl.watch.watchMode) {
       val isFirstRun = new AtomicBoolean(true)
-      val watcher = Build.watch(
+      val watcher    = Build.watch(
         inputs,
         initialBuildOptions,
         compilerMaker,
