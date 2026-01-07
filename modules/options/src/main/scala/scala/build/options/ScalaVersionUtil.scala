@@ -32,6 +32,7 @@ object ScalaVersionUtil {
   def scala212Nightly                 = "2.12.nightly"
   def scala213Nightly                 = List("2.13.nightly", "2.nightly")
   def scala3Nightly                   = "3.nightly"
+  def scala3LtsNightly                = List("lts.nightly", "3.lts.nightly")
   private def rcAlias(prefix: String) = s"$prefix.rc"
   def scala2LatestRc                  = List(rcAlias("2"), rcAlias("2.12"), rcAlias("2.13"))
   def scala3LatestRc                  = List("rc", rcAlias("3"))
@@ -244,7 +245,9 @@ object ScalaVersionUtil {
     || (scala212Nightly +: scala213Nightly).contains(version)
 
   def isScala3Nightly(version: String): Boolean =
-    (version.startsWith("3") && version.endsWith("-NIGHTLY")) || version == scala3Nightly
+    (version.startsWith("3") && version.endsWith(
+      "-NIGHTLY"
+    )) || version == scala3Nightly || scala3LtsNightly.contains(version)
   def isStable(version: String): Boolean =
     !version.exists(_.isLetter)
   def isRc(version: String): Boolean = {

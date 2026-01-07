@@ -3,27 +3,6 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 class RunTests3NextRc extends RunTestDefinitions with Test3NextRc {
-
-  def getScalaVersion(
-    scalaVersionIndex: String,
-    root: os.Path,
-    check: Boolean = true,
-    mergeErrIntoOut: Boolean = false
-  ): String =
-    os.proc(
-      TestUtil.cli,
-      "run",
-      "-e",
-      "println(dotty.tools.dotc.config.Properties.simpleVersionString)",
-      "-S",
-      scalaVersionIndex,
-      "--with-compiler",
-      TestUtil.extraOptions
-    )
-      .call(cwd = root, check = check, mergeErrIntoOut = mergeErrIntoOut)
-      .out
-      .trim()
-
   test("Scala 3.nightly & 3.<latest-minor>.nightly point to the same version") {
     TestInputs.empty.fromRoot { root =>
       val version1     = getScalaVersion("3.nightly", root)
