@@ -438,12 +438,12 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     def defaultArtifacts(): Either[BuildException, ReplArtifacts] = either {
       value {
         ReplArtifacts.default(
-          scalaParams,
-          allArtifacts.flatMap(_.userDependencies).distinct,
-          allArtifacts.flatMap(_.extraClassPath).distinct,
-          logger,
-          cache,
-          value(options.finalRepositories),
+          scalaParams = scalaParams,
+          dependencies = allArtifacts.flatMap(_.userDependencies).distinct,
+          extraClassPath = allArtifacts.flatMap(_.extraClassPath).distinct,
+          logger = logger,
+          cache = cache,
+          repositories = value(options.finalRepositories),
           addScalapy =
             if setupPython then
               Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))

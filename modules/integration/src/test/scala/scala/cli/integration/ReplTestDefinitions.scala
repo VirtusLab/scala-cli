@@ -24,6 +24,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     cliOptions: Seq[String] = Seq.empty,
     shouldPipeStdErr: Boolean = false,
     check: Boolean = true,
+    skipScalaVersionArgs: Boolean = false,
     env: Map[String, String] = Map.empty
   )(
     runAfterRepl: os.CommandResult => Unit,
@@ -39,7 +40,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           "--repl-quit-after-init",
           "--repl-init-script",
           codeToRunInRepl,
-          extraOptions,
+          if skipScalaVersionArgs then TestUtil.extraOptions else extraOptions,
           cliOptions,
           potentiallyExtraCliOpts
         )

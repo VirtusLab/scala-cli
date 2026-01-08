@@ -245,9 +245,8 @@ object ScalaVersionUtil {
     || (scala212Nightly +: scala213Nightly).contains(version)
 
   def isScala3Nightly(version: String): Boolean =
-    (version.startsWith("3") && version.endsWith(
-      "-NIGHTLY"
-    )) || version == scala3Nightly || scala3LtsNightly.contains(version)
+    (version.startsWith("3") && version.toLowerCase.endsWith("nightly")) ||
+    version == scala3Nightly || scala3LtsNightly.contains(version)
   def isStable(version: String): Boolean =
     !version.exists(_.isLetter)
   def isRc(version: String): Boolean = {
