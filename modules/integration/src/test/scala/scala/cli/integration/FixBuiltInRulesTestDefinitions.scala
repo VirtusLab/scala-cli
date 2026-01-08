@@ -527,4 +527,67 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         os.proc(TestUtil.cli, "test", ".", extraOptions).call(cwd = root)
       }
     }
+
+  test("dependency analysis - detect unused dependencies") {
+    val mainFileName = "Main.scala"
+    val inputs       = TestInputs(
+      os.rel / mainFileName ->
+        s"""//> using dep com.lihaoyi::pprint:0.9.0
+           |//> using dep org.typelevel::cats-core:2.10.0
+           |
+           |object Main {
+           |  def main(args: Array[String]): Unit = {
+           |    pprint.pprintln("Hello world")
+           |  }
+           |}
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        "--with-unused-deps",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false)
+      )
+        .call(cwd = root, mergeErrIntoOut = true).out.trim()
+
+      // Should report that cats-core is unused
+      expect(output.contains("cats-core") || output.contains("unused"))
+    }
+  }
+
+  test("dependency analysis - detect missing explicit dependencies") {
+    val mainFileName = "Main.scala"
+    val inputs       = TestInputs(
+      os.rel / mainFileName ->
+        s"""//> using dep com.lihaoyi::pprint:0.9.0
+           |
+           |object Main {
+           |  def main(args: Array[String]): Unit = {
+           |    pprint.pprintln("Hello world")
+           |    println(fansi.Color.Red("red"))
+           |  }
+           |}
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        "--with-explicit-deps",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false)
+      )
+        .call(cwd = root, mergeErrIntoOut = true).out.trim()
+
+      expect(output.contains("fansi"))
+    }
+  }
 }

@@ -14,7 +14,8 @@ The `fix` command is used to check, lint, rewrite or otherwise rearrange code in
 
 Currently, the following sets of rules are supported:
 - built-in rules (enabled automatically and controlled with the `--enable-built-in` flag)
-- `scalafix`, running [Scalafix](https://scalacenter.github.io/scalafix/) under the hood (enabled automatically and controlled with `--enable-scalafix` flag).
+- `scalafix`, running [Scalafix](https://scalacenter.github.io/scalafix/) under the hood (enabled automatically and controlled with `--enable-scalafix` flag)
+- dependency analysis (opt-in with `--with-unused-deps` and `--with-explicit-deps` flags)
 
 You can disable unnecessary rule sets when needed.
 For example, to disable built-in rules, you can run:
@@ -33,6 +34,71 @@ them into their `test.*` equivalent when needed.
 Exceptions:
 - directives won't be extracted for single-file projects;
 - directives in test inputs with no test scope equivalents won't be extracted to preserve their initial scope.
+
+## Dependency analysis
+
+Scala CLI can analyze your project's dependencies to help you maintain a clean and explicit dependency graph.
+This feature is inspired by tools like [sbt-explicit-dependencies](https://github.com/cb372/sbt-explicit-dependencies) 
+and [mill-explicit-deps](https://github.com/kierendavies/mill-explicit-deps).
+
+### Detecting unused dependencies
+
+Use the `--with-unused-deps` flag to detect dependencies that are declared but not used in your code:
+
+```bash
+scala-cli fix . --power --with-unused-deps
+```
+
+This will analyze your import statements and report any dependencies that don't appear to be used. For example:
+
+```text
+⚠ Found 2 potentially unused dependencies:
+
+  • com.lihaoyi:upickle_3:3.1.0
+    No imports found that could be provided by this dependency
+    Consider removing: //> using dep com.lihaoyi::upickle:3.1.0
+
+  • org.typelevel:cats-core_3:2.9.0
+    No imports found that could be provided by this dependency
+    Consider removing: //> using dep org.typelevel::cats-core:2.9.0
+
+Note: This analysis is based on import statements and may produce false positives.
+Dependencies might be used via reflection, service loading, or other mechanisms.
+```
+
+### Detecting missing explicit dependencies
+
+Use the `--with-explicit-deps` flag to detect transitive dependencies that you're using directly but haven't declared explicitly:
+
+```bash
+scala-cli fix . --power --with-explicit-deps
+```
+
+This will analyze your import statements and report any transitive dependencies that you're importing directly:
+
+```text
+⚠ Found 1 transitive dependencies that are directly used:
+
+  • org.scala-lang.modules:scala-xml_3:2.1.0
+    Directly imported but not explicitly declared (transitive through other dependencies)
+    Used in: Main.scala
+    Consider adding: //> using dep org.scala-lang.modules:scala-xml_3:2.1.0
+
+Note: These dependencies are currently available transitively but should be declared explicitly.
+This ensures your build remains stable if upstream dependencies change.
+```
+
+### Running both checks together
+
+You can run both dependency checks simultaneously:
+
+```bash
+scala-cli fix . --power --with-unused-deps --with-explicit-deps
+```
+
+**Note:** Dependency analysis is based on static analysis of import statements and may not catch all cases.
+Dependencies used via reflection, service loading, annotation processing, or other dynamic mechanisms may be 
+incorrectly flagged as unused. Always verify the suggestions before removing dependencies.
 
 ## `scalafix` integration
 
