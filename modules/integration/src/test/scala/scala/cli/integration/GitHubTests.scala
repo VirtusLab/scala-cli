@@ -93,7 +93,7 @@ object GitHubTests {
   implicit val encryptedSecretCodec: JsonValueCodec[EncryptedSecret] =
     JsonCodecMaker.make
 
-  private def libsodiumVersion = Constants.libsodiumVersion
+  private def condaLibsodiumVersion = Constants.condaLibsodiumVersion
 
   // Warning: somehow also in settings.sc in the build, and in FetchExternalBinary
   lazy val condaPlatform: String = {
@@ -131,7 +131,7 @@ object GitHubTests {
       case other           => sys.error(s"Unrecognized conda platform $other")
     }
     (
-      s"https://anaconda.org/conda-forge/libsodium/$libsodiumVersion/download/$condaPlatform/libsodium-$libsodiumVersion$suffix.tar.bz2",
+      s"https://anaconda.org/conda-forge/libsodium/$condaLibsodiumVersion/download/$condaPlatform/libsodium-$condaLibsodiumVersion$suffix.tar.bz2",
       relPath
     )
   }

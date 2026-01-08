@@ -559,6 +559,8 @@ trait Core extends ScalaCliCrossSbtModule
          |
          |  def libsodiumVersion = "${deps.libsodiumVersion}"
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.versionConstraint.asString}"
+         |  def alpineLibsodiumVersion = "${deps.alpineLibsodiumVersion}"
+         |  def condaLibsodiumVersion = "${deps.condaLibsodiumVersion}"
          |
          |  def scalaPyVersion = "${Deps.scalaPy.dep.versionConstraint.asString}"
          |  def scalaPyMaxScalaNative = "${Deps.Versions.maxScalaNativeForScalaPy}"
@@ -1097,6 +1099,8 @@ trait CliIntegration extends SbtModule
            |  def cs                           = "${settings.cs().replace("\\", "\\\\")}"
            |  def workspaceDirName             = "$workspaceDirName"
            |  def libsodiumVersion             = "${deps.libsodiumVersion}"
+           |  def alpineLibsodiumVersion       = "${deps.alpineLibsodiumVersion}"
+           |  def condaLibsodiumVersion        = "${deps.condaLibsodiumVersion}"
            |  def dockerArchLinuxImage         = "${TestDeps.archLinuxImage}"
            |  
            |  def toolkitVersion                 = "${Deps.toolkitVersion}"

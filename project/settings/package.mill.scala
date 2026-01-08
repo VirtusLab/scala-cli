@@ -5,6 +5,7 @@ import deps.{
   Deps,
   Docker,
   alpineVersion,
+  alpineLibsodiumVersion,
   buildCsVersion,
   libsodiumVersion,
   ubuntuVersion
@@ -255,7 +256,7 @@ trait CliLaunchers extends SbtModule { self =>
       val arcPath = os.proc(
         cs,
         "get",
-        s"https://dl-cdn.alpinelinux.org/alpine/v$alpineVersion/main/x86_64/libsodium-static-$libsodiumVersion-r0.apk"
+        s"https://dl-cdn.alpinelinux.org/alpine/v$alpineVersion/main/x86_64/libsodium-static-$alpineLibsodiumVersion-r0.apk"
       ).call().out.trim()
       val tmpDir = os.temp.dir(prefix = "libsodium-static")
       try {

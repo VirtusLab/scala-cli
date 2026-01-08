@@ -296,7 +296,9 @@ def csDockerVersion = Deps.Versions.coursierCli
 def buildCsVersion = Deps.Versions.coursierCli
 
 // Native library used to encrypt GitHub secrets
-def libsodiumVersion = "1.0.18"
+def libsodiumVersion       = "1.0.21"
+def alpineLibsodiumVersion = "1.0.18"
+def condaLibsodiumVersion  = alpineLibsodiumVersion // used in integration tests
 // Using the libsodium static library from this Alpine version (in the static launcher)
 def alpineVersion = "3.16"
 def ubuntuVersion = "24.04"
