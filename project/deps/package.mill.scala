@@ -43,8 +43,8 @@ object Scala {
   val scala3MainVersions  = (defaults ++ allScala3).distinct
   val runnerScalaVersions = (Seq(runnerScala3) ++ scala3MainVersions).distinct
 
-  def scalaJs    = "1.20.1"
-  def scalaJsCli = "1.20.1.1" // this must be compatible with the Scala.js version
+  def scalaJs    = "1.20.2"
+  def scalaJsCli = scalaJs // this must be compatible with the Scala.js version
 
   private def patchVer(sv: String): Int =
     sv.split('.').drop(2).head.takeWhile(_.isDigit).toInt
