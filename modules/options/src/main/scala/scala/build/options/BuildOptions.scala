@@ -366,9 +366,9 @@ final case class BuildOptions(
                 Left(new ScalaVersionError(
                   s"Invalid Scala version: $sv. In the case of Scala 2, a particular nightly version serves as a release candidate."
                 ))
-              case sv if sv == ScalaVersionUtil.scala3Nightly =>
+              case sv if ScalaVersionUtil.scala3Nightly.contains(sv.toLowerCase) =>
                 ScalaVersionUtil.GetNightly.scala3(cache)
-              case sv if ScalaVersionUtil.scala3LtsNightly.contains(sv) =>
+              case sv if ScalaVersionUtil.scala3LtsNightly.contains(sv.toLowerCase) =>
                 ScalaVersionUtil.GetNightly.scala3X(
                   Constants.scala3LtsPrefix.split('.').last,
                   cache
