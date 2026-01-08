@@ -546,6 +546,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
+        "--power",
         "fix",
         ".",
         "--with-unused-deps",
@@ -568,6 +569,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
            |object Main {
            |  def main(args: Array[String]): Unit = {
            |    pprint.pprintln("Hello world")
+           |    println(fansi.Color.Red("red"))
            |  }
            |}
            |""".stripMargin
@@ -576,6 +578,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
+        "--power",
         "fix",
         ".",
         "--with-explicit-deps",
@@ -584,9 +587,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
       )
         .call(cwd = root, mergeErrIntoOut = true).out.trim()
 
-      // This test mainly verifies that the feature runs without error
-      // The output may or may not report missing deps depending on transitive deps
-      expect(!output.toLowerCase.contains("error"))
+      expect(output.contains("fansi"))
     }
   }
 }
