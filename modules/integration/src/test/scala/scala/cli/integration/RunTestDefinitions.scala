@@ -32,6 +32,26 @@ abstract class RunTestDefinitions
   protected val ciOpt: Seq[String] =
     Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
 
+  protected def getScalaVersion(
+    scalaVersionIndex: String,
+    root: os.Path,
+    check: Boolean = true,
+    mergeErrIntoOut: Boolean = false
+  ): String =
+    os.proc(
+      TestUtil.cli,
+      "run",
+      "-e",
+      "println(dotty.tools.dotc.config.Properties.simpleVersionString)",
+      "-S",
+      scalaVersionIndex,
+      "--with-compiler",
+      TestUtil.extraOptions
+    )
+      .call(cwd = root, check = check, mergeErrIntoOut = mergeErrIntoOut)
+      .out
+      .trim()
+
   test("print command") {
     val fileName = "simple.sc"
     val message  = "Hello"
