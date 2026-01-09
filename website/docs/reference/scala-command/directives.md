@@ -429,7 +429,7 @@ Add Scala.js options
 
 
 #### Examples
-`//> using jsVersion 1.20.1`
+`//> using jsVersion 1.20.2`
 
 `//> using jsMode mode`
 
