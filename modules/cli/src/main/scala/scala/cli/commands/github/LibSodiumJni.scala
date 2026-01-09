@@ -48,7 +48,7 @@ object LibSodiumJni {
       // Should actually be unused, as we statically link libsodium from the static launcher
       // Keeping it just-in-case. This could be useful from a musl-based JVM.
       (
-        s"https://dl-cdn.alpinelinux.org/alpine/v$alpineVersion/main/x86_64/libsodium-$alpineLibsodiumVersion-r0.apk",
+        s"https://dl-cdn.alpinelinux.org/alpine/v$alpineVersion/main/x86_64/libsodium-$alpineLibsodiumVersion-r1.apk",
         os.rel / "usr" / "lib" / "libsodium.so.23.3.0" // FIXME Could this change?
       )
     else {
