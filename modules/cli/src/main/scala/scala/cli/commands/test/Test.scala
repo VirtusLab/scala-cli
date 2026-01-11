@@ -4,6 +4,7 @@ import caseapp.*
 import caseapp.core.help.HelpFormat
 
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.build.*
 import scala.build.EitherCps.{either, value}
@@ -146,7 +147,8 @@ object Test extends ScalaCommand[TestOptions] {
       }
 
     if (options.watch.watchMode) {
-      val watcher = Build.watch(
+      val isFirstRun = new AtomicBoolean(true)
+      val watcher    = Build.watch(
         inputs,
         initialBuildOptions,
         compilerMaker,
@@ -158,6 +160,8 @@ object Test extends ScalaCommand[TestOptions] {
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
+        if (options.watch.watchClearScreen && !isFirstRun.getAndSet(false))
+          WatchUtil.clearScreen()
         for (builds <- res.orReport(logger))
           maybeTest(builds, allowExit = false)
       }

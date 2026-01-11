@@ -18,7 +18,13 @@ final case class SharedWatchOptions(
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
   @Name("revolver")
-    restart: Boolean = false
+    restart: Boolean = false,
+  @Group(HelpGroup.Watch.toString)
+  @HelpMessage("Clear the screen each time watch mode detects changes and re-compiles or re-runs")
+  @Tag(tags.implementation)
+  @Name("watchCls")
+  @Name("watchClear")
+    watchClearScreen: Boolean = false
 ) { // format: on
 
   lazy val watchMode: Boolean = watch || restart

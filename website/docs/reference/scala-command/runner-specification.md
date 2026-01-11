@@ -650,6 +650,12 @@ Aliases: `--toolkit`
 
 Exclude sources
 
+**--watch-clear-screen**
+
+Clear the screen each time watch mode detects changes and re-compiles or re-runs
+
+Aliases: `--watch-cls` ,`--watch-clear`
+
 </details>
 
 ---
@@ -2055,6 +2061,12 @@ Add java properties. Note that options equal `-Dproperty=value` are assumed to b
 
 Aliases: `--java-prop`
 
+**--watch-clear-screen**
+
+Clear the screen each time watch mode detects changes and re-compiles or re-runs
+
+Aliases: `--watch-cls` ,`--watch-clear`
+
 **--repl-dry-run**
 
 Don't actually run the REPL, just fetch it
@@ -2693,6 +2705,12 @@ Exclude sources
 Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
 
 Aliases: `--java-prop`
+
+**--watch-clear-screen**
+
+Clear the screen each time watch mode detects changes and re-compiles or re-runs
+
+Aliases: `--watch-cls` ,`--watch-clear`
 
 **--scratch-dir**
 
@@ -3341,6 +3359,12 @@ Exclude sources
 Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
 
 Aliases: `--java-prop`
+
+**--watch-clear-screen**
+
+Clear the screen each time watch mode detects changes and re-compiles or re-runs
+
+Aliases: `--watch-cls` ,`--watch-clear`
 
 **--scratch-dir**
 
@@ -4631,6 +4655,12 @@ Exclude sources
 Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
 
 Aliases: `--java-prop`
+
+**--watch-clear-screen**
+
+Clear the screen each time watch mode detects changes and re-compiles or re-runs
+
+Aliases: `--watch-cls` ,`--watch-clear`
 
 </details>
 
