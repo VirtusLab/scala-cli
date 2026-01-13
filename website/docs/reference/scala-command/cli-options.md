@@ -1066,7 +1066,7 @@ Aliases: `-S`, `--scala`
 
 `MUST have` per Scala Runner specification
 
-Set the Scala version (3.7.4 by default)
+Set the Scala version (3.8.0 by default)
 
 ### `--scala-binary-version`
 
