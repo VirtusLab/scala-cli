@@ -196,46 +196,39 @@ class BloopTests extends ScalaCliSuite {
     lang         <- List("scala", "java")
     useDirective <- List(true, false)
     option       <- List("java-home", "jvm")
+    jvm = Constants.allJavaVersions.filter(_ < 23).max
   }
-    test(s"compiles $lang file with correct jdk version for $option ${
-        if (useDirective) "use directive" else "option"
+    test(s"compiles $lang file with correct jdk version ($jvm) for $option ${
+        if useDirective then "use directive" else "option"
       }") {
       def isScala     = lang == "scala"
       val optionValue =
-        if (option == "java-home")
-          os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim()).toString()
-        else "8"
+        if option == "java-home" then
+          os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", jvm).call().out.trim()).toString()
+        else jvm.toString
       val directive =
-        if (useDirective) s"//> using ${option.replace("-h", "H")} $optionValue\n" else ""
-      val options = if (useDirective) Nil else List(s"--$option", optionValue)
+        if useDirective then s"//> using ${option.replace("-h", "H")} $optionValue\n" else ""
+      val options = if useDirective then Nil else List(s"--$option", optionValue)
       val content =
-        if (isScala)
-          """|package a
-             |
-             |
-             |trait Simple {
-             |  val str = "".repeat(2)
-             |}
-             |""".stripMargin
-        else """|package a;
-               |
-               |class Simple {
-               |  void hello(){
-               |     String str = "".repeat(2);
-               |  }
-               |}
-               |""".stripMargin
+        if isScala then
+          "object Simple { System.out.println(javax.print.attribute.standard.OutputBin.LEFT) }"
+        else """public class Simple {
+              |  public static void main(String[] args) {
+              |      System.out.println(javax.print.attribute.standard.OutputBin.LEFT);
+              |  }
+              |}""".stripMargin
       val inputs = TestInputs(os.rel / s"Simple.$lang" -> s"$directive$content")
 
       inputs.fromRoot { root =>
         val res =
-          runScalaCli(("compile" :: "." :: options)*).call(root, check = false, stderr = os.Pipe)
+          runScalaCli("compile" :: "." :: options*).call(root, check = false, stderr = os.Pipe)
         assert(res.exitCode == 1)
 
         val compilationError = res.err.text()
         val message          =
-          if (isScala) "value repeat is not a member of String"
-          else "error: cannot find symbol"
+          if isScala
+          then "value OutputBin is not a member of javax.print.attribute.standard"
+          else "cannot find symbol"
 
         assert(compilationError.contains("Compilation failed"))
         assert(compilationError.contains(message))

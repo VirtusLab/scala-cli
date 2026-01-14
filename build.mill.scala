@@ -194,6 +194,7 @@ trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with LocatedI
          |  def coursierCliModule = "${Deps.coursierCli.dep.module.name.value}"
          |  def coursierCliVersion = "${Deps.Versions.coursierCli}"
          |  def defaultScalaVersion = "${Scala.defaultUser}"
+         |  def scalaLegacyRunnerVersion = "${Scala.scalaLegacyRunnerVersion}"
          |  def alpineVersion = "$alpineVersion"
          |}
          |""".stripMargin

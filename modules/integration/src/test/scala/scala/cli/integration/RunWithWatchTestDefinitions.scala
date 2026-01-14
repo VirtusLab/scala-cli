@@ -319,7 +319,9 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
       def code(includeDirective: Boolean) = {
         val directive = if (includeDirective) "//> using toolkit default" else ""
         s"""$directive
-           |object Smth extends App { println(os.pwd) }
+           |object Smth {
+           |  def main(args: Array[String]) = println(os.pwd)
+           |}
            |""".stripMargin
       }
 

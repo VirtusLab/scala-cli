@@ -454,8 +454,9 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("skip setting release option when -release or -java-output-version is set by user") {
-    val javaOutputVersionOpt = "-java-output-version:16"
-    val inputs               = TestInputs(
+    val javaOutputVersionOpt =
+      s"-java-output-version:${scala.build.internal.Constants.scala38MinJavaVersion}"
+    val inputs = TestInputs(
       os.rel / "Hello.scala" ->
         s"""//> using option $javaOutputVersionOpt
            |""".stripMargin

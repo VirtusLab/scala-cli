@@ -30,6 +30,9 @@ object Scala {
   // The Scala version used by default to compile user input.
   def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3Next)
 
+  // The latest Scala version supporting scala_legacy runner command
+  def scalaLegacyRunnerVersion = "3.7.4"
+
   // as Scala 3.8 changes a lot of compatibilities,
   // these are the cutoff versions for the stable, RC and nightly series,
   // respectively

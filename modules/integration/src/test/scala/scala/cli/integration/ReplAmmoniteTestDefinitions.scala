@@ -85,8 +85,12 @@ trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
 
   def ammoniteTest(): Unit = {
     TestInputs.empty.fromRoot { root =>
+      val code =
+        if actualScalaVersion.startsWith("3") then
+          "dotty.tools.dotc.config.Properties.simpleVersionString"
+        else retrieveScalaVersionCode
       runInAmmoniteRepl(
-        codeToRunInRepl = s"""println("Hello" + " from Scala " + $retrieveScalaVersionCode)""",
+        codeToRunInRepl = s"""println("Hello" + " from Scala " + $code)""",
         shouldPipeStdErr = true
       ) { res =>
         val output     = res.out.trim()
@@ -131,8 +135,12 @@ trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
   }
 
   def ammoniteScalapyTest(): Unit = {
+    val code =
+      if actualScalaVersion.startsWith("3") then
+        "dotty.tools.dotc.config.Properties.simpleVersionString"
+      else retrieveScalaVersionCode
     val codeToRunInRepl =
-      s"""println("Hello" + " from Scala " + $retrieveScalaVersionCode)
+      s"""println("Hello" + " from Scala " + $code)
          |val sth = py.module("foo.something")
          |py.Dynamic.global.applyDynamicNamed("print")("" -> sth.messageStart, "" -> sth.messageEnd, "flush" -> py.Any.from(true))
          |""".stripMargin
