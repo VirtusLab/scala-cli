@@ -8,6 +8,135 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.12.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.12.0)
+
+### Change default Scala version to 3.8.0
+This Scala CLI version switches the default Scala version to 3.8.0.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.12.0
+# Scala version (default): 3.8.0
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4049](https://github.com/VirtusLab/scala-cli/pull/4049)
+
+### Support for Scala.js 1.20.2
+This Scala CLI version adds support for Scala.js 1.20.2.
+
+```bash
+scala-cli -e 'println("Hello")' --js
+# Compiling project (Scala 3.8.0, Scala.js 1.20.2)
+# Compiled project (Scala 3.8.0, Scala.js 1.20.2)
+# Hello
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4040](https://github.com/VirtusLab/scala-cli/pull/4040)
+
+### New aliases for RC and nightly Scala versions
+This Scala CLI version introduces dedicated aliases for calling the latest Scala Release Candidate versions in a given series (including LTS).
+
+```bash
+scala-cli -e 'println(scala.util.Properties.versionNumberString)' -S rc
+# 3.8.1-RC1
+scala-cli -e 'println(scala.util.Properties.versionNumberString)' -S 3.rc
+# 3.8.1-RC1
+scala-cli -e 'println(scala.util.Properties.versionNumberString)' -S 3.8.rc
+# 3.8.1-RC1
+scala-cli -e 'println(dotty.tools.dotc.config.Properties.simpleVersionString)' -S 3.lts.rc --with-compiler
+# 3.3.7-RC2
+scala-cli -e 'println(dotty.tools.dotc.config.Properties.simpleVersionString)' -S lts.rc --with-compiler
+# 3.3.7-RC2
+```
+
+Dedicated default and LTS nightly aliases are also provided.
+
+```bash
+scala-cli -e 'println(scala.util.Properties.versionNumberString)' -S nightly
+# 3.8.2-RC1-bin-20260115-6151803-NIGHTLY
+scala-cli -e 'println(dotty.tools.dotc.config.Properties.simpleVersionString)' -S lts.nightly --with-compiler
+# 3.3.8-RC1-bin-20260112-d35b2d4-NIGHTLY-git-d35b2d4
+scala-cli -e 'println(dotty.tools.dotc.config.Properties.simpleVersionString)' -S 3.lts.nightly --with-compiler
+# 3.3.8-RC1-bin-20260112-d35b2d4-NIGHTLY-git-d35b2d4
+```
+
+Also note that there is no easy way to identify an RC for Scala 2 / 2.12 / 2.13 (as a particular nightly serves as the RC for those Scala distributions).
+A reasonable error is also provided when it is requested.
+
+```bash fail
+scala-cli -e 'println(scala.util.Properties.versionNumberString)' -S 2.rc
+# Invalid Scala version: 2.rc. In the case of Scala 2, a particular nightly version serves as a release candidate.
+scala-cli -e 'println(scala.util.Properties.versionNumberString)' -S 2.12.rc
+# Invalid Scala version: 2.12.rc. In the case of Scala 2, a particular nightly version serves as a release candidate.
+scala-cli -e 'println(scala.util.Properties.versionNumberString)' -S 2.13.rc
+# Invalid Scala version: 2.13.rc. In the case of Scala 2, a particular nightly version serves as a release candidate.
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4042](https://github.com/VirtusLab/scala-cli/pull/4042) and [#4016](https://github.com/VirtusLab/scala-cli/pull/4016)
+
+### (⚡️ experimental) Support for exporting to Mill 1.0.x and overriding the Mill version with `--mill-version`
+The `export` sub-command now allows to export to Mill 1.0.x projects.
+
+```scala title=mill-1-0-6-export.scala
+@main def main() = println("Let's export to Mill 1.0.6!")
+```
+
+```bash
+scala-cli export mill-1-0-6-export.scala --mill --mill-version 1.0.6 --power
+# Exporting to a mill project...
+# Exported to: ~/mill-export/dest
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4028](https://github.com/VirtusLab/scala-cli/pull/4028)
+
+### Features & improvements
+* Add `rc` & `*.rc` Scala version aliases by [@Gedochao](https://github.com/Gedochao) in [#4016](https://github.com/VirtusLab/scala-cli/pull/4016)
+* Support `export`-ing to Mill 1.x.y & allow to override Mill version with `--mill-version` by [@Gedochao](https://github.com/Gedochao) in [#4028](https://github.com/VirtusLab/scala-cli/pull/4028)
+* Improve Scala nightly version handling & add `lts.nightly`, `3.lts.nightly` and `nightly` Scala version tags by [@Gedochao](https://github.com/Gedochao) in [#4042](https://github.com/VirtusLab/scala-cli/pull/4042)
+
+### Fixes
+* Fix Scala 3.nightly and 3.*latest-minor*.nightly to consistently point to the same version by [@Gedochao](https://github.com/Gedochao) in [#4014](https://github.com/VirtusLab/scala-cli/pull/4014)
+* fix #4005 -  Windows native-image compile failure caused by SUBST collision by [@philwalk](https://github.com/philwalk) in [#4006](https://github.com/VirtusLab/scala-cli/pull/4006)
+
+### Documentation changes
+* Solve docs' website warnings by [@Gedochao](https://github.com/Gedochao) in [#4007](https://github.com/VirtusLab/scala-cli/pull/4007)
+* Back port of documentation changes to main by @github-actions[bot] in [#4015](https://github.com/VirtusLab/scala-cli/pull/4015)
+
+### Build and internal changes
+* Enable Scala Native tests with the `test` command on Scala 3 by [@Gedochao](https://github.com/Gedochao) in [#4018](https://github.com/VirtusLab/scala-cli/pull/4018)
+* Self-contained docker build with ARM64 publishing by [@keynmol](https://github.com/keynmol) in [#3962](https://github.com/VirtusLab/scala-cli/pull/3962)
+
+### Updates
+* Update scala-cli.sh launcher for 1.11.0 by @github-actions[bot] in [#4004](https://github.com/VirtusLab/scala-cli/pull/4004)
+* Bump Ammonite to 3.0.6 (was 3.0.5) by [@Gedochao](https://github.com/Gedochao) in [#4008](https://github.com/VirtusLab/scala-cli/pull/4008)
+* Bump actions/download-artifact from 6 to 7 by @dependabot[bot] in [#4009](https://github.com/VirtusLab/scala-cli/pull/4009)
+* Bump actions/upload-artifact from 5 to 6 by @dependabot[bot] in [#4010](https://github.com/VirtusLab/scala-cli/pull/4010)
+* Bump sass from 1.95.0 to 1.96.0 in /website by @dependabot[bot] in [#4011](https://github.com/VirtusLab/scala-cli/pull/4011)
+* Bump `react` & `react-dom` from 19.2.1 to 19.2.3 in /website by @dependabot[bot] in [#4012](https://github.com/VirtusLab/scala-cli/pull/4012)
+* Bump Mill to 0.12.17 (was 0.12.16) by [@Gedochao](https://github.com/Gedochao) in [#4020](https://github.com/VirtusLab/scala-cli/pull/4020)
+* Bump Scala Next RC to 3.8.0-RC4 by [@Gedochao](https://github.com/Gedochao) in [#4021](https://github.com/VirtusLab/scala-cli/pull/4021)
+* Bump actions/checkout from 4 to 6 by @dependabot[bot] in [#4024](https://github.com/VirtusLab/scala-cli/pull/4024)
+* Bump qs from 6.14.0 to 6.14.1 in /website by @dependabot[bot] in [#4032](https://github.com/VirtusLab/scala-cli/pull/4032)
+* Bump @algolia/client-search from 5.46.0 to 5.46.2 in /website by @dependabot[bot] in [#4030](https://github.com/VirtusLab/scala-cli/pull/4030)
+* Bump sass from 1.96.0 to 1.97.1 in /website by @dependabot[bot] in [#4027](https://github.com/VirtusLab/scala-cli/pull/4027)
+* Bump actions/upload-artifact from 5 to 6 by @dependabot[bot] in [#4023](https://github.com/VirtusLab/scala-cli/pull/4023)
+* Bump actions/download-artifact from 6 to 7 by @dependabot[bot] in [#4022](https://github.com/VirtusLab/scala-cli/pull/4022)
+* Bump react-player from 2.16.1 to 3.4.0 in /website by @dependabot[bot] in [#4025](https://github.com/VirtusLab/scala-cli/pull/4025)
+* Bump Scala 3 Next RC to 3.8.0-RC5 by [@Gedochao](https://github.com/Gedochao) in [#4033](https://github.com/VirtusLab/scala-cli/pull/4033)
+* Migrate to Mill 1.0.6 (was 0.12.17) by [@Gedochao](https://github.com/Gedochao) in [#4019](https://github.com/VirtusLab/scala-cli/pull/4019)
+* Bump libsodium to 1.0.21 (partially, except for static launchers locked at 1.0.18) by [@Gedochao](https://github.com/Gedochao) in [#4041](https://github.com/VirtusLab/scala-cli/pull/4041)
+* Bump `coursier` to 2.1.25-M23 by [@Gedochao](https://github.com/Gedochao) in [#4037](https://github.com/VirtusLab/scala-cli/pull/4037)
+* Bump Scala 3 Next RC to 3.8.0-RC6 by [@Gedochao](https://github.com/Gedochao) in [#4039](https://github.com/VirtusLab/scala-cli/pull/4039)
+* Bump Scala.js to 1.20.2 by [@Gedochao](https://github.com/Gedochao) in [#4040](https://github.com/VirtusLab/scala-cli/pull/4040)
+* Bump sass from 1.97.1 to 1.97.2 in /website by @dependabot[bot] in [#4038](https://github.com/VirtusLab/scala-cli/pull/4038)
+* Bump alpine to 3.23 & relevant libsodium to 1.0.20 by [@Gedochao](https://github.com/Gedochao) in [#4047](https://github.com/VirtusLab/scala-cli/pull/4047)
+* Bump @types/react from 19.2.7 to 19.2.8 in /website by @dependabot[bot] in [#4048](https://github.com/VirtusLab/scala-cli/pull/4048)
+* Bump Scala 3 Next to 3.8.0 by [@Gedochao](https://github.com/Gedochao) in [#4049](https://github.com/VirtusLab/scala-cli/pull/4049)
+* Bump Scala 3 Next RC to 3.8.1-RC1 by [@Gedochao](https://github.com/Gedochao) in [#4051](https://github.com/VirtusLab/scala-cli/pull/4051)
+* Bump undici from 7.16.0 to 7.18.2 in /website by @dependabot[bot] in [#4050](https://github.com/VirtusLab/scala-cli/pull/4050)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.11.0...v1.12.0
+
 ## [v1.11.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.11.0)
 
 ### Change default Scala versions to 2.13.18 and 2.12.21
