@@ -20,9 +20,9 @@ object Scala {
   def runnerScala3     = scala3Lts
   def scala3NextPrefix = "3.8"
   def scala3Next       = s"$scala3NextPrefix.0" // the newest/next version of Scala
-  def scala3NextAnnounced   = s"3.7.4"     // the newest/next version of Scala that's been announced
-  def scala3NextRc          = "3.8.0-RC6"  // the latest RC version of Scala Next
-  def scala3NextRcAnnounced = scala3NextRc // the latest announced RC version of Scala Next
+  def scala3NextAnnounced   = s"3.7.4"    // the newest/next version of Scala that's been announced
+  def scala3NextRc          = "3.8.1-RC1" // the latest RC version of Scala Next
+  def scala3NextRcAnnounced = "3.8.0-RC6" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
