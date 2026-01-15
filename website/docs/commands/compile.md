@@ -196,9 +196,11 @@ A single option can be passed like this:
 It's also possible to pass a value to the option with the same directive:
 
 ```scala compile
-//> using option -release 11
+//> using option -release 17
 
-import java.net.http.HttpRequest
+object Main {
+  java.util.HexFormat.of().toHexDigits(255)
+}
 ```
 
 There's a separate directive for passing multiple options at one time:

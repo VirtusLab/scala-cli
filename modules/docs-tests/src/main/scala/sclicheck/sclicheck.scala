@@ -215,7 +215,7 @@ def checkFile(file: os.Path, options: Options): Unit =
         coursierCliDep,
         "--",
         "launch",
-        s"scala:${Constants.defaultScalaVersion}",
+        s"scala:${Constants.scalaLegacyRunnerVersion}",
         "-M",
         "dotty.tools.MainGenericRunner",
         "--"

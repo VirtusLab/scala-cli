@@ -947,9 +947,9 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   for (options <- Seq(defaultOptions, defaultScala3Options))
     test(s"compile 12k sources for Scala ${options.scalaOptions.scalaVersion.get.asString}") {
       val mainInput = os.rel / "main.sc" ->
-        """//> using jvm 11
-          |println("Hello from big build")
-          |""".stripMargin
+        s"""//> using jvm ${scala.build.internal.Constants.scala38MinJavaVersion}
+           |println("Hello from big build")
+           |""".stripMargin
 
       val additionalInputs = 1 to 12000 map { i =>
         os.rel / s"Foo$i.scala" ->
