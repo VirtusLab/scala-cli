@@ -863,7 +863,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
          |  def defaultMillVersion = "${BuildInfo.millVersion}"
          |  def mill012Version = "${Deps.Versions.mill012Version}"
-         |  def mill10Version = "${Deps.Versions.mill10Version}"
+         |  def mill1Version = "${Deps.Versions.mill1Version}"
          |  def defaultSbtVersion = "${Deps.Versions.sbtVersion}"
          |  def defaultMavenVersion = "${Deps.Versions.mavenVersion}"
          |  def defaultMavenScalaCompilerPluginVersion = "${Deps.Versions.mavenScalaCompilerPluginVersion}"
@@ -1121,7 +1121,7 @@ trait CliIntegration extends SbtModule
            |  def jmhGeneratorBytecodeModule = "${Deps.jmhGeneratorBytecode.dep.module.name.value}"
            |  def defaultMillVersion = "${BuildInfo.millVersion}"
            |  def mill012Version = "${Deps.Versions.mill012Version}"
-           |  def mill10Version = "${Deps.Versions.mill10Version}"
+           |  def mill1Version = "${Deps.Versions.mill1Version}"
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)
