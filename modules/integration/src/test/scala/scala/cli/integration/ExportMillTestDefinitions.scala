@@ -121,3 +121,6 @@ trait TestMill012 extends TestMillVersion:
 trait TestMill10 extends TestMillVersion:
   self: ExportMillTestDefinitions =>
   override def millVersion: String = Constants.mill10Version
+trait TestMill11 extends TestMillVersion:
+  self: ExportMillTestDefinitions =>
+  override def millVersion: String = Constants.mill11Version

@@ -148,6 +148,8 @@ object Deps {
     def mill012Version                    = "0.12.17"
     def mill10Version                     =
       if (BuildInfo.millVersion.startsWith("1.0.")) BuildInfo.millVersion else "1.0.6"
+    def mill11Version =
+      if (BuildInfo.millVersion.startsWith("1.1.")) BuildInfo.millVersion else "1.1.0-RC4"
     def mavenVersion                    = "3.8.1"
     def mavenScalaCompilerPluginVersion = "4.9.1"
     def mavenExecPluginVersion          = "3.3.0"
