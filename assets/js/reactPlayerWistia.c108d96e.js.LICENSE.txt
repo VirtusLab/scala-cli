@@ -1,0 +1,11 @@
+/*! Bundled license information:
+
+ce-la-react/dist/ce-la-react.js:
+  (**
+   * @license
+   * Copyright 2018 Google LLC
+   * SPDX-License-Identifier: BSD-3-Clause
+   *
+   * Modified version of `@lit/react` for vanilla custom elements with support for SSR.
+   *)
+*/
