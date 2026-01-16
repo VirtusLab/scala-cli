@@ -1,6 +1,6 @@
 package scala.cli.integration
 
-class ExportMill10Tests213 extends ExportMillTestDefinitions with Test213 with TestMill10 {
+class ExportMill1Tests213 extends ExportMillTestDefinitions with Test213 with TestMill1 {
   if runExportTests then {
     test(s"scalac options$commonTestDescriptionSuffix") {
       simpleTest(
