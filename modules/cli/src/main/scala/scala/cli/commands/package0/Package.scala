@@ -664,7 +664,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     }
     val from = packageOptions.dockerOptions.from.getOrElse {
       builds.head.options.platform.value match {
-        case Platform.JVM    => "openjdk:17-slim"
+        case Platform.JVM    => "openjdk:17.0.2-slim"
         case Platform.JS     => "node"
         case Platform.Native => "debian:stable-slim"
       }
