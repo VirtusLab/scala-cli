@@ -201,7 +201,7 @@ object Deps {
         "org.jline" -> "jline-terminal",
         "org.jline" -> "jline-terminal-jna"
       )
-  def jgit                 = mvn"org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r"
+  def jgit                 = mvn"org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r"
   def jimfs                = mvn"com.google.jimfs:jimfs:1.3.1"
   def jmhGeneratorBytecode = mvn"org.openjdk.jmh:jmh-generator-bytecode:${Versions.jmh}"
   def jmhCore              = mvn"org.openjdk.jmh:jmh-core:${Versions.jmh}"
