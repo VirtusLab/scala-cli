@@ -150,9 +150,10 @@ final case class MillProject(
       val parts: Seq[String] = Seq(
         "import mill._",
         "import mill.scalalib._"
-      ) ++ maybeExtraImport ++ Seq(
-        s"object $escapedName extends $parentModule {"
-      ) ++
+      ) ++ maybeExtraImport ++
+        Seq(
+          s"object $escapedName extends $parentModule {"
+        ) ++
         maybeScalaVer.map(s => s"  $s") ++
         maybePlatformVer.map(s => s"  $s") ++
         maybeScalacOptions.map(s => s"  $s") ++

@@ -74,16 +74,17 @@ object ExportTestProjects {
     message: String
   ): TestInputs =
     TestInputs(
-      os.rel / s"$mainClassName.scala" -> s"""//> using scala $scalaVersion
-                                             |//> using option -deprecation
-                                             |//> using plugin com.kubuszok::hearth-cross-quotes:0.2.0
-                                             |
-                                             |object $mainClassName {
-                                             |  def main(args: Array[String]): Unit = {
-                                             |    println("$message")
-                                             |  }
-                                             |}
-                                             |""".stripMargin
+      os.rel / s"$mainClassName.scala" ->
+        s"""//> using scala $scalaVersion
+           |//> using option -deprecation
+           |//> using plugin com.kubuszok::hearth-cross-quotes:0.2.0
+           |
+           |object $mainClassName {
+           |  def main(args: Array[String]): Unit = {
+           |    println("$message")
+           |  }
+           |}
+           |""".stripMargin
     )
 
   def jsTest(scalaVersion: String): TestInputs = {

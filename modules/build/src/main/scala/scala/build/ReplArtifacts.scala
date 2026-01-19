@@ -100,7 +100,8 @@ object ReplArtifacts {
     val scalaCoursierVersion = scalaParams.scalaVersion.coursierVersion
     val shouldUseNewRepl     =
       !isScala2 &&
-      ((scalaCoursierVersion >= firstNewReplNightly) || (scalaCoursierVersion >= firstNewReplRc) || scalaCoursierVersion >= firstNewReplStable)
+      ((scalaCoursierVersion >= firstNewReplNightly) || (scalaCoursierVersion >= firstNewReplRc) ||
+      scalaCoursierVersion >= firstNewReplStable)
     val replDeps =
       if isScala2 then Seq(dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}")
       else if shouldUseNewRepl then

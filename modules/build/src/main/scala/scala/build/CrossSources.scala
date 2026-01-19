@@ -310,7 +310,8 @@ object CrossSources {
       resolveResourceDirs(allInputs, preprocessedSources)
 
     lazy val allPathsWithDirectivesByScope: Map[Scope, Seq[(os.Path, Position.File)]] =
-      (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions ++ unwrappedScriptsWithDirectivePositions)
+      (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions ++
+        unwrappedScriptsWithDirectivePositions)
         .flatMap { (withBuildRequirements, directivesPositions) =>
           val scope         = withBuildRequirements.scopedValue(Scope.Main).scope
           val path: os.Path = withBuildRequirements.value match

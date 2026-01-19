@@ -185,7 +185,8 @@ trait RunScalacCompatTestDefinitions {
     val expectedOutput   = "Hello"
     TestInputs(
       os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
-      os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }"""
+      os.rel / runDir / mainInput               ->
+        s"""object Main extends App { println(Message("$expectedOutput").value) }"""
     ).fromRoot { (root: os.Path) =>
       val preCompileOutputDir = os.rel / "outParentDir" / "out"
 
@@ -220,7 +221,8 @@ trait RunScalacCompatTestDefinitions {
     val expectedOutput   = "Hello"
     TestInputs(
       os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
-      os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }"""
+      os.rel / runDir / mainInput               ->
+        s"""object Main extends App { println(Message("$expectedOutput").value) }"""
     ).fromRoot { (root: os.Path) =>
       val preCompileOutputDir = os.rel / "outParentDir" / "out"
 

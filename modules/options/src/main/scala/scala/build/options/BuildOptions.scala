@@ -451,7 +451,8 @@ final case class BuildOptions(
           scalaNativeCliVersion =
             if (platform.value == Platform.Native) {
               val scalaNativeFinalVersion = scalaNativeOptions.finalVersion
-              if scalaNativeOptions.version.isEmpty && scalaNativeFinalVersion != Constants.scalaNativeVersion
+              if scalaNativeOptions.version.isEmpty &&
+                scalaNativeFinalVersion != Constants.scalaNativeVersion
               then
                 scalaNativeOptions.maxDefaultNativeVersions.map(_._2).distinct
                   .map(reason => s"[${Console.YELLOW}warn${Console.RESET}] $reason")
