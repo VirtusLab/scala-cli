@@ -438,6 +438,14 @@ Aliases: `--built-in`, `--built-in-rules`, `--enable-built-in`
 
 Enable running built-in rules (enabled by default)
 
+### `--with-unused-deps`
+
+Detect and suggest removing unused compile-time dependencies
+
+### `--with-explicit-deps`
+
+Detect and suggest adding missing explicit dependencies (transitive dependencies that are used)
+
 ## Fmt options
 
 Available in commands:

@@ -19,13 +19,16 @@ object Fix extends ScalaCommand[FixOptions] {
       val inputs    = options.shared.inputs(args.all).orExit(logger)
       val buildOpts = buildOptionsOrExit(options)
       val configDb  = ConfigDbUtils.configDb.orExit(logger)
-      if options.enableBuiltInRules then {
+
+      if options.enableBuiltInRules || options.checkUnusedDependencies || options.checkExplicitDependencies
+      then {
         logger.message("Running built-in rules...")
         if options.check then
           // TODO support --check for built-in rules: https://github.com/VirtusLab/scala-cli/issues/3423
           logger.message("Skipping, '--check' is not yet supported for built-in rules.")
         else {
           BuiltInRules.runRules(
+            options = options,
             inputs = inputs,
             buildOptions = buildOpts,
             logger = logger

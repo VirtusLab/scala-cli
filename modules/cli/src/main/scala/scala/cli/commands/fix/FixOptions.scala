@@ -31,9 +31,28 @@ final case class FixOptions(
   @Name("enableBuiltIn")
   @Name("builtIn")
   @Name("builtInRules")
-  enableBuiltInRules: Boolean = true
+  enableBuiltInRules: Boolean = true,
+  @Group(HelpGroup.Fix.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Detect and suggest removing unused compile-time dependencies")
+  @Tag(tags.inShortHelp)
+  @Name("checkUnusedDeps")
+  @Name("detectUnusedDeps")
+  @Name("detectUnusedDependencies")
+  checkUnusedDependencies: Boolean = false,
+  @Group(HelpGroup.Fix.toString)
+  @Tag(tags.experimental)
+  @HelpMessage(
+    "Detect and suggest adding missing explicit dependencies (transitive dependencies that are used)"
+  )
+  @Tag(tags.inShortHelp)
+  @Name("checkExplicitDeps")
+  @Name("detectExplicitDeps")
+  @Name("detectExplicitDependencies")
+  checkExplicitDependencies: Boolean = false
 ) extends HasSharedOptions {
-  def areAnyRulesEnabled: Boolean = enableScalafix || enableBuiltInRules
+  def areAnyRulesEnabled: Boolean =
+    enableScalafix || enableBuiltInRules || checkUnusedDependencies || checkExplicitDependencies
 }
 
 object FixOptions {

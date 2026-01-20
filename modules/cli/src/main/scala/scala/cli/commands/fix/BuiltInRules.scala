@@ -8,7 +8,7 @@ import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
 import scala.build.preprocessing.directives.*
 import scala.build.preprocessing.{ExtractedDirectives, SheBang}
-import scala.build.{CrossSources, Logger, Position, Sources}
+import scala.build.{Artifacts, CrossSources, Logger, Position, Sources}
 import scala.cli.commands.util.CommandHelpers
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -33,25 +33,80 @@ object BuiltInRules extends CommandHelpers {
   private val newLine: String = scala.build.internal.AmmUtil.lineSeparator
 
   def runRules(
+    options: FixOptions,
     inputs: Inputs,
     buildOptions: BuildOptions,
     logger: Logger
   )(using ScalaCliInvokeData): Unit = {
-    val (mainSources, testSources) = getProjectSources(inputs, logger)
-      .left.map(CompositeBuildException(_))
-      .orExit(logger)
+    if (options.enableBuiltInRules) {
+      val (mainSources, testSources) = getProjectSources(inputs, logger)
+        .left.map(CompositeBuildException(_))
+        .orExit(logger)
 
-    val sourcesCount =
-      mainSources.paths.length + mainSources.inMemory.length +
-        testSources.paths.length + testSources.inMemory.length
-    sourcesCount match
-      case 0 =>
-        logger.message("No sources to migrate directives from.")
-        logger.message("Nothing to do.")
-      case 1 =>
-        logger.message("No need to migrate directives for a single source file project.")
-        logger.message("Nothing to do.")
-      case _ => migrateDirectives(inputs, buildOptions, mainSources, testSources, logger)
+      val sourcesCount =
+        mainSources.paths.length + mainSources.inMemory.length +
+          testSources.paths.length + testSources.inMemory.length
+      sourcesCount match
+        case 0 =>
+          logger.message("No sources to migrate directives from.")
+          logger.message("Nothing to do.")
+        case 1 =>
+          logger.message("No need to migrate directives for a single source file project.")
+          logger.message("Nothing to do.")
+        case _ => migrateDirectives(inputs, buildOptions, mainSources, testSources, logger)
+    }
+
+    if (options.checkUnusedDependencies || options.checkExplicitDependencies) {
+      val (crossSources, _) = CrossSources.forInputs(
+        inputs,
+        preprocessors = Sources.defaultPreprocessors(
+          buildOptions.archiveCache,
+          buildOptions.internal.javaClassNameVersionOpt,
+          () => buildOptions.javaHome().value.javaCommand
+        ),
+        logger = logger,
+        suppressWarningOptions = buildOptions.suppressWarningOptions,
+        exclude = buildOptions.internal.exclude,
+        download = buildOptions.downloader
+      ).orExit(logger)
+
+      val sharedOptions0 = crossSources.sharedOptions(buildOptions)
+      val sharedOptions  = sharedOptions0.copy(
+        internal = sharedOptions0.internal.copy(keepResolution = true)
+      )
+      val scopedSources = crossSources.scopedSources(sharedOptions).orExit(logger)
+      val sources       = scopedSources.sources(
+        Scope.Main,
+        sharedOptions,
+        inputs.workspace,
+        logger
+      ).orExit(logger)
+
+      val artifacts = sharedOptions.artifacts(logger, Scope.Main).orExit(logger)
+
+      val analysisResultEither = DependencyAnalyzer.analyzeDependencies(
+        sources,
+        sharedOptions,
+        artifacts,
+        logger
+      )
+
+      if (analysisResultEither.isRight) {
+        val analysisResult = analysisResultEither.toOption.get
+        if (options.checkUnusedDependencies)
+          DependencyAnalyzer.reportUnusedDependencies(analysisResult.unusedDependencies, logger)
+
+        if (options.checkExplicitDependencies)
+          DependencyAnalyzer.reportMissingDependencies(
+            analysisResult.missingExplicitDependencies,
+            logger
+          )
+      }
+      else
+        logger.error(
+          s"Dependency analysis failed: ${analysisResultEither.left.getOrElse("Unknown error")}"
+        )
+    }
   }
 
   private def migrateDirectives(
