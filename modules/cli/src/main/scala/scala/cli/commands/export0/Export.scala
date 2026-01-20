@@ -99,11 +99,13 @@ object Export extends ScalaCommand[ExportOptions] {
     cache: FileCache[Task],
     projectName: Option[String],
     millVersion: String,
+    useLatestLaunchers: Boolean = true,
     logger: Logger
   ): MillProjectDescriptor = {
+    val launcherTag       = if useLatestLaunchers then "main" else millVersion
     val launcherArtifacts = Seq(
-      os.rel / "mill"     -> s"https://github.com/com-lihaoyi/mill/raw/$millVersion/mill",
-      os.rel / "mill.bat" -> s"https://github.com/com-lihaoyi/mill/raw/$millVersion/mill.bat"
+      os.rel / "mill"     -> s"https://github.com/com-lihaoyi/mill/raw/$launcherTag/mill",
+      os.rel / "mill.bat" -> s"https://github.com/com-lihaoyi/mill/raw/$launcherTag/mill.bat"
     )
     val launcherTasks = launcherArtifacts.map {
       case (path, url) =>
@@ -274,6 +276,7 @@ object Export extends ScalaCommand[ExportOptions] {
             cache = options.shared.coursierCache,
             projectName = options.project,
             millVersion = options.millVersion.getOrElse(Constants.millVersion),
+            useLatestLaunchers = options.useLatestMillLaunchers.getOrElse(true),
             logger = logger
           )
         else if shouldExportToMaven then

@@ -5,6 +5,8 @@ import os.RelPath
 
 import java.nio.charset.Charset
 
+import scala.util.Properties
+
 abstract class ExportMillTestDefinitions extends ScalaCliSuite
     with TestScalaVersionArgs
     with ExportCommonTestDefinitions
@@ -104,6 +106,16 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
         jvmTestScalacOptions(className = "Hello", exportArgs = defaultExportCommandArgs)
       }
     }
+    if (!Properties.isMac || TestUtil.isM1) && !Properties.isWin then
+      // TODO enable this for intel Macs when Mill is bumped to 1.1.0 stable or newer: https://github.com/com-lihaoyi/mill/issues/6632
+      test(s"JVM scalac options with disabled latest launchers$commonTestDescriptionSuffix") {
+        TestUtil.retryOnCi() {
+          jvmTestScalacOptions(
+            className = "Hello",
+            exportArgs = defaultExportCommandArgs ++ Seq("--use-latest-mill-launchers=false")
+          )
+        }
+      }
     if !actualScalaVersion.startsWith("2.12") then
       test(s"JVM with a compiler plugin$commonTestDescriptionSuffix") {
         TestUtil.retryOnCi() {

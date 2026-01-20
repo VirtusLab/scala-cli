@@ -390,6 +390,10 @@ Version of SBT to be used for the export (1.11.7 by default)
 
 Version of Mill to be used for the export (1.0.6 by default)
 
+### `--use-latest-mill-launchers`
+
+If set, latest Mill launchers from the main branch will be used, rather than the ones for the used version tag (true by default)
+
 ### `--mvn-version`
 
 Version of Maven Compiler Plugin to be used for the export (3.8.1 by default)

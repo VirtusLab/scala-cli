@@ -62,6 +62,12 @@ final case class ExportOptions(
   )
   millVersion: Option[String] = None,
   @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.restricted)
+  @HelpMessage(
+    s"If set, latest Mill launchers from the main branch will be used, rather than the ones for the used version tag (true by default)"
+  )
+  useLatestMillLaunchers: Option[Boolean] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.experimental)
   @HelpMessage(
     s"Version of Maven Compiler Plugin to be used for the export (${Constants.defaultMavenVersion} by default)"
