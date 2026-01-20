@@ -4,6 +4,7 @@ import caseapp.*
 import caseapp.core.help.HelpFormat
 
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.build.options.Scope
 import scala.build.{Build, BuildThreads, Builds, Logger}
@@ -103,7 +104,8 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
 
     val shouldBuildTestScope = options.shared.scope.test.getOrElse(false)
     if (options.watch.watchMode) {
-      val watcher = Build.watch(
+      val isFirstRun = new AtomicBoolean(true)
+      val watcher    = Build.watch(
         inputs,
         buildOptions,
         compilerMaker,
@@ -115,6 +117,8 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
+        if (options.watch.watchClearScreen && !isFirstRun.getAndSet(false))
+          WatchUtil.clearScreen()
         for (builds <- res.orReport(logger))
           postBuild(builds, allowExit = false)
       }
