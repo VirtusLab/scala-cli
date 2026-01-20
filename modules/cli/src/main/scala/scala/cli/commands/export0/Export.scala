@@ -192,7 +192,8 @@ object Export extends ScalaCommand[ExportOptions] {
           scalaNativeOptions = initialBuildOptions.scalaNativeOptions.copy(
             maxDefaultNativeVersions =
               initialBuildOptions.scalaNativeOptions.maxDefaultNativeVersions ++
-                (if shouldExportToMill && Constants.scalaNativeVersion != Constants.maxScalaNativeForMillExport
+                (if shouldExportToMill &&
+                   Constants.scalaNativeVersion != Constants.maxScalaNativeForMillExport
                  then
                    val warningMsg =
                      s"Mill export does not support Scala Native ${Constants.scalaNativeVersion}, ${Constants.maxScalaNativeForMillExport} should be used instead."
@@ -233,7 +234,8 @@ object Export extends ScalaCommand[ExportOptions] {
     }
 
     if (
-      optionsMain0.scalaOptions.scalaVersion.isEmpty && optionsTest0.scalaOptions.scalaVersion.nonEmpty
+      optionsMain0.scalaOptions.scalaVersion.isEmpty &&
+      optionsTest0.scalaOptions.scalaVersion.nonEmpty
     ) {
       logger.error(
         s"""Detected that the Scala version is only set in test scope.

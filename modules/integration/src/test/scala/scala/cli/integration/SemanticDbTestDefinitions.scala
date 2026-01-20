@@ -99,8 +99,9 @@ trait SemanticDbTestDefinitions { this: CompileTestDefinitions =>
           val semDbFile              = semDbFiles.head
           val expectedSemanticDbPath =
             if (semanticDbTargetDir.isDefined)
-              os.rel / semanticDbTargetDir
-                .get / "META-INF" / "semanticdb" / "foo" / s"$sourceFileName.semanticdb"
+              os.rel /
+                semanticDbTargetDir
+                  .get / "META-INF" / "semanticdb" / "foo" / s"$sourceFileName.semanticdb"
             else
               os.rel / "META-INF" / "semanticdb" / "foo" / s"$sourceFileName.semanticdb"
           expect(semDbFile.endsWith(expectedSemanticDbPath))
@@ -167,11 +168,13 @@ trait SemanticDbTestDefinitions { this: CompileTestDefinitions =>
           expect(semDbFiles.length == 2)
           val semDbFile1 = semDbFiles.find(_.last == s"$sourceFileName1.semanticdb").get
           val relPath1   =
-            os.rel / "META-INF" / "semanticdb" / sourceDir1 / package1 / s"$sourceFileName1.semanticdb"
+            os.rel / "META-INF" / "semanticdb" / sourceDir1 / package1 /
+              s"$sourceFileName1.semanticdb"
           expect(semDbFile1.endsWith(relPath1))
           val semDbFile2 = semDbFiles.find(_.last == s"$sourceFileName2.semanticdb").get
           val relPath2   =
-            os.rel / "META-INF" / "semanticdb" / sourceDir2 / package2 / s"$sourceFileName2.semanticdb"
+            os.rel / "META-INF" / "semanticdb" / sourceDir2 / package2 /
+              s"$sourceFileName2.semanticdb"
           expect(semDbFile2.endsWith(relPath2))
         }
       }

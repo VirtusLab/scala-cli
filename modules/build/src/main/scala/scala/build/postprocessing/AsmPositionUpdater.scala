@@ -79,7 +79,8 @@ object AsmPositionUpdater {
             }
           }
         catch {
-          case e: (NoSuchFileException | FileAlreadyExistsException | ArrayIndexOutOfBoundsException) =>
+          case e: (NoSuchFileException | FileAlreadyExistsException |
+                ArrayIndexOutOfBoundsException) =>
             logger.debugStackTrace(e)
             logger.log(s"Error while processing ${path.relativeTo(Os.pwd)}: $e")
             logger.log("Are you trying to run too many builds at once? Trying to recover...")

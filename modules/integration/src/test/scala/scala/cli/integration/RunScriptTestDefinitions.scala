@@ -391,7 +391,8 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
              |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:3)
              |$tab... 10 more""".stripMargin.linesIterator.toVector
         else if (
-          actualScalaVersion.coursierVersion >= "2.13.13".coursierVersion && actualScalaVersion.coursierVersion < "2.13.17".coursierVersion
+          actualScalaVersion.coursierVersion >= "2.13.13".coursierVersion &&
+          actualScalaVersion.coursierVersion < "2.13.17".coursierVersion
         )
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:6)

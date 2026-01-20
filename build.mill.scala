@@ -213,7 +213,8 @@ trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with LocatedI
       "SCALA_CLI_GIF_SCENARIOS" -> (BuildCtx.workspaceRoot / "gifs" / "scenarios").toString,
       "SCALA_CLI_WEBSITE_IMG"   -> (BuildCtx.workspaceRoot / "website" / "static" / "img").toString,
       "SCALA_CLI_GIF_RENDERER_DOCKER_DIR" -> (BuildCtx.workspaceRoot / "gifs").toString,
-      "SCALA_CLI_SVG_RENDERER_DOCKER_DIR" -> (BuildCtx.workspaceRoot / "gifs" / "svg_render").toString
+      "SCALA_CLI_SVG_RENDERER_DOCKER_DIR" ->
+        (BuildCtx.workspaceRoot / "gifs" / "svg_render").toString
     )
     private def customResources: T[Seq[PathRef]] = {
       val customPaths: Seq[os.Path] = Seq(

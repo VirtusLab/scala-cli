@@ -647,7 +647,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   ): Either[BuildException, Unit] = either {
     val packageOptions = builds.head.options.notForBloopOptions.packageOptions
 
-    if builds.head.options.platform.value == Platform.Native && (Properties.isMac || Properties.isWin)
+    if builds.head.options.platform.value == Platform.Native &&
+      (Properties.isMac || Properties.isWin)
     then {
       System.err.println(
         "Package scala native application to docker image is not supported on MacOs and Windows"
@@ -908,18 +909,17 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val extraClassesByDefaultOutputDir =
       extraClassesFolders.flatMap(os.walk(_)).filter(os.isFile(_)).map(builds.head.output -> _)
 
-    val byteCodeZipEntries =
-      (compiledClassesByOutputDir ++ extraClassesByDefaultOutputDir)
-        .distinct
-        .map { (outputDir, path) =>
-          val name         = path.relativeTo(outputDir).toString
-          val content      = os.read.bytes(path)
-          val lastModified = os.mtime(path)
-          val ent          = new ZipEntry(name)
-          ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
-          ent.setSize(content.length)
-          (ent, content)
-        }
+    val byteCodeZipEntries = (compiledClassesByOutputDir ++ extraClassesByDefaultOutputDir)
+      .distinct
+      .map { (outputDir, path) =>
+        val name         = path.relativeTo(outputDir).toString
+        val content      = os.read.bytes(path)
+        val lastModified = os.mtime(path)
+        val ent          = new ZipEntry(name)
+        ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
+        ent.setSize(content.length)
+        (ent, content)
+      }
 
     val provided = builds.head.options.notForBloopOptions.packageOptions.provided ++ extraProvided
     val allJars  =

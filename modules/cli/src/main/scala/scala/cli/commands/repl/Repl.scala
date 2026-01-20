@@ -74,7 +74,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       baseOptions.scalaOptions.scalaVersion match {
         case Some(s)
             if isDefaultAmmonite &&
-            s.isLts && (s
+            s.isLts &&
+            (s
               .versionOpt.exists(_.coursierVersion > maxAmmoniteScalaLtsVer.coursierVersion) ||
             s.isLtsAlias) =>
           val versionString = s.versionOpt.filter(_ => !s.isLtsAlias).getOrElse(Constants.scala3Lts)
@@ -82,7 +83,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           logger.message(s"Defaulting to Scala $maxAmmoniteScalaLtsVer")
           Some(MaybeScalaVersion(maxAmmoniteScalaLtsVer))
         case None
-            if isDefaultAmmonite && maxAmmoniteScalaVer.coursierVersion < defaultScalaVersion.coursierVersion =>
+            if isDefaultAmmonite &&
+            maxAmmoniteScalaVer.coursierVersion < defaultScalaVersion.coursierVersion =>
           logger.message(
             s"Scala $defaultScalaVersion is not yet supported with this version of Ammonite"
           )
@@ -469,7 +471,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           else None
       ).left.map {
         case FetchingDependenciesError(e: ResolutionError.CantDownloadModule, positions)
-            if shouldUseAmmonite && e.module.name.value == s"ammonite_${scalaParams.scalaVersion}" =>
+            if shouldUseAmmonite &&
+            e.module.name.value == s"ammonite_${scalaParams.scalaVersion}" =>
           CantDownloadAmmoniteError(
             e.versionConstraint.asString,
             scalaParams.scalaVersion,
