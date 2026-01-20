@@ -4,7 +4,7 @@
 //| - com.goyeau::mill-scalafix::0.6.0
 //| - com.lumidion::sonatype-central-client-requests:0.6.0
 //| - io.get-coursier:coursier-launcher_2.13:2.1.25-M23
-//| - org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r
+//| - org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r
 package build
 
 import build.ci.publishVersion
