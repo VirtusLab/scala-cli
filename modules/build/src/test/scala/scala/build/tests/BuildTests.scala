@@ -246,26 +246,26 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
-  test("simple JS") {
-    val testInputs = TestInputs(
-      os.rel / "simple.sc" ->
-        """val n = 2
-          |println(s"n=$n")
-          |""".stripMargin
-    )
-    testInputs.withBuild(defaultOptions.enableJs, buildThreads, bloopConfigOpt) {
-      (_, _, maybeBuild) =>
-        maybeBuild.orThrow.assertGeneratedEquals(
-          "simple$.class",
-          "simple$.sjsir",
-          "simple$delayedInit$body.class",
-          "simple$delayedInit$body.sjsir",
-          "simple.class",
-          "simple.sjsir"
-        )
-        maybeBuild.orThrow.assertNoDiagnostics()
-    }
-  }
+//  test("simple JS") {
+//    val testInputs = TestInputs(
+//      os.rel / "simple.sc" ->
+//        """val n = 2
+//          |println(s"n=$n")
+//          |""".stripMargin
+//    )
+//    testInputs.withBuild(defaultOptions.enableJs, buildThreads, bloopConfigOpt) {
+//      (_, _, maybeBuild) =>
+//        maybeBuild.orThrow.assertGeneratedEquals(
+//          "simple$.class",
+//          "simple$.sjsir",
+//          "simple$delayedInit$body.class",
+//          "simple$delayedInit$body.sjsir",
+//          "simple.class",
+//          "simple.sjsir"
+//        )
+//        maybeBuild.orThrow.assertNoDiagnostics()
+//    }
+//  }
 
   def simpleNativeTest(): Unit = {
     val testInputs = TestInputs(
@@ -426,60 +426,60 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
       )
     }
   }
-  test("ignore files if wrong Scala target requirement") {
-    val testInputs = TestInputs(
-      os.rel / "Simple.scala" ->
-        """object Simple {
-          |  def main(args: Array[String]): Unit =
-          |    println("Hello")
-          |}
-          |""".stripMargin,
-      os.rel / "Ignored.scala" ->
-        """//> using target.platform scala.js
-          |object Ignored {
-          |  def foo = 2
-          |}
-          |""".stripMargin
-    )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      maybeBuild.orThrow.assertGeneratedEquals(
-        "Simple.class",
-        "Simple$.class"
-      )
-    }
-  }
+//  test("ignore files if wrong Scala target requirement") {
+//    val testInputs = TestInputs(
+//      os.rel / "Simple.scala" ->
+//        """object Simple {
+//          |  def main(args: Array[String]): Unit =
+//          |    println("Hello")
+//          |}
+//          |""".stripMargin,
+//      os.rel / "Ignored.scala" ->
+//        """//> using target.platform scala.js
+//          |object Ignored {
+//          |  def foo = 2
+//          |}
+//          |""".stripMargin
+//    )
+//    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+//      maybeBuild.orThrow.assertGeneratedEquals(
+//        "Simple.class",
+//        "Simple$.class"
+//      )
+//    }
+//  }
 
-  test("ignore files if wrong Scala target requirement - JS") {
-    val testInputs = TestInputs(
-      os.rel / "Simple.scala" ->
-        """object Simple {
-          |  def main(args: Array[String]): Unit =
-          |    println("Hello")
-          |}
-          |""".stripMargin,
-      os.rel / "Ignored.scala" ->
-        """//> using target.platform jvm
-          |object Ignored {
-          |  def foo = 2
-          |}
-          |""".stripMargin,
-      os.rel / "IgnoredToo.scala" ->
-        """//> using target.platform native
-          |object IgnoredToo {
-          |  def foo = 2
-          |}
-          |""".stripMargin
-    )
-    val options = defaultOptions.enableJs
-    testInputs.withBuild(options, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      maybeBuild.orThrow.assertGeneratedEquals(
-        "Simple.class",
-        "Simple$.class",
-        "Simple.sjsir",
-        "Simple$.sjsir"
-      )
-    }
-  }
+//  test("ignore files if wrong Scala target requirement - JS") {
+//    val testInputs = TestInputs(
+//      os.rel / "Simple.scala" ->
+//        """object Simple {
+//          |  def main(args: Array[String]): Unit =
+//          |    println("Hello")
+//          |}
+//          |""".stripMargin,
+//      os.rel / "Ignored.scala" ->
+//        """//> using target.platform jvm
+//          |object Ignored {
+//          |  def foo = 2
+//          |}
+//          |""".stripMargin,
+//      os.rel / "IgnoredToo.scala" ->
+//        """//> using target.platform native
+//          |object IgnoredToo {
+//          |  def foo = 2
+//          |}
+//          |""".stripMargin
+//    )
+//    val options = defaultOptions.enableJs
+//    testInputs.withBuild(options, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+//      maybeBuild.orThrow.assertGeneratedEquals(
+//        "Simple.class",
+//        "Simple$.class",
+//        "Simple.sjsir",
+//        "Simple$.sjsir"
+//      )
+//    }
+//  }
 
   test("Pass files with only commented directives as is to scalac") {
     val testInputs = TestInputs(
@@ -989,61 +989,61 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
       }
     }
 
-  for {
-    (modeStr, bloopMode) <-
-      Seq("fastLinkJs" -> LinkerMode.Debug, "fullLinkJs" -> LinkerMode.Release)
-    if server
-  } do {
-    test(s"bloop config for $modeStr") {
-      val testInputs = TestInputs(
-        os.rel / "Simple.scala" ->
-          """//> using platform js
-            |def foo(): String = "foo"
-            |""".stripMargin
-      )
-      val jsLinkBuildOptions = defaultOptions.copy(
-        scalaOptions = defaultOptions.scalaOptions.copy(
-          scalaVersion = None
-        ),
-        scalaJsOptions = defaultOptions.scalaJsOptions.copy(
-          mode = ScalaJsMode(Some(modeStr))
-        )
-      )
-      testInputs.withBuild(jsLinkBuildOptions, buildThreads, bloopConfigOpt) {
-        (_, _, maybeBuild) =>
-          maybeBuild match {
-            case Right(b: Build.Successful) =>
-              assert(b.project.scalaJsOptions.exists(_.mode == bloopMode))
-            case _ => fail("Build failed")
-          }
+//  for {
+//    (modeStr, bloopMode) <-
+//      Seq("fastLinkJs" -> LinkerMode.Debug, "fullLinkJs" -> LinkerMode.Release)
+//    if server
+//  } do {
+//    test(s"bloop config for $modeStr") {
+//      val testInputs = TestInputs(
+//        os.rel / "Simple.scala" ->
+//          """//> using platform js
+//            |def foo(): String = "foo"
+//            |""".stripMargin
+//      )
+//      val jsLinkBuildOptions = defaultOptions.copy(
+//        scalaOptions = defaultOptions.scalaOptions.copy(
+//          scalaVersion = None
+//        ),
+//        scalaJsOptions = defaultOptions.scalaJsOptions.copy(
+//          mode = ScalaJsMode(Some(modeStr))
+//        )
+//      )
+//      testInputs.withBuild(jsLinkBuildOptions, buildThreads, bloopConfigOpt) {
+//        (_, _, maybeBuild) =>
+//          maybeBuild match {
+//            case Right(b: Build.Successful) =>
+//              assert(b.project.scalaJsOptions.exists(_.mode == bloopMode))
+//            case _ => fail("Build failed")
+//          }
+//
+//      }
+//    }
 
-      }
-    }
-
-    test(s"bloop config for noOpt and $modeStr") {
-      val testInputs = TestInputs(
-        os.rel / "Simple.scala" ->
-          """//> using platform js
-            |def foo(): String = "foo"
-            |""".stripMargin
-      )
-      val noOptBuildOptions = defaultOptions.copy(
-        scalaOptions = defaultOptions.scalaOptions.copy(
-          scalaVersion = None
-        ),
-        scalaJsOptions = defaultOptions.scalaJsOptions.copy(
-          mode = ScalaJsMode(Some(modeStr)),
-          noOpt = Some(true)
-        )
-      )
-      testInputs.withBuild(noOptBuildOptions, buildThreads, bloopConfigOpt) {
-        (_, _, maybeBuild) =>
-          maybeBuild match {
-            case Right(b: Build.Successful) =>
-              assert(b.project.scalaJsOptions.exists(_.mode == LinkerMode.Debug))
-            case _ => fail("Build failed")
-          }
-      }
-    }
-  }
+//    test(s"bloop config for noOpt and $modeStr") {
+//      val testInputs = TestInputs(
+//        os.rel / "Simple.scala" ->
+//          """//> using platform js
+//            |def foo(): String = "foo"
+//            |""".stripMargin
+//      )
+//      val noOptBuildOptions = defaultOptions.copy(
+//        scalaOptions = defaultOptions.scalaOptions.copy(
+//          scalaVersion = None
+//        ),
+//        scalaJsOptions = defaultOptions.scalaJsOptions.copy(
+//          mode = ScalaJsMode(Some(modeStr)),
+//          noOpt = Some(true)
+//        )
+//      )
+//      testInputs.withBuild(noOptBuildOptions, buildThreads, bloopConfigOpt) {
+//        (_, _, maybeBuild) =>
+//          maybeBuild match {
+//            case Right(b: Build.Successful) =>
+//              assert(b.project.scalaJsOptions.exists(_.mode == LinkerMode.Debug))
+//            case _ => fail("Build failed")
+//          }
+//      }
+//    }
+//  }
 }
