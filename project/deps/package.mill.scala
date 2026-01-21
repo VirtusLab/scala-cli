@@ -140,7 +140,7 @@ object Deps {
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.9"
-    def bloop                             = "2.0.17"
+    def bloop                             = "2.0.18"
     def sbtVersion                        = "1.11.7"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
