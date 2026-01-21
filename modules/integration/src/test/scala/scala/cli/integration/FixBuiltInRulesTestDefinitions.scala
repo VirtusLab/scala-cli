@@ -420,7 +420,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
     }
   }
 
-  if (!Properties.isWin) // TODO: fix this test for Windows CI
+  if (!Properties.isWin)
     test("using directives with boolean values are handled correctly") {
       val expectedMessage    = "Hello, world!"
       def maybeScalapyPrefix =
@@ -461,7 +461,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
                           |println(os.pwd)
                           |""".stripMargin
       )
-      if !Properties.isWin // TODO: make this run on Windows CI
+      if !Properties.isWin
       testInputs = TestInputs(os.rel / inputFileName -> code)
     }
       test(

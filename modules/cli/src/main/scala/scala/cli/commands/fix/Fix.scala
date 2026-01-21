@@ -24,7 +24,7 @@ object Fix extends ScalaCommand[FixOptions] {
       then {
         logger.message("Running built-in rules...")
         if options.check then
-          // TODO support --check for built-in rules: https://github.com/VirtusLab/scala-cli/issues/3423
+          // built-in rules don't support --check yet
           logger.message("Skipping, '--check' is not yet supported for built-in rules.")
         else {
           BuiltInRules.runRules(

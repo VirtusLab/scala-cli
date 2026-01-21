@@ -196,31 +196,25 @@ object DependencyAnalyzer {
   ): Either[String, DependencyAnalysisResult] = {
     logger.debug("Starting dependency analysis...")
 
-    // 1. Parse all sources once
     val parsedSources = parseAllSources(sources, logger)
     logger.debug(s"Parsed ${parsedSources.size} source files")
 
-    // 2. Aggregate all imports and usages
     val allImports    = parsedSources.flatMap(_.imports).toSet
     val allUsages     = parsedSources.flatMap(_.simpleUsages).toSet
     val allReferences = allImports ++ allUsages
 
     logger.debug(s"Found ${allImports.size} unique imports and ${allUsages.size} simple usages")
 
-    // Get declared dependencies
     val declaredDeps = buildOptions.classPathOptions.extraDependencies.toSeq
 
-    // Get transitive dependencies from resolution
     val resolutionOpt = artifacts.resolution
 
-    // Analyze unused dependencies
     val unusedDeps = detectUnusedDependencies(
       declaredDeps,
       allReferences,
       logger
     )
 
-    // Analyze missing explicit dependencies
     val missingDeps = resolutionOpt match {
       case Some(resolution) =>
         detectMissingExplicitDependencies(
