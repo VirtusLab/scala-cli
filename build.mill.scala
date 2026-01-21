@@ -1053,7 +1053,6 @@ trait CliIntegration extends SbtModule
            |  def defaultJvmVersion            = ${Java.defaultJava}
            |  def scala212                     = "${Scala.scala212}"
            |  def scala213                     = "${Scala.scala213}"
-           |  def scalaSnapshot213             = "${TestDeps.scalaSnapshot213}"
            |  def scala3LtsPrefix              = "${Scala.scala3LtsPrefix}"
            |  def scala3Lts                    = "${Scala.scala3Lts}"
            |  def scala3NextPrefix             = "${Scala.scala3NextPrefix}"

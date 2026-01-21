@@ -109,9 +109,8 @@ object Java {
 
 // Dependencies used in integration test fixtures
 object TestDeps {
-  def pprint: Dep              = Deps.pprint
-  def munit: Dep               = Deps.munit
-  def scalaSnapshot213: String = "2.13.19-bin-efb7184"
+  def pprint: Dep = Deps.pprint
+  def munit: Dep  = Deps.munit
 
   def archLinuxImage: String =
     "archlinux@sha256:b15db21228c7cd5fd3ab364a97193ba38abfad0e8b9593c15b71850b74738153"
