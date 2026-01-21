@@ -273,8 +273,7 @@ Note that Scala CLI automatically downloads and unpacks a GraalVM distribution
 using the [JVM management capabilities of coursier](https://get-coursier.io/docs/cli-java).
 
 Several options can be passed to adjust the GraalVM version used by Scala CLI:
-- `--graalvm-jvm-id` accepts a JVM identifier, such as `graalvm-java17:22.0.0` or `graalvm-java17:21` (short versions accepted).
-- `--graalvm-java-version` makes it possible to specify only a target Java version, such as `11` or `17` (note that only specific Java versions may be supported by the default GraalVM version that Scala CLI picks)
+- `--graalvm-jvm-id` accepts a JVM identifier, such as `graalvm-community:17.0.9` or `graalvm-java25:25.0.1`.
 - `--graalvm-version` makes it possible to specify only a GraalVM version, such as `22.0.0` or `21` (short versions accepted)
 - `--graalvm-args` makes it possible to pass args to GraalVM version
 

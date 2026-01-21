@@ -269,7 +269,7 @@ object Deps {
       .exclude(("com.lihaoyi", "os-lib_2.13"))
   def slf4jNop                  = mvn"org.slf4j:slf4j-nop:2.0.17"
   def sttp                      = mvn"com.softwaremill.sttp.client3::core:3.11.0"
-  def svm                       = mvn"org.graalvm.nativeimage:svm:$graalVmVersion"
+  def svm                       = mvn"org.graalvm.nativeimage:svm:$graalSvmVersion"
   def swoval                    = mvn"com.swoval:file-tree-views:2.1.12"
   def testInterface             = mvn"org.scala-sbt:test-interface:1.0"
   val toolkitVersion            = "0.8.0"
@@ -288,9 +288,10 @@ object Deps {
   def scalafixInterfaces = mvn"ch.epfl.scala:scalafix-interfaces:${Versions.scalafix}"
 }
 
-def graalVmVersion     = "22.3.1"
-def graalVmJavaVersion = Java.defaultJava
-def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
+def graalVmJavaVersion      = Java.defaultJava
+def graalVmCommunityVersion = s"$graalVmJavaVersion.0.9"
+def graalSvmVersion         = "22.3.1"
+def graalVmJvmId            = s"graalvm-community:$graalVmCommunityVersion"
 
 def csDockerVersion = Deps.Versions.coursierCli
 
