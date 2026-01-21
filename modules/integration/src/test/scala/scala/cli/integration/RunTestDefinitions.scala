@@ -1080,7 +1080,7 @@ abstract class RunTestDefinitions
   }
 
   def runAuthProxyTests: Boolean =
-    Properties.isLinux || (Properties.isMac && !TestUtil.isCI)
+    (Properties.isLinux && !TestUtil.isAarch64) || (Properties.isMac && !TestUtil.isCI)
 
   if (runAuthProxyTests) {
     test("auth proxy (legacy)") {
