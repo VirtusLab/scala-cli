@@ -415,8 +415,8 @@ jobs:
           path: test-report.xml
 
   generate-linux-arm64-native-launcher:
-    runs-on: "macOS-m1"
-    if: github.event_name == 'push'
+    timeout-minutes: 120
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v6
         with:
@@ -424,18 +424,91 @@ jobs:
           submodules: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          apps: ""
-      - name: Generate native launcher and generate os packages
-        run: .github/scripts/build-linux-aarch64.sh
-        env:
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          jvm: "temurin:17"
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -q -y
+          sudo apt-get install -q -y build-essential libz-dev zlib1g-dev python3-pip
+      - name: Generate native launcher
+        run: .github/scripts/generate-native-image.sh
+      - run: ./mill -i ci.setShouldPublish
+      - name: Build OS packages
+        if: env.SHOULD_PUBLISH == 'true'
+        run: .github/scripts/generate-os-packages.sh
+      - name: Copy artifacts
+        run: ./mill -i copyDefaultLauncher --directory artifacts/
       - uses: actions/upload-artifact@v6
         with:
           name: linux-aarch64-launchers
           path: artifacts/
           if-no-files-found: error
           retention-days: 2
+
+  native-linux-arm64-tests-1:
+    needs: generate-linux-arm64-native-launcher
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - uses: actions/download-artifact@v7
+        with:
+          name: linux-aarch64-launchers
+          path: artifacts/
+      - name: Native integration tests
+        run: ./mill -i nativeIntegrationTests
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_IT_GROUP: 1
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+      - name: Convert Mill test reports to JUnit XML format
+        if: success() || failure()
+        run: .github/scripts/generate-junit-reports.sc linux-tests-1 'Scala CLI Linux ARM 64 Tests (1)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v6
+        if: success() || failure()
+        with:
+          name: test-results-linux-arm64-tests-1
+          path: test-report.xml
+
+  native-linux-arm64-tests-5:
+    needs: generate-linux-arm64-native-launcher
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - uses: actions/download-artifact@v7
+        with:
+          name: linux-aarch64-launchers
+          path: artifacts/
+      - name: Native integration tests
+        run: ./mill -i nativeIntegrationTests
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_IT_GROUP: 5
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+      - name: Convert Mill test reports to JUnit XML format
+        if: success() || failure()
+        run: .github/scripts/generate-junit-reports.sc linux-tests-5 'Scala CLI Linux ARM64 Tests (5)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v6
+        if: success() || failure()
+        with:
+          name: test-results-linux-arm64-tests-5
+          path: test-report.xml
 
   generate-macos-launcher:
     timeout-minutes: 120
@@ -1571,6 +1644,8 @@ jobs:
       - native-linux-tests-3
       - native-linux-tests-4
       - native-linux-tests-5
+      - native-linux-arm64-tests-1
+      - native-linux-arm64-tests-5
       - native-macos-tests-1
       - native-macos-tests-5
       - native-macos-m1-tests-1
@@ -1656,6 +1731,8 @@ jobs:
       - native-linux-tests-3
       - native-linux-tests-4
       - native-linux-tests-5
+      - native-linux-arm64-tests-1
+      - native-linux-arm64-tests-5
       - native-macos-tests-1
       - native-macos-tests-5
       - native-macos-m1-tests-1

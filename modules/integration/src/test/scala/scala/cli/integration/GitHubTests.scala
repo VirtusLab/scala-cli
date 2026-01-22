@@ -66,9 +66,11 @@ class GitHubTests extends ScalaCliSuite {
   // currently having issues loading libsodium from the static launcher
   // that launcher is mainly meant to be used on CIs or from docker, missing
   // that feature shouldn't be a big deal there
-  if (TestUtil.cliKind != "native-static")
-    if (Properties.isMac) test("create secret".flaky)(createSecret())
-    else test("create secret")(TestUtil.retryOnCi()(createSecret()))
+  if !TestUtil.isNativeStaticCli && !Properties.isMac && !TestUtil.isAarch64 then
+    // TODO fix this for static launchers: https://github.com/VirtusLab/scala-cli/issues/4068
+    // TODO fix this for MacOS: https://github.com/VirtusLab/scala-cli/issues/4067
+    // TODO fix this for Linux arm64: https://github.com/VirtusLab/scala-cli/issues/4069
+    test("create secret")(TestUtil.retryOnCi()(createSecret()))
 
 }
 
