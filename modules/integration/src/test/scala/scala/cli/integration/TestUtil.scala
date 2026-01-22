@@ -20,6 +20,7 @@ object TestUtil {
 
   val cliKind: String               = sys.props("test.scala-cli.kind")
   val isNativeCli: Boolean          = cliKind.startsWith("native")
+  val isNativeStaticCli: Boolean    = cliKind.startsWith("native-static")
   val isJvmCli: Boolean             = cliKind.startsWith("jvm")
   val isJvmBootstrappedCli: Boolean = cliKind.startsWith("jvmBootstrapped")
   val isCI: Boolean                 = System.getenv("CI") != null
