@@ -249,4 +249,40 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("exclude nested scala-cli project") {
+    val testInputs = TestInputs(
+      os.rel / "Hello.scala" -> "object Hello",
+      // this project.scala needs to come first so that the inferred workspace is the outermost one.
+      os.rel / "project.scala" ->
+        """//> using exclude */examples/*""",
+      os.rel / "examples" / "fail.scala" ->
+        """val i: Int = "abc";""",
+      os.rel / "examples" / "project.scala" ->
+        """val unused = 23"""
+    )
+    testInputs.withInputs { (root, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )(using ScalaCliInvokeData.dummy).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions())
+        .orThrow
+      val sources =
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        )
+          .orThrow
+
+      expect(sources.paths.nonEmpty)
+      expect(sources.paths.length == 2)
+      expect(sources.paths.map(_._2) == Seq(os.rel / "Hello.scala", os.rel / "project.scala"))
+    }
+  }
+
 }
