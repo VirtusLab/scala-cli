@@ -442,6 +442,18 @@ Aliases: `--built-in`, `--built-in-rules`, `--enable-built-in`
 
 Enable running built-in rules (enabled by default)
 
+### `--check-unused-dependencies`
+
+Aliases: `--check-unused-deps`, `--detect-unused-dependencies`, `--detect-unused-deps`
+
+Detect and suggest removing unused compile-time dependencies
+
+### `--check-explicit-dependencies`
+
+Aliases: `--check-explicit-deps`, `--detect-explicit-dependencies`, `--detect-explicit-deps`
+
+Detect and suggest adding missing explicit dependencies (transitive dependencies that are used)
+
 ## Fmt options
 
 Available in commands:
