@@ -1,4 +1,4 @@
-`---
+---
 title: Directives
 sidebar_position: 2
 ---
