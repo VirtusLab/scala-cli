@@ -1994,13 +1994,13 @@ abstract class RunTestDefinitions
         val dep    = s"com.lihaoyi:os-lib_$depScalaVersion:0.10.6"
         val inputs = TestInputs(
           os.rel / "NoDeps.scala" ->
-            """//> using jvm zulu:11
+            """//> using jvm zulu:17
               |object NoDeps extends App {
               |  println("Hello from NoDeps")
               |}
               |""".stripMargin,
           os.rel / "WithDeps.scala" ->
-            s"""//> using jvm zulu:11
+            s"""//> using jvm zulu:17
                |//> using dep $dep
                |
                |object WithDeps extends App {
@@ -2053,7 +2053,7 @@ abstract class RunTestDefinitions
             }
 
           // Download JVM that won't suit Bloop, also no Bloop artifacts are present
-          os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:11")
+          os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:17")
             .call(cwd = root, env = extraEnv)
 
           val scalaJvmCacheWalkSize = os.walk(cachePath).size

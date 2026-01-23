@@ -20,9 +20,9 @@ object Scala {
   def runnerScala3     = scala3Lts
   def scala3NextPrefix = "3.8"
   def scala3Next       = s"$scala3NextPrefix.1" // the newest/next version of Scala
-  def scala3NextAnnounced   = s"3.7.4"    // the newest/next version of Scala that's been announced
-  def scala3NextRc          = "3.8.1-RC1" // the latest RC version of Scala Next
-  def scala3NextRcAnnounced = "3.8.0-RC6" // the latest announced RC version of Scala Next
+  def scala3NextAnnounced   = scala3Next   // the newest/next version of Scala that's been announced
+  def scala3NextRc          = "3.8.2-RC1"  // the latest RC version of Scala Next
+  def scala3NextRcAnnounced = scala3NextRc // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -64,7 +64,8 @@ object Scala {
     val max34  = 3
     val max35  = 2
     val max36  = 4
-    val max37  = patchVer(scala3Next)
+    val max37  = 4
+    val max38  = patchVer(scala3Next)
     (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
       (0 to max30).map(i => s"3.0.$i") ++
@@ -74,7 +75,8 @@ object Scala {
       (0 to max34).map(i => s"3.4.$i") ++
       (0 to max35).map(i => s"3.5.$i") ++
       (0 to max36).map(i => s"3.6.$i") ++
-      (0 until max37).map(i => s"3.7.$i") ++ Seq(scala3Next)
+      (0 to max37).map(i => s"3.7.$i") ++
+      (0 until max38).map(i => s"3.8.$i") ++ Seq(scala3Next)
   }
 
   def legacyScala3Versions: Seq[String] =
