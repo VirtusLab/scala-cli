@@ -43,7 +43,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
 
       val exportJsonProc =
         // Test --power placed after subcommand name
-        os.proc(TestUtil.cli, "export", "--power", "--json", ".", "--jvm", "adopt:11")
+        os.proc(TestUtil.cli, "export", "--power", "--json", ".", "--jvm", "temurin:11")
           .call(cwd = root)
 
       val jsonContents = readJson(exportJsonProc.out.text())
@@ -53,7 +53,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
            |"projectVersion":"1.1.2",
            |"scalaVersion":"${Constants.scala3Next}",
            |"platform":"JVM",
-           |"jvmVersion":"adopt:11",
+           |"jvmVersion":"temurin:11",
            |"scopes": {
            | "main": {
            |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
