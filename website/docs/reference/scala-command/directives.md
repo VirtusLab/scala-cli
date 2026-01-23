@@ -1,4 +1,4 @@
----
+`---
 title: Directives
 sidebar_position: 2
 ---
@@ -479,7 +479,7 @@ Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for
 
 `//> using toolkit` _version_
 
-//> using test.toolkit` _version_
+`//> using test.toolkit` _version_
 
 
 #### Examples
