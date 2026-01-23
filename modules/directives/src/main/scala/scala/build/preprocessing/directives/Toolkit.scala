@@ -19,7 +19,7 @@ import scala.cli.commands.SpecificationLevel
   "//> using toolkit _version_",
   """`//> using toolkit` _version_
     |
-    |//> using test.toolkit` _version_
+    |`//> using test.toolkit` _version_
     |""".stripMargin
 )
 @DirectiveDescription(
