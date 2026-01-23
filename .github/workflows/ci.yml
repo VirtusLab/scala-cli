@@ -1500,6 +1500,8 @@ jobs:
         node-version: 24
     - name: Build documentation
       run: .github/scripts/build-website.sh
+    - name: Verify release notes formatting
+      run: .github/scripts/process_release_notes.sc verify website/docs/release_notes.md
     - name: Test documentation
       run: ./mill -i 'docs-tests[]'.test
     - name: Convert Mill test reports to JUnit XML format
