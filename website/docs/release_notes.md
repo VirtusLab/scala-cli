@@ -3824,7 +3824,7 @@ Fixed by [@MaciejG604](https://github.com/MaciejG604) in [#2033](https://github.
 * Add docs for test scope directives by [@Gedochao](https://github.com/Gedochao) in [#2058](https://github.com/VirtusLab/scala-cli/pull/2058)
 * Improve error messages for malformed `config` values by [@Gedochao](https://github.com/Gedochao) in [#2014](https://github.com/VirtusLab/scala-cli/pull/2014)
 * Update export documentation by [@MaciejG604](https://github.com/MaciejG604) in [#2023](https://github.com/VirtusLab/scala-cli/pull/2023)
-* Add weaver test framework instruction by @lenguyenthanh in [#2021](https://github.com/VirtusLab/scala-cli/pull/2021)
+* Add weaver test framework instruction by [@lenguyenthanh](https://github.com/lenguyenthanh) in [#2021](https://github.com/VirtusLab/scala-cli/pull/2021)
 
 ### Build and internal changes
 * Download cs for aarch64 from coursier-m1 repo by [@lwronski](https://github.com/lwronski) in [#2085](https://github.com/VirtusLab/scala-cli/pull/2085)
