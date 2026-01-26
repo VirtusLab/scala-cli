@@ -21,6 +21,34 @@ scala-cli version
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#4065](https://github.com/VirtusLab/scala-cli/pull/4065)
 
+### Change default Scala Native version to 0.5.10
+This Scala CLI version switches the default Scala Native version to 0.5.10.
+
+```bash
+scala-cli -e 'println("Hello from Scala Native 0.5.10!")' --native
+# Compiling project (Scala 3.8.1, Scala Native 0.5.10)
+# Compiled project (Scala 3.8.1, Scala Native 0.5.10)
+# [info] Linking (multithreadingEnabled=detect) (725 ms)
+# [info] Discovered 903 classes and 5554 methods after classloading
+# [info] Checking intermediate code (quick) (31 ms)
+# [info] Multithreading was not explicitly enabled - initial class loading has not detected any usage of system threads. Multithreading support will be disabled to improve performance.
+# [info] Linking (multithreadingEnabled=false) (273 ms)
+# [info] Discovered 512 classes and 2629 methods after classloading
+# [info] Checking intermediate code (quick) (7 ms)
+# [info] Discovered 493 classes and 2002 methods after optimization
+# [info] Optimizing (debug mode) (447 ms)
+# [info] Produced 12 LLVM IR files
+# [info] Generating intermediate code (826 ms)
+# [info] Compiling to native code (5461 ms)
+# [info] Linking with [pthread, dl, m]
+# [info] Linking native code (immix gc, none lto) (257 ms)
+# [info] Postprocessing (0 ms)
+# [info] Total (7688 ms)
+# Hello from Scala Native 0.5.10!
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4078](https://github.com/VirtusLab/scala-cli/pull/4078)
+
 ### Fixes
 * fix: openjdk:17-slim is not available. using 17.0.2-slim instead by [@kaplan-shaked](https://github.com/kaplan-shaked) in [#4057](https://github.com/VirtusLab/scala-cli/pull/4057)
 
@@ -39,6 +67,7 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#4065](https://github.com/
 * Switch from `graalvm-java17` to `graalvm-community` by [@Gedochao](https://github.com/Gedochao) in [#3459](https://github.com/VirtusLab/scala-cli/pull/3459)
 * Bump Ammonite to 3.0.7 (was 3.0.6) by [@Gedochao](https://github.com/Gedochao) in [#4070](https://github.com/VirtusLab/scala-cli/pull/4070)
 * Bump Scala 3 Next RC to 3.8.2-RC1 by [@Gedochao](https://github.com/Gedochao) in [#4071](https://github.com/VirtusLab/scala-cli/pull/4071)
+* Bump Scala Native to 0.5.10 (was 0.5.9) by [@Gedochao](https://github.com/Gedochao) in [#4078](https://github.com/VirtusLab/scala-cli/pull/4078)
 
 ## New Contributors
 * [@kaplan-shaked](https://github.com/kaplan-shaked) made their first contribution in [#4057](https://github.com/VirtusLab/scala-cli/pull/4057)
