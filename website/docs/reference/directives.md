@@ -541,7 +541,7 @@ Add Scala Native options
 
 `//> using nativeLto full`
 
-`//> using nativeVersion 0.5.9`
+`//> using nativeVersion 0.5.10`
 
 `//> using nativeCompile -flto=thin`
 
