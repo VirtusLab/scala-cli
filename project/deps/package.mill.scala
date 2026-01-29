@@ -120,7 +120,7 @@ object TestDeps {
 
 object Deps {
   object Versions {
-    def ammonite             = "3.0.7"
+    def ammonite             = "3.0.8"
     def ammoniteForScala3Lts = ammonite
     def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
