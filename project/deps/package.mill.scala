@@ -129,7 +129,7 @@ object Deps {
     def coursierCli                       = coursierDefault
     def coursierPublish                   = "0.4.4"
     def jmh                               = "1.37"
-    def jsoniterScala                     = "2.38.5"
+    def jsoniterScala                     = "2.38.8"
     def jsoup                             = "1.21.2"
     def scalaMeta                         = "4.14.7"
     def scalafmt                          = "3.10.7"
