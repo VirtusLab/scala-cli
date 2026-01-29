@@ -306,7 +306,7 @@ object DirectiveHandler {
                           $scopedDirective.maybePath
                         ).map { r =>
                           scopeOpt -> ${
-                            genNew(List(newArgs.updated(idx, '{ r }).map(_.asTerm)))
+                            genNew(List(newArgs.updated(idx, 'r).map(_.asTerm)))
                               .asExprOf[T]
                           }
                         }
@@ -361,7 +361,7 @@ object DirectiveHandler {
           }
 
         def handleValues(scopedDirective: ScopedDirective, logger: Logger) =
-          ${ handleValuesImpl('{ scopedDirective }, '{ logger }) }
+          ${ handleValuesImpl('scopedDirective, 'logger) }
       }
     }
   }
