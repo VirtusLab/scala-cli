@@ -116,7 +116,7 @@ abstract class CompileTestDefinitions
           |}
           |""".stripMargin,
       os.rel / "Foo.scala" ->
-        """//> using dep com.lihaoyi::pprint:0.8.1
+        """//> using dep com.lihaoyi::pprint:0.9.6
           |
           |case class Foo(value: String)
           |""".stripMargin,

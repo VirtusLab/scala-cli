@@ -1449,7 +1449,7 @@ abstract class RunTestDefinitions
       os.rel / projectFile ->
         """//> using dep com.lihaoyi::os-lib:0.9.1
           |//> using test.dep org.scalameta::munit::0.7.29
-          |//> using test.dep com.lihaoyi::pprint:0.8.1
+          |//> using test.dep com.lihaoyi::pprint:0.9.6
           |""".stripMargin,
       os.rel / invalidMainFile ->
         """object InvalidMain extends App {
