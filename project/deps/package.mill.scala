@@ -156,7 +156,7 @@ object Deps {
     def mavenAppArtifactId              = "maven-app"
     def mavenAppGroupId                 = "com.example"
     def mavenAppVersion                 = "0.1-SNAPSHOT"
-    def scalafix                        = "0.14.4"
+    def scalafix                        = "0.14.5"
   }
 
   // DO NOT hardcode a Scala version in this dependency string
