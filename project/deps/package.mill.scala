@@ -214,7 +214,7 @@ object Deps {
   def jsoup              = mvn"org.jsoup:jsoup:${Versions.jsoup}"
   def libsodiumjni       = mvn"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
   def metaconfigTypesafe =
-    mvn"org.scalameta::metaconfig-typesafe-config:0.16.0"
+    mvn"org.scalameta::metaconfig-typesafe-config:0.18.2"
       .exclude(("org.scala-lang", "scala-compiler"))
   def munit              = mvn"org.scalameta::munit:1.2.2"
   def nativeTestRunner   = mvn"org.scala-native::test-runner:${Versions.scalaNative}"
