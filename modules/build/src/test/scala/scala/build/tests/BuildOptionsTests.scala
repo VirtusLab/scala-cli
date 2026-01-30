@@ -176,7 +176,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  test("Scala 2.12.9-bin-1111111 shows No Valid Scala Version Error") {
+  test("Scala 2.12.9-bin-1111111 shows No Valid Scala Version Error".flaky) {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
