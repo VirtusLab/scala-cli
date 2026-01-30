@@ -1,7 +1,7 @@
 package build.project.publish
 
 import build.project.settings
-import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
+import mill.javalib.publish.{PublishingType, SonatypeCredentials}
 import settings.{PublishLocalNoFluff, workspaceDirName}
 import mill.*
 import mill.javalib.publish.Artifact

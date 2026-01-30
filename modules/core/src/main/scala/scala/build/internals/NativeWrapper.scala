@@ -17,6 +17,11 @@ import scala.util.Using
 
 object MsvcEnvironment {
 
+  // Lower threshold to ensure native-image's internal paths (which can add 100-130+ chars
+  // for deeply nested source files) don't exceed Windows 260-char MAX_PATH limit.
+  // Native-image creates paths like: native-sources\graal\com\oracle\svm\...\Target_ClassName.c
+  private val pathLengthLimit = 90
+
   /*
    * Call `native-image.exe` with captured vcvarsall.bat environment.
    * @return process exit code.
@@ -26,69 +31,104 @@ object MsvcEnvironment {
     workingDir: os.Path,
     logger: Logger
   ): Int = {
-    val vcvOpt = vcvarsOpt(logger)
-    vcvOpt match {
-      case None =>
-        logger.debug(s"not found: vcvars64.bat")
-        -1
-      case Some(vcvars) =>
-        logger.debug(s"Using vcvars script $vcvars")
+    // Use shortened working dir when path is too long; otherwise vcvars/native-image run with
+    // long cwd and GraalVM's "automatically set up Windows build environment" hits 260-char limit.
+    val (actualWorkingDir, driveToUnalias) =
+      if (workingDir.toString.length >= pathLengthLimit) {
+        val (driveLetter, shortPath) = getShortenedPath(workingDir, logger)
+        (shortPath, Some(driveLetter))
+      }
+      else
+        (workingDir, None)
 
-        val msvcEnv: Map[String, String] = captureVcvarsEnv(vcvars, workingDir, logger)
+    try {
+      val vcvOpt = vcvarsOpt(logger)
+      vcvOpt match {
+        case None =>
+          logger.debug(s"not found: vcvars64.bat")
+          -1
+        case Some(vcvars) =>
+          logger.debug(s"Using vcvars script $vcvars")
 
-        // show aliased drive map
-        getSubstMappings.foreach((k, v) => logger.message(s"substMap  $k: -> $v"))
+          val msvcEnv: Map[String, String] = captureVcvarsEnv(vcvars, actualWorkingDir, logger)
 
-        val finalEnv =
-          msvcEnv +
-            ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
+          // Validate that critical MSVC variables were captured
+          // VSINSTALLDIR is what GraalVM native-image checks to detect pre-configured MSVC
+          val requiredVars =
+            Seq("VSINSTALLDIR", "VCINSTALLDIR", "VCToolsInstallDir", "INCLUDE", "LIB")
+          val missingVars = requiredVars.filterNot(msvcEnv.contains)
 
-        logger.debug(s"msvc PATH entries:")
-        finalEnv.getOrElse("PATH", "").split(";").toSeq.foreach { entry =>
-          logger.debug(s"$entry;")
-        }
-        Seq(
-          "VCToolsInstallDir",
-          "VCToolsVersion",
-          "VCINSTALLDIR",
-          "WindowsSdkDir",
-          "WindowsSdkVersion",
-          "INCLUDE",
-          "LIB",
-          "LIBPATH"
-        ).foreach { key =>
-          logger.debug(s"""$key=${msvcEnv.getOrElse(key, "<missing>")}""")
-        }
-
-        // Replace native-image.cmd with native-image.exe, if applicable
-        val updatedCommand: Seq[String] =
-          command.headOption match {
-            case Some(cmd) if cmd.toLowerCase.endsWith("native-image.cmd") =>
-              val cmdPath   = os.Path(cmd, os.pwd)
-              val graalHome = cmdPath / os.up / os.up
-              resolveNativeImage(graalHome) match {
-                case Some(exe) =>
-                  exe.toString +: command.tail
-                case None =>
-                  command // fall back to the .cmd wrapper
-              }
-            case _ =>
-              command
-          }
-
-        logger.debug(s"native-image w/args: $updatedCommand")
-
-        val result =
-          os.proc(updatedCommand)
-            .call(
-              cwd = workingDir,
-              env = finalEnv,
-              stdout = os.Inherit,
-              stderr = os.Inherit
+          if msvcEnv.isEmpty then
+            logger.error("MSVC environment capture failed - no environment variables captured")
+            logger.error("Please ensure Visual Studio 2022 with C++ build tools is installed")
+            logger.error(s"vcvars script used: $vcvars")
+            logger.error(s"working directory: $actualWorkingDir")
+            -1
+          else if missingVars.nonEmpty then
+            logger.error(s"MSVC environment incomplete - missing: ${missingVars.mkString(", ")}")
+            logger.error(
+              "Please ensure Visual Studio 2022 with C++ build tools is properly installed"
             )
+            logger.error(s"vcvars script used: $vcvars")
+            logger.error(s"Captured environment has ${msvcEnv.size} variables")
+            -1
+          else
+            // show aliased drive map
+            getSubstMappings.foreach((k, v) => logger.message(s"substMap  $k: -> $v"))
 
-        result.exitCode
+            val finalEnv =
+              msvcEnv +
+                ("GRAALVM_ARGUMENT_VECTOR_PROGRAM_NAME" -> "native-image")
+
+            logger.debug(s"msvc PATH entries:")
+            finalEnv.getOrElse("PATH", "").split(";").toSeq.foreach { entry =>
+              logger.debug(s"$entry;")
+            }
+            Seq(
+              "VCToolsInstallDir",
+              "VCToolsVersion",
+              "VCINSTALLDIR",
+              "WindowsSdkDir",
+              "WindowsSdkVersion",
+              "INCLUDE",
+              "LIB",
+              "LIBPATH"
+            ).foreach { key =>
+              logger.debug(s"""$key=${msvcEnv.getOrElse(key, "<missing>")}""")
+            }
+
+            // Replace native-image.cmd with native-image.exe, if applicable
+            val updatedCommand: Seq[String] =
+              command.headOption match {
+                case Some(cmd) if cmd.toLowerCase.endsWith("native-image.cmd") =>
+                  val cmdPath   = os.Path(cmd, os.pwd)
+                  val graalHome = cmdPath / os.up / os.up
+                  resolveNativeImage(graalHome) match {
+                    case Some(exe) =>
+                      exe.toString +: command.tail
+                    case None =>
+                      command // fall back to the .cmd wrapper
+                  }
+                case _ =>
+                  command
+              }
+
+            logger.debug(s"native-image w/args: $updatedCommand")
+
+            val result =
+              os.proc(updatedCommand)
+                .call(
+                  cwd = actualWorkingDir,
+                  env = finalEnv,
+                  stdout = os.Inherit,
+                  stderr = os.Inherit
+                )
+
+            result.exitCode
+      }
     }
+    finally
+      driveToUnalias.foreach(unaliasDriveLetter)
   }
 
   // =========================
