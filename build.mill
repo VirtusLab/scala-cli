@@ -1,3 +1,4 @@
+//| mill-jvm-version: system|17
 //| mvnDeps:
 //| - io.github.alexarchambault.mill::mill-native-image::0.2.4
 //| - io.github.alexarchambault.mill::mill-native-image-upload:0.2.4
@@ -67,7 +68,7 @@ trait CrossScalaDefaultToRunner extends CrossScalaDefault { self: Cross[?] =>
 // Publish a bootstrapped, executable jar for a restricted environments
 object cliBootstrapped extends ScalaCliPublishModule {
   override def unmanagedClasspath: T[Seq[PathRef]] =
-    Task(cli(Scala.defaultInternal).nativeImageClassPath())
+    Task(cli(Scala.defaultInternal).nativeImageClassPath().filter(ref => os.exists(ref.path)))
   override def jar: T[PathRef] = assembly()
 
   import mill.scalalib.Assembly
@@ -864,7 +865,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
          |  def defaultMillVersion = "${BuildInfo.millVersion}"
          |  def mill012Version = "${Deps.Versions.mill012Version}"
-         |  def mill10Version = "${Deps.Versions.mill10Version}"
+         |  def mill1Version = "${Deps.Versions.mill1Version}"
          |  def defaultSbtVersion = "${Deps.Versions.sbtVersion}"
          |  def defaultMavenVersion = "${Deps.Versions.mavenVersion}"
          |  def defaultMavenScalaCompilerPluginVersion = "${Deps.Versions.mavenScalaCompilerPluginVersion}"
@@ -1121,7 +1122,7 @@ trait CliIntegration extends SbtModule
            |  def jmhGeneratorBytecodeModule = "${Deps.jmhGeneratorBytecode.dep.module.name.value}"
            |  def defaultMillVersion = "${BuildInfo.millVersion}"
            |  def mill012Version = "${Deps.Versions.mill012Version}"
-           |  def mill10Version = "${Deps.Versions.mill10Version}"
+           |  def mill1Version = "${Deps.Versions.mill1Version}"
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)

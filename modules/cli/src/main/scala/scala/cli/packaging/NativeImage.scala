@@ -50,7 +50,8 @@ object NativeImage {
   )(
     f: os.Path => T
   ): T =
-    if (Properties.isWin && currentHome.toString.length >= 180) {
+    // Lower threshold (was 180) to ensure native-image's internal paths don't exceed 260-char limit
+    if (Properties.isWin && currentHome.toString.length >= 90) {
       val (driveLetter, newHome) = getShortenedPath(currentHome, logger)
       val savedCodepage: String  = getCodePage(logger)
       val result                 =

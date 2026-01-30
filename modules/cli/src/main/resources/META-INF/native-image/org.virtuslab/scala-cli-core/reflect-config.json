@@ -150,6 +150,9 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.DebugProvider",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
     "allDeclaredFields": true
   },
   {
@@ -175,13 +178,6 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.DependencyModule",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "ch.epfl.scala.bsp4j.DependencyModulesDataKind",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -252,13 +248,6 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.DidChangeBuildTarget",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "ch.epfl.scala.bsp4j.FileChangeType",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -682,13 +671,6 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.StatusCode",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "ch.epfl.scala.bsp4j.TaskDataKind",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -1233,13 +1215,6 @@
     "allDeclaredFields": true
   },
   {
-    "name": "scala.build.bsp.LoggingBuildServerAll",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
     "name": "scala.build.bsp.LoggingJavaBuildServer",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
@@ -1262,41 +1237,6 @@
   },
   {
     "name": "scala.build.bsp.ScalaBuildServerForwardStubs",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "scala.build.bsp.ScalaScriptBuildServer",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "scala.build.bsp.WrappedSourceItem",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "scala.build.bsp.WrappedSourcesItem",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "scala.build.bsp.WrappedSourcesParams",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "scala.build.bsp.WrappedSourcesResult",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,

@@ -118,6 +118,6 @@ sealed trait TestMillVersion:
 trait TestMill012 extends TestMillVersion:
   self: ExportMillTestDefinitions =>
   override def millVersion: String = Constants.mill012Version
-trait TestMill10 extends TestMillVersion:
+trait TestMill1 extends TestMillVersion:
   self: ExportMillTestDefinitions =>
-  override def millVersion: String = Constants.mill10Version
+  override def millVersion: String = Constants.mill1Version
