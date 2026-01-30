@@ -48,7 +48,8 @@ object MsvcEnvironment {
           logger.debug(s"not found: vcvars64.bat")
           -1
         case Some(vcvars) =>
-          logger.debug(s"Using vcvars script $vcvars")
+          logger.message(s"Using vcvars script: $vcvars")
+          logger.message(s"Working directory: $actualWorkingDir")
 
           val msvcEnv: Map[String, String] = captureVcvarsEnv(vcvars, actualWorkingDir, logger)
 
@@ -75,6 +76,49 @@ object MsvcEnvironment {
           else
             // show aliased drive map
             getSubstMappings.foreach((k, v) => logger.message(s"substMap  $k: -> $v"))
+
+            // Log critical MSVC variables at message level for diagnosis
+            val vsInstallDir = msvcEnv.get("VSINSTALLDIR").orElse(msvcEnv.get("vsinstalldir"))
+            val vcInstallDir = msvcEnv.get("VCINSTALLDIR").orElse(msvcEnv.get("vcinstalldir"))
+            logger.message(s"VSINSTALLDIR=${vsInstallDir.getOrElse("<not set>")}")
+            logger.message(s"VCINSTALLDIR=${vcInstallDir.getOrElse("<not set>")}")
+            logger.message(s"Environment has ${msvcEnv.size} variables")
+
+            // Verify VSINSTALLDIR path exists
+            vsInstallDir.foreach { dir =>
+              val path = os.Path(dir.stripSuffix("\\"), os.pwd)
+              logger.message(s"VSINSTALLDIR exists: ${os.exists(path)}")
+            }
+
+            // Log PATH - check both casings and show what we find
+            val pathValue =
+              msvcEnv.get("PATH").orElse(msvcEnv.get("Path")).orElse(msvcEnv.get("path"))
+            logger.message(
+              s"PATH found: ${pathValue.isDefined}, length: ${pathValue.map(_.length).getOrElse(0)}"
+            )
+            pathValue.foreach { pv =>
+              val pathEntries     = pv.split(";")
+              val msvcPathEntries = pathEntries.filter(_.toLowerCase.contains("msvc"))
+              val vcPathEntries   = pathEntries.filter(_.toLowerCase.contains("\\vc\\"))
+              logger.message(
+                s"MSVC PATH entries: ${msvcPathEntries.length}, VC entries: ${vcPathEntries.length}"
+              )
+              if (vcPathEntries.nonEmpty)
+                logger.message(s"First VC PATH: ${vcPathEntries.head}")
+            }
+            // Also check what keys look like PATH
+            val pathLikeKeys = msvcEnv.keys.filter(_.toLowerCase.contains("path")).toSeq
+            logger.message(s"PATH-like keys in env: ${pathLikeKeys.mkString(", ")}")
+
+            // Direct check of TreeMap case-insensitive behavior
+            pathLikeKeys.headOption.foreach { actualKey =>
+              val directGet = msvcEnv.get(actualKey)
+              val upperGet  = msvcEnv.get(actualKey.toUpperCase)
+              val lowerGet  = msvcEnv.get(actualKey.toLowerCase)
+              logger.message(
+                s"TreeMap lookup test - direct: ${directGet.isDefined}, upper: ${upperGet.isDefined}, lower: ${lowerGet.isDefined}"
+              )
+            }
 
             val finalEnv =
               msvcEnv +
@@ -113,6 +157,7 @@ object MsvcEnvironment {
                   command
               }
 
+            logger.message(s"Running: ${updatedCommand.head}")
             logger.debug(s"native-image w/args: $updatedCommand")
 
             val result =
@@ -189,6 +234,13 @@ object MsvcEnvironment {
               case Array(k, v) => Some(k -> v) // preserve original spelling
               case _           => None
           }
+
+      // Debug: log if PATH was found during parsing
+      val pathInEnv = envLines.find(_.toLowerCase.startsWith("path="))
+      if pathInEnv.isEmpty then
+        logger.message("WARNING: PATH not found in vcvars output!")
+        logger.message(s"First 10 env lines: ${envLines.take(10).mkString("; ")}")
+        logger.message(s"Last 10 env lines: ${envLines.takeRight(10).mkString("; ")}")
 
       if logger.verbosity > 0 then
         debugLines.foreach(dbg => logger.debug(s"$dbg"))
