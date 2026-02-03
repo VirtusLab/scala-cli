@@ -19,10 +19,10 @@ object Scala {
   def scala3Lts        = s"$scala3LtsPrefix.7"  // the LTS version currently used in the build
   def runnerScala3     = scala3Lts
   def scala3NextPrefix = "3.8"
-  def scala3Next       = s"$scala3NextPrefix.0" // the newest/next version of Scala
-  def scala3NextAnnounced   = s"3.7.4"    // the newest/next version of Scala that's been announced
-  def scala3NextRc          = "3.8.1-RC1" // the latest RC version of Scala Next
-  def scala3NextRcAnnounced = "3.8.0-RC6" // the latest announced RC version of Scala Next
+  def scala3Next       = s"$scala3NextPrefix.1" // the newest/next version of Scala
+  def scala3NextAnnounced   = scala3Next   // the newest/next version of Scala that's been announced
+  def scala3NextRc          = "3.8.2-RC1"  // the latest RC version of Scala Next
+  def scala3NextRcAnnounced = scala3NextRc // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -64,7 +64,8 @@ object Scala {
     val max34  = 3
     val max35  = 2
     val max36  = 4
-    val max37  = patchVer(scala3Next)
+    val max37  = 4
+    val max38  = patchVer(scala3Next)
     (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
       (0 to max30).map(i => s"3.0.$i") ++
@@ -74,7 +75,8 @@ object Scala {
       (0 to max34).map(i => s"3.4.$i") ++
       (0 to max35).map(i => s"3.5.$i") ++
       (0 to max36).map(i => s"3.6.$i") ++
-      (0 until max37).map(i => s"3.7.$i") ++ Seq(scala3Next)
+      (0 to max37).map(i => s"3.7.$i") ++
+      (0 until max38).map(i => s"3.8.$i") ++ Seq(scala3Next)
   }
 
   def legacyScala3Versions: Seq[String] =
@@ -85,7 +87,7 @@ object Scala {
 
   def maxAmmoniteScala212Version                    = "2.12.21"
   def maxAmmoniteScala213Version                    = "2.13.18"
-  def maxAmmoniteScala3Version                      = "3.7.4"
+  def maxAmmoniteScala3Version                      = "3.8.0"
   def maxAmmoniteScala3LtsVersion                   = "3.3.7"
   lazy val listMaxAmmoniteScalaVersion: Seq[String] =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
@@ -109,9 +111,8 @@ object Java {
 
 // Dependencies used in integration test fixtures
 object TestDeps {
-  def pprint: Dep              = Deps.pprint
-  def munit: Dep               = Deps.munit
-  def scalaSnapshot213: String = "2.13.19-bin-efb7184"
+  def pprint: Dep = Deps.pprint
+  def munit: Dep  = Deps.munit
 
   def archLinuxImage: String =
     "archlinux@sha256:b15db21228c7cd5fd3ab364a97193ba38abfad0e8b9593c15b71850b74738153"
@@ -119,7 +120,7 @@ object TestDeps {
 
 object Deps {
   object Versions {
-    def ammonite             = "3.0.6"
+    def ammonite             = "3.0.7"
     def ammoniteForScala3Lts = ammonite
     def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
@@ -131,9 +132,9 @@ object Deps {
     def jsoniterScala                     = "2.38.5"
     def jsoup                             = "1.21.2"
     def scalaMeta                         = "4.14.1"
-    def scalafmt                          = "3.10.2"
+    def scalafmt                          = "3.10.4"
     def scalaNative04                     = "0.4.17"
-    def scalaNative05                     = "0.5.9"
+    def scalaNative05                     = "0.5.10"
     def scalaNative                       = scalaNative05
     def maxScalaNativeForToolkit          = scalaNative05
     def maxScalaNativeForTypelevelToolkit = scalaNative04
@@ -201,7 +202,7 @@ object Deps {
         "org.jline" -> "jline-terminal",
         "org.jline" -> "jline-terminal-jna"
       )
-  def jgit                 = mvn"org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r"
+  def jgit                 = mvn"org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r"
   def jimfs                = mvn"com.google.jimfs:jimfs:1.3.1"
   def jmhGeneratorBytecode = mvn"org.openjdk.jmh:jmh-generator-bytecode:${Versions.jmh}"
   def jmhCore              = mvn"org.openjdk.jmh:jmh-core:${Versions.jmh}"
@@ -270,10 +271,10 @@ object Deps {
       .exclude(("com.lihaoyi", "os-lib_2.13"))
   def slf4jNop                  = mvn"org.slf4j:slf4j-nop:2.0.17"
   def sttp                      = mvn"com.softwaremill.sttp.client3::core:3.11.0"
-  def svm                       = mvn"org.graalvm.nativeimage:svm:$graalVmVersion"
+  def svm                       = mvn"org.graalvm.nativeimage:svm:$graalSvmVersion"
   def swoval                    = mvn"com.swoval:file-tree-views:2.1.12"
   def testInterface             = mvn"org.scala-sbt:test-interface:1.0"
-  val toolkitVersion            = "0.7.0"
+  val toolkitVersion            = "0.8.0"
   val toolkitVersionForNative04 = "0.3.0"
   val toolkitVersionForNative05 = toolkitVersion
   def toolkit                   = mvn"org.scala-lang:toolkit:$toolkitVersion"
@@ -289,9 +290,10 @@ object Deps {
   def scalafixInterfaces = mvn"ch.epfl.scala:scalafix-interfaces:${Versions.scalafix}"
 }
 
-def graalVmVersion     = "22.3.1"
-def graalVmJavaVersion = Java.defaultJava
-def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
+def graalVmJavaVersion      = Java.defaultJava
+def graalVmCommunityVersion = s"$graalVmJavaVersion.0.9"
+def graalSvmVersion         = "22.3.1"
+def graalVmJvmId            = s"graalvm-community:$graalVmCommunityVersion"
 
 def csDockerVersion = Deps.Versions.coursierCli
 

@@ -536,8 +536,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             if (additionalEntries.isEmpty)
               Map.empty
             else {
-              val newValue =
-                (additionalEntries.iterator ++ currentOpt.iterator).mkString(File.pathSeparator)
+              val newValue = (additionalEntries.iterator ++ currentOpt.iterator).mkString(
+                File.pathSeparator
+              )
               Map(prependTo -> newValue)
             }
           }

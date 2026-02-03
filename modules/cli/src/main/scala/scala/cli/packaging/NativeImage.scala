@@ -89,7 +89,8 @@ object NativeImage {
 
     val cacheData = CachedBinary.getCacheData(
       builds,
-      s"--java-home=${javaHome.javaHome.toString}" :: "--" :: extraOptions.toList ++ nativeImageArgs,
+      s"--java-home=${javaHome.javaHome.toString}" :: "--" ::
+        extraOptions.toList ++ nativeImageArgs,
       dest,
       nativeImageWorkDir
     )

@@ -416,7 +416,8 @@ final case class SharedOptions(
           extraCompileOnlyJars = extraCompileOnlyClassPath,
           extraSourceJars = extraSourceJars.extractedClassPath ++ assumedSourceJars,
           extraRepositories =
-            (ScalaCli.launcherOptions.scalaRunner.cliPredefinedRepository ++ dependencies.repository)
+            (ScalaCli.launcherOptions.scalaRunner.cliPredefinedRepository ++
+              dependencies.repository)
               .map(_.trim)
               .filter(_.nonEmpty),
           extraDependencies = extraDependencies(ignoreErrors, resolvedToolkitDependency),
@@ -640,7 +641,8 @@ final case class SharedOptions(
   def allMarkdownSnippets: List[String] = snippet.markdownSnippet ++ snippet.executeMarkdown
 
   def hasSnippets =
-    allScriptSnippets.nonEmpty || allScalaSnippets.nonEmpty || allJavaSnippets
+    allScriptSnippets.nonEmpty || allScalaSnippets.nonEmpty ||
+    allJavaSnippets
       .nonEmpty || allMarkdownSnippets.nonEmpty
 
   def validateInputArgs(

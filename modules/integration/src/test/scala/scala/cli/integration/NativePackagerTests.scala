@@ -119,7 +119,7 @@ class NativePackagerTests extends ScalaCliSuite {
 
     // FIXME: building dmg package sometimes fails with:
     // 'hdiutil: couldn't eject "disk2" - Resource busy'
-    if (TestUtil.isM1 || !TestUtil.isCI)
+    if (TestUtil.isAarch64 || !TestUtil.isCI)
       test("building dmg package") {
         testBuildingDmgPackage()
       }

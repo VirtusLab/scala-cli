@@ -15,7 +15,8 @@ class BspTests3NextRc extends BspTestDefinitions with BspTests3Definitions with 
     // Yes, seriously. Which is why we can't use it there.
     val sv = if (Properties.isWin) Constants.scala3NextRc else "3.5.0-RC1-fakeversion-bin-SNAPSHOT"
     val inputs = TestInputs(
-      os.rel / "simple.sc" -> s"""assert(dotty.tools.dotc.config.Properties.versionNumberString == "$sv")"""
+      os.rel / "simple.sc" ->
+        s"""assert(dotty.tools.dotc.config.Properties.versionNumberString == "$sv")"""
     )
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
@@ -52,7 +53,8 @@ class BspTests3NextRc extends BspTestDefinitions with BspTests3Definitions with 
         if (Properties.isWin)
           (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString
         else
-          (localRepoPath / "thecache" / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString
+          (localRepoPath / "thecache" / "https" / "repo1.maven.org" /
+            "maven2").toNIO.toUri.toASCIIString
       os.proc(
         TestUtil.cli,
         "--cli-default-scala-version",

@@ -4,7 +4,7 @@
 //| - com.goyeau::mill-scalafix::0.6.0
 //| - com.lumidion::sonatype-central-client-requests:0.6.0
 //| - io.get-coursier:coursier-launcher_2.13:2.1.25-M23
-//| - org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r
+//| - org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r
 package build
 
 import build.ci.publishVersion
@@ -213,7 +213,8 @@ trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with LocatedI
       "SCALA_CLI_GIF_SCENARIOS" -> (BuildCtx.workspaceRoot / "gifs" / "scenarios").toString,
       "SCALA_CLI_WEBSITE_IMG"   -> (BuildCtx.workspaceRoot / "website" / "static" / "img").toString,
       "SCALA_CLI_GIF_RENDERER_DOCKER_DIR" -> (BuildCtx.workspaceRoot / "gifs").toString,
-      "SCALA_CLI_SVG_RENDERER_DOCKER_DIR" -> (BuildCtx.workspaceRoot / "gifs" / "svg_render").toString
+      "SCALA_CLI_SVG_RENDERER_DOCKER_DIR" ->
+        (BuildCtx.workspaceRoot / "gifs" / "svg_render").toString
     )
     private def customResources: T[Seq[PathRef]] = {
       val customPaths: Seq[os.Path] = Seq(
@@ -547,7 +548,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def maxScalacArgumentsCount = 5000
          |
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
-         |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
+         |  def defaultGraalVMVersion = "${deps.graalVmCommunityVersion}"
          |
          |  def scalaCliSigningOrganization = "${Deps.signingCli.dep.module.organization.value}"
          |  def scalaCliSigningName = "${Deps.signingCli.dep.module.name.value}"
@@ -858,7 +859,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |  def ammoniteVersionForScala3Lts = "${Deps.Versions.ammoniteForScala3Lts}"
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.versionConstraint.asString}"
          |  def defaultGraalVMJavaVersion = "${deps.graalVmJavaVersion}"
-         |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
+         |  def defaultGraalVMVersion = "${deps.graalVmCommunityVersion}"
          |  def scalaPyVersion = "${Deps.scalaPy.dep.versionConstraint.asString}"
          |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
          |  def defaultMillVersion = "${BuildInfo.millVersion}"
@@ -1052,7 +1053,6 @@ trait CliIntegration extends SbtModule
            |  def defaultJvmVersion            = ${Java.defaultJava}
            |  def scala212                     = "${Scala.scala212}"
            |  def scala213                     = "${Scala.scala213}"
-           |  def scalaSnapshot213             = "${TestDeps.scalaSnapshot213}"
            |  def scala3LtsPrefix              = "${Scala.scala3LtsPrefix}"
            |  def scala3Lts                    = "${Scala.scala3Lts}"
            |  def scala3NextPrefix             = "${Scala.scala3NextPrefix}"
@@ -1082,7 +1082,7 @@ trait CliIntegration extends SbtModule
            |  def semanticDbJavacPluginVersion = "${Deps.semanticDbJavac.dep.versionConstraint.asString}"
            |  def ammoniteVersion              = "${Deps.ammonite.dep.versionConstraint.asString}"
            |  def defaultGraalVMJavaVersion    = "${deps.graalVmJavaVersion}"
-           |  def defaultGraalVMVersion        = "${deps.graalVmVersion}"
+           |  def defaultGraalVMVersion        = "${deps.graalVmCommunityVersion}"
            |  def runnerScala30LegacyVersion   = "${Cli.runnerScala30LegacyVersion}"
            |  def runnerScala2LegacyVersion    = "${Cli.runnerScala2LegacyVersion}"
            |  def scalaPyVersion               = "${Deps.scalaPy.dep.versionConstraint.asString}"

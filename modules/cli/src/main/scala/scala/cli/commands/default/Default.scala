@@ -52,7 +52,8 @@ class Default(actualHelp: => RuntimeCommandsHelp)
       {
         val shouldDefaultToRun =
           args.remaining.nonEmpty || options.shared.snippet.executeScript.nonEmpty ||
-          options.shared.snippet.executeScala.nonEmpty || options.shared.snippet.executeJava.nonEmpty ||
+          options.shared.snippet.executeScala.nonEmpty ||
+          options.shared.snippet.executeJava.nonEmpty ||
           options.shared.snippet.executeMarkdown.nonEmpty ||
           (options.shared.extraClasspathWasPassed && options.sharedRun.mainClass.mainClass.nonEmpty)
         if shouldDefaultToRun then RunOptions.parser else ReplOptions.parser

@@ -505,7 +505,7 @@ Pass a global dialect for scalafmt. This overrides whatever value is configured 
 
 Aliases: `--fmt-version`
 
-Pass scalafmt version before running it (3.10.2 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.10.4 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -986,7 +986,7 @@ GraalVM Java major version to use to build GraalVM native images (17 by default)
 
 ### `--graalvm-version`
 
-GraalVM version to use to build GraalVM native images (22.3.1 by default)
+GraalVM version to use to build GraalVM native images (17.0.9 by default)
 
 ### `--graalvm-jvm-id`
 
@@ -1254,7 +1254,7 @@ Use Ammonite (instead of the default Scala REPL)
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version (3.0.6 by default)
+Set the Ammonite version (3.0.7 by default)
 
 ### `--ammonite-arg`
 
@@ -1428,7 +1428,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 ### `--native-version`
 
-Set the Scala Native version (0.5.9 by default).
+Set the Scala Native version (0.5.10 by default).
 
 ### `--native-mode`
 
@@ -1605,7 +1605,7 @@ Available in commands:
 
 Aliases: `-S`, `--scala`
 
-Set the Scala version (3.8.0 by default)
+Set the Scala version (3.8.1 by default)
 
 ### `--scala-binary-version`
 
@@ -1679,7 +1679,7 @@ Copy compilation results to output directory using either relative or absolute p
 
 Aliases: `--toolkit`
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 ### `--exclude`
 

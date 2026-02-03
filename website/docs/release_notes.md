@@ -8,6 +8,72 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.12.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.12.1)
+
+### Change default Scala version to 3.8.1
+This Scala CLI version switches the default Scala version to 3.8.1.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.12.1
+# Scala version (default): 3.8.1
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4065](https://github.com/VirtusLab/scala-cli/pull/4065)
+
+### Change default Scala Native version to 0.5.10
+This Scala CLI version switches the default Scala Native version to 0.5.10.
+
+```bash
+scala-cli -e 'println("Hello from Scala Native 0.5.10!")' --native
+# Compiling project (Scala 3.8.1, Scala Native 0.5.10)
+# Compiled project (Scala 3.8.1, Scala Native 0.5.10)
+# [info] Linking (multithreadingEnabled=detect) (725 ms)
+# [info] Discovered 903 classes and 5554 methods after classloading
+# [info] Checking intermediate code (quick) (31 ms)
+# [info] Multithreading was not explicitly enabled - initial class loading has not detected any usage of system threads. Multithreading support will be disabled to improve performance.
+# [info] Linking (multithreadingEnabled=false) (273 ms)
+# [info] Discovered 512 classes and 2629 methods after classloading
+# [info] Checking intermediate code (quick) (7 ms)
+# [info] Discovered 493 classes and 2002 methods after optimization
+# [info] Optimizing (debug mode) (447 ms)
+# [info] Produced 12 LLVM IR files
+# [info] Generating intermediate code (826 ms)
+# [info] Compiling to native code (5461 ms)
+# [info] Linking with [pthread, dl, m]
+# [info] Linking native code (immix gc, none lto) (257 ms)
+# [info] Postprocessing (0 ms)
+# [info] Total (7688 ms)
+# Hello from Scala Native 0.5.10!
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4078](https://github.com/VirtusLab/scala-cli/pull/4078)
+
+### Fixes
+* fix: openjdk:17-slim is not available. using 17.0.2-slim instead by [@kaplan-shaked](https://github.com/kaplan-shaked) in [#4057](https://github.com/VirtusLab/scala-cli/pull/4057)
+
+### Build and internal changes
+* Fix Scala 2.13 nightly tests by [@Gedochao](https://github.com/Gedochao) in [#4063](https://github.com/VirtusLab/scala-cli/pull/4063)
+* Switch the CI to GitHub Linux arm64 runners by [@Gedochao](https://github.com/Gedochao) in [#4064](https://github.com/VirtusLab/scala-cli/pull/4064)
+
+### Updates
+* Bump @algolia/client-search from 5.46.2 to 5.46.3 in /website by @dependabot[bot] in [#4062](https://github.com/VirtusLab/scala-cli/pull/4062)
+* Update scala-cli.sh launcher for 1.12.0 by @github-actions[bot] in [#4054](https://github.com/VirtusLab/scala-cli/pull/4054)
+* Bump `scalafmt` to 3.10.4 (was 3.10.2) by [@Gedochao](https://github.com/Gedochao) in [#4061](https://github.com/VirtusLab/scala-cli/pull/4061)
+* Bump `jgit` to 7.5.0.202512021534-r (was 7.3.0.202506031305-r) by [@Gedochao](https://github.com/Gedochao) in [#4058](https://github.com/VirtusLab/scala-cli/pull/4058)
+* Bump Scala Toolkit to 0.8.0 (was 0.7.0) by [@Gedochao](https://github.com/Gedochao) in [#4060](https://github.com/VirtusLab/scala-cli/pull/4060)
+* Bump lodash from 4.17.21 to 4.17.23 in /website by @dependabot[bot] in [#4066](https://github.com/VirtusLab/scala-cli/pull/4066)
+* Bump Scala 3 Next to 3.8.1 by [@Gedochao](https://github.com/Gedochao) in [#4065](https://github.com/VirtusLab/scala-cli/pull/4065)
+* Switch from `graalvm-java17` to `graalvm-community` by [@Gedochao](https://github.com/Gedochao) in [#3459](https://github.com/VirtusLab/scala-cli/pull/3459)
+* Bump Ammonite to 3.0.7 (was 3.0.6) by [@Gedochao](https://github.com/Gedochao) in [#4070](https://github.com/VirtusLab/scala-cli/pull/4070)
+* Bump Scala 3 Next RC to 3.8.2-RC1 by [@Gedochao](https://github.com/Gedochao) in [#4071](https://github.com/VirtusLab/scala-cli/pull/4071)
+* Bump Scala Native to 0.5.10 (was 0.5.9) by [@Gedochao](https://github.com/Gedochao) in [#4078](https://github.com/VirtusLab/scala-cli/pull/4078)
+
+## New Contributors
+* [@kaplan-shaked](https://github.com/kaplan-shaked) made their first contribution in [#4057](https://github.com/VirtusLab/scala-cli/pull/4057)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.12.0...v1.12.1
+
 ## [v1.12.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.12.0)
 
 ### Change default Scala version to 3.8.0
@@ -3824,7 +3890,7 @@ Fixed by [@MaciejG604](https://github.com/MaciejG604) in [#2033](https://github.
 * Add docs for test scope directives by [@Gedochao](https://github.com/Gedochao) in [#2058](https://github.com/VirtusLab/scala-cli/pull/2058)
 * Improve error messages for malformed `config` values by [@Gedochao](https://github.com/Gedochao) in [#2014](https://github.com/VirtusLab/scala-cli/pull/2014)
 * Update export documentation by [@MaciejG604](https://github.com/MaciejG604) in [#2023](https://github.com/VirtusLab/scala-cli/pull/2023)
-* Add weaver test framework instruction by @lenguyenthanh in [#2021](https://github.com/VirtusLab/scala-cli/pull/2021)
+* Add weaver test framework instruction by [@lenguyenthanh](https://github.com/lenguyenthanh) in [#2021](https://github.com/VirtusLab/scala-cli/pull/2021)
 
 ### Build and internal changes
 * Download cs for aarch64 from coursier-m1 repo by [@lwronski](https://github.com/lwronski) in [#2085](https://github.com/VirtusLab/scala-cli/pull/2085)

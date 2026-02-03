@@ -35,8 +35,9 @@ abstract class CodeWrapper {
         nl + "/*</script>*/ /*<generated>*/" + bottomWrapper
       )
 
-    val mainClassName =
-      (pkgName :+ mainClassObject(indexedWrapperName)).map(_.encoded).mkString(".")
+    val mainClassName = (pkgName :+ mainClassObject(indexedWrapperName)).map(
+      _.encoded
+    ).mkString(".")
 
     val wrapperParams =
       WrapperParams(topWrapper0.linesIterator.size, code.linesIterator.size, mainClassName)

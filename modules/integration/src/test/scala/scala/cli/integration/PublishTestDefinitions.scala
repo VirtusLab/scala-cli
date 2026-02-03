@@ -63,7 +63,8 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val expectedArtifactsDir: os.RelPath =
       os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple$scalaSuffix" / "0.2.0-SNAPSHOT"
     val expectedJsArtifactsDir: os.RelPath =
-      os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple_sjs1$scalaSuffix" / "0.2.0-SNAPSHOT"
+      os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple_sjs1$scalaSuffix" /
+        "0.2.0-SNAPSHOT"
   }
 
   val baseExpectedArtifacts: Set[String] = Set(

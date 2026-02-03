@@ -358,7 +358,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
            |object linspace extends js.Object {
            |  def apply(start: Double, stop: Double, num: Int): Float64Array = js.native
            |}""".stripMargin,
-      os.rel / importmapFile -> """{"imports": {"@stdlib/linspace": "https://cdn.skypack.dev/@stdlib/linspace"}}""".stripMargin
+      os.rel / importmapFile ->
+        """{"imports": {"@stdlib/linspace": "https://cdn.skypack.dev/@stdlib/linspace"}}""".stripMargin
     )
     inputs.fromRoot { root =>
       val absOutDir = root / outDir
@@ -456,7 +457,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
            |object linspace extends js.Object {
            |  def apply(start: Double, stop: Double, num: Int): Float64Array = js.native
            |}""".stripMargin,
-      os.rel / importmapFile -> """{"imports": {"@stdlib/linspace": "https://cdn.skypack.dev/@stdlib/linspace"}}""".stripMargin
+      os.rel / importmapFile ->
+        """{"imports": {"@stdlib/linspace": "https://cdn.skypack.dev/@stdlib/linspace"}}""".stripMargin
     )
     inputs.fromRoot { root =>
       val absOutDir = root / outDir
