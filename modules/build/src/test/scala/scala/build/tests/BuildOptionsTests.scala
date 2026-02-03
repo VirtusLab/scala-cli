@@ -437,8 +437,6 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         val repositories = build.options.finalRepositories.orThrow
 
         expect(repositories.length == 5)
-        expect(repositories.contains(Repositories.sonatype("snapshots")))
-        expect(repositories.contains(Repositories.sonatypeS01("snapshots")))
         expect(repositories.contains(Repositories.central))
         expect(repositories.contains(RepositoryUtils.snapshotsRepository))
         expect(repositories.contains(RepositoryUtils.scala3NightlyRepository))

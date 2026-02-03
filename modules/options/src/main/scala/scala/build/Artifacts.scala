@@ -201,8 +201,6 @@ object Artifacts {
       )
       if hasSnapshots || hasNightlies then
         Seq(
-          coursier.Repositories.sonatype("snapshots"),
-          coursier.Repositories.sonatypeS01("snapshots"),
           RepositoryUtils.snapshotsRepository,
           RepositoryUtils.scala3NightlyRepository
         )
@@ -488,8 +486,6 @@ object Artifacts {
             val maybeSnapshotRepo =
               if runnerVersion.endsWith("SNAPSHOT") then
                 Seq(
-                  coursier.Repositories.sonatype("snapshots"),
-                  coursier.Repositories.sonatypeS01("snapshots"),
                   RepositoryUtils.snapshotsRepository,
                   RepositoryUtils.scala3NightlyRepository
                 )

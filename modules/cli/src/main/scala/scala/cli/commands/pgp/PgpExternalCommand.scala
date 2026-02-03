@@ -186,8 +186,6 @@ object PgpExternalCommand {
       val extraRepos =
         if version.endsWith("SNAPSHOT") then
           Seq(
-            Repositories.sonatype("snapshots"),
-            Repositories.sonatypeS01("snapshots"),
             RepositoryUtils.snapshotsRepository,
             RepositoryUtils.scala3NightlyRepository
           )
