@@ -209,8 +209,7 @@ object Artifacts {
       else Nil
     }
 
-    val allExtraRepositories =
-      (maybeSnapshotRepo ++ extraRepositories).distinct
+    val allExtraRepositories = (maybeSnapshotRepo ++ extraRepositories).distinct
 
     val scalaOpt = scalaArtifactsParamsOpt match {
       case Some(scalaArtifactsParams) =>
@@ -836,7 +835,8 @@ object Artifacts {
     resolutionError: coursier.error.ResolutionError.Simple
   ) = resolutionError match {
     case ex: ResolutionError.CantDownloadModule
-        if ex.module.name.value == s"${Constants.toolkitName}_2.12" || ex.module.name
+        if ex.module.name.value == s"${Constants.toolkitName}_2.12" ||
+        ex.module.name
           .value == s"${Constants.toolkitTestName}_2.12" =>
       val errorPositions = dependencies.collect {
         case Positioned(pos, dep)

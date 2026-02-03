@@ -9,7 +9,7 @@ import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.{BuildException, CompositeBuildException, ModuleFormatError}
 import scala.build.options.*
 import scala.build.options.packaging.*
-import scala.build.{BuildThreads, Positioned}
+import scala.build.{BuildThreads, Logger, Positioned}
 import scala.cli.commands.shared.*
 import scala.cli.commands.tags
 
@@ -176,7 +176,7 @@ final case class PackageOptions(
       .sequence
       .left.map(CompositeBuildException(_))
 
-  def baseBuildOptions: Either[BuildException, BuildOptions] = either {
+  def baseBuildOptions(logger: Logger): Either[BuildException, BuildOptions] = either {
     val baseOptions = value(shared.buildOptions())
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
@@ -222,13 +222,25 @@ final case class PackageOptions(
             isDockerEnabled = Some(docker),
             extraDirectories = packager.dockerExtraDirectories.map(os.Path(_, os.pwd))
           ),
-          nativeImageOptions = NativeImageOptions(
-            graalvmJvmId = packager.graalvmJvmId.map(_.trim).filter(_.nonEmpty),
-            graalvmJavaVersion = packager.graalvmJavaVersion.filter(_ > 0),
-            graalvmVersion = packager.graalvmVersion.map(_.trim).filter(_.nonEmpty),
-            graalvmArgs =
-              packager.graalvmArgs.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine)
-          ),
+          nativeImageOptions = {
+            val graalVmVersion     = packager.graalvmVersion.map(_.trim).filter(_.nonEmpty)
+            val graalVmJavaVersion = packager.graalvmJvmId.map(_.trim)
+            for {
+              vmVersion   <- graalVmVersion
+              javaVersion <- graalVmJavaVersion
+              if !vmVersion.startsWith(javaVersion)
+            } logger.message(
+              s"""GraalVM Java major version ($javaVersion) does not match GraalVM version ($vmVersion).
+                 |GraalVM version should start with the Java major version to be used.""".stripMargin
+            )
+            NativeImageOptions(
+              graalvmJvmId = packager.graalvmJvmId.map(_.trim).filter(_.nonEmpty),
+              graalvmJavaVersion = packager.graalvmJavaVersion.filter(_ > 0),
+              graalvmVersion = graalVmVersion,
+              graalvmArgs =
+                packager.graalvmArgs.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine)
+            )
+          },
           useDefaultScaladocOptions = defaultScaladocOptions
         ),
         addRunnerDependencyOpt = Some(false)
@@ -241,8 +253,8 @@ final case class PackageOptions(
     )
   }
 
-  def finalBuildOptions: Either[BuildException, BuildOptions] = either {
-    val baseOptions = value(baseBuildOptions)
+  def finalBuildOptions(logger: Logger): Either[BuildException, BuildOptions] = either {
+    val baseOptions = value(baseBuildOptions(logger))
     baseOptions.copy(
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         packageOptions = baseOptions.notForBloopOptions.packageOptions.copy(

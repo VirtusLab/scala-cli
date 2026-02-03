@@ -77,8 +77,8 @@ trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
       }
       cliOptsString       = cliOpts.mkString(" ")
       directiveOptsString = directiveOpts.mkString(" ")
-      includeDirective    =
-        (mode == viaDirective || mode == mixed || mode == mixedWithExplicitOpt) && directiveOpts.nonEmpty
+      includeDirective = (mode == viaDirective || mode == mixed || mode == mixedWithExplicitOpt) &&
+        directiveOpts.nonEmpty
       directiveString = if (includeDirective) s"//> using options $directiveOptsString" else ""
       allOptsString   = mode match {
         case m if m.startsWith(mixed) =>

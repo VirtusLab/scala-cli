@@ -736,7 +736,8 @@ abstract class RunTestDefinitions
     test(s"Runs with JVM $jvm") {
       val inputs =
         TestInputs(
-          os.rel / "run.scala" -> """object Main extends App { println(System.getProperty("java.version"))}"""
+          os.rel / "run.scala" ->
+            """object Main extends App { println(System.getProperty("java.version"))}"""
         )
       inputs.fromRoot { root =>
         val p   = os.proc(TestUtil.cli, "run.scala", "--jvm", jvm).call(cwd = root)
@@ -961,7 +962,8 @@ abstract class RunTestDefinitions
   }
 
   if (
-    Properties.isLinux && TestUtil.isNativeCli && TestUtil.cliKind != "native-static" && TestUtil.cliKind != "native-mostly-static"
+    Properties.isLinux && TestUtil.isNativeCli && TestUtil.cliKind != "native-static" &&
+    TestUtil.cliKind != "native-mostly-static"
   )
     // TODO: restore this test once it gets reliable again
     test("sudo".flaky) {
@@ -1078,7 +1080,7 @@ abstract class RunTestDefinitions
   }
 
   def runAuthProxyTests: Boolean =
-    Properties.isLinux || (Properties.isMac && !TestUtil.isCI)
+    (Properties.isLinux && !TestUtil.isAarch64) || (Properties.isMac && !TestUtil.isCI)
 
   if (runAuthProxyTests) {
     test("auth proxy (legacy)") {
@@ -1992,13 +1994,13 @@ abstract class RunTestDefinitions
         val dep    = s"com.lihaoyi:os-lib_$depScalaVersion:0.10.6"
         val inputs = TestInputs(
           os.rel / "NoDeps.scala" ->
-            """//> using jvm zulu:11
+            """//> using jvm zulu:17
               |object NoDeps extends App {
               |  println("Hello from NoDeps")
               |}
               |""".stripMargin,
           os.rel / "WithDeps.scala" ->
-            s"""//> using jvm zulu:11
+            s"""//> using jvm zulu:17
                |//> using dep $dep
                |
                |object WithDeps extends App {
@@ -2051,7 +2053,7 @@ abstract class RunTestDefinitions
             }
 
           // Download JVM that won't suit Bloop, also no Bloop artifacts are present
-          os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:11")
+          os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:17")
             .call(cwd = root, env = extraEnv)
 
           val scalaJvmCacheWalkSize = os.walk(cachePath).size
@@ -2375,7 +2377,8 @@ abstract class RunTestDefinitions
   for {
     (input, code) <- Seq(
       os.rel / "script.sc" -> """println(args.mkString(" "))""",
-      os.rel / "raw.scala" -> """object Main { def main(args: Array[String]) = println(args.mkString(" ")) }"""
+      os.rel / "raw.scala" ->
+        """object Main { def main(args: Array[String]) = println(args.mkString(" ")) }"""
     )
     testInputs = TestInputs(input -> code)
     shouldRestartBloop <- Seq(true, false)
@@ -2396,19 +2399,18 @@ abstract class RunTestDefinitions
             if (shouldRestartBloop)
               os.proc(TestUtil.cli, "bloop", "exit", "--power")
                 .call(cwd = root)
-            val processes: Seq[(os.SubProcess, Int)] =
-              (0 until parallelInstancesCount).map { i =>
-                os.proc(
-                  TestUtil.cli,
-                  "run",
-                  input.toString(),
-                  extraOptions,
-                  "--",
-                  "iteration",
-                  i.toString
-                )
-                  .spawn(cwd = root, env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"))
-              }.zipWithIndex
+            val processes: Seq[(os.SubProcess, Int)] = (0 until parallelInstancesCount).map { i =>
+              os.proc(
+                TestUtil.cli,
+                "run",
+                input.toString(),
+                extraOptions,
+                "--",
+                "iteration",
+                i.toString
+              )
+                .spawn(cwd = root, env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"))
+            }.zipWithIndex
             processes.foreach { case (p, _) => p.waitFor() }
             processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
             processes.foreach { case (p, i) => expect(p.stdout.trim() == s"iteration $i") }
@@ -2427,7 +2429,8 @@ abstract class RunTestDefinitions
     test(s"run a main method from the test scope ($platformDescription)") {
       val expectedMessage = "Hello from the test scope"
       TestInputs(
-        os.rel / "example.test.scala" -> s"""object Main extends App { println("$expectedMessage") }"""
+        os.rel / "example.test.scala" ->
+          s"""object Main extends App { println("$expectedMessage") }"""
       ).fromRoot { root =>
         val res = os.proc(TestUtil.cli, "run", ".", "--test", extraOptions, platformOpts)
           .call(cwd = root)
@@ -2439,8 +2442,10 @@ abstract class RunTestDefinitions
     val expectedMains @ Seq(expectedMain1, expectedMain2) = Seq("Main", "AnotherMain")
     val expectedOutput                                    = expectedMains.mkString(" ")
     TestInputs(
-      os.rel / "example.scala" -> s"""object $expectedMain1 extends App { println("Hello from the main scope") }""",
-      os.rel / "example.test.scala" -> s"""object $expectedMain2 extends App { println("Hello from the test scope") }"""
+      os.rel / "example.scala" ->
+        s"""object $expectedMain1 extends App { println("Hello from the main scope") }""",
+      os.rel / "example.test.scala" ->
+        s"""object $expectedMain2 extends App { println("Hello from the test scope") }"""
     ).fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
@@ -2497,11 +2502,10 @@ abstract class RunTestDefinitions
           ).split(":", 2).last.trim())
         os.remove.all(localRepoPath)
 
-        val processes =
-          (0 until parallelInstancesCount).map { _ =>
-            os.proc(TestUtil.cli, "--version")
-              .spawn(cwd = root)
-          }.zipWithIndex
+        val processes = (0 until parallelInstancesCount).map { _ =>
+          os.proc(TestUtil.cli, "--version")
+            .spawn(cwd = root)
+        }.zipWithIndex
         processes.foreach { case (p, _) => p.waitFor() }
         processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
       }

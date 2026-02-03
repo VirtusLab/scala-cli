@@ -398,7 +398,8 @@ object MsvcEnvironment {
         edition <- vcEditions
       } yield {
         val programFiles = if (isX86) "Program Files (x86)" else "Program Files"
-        """C:\""" + programFiles + """\Microsoft Visual Studio\""" + version + "\\" + edition + """\VC\Auxiliary\Build\vcvars64.bat"""
+        """C:\""" + programFiles + """\Microsoft Visual Studio\""" + version + "\\" + edition +
+          """\VC\Auxiliary\Build\vcvars64.bat"""
       }
     }
 

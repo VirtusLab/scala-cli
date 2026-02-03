@@ -470,7 +470,9 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
             expect(r.exitCode == 0)
             expect(r.out.trim() == expectedOutput)
           }
-          expect(r.err.trim().contains(s"multithreadingEnabled=$expectedMultithreadingState"))
+          val outputMultithreadingState =
+            if setExplicitly then expectedMultithreadingState.toString else "detect"
+          expect(r.err.trim().contains(s"multithreadingEnabled=$outputMultithreadingState"))
         }
       }
     }

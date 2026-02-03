@@ -221,7 +221,8 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   def maybePrintToolsHelp(options: T, buildOptions: BuildOptions): Unit =
     for {
       shared <- sharedOptions(options)
-      if shared.helpGroups.helpScaladoc || shared.helpGroups.helpRepl || shared.helpGroups.helpScalafmt
+      if shared.helpGroups.helpScaladoc || shared.helpGroups.helpRepl ||
+      shared.helpGroups.helpScalafmt
       logger = shared.logger
       artifacts      <- buildOptions.artifacts(logger, Scope.Main).toOption
       scalaArtifacts <- artifacts.scalaOpt

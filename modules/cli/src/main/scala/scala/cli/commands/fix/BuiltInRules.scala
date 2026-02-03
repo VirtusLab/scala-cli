@@ -105,7 +105,8 @@ object BuiltInRules extends CommandHelpers {
     // Deal with directives from the Test scope
     val directivesFromWritableTestInputs: Seq[TransformedTestDirectives] =
       if (
-        testSources.paths.nonEmpty || testSources.inMemory.nonEmpty || testDirectivesFromMain.nonEmpty
+        testSources.paths.nonEmpty || testSources.inMemory.nonEmpty ||
+        testDirectivesFromMain.nonEmpty
       ) {
         val originalTestDirectives =
           getExtractedDirectives(testSources, buildOptions.suppressWarningOptions)
@@ -122,7 +123,8 @@ object BuiltInRules extends CommandHelpers {
                 .filter(_.existsTestEquivalent)
             }
           directive <-
-            directivesWithTestPrefix ++ directivesWithNoTestPrefixEquivalents ++ testDirectivesFromMain
+            directivesWithTestPrefix ++ directivesWithNoTestPrefixEquivalents ++
+              testDirectivesFromMain
         } yield directive
 
         createFormattedLinesAndAppend(allDirectives, projectFileContents, isTest = true)

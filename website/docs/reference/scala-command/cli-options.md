@@ -390,7 +390,7 @@ Aliases: `--fmt-version`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Pass scalafmt version before running it (3.10.2 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.10.4 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -904,7 +904,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 `SHOULD have` per Scala Runner specification
 
-Set the Scala Native version (0.5.9 by default).
+Set the Scala Native version (0.5.10 by default).
 
 ### `--native-mode`
 
@@ -1066,7 +1066,7 @@ Aliases: `-S`, `--scala`
 
 `MUST have` per Scala Runner specification
 
-Set the Scala version (3.8.0 by default)
+Set the Scala version (3.8.1 by default)
 
 ### `--scala-binary-version`
 
@@ -1156,7 +1156,7 @@ Aliases: `--toolkit`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 ### `--exclude`
 

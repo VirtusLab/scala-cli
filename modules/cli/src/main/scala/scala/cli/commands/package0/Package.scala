@@ -67,7 +67,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   override def buildOptions(options: PackageOptions): Option[BuildOptions] =
-    Some(options.baseBuildOptions.orExit(options.shared.logger))
+    Some(options.baseBuildOptions(options.shared.logger).orExit(options.shared.logger))
   override def runCommand(options: PackageOptions, args: RemainingArgs, logger: Logger): Unit = {
     val inputs = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
@@ -168,7 +168,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   }
 
   def finalBuildOptions(options: PackageOptions): BuildOptions = {
-    val initialOptions    = options.finalBuildOptions.orExit(options.shared.logger)
+    val initialOptions =
+      options.finalBuildOptions(options.shared.logger).orExit(options.shared.logger)
     val finalBuildOptions = initialOptions.copy(scalaOptions =
       initialOptions.scalaOptions.copy(defaultScalaVersion = Some(defaultScalaVersion))
     )
@@ -647,7 +648,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   ): Either[BuildException, Unit] = either {
     val packageOptions = builds.head.options.notForBloopOptions.packageOptions
 
-    if builds.head.options.platform.value == Platform.Native && (Properties.isMac || Properties.isWin)
+    if builds.head.options.platform.value == Platform.Native &&
+      (Properties.isMac || Properties.isWin)
     then {
       System.err.println(
         "Package scala native application to docker image is not supported on MacOs and Windows"
@@ -664,7 +666,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     }
     val from = packageOptions.dockerOptions.from.getOrElse {
       builds.head.options.platform.value match {
-        case Platform.JVM    => "openjdk:17-slim"
+        case Platform.JVM    => "openjdk:17.0.2-slim"
         case Platform.JS     => "node"
         case Platform.Native => "debian:stable-slim"
       }
@@ -908,18 +910,17 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val extraClassesByDefaultOutputDir =
       extraClassesFolders.flatMap(os.walk(_)).filter(os.isFile(_)).map(builds.head.output -> _)
 
-    val byteCodeZipEntries =
-      (compiledClassesByOutputDir ++ extraClassesByDefaultOutputDir)
-        .distinct
-        .map { (outputDir, path) =>
-          val name         = path.relativeTo(outputDir).toString
-          val content      = os.read.bytes(path)
-          val lastModified = os.mtime(path)
-          val ent          = new ZipEntry(name)
-          ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
-          ent.setSize(content.length)
-          (ent, content)
-        }
+    val byteCodeZipEntries = (compiledClassesByOutputDir ++ extraClassesByDefaultOutputDir)
+      .distinct
+      .map { (outputDir, path) =>
+        val name         = path.relativeTo(outputDir).toString
+        val content      = os.read.bytes(path)
+        val lastModified = os.mtime(path)
+        val ent          = new ZipEntry(name)
+        ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
+        ent.setSize(content.length)
+        (ent, content)
+      }
 
     val provided = builds.head.options.notForBloopOptions.packageOptions.provided ++ extraProvided
     val allJars  =

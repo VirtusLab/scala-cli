@@ -332,7 +332,8 @@ abstract class CompileTestDefinitions
     TestInputs(os.rel / "Main.scala" -> s"object Main{java.util.HexFormat.of().toHexDigits(255)}")
   val scalaJvm23Project: TestInputs =
     TestInputs(
-      os.rel / "Main.scala" -> s"object Main{System.out.println(javax.print.attribute.standard.OutputBin.LEFT)}"
+      os.rel / "Main.scala" ->
+        s"object Main{System.out.println(javax.print.attribute.standard.OutputBin.LEFT)}"
     )
   val javaJvm8Project: TestInputs =
     TestInputs(os.rel / "Main.java" -> """|public class Main{
@@ -353,11 +354,12 @@ abstract class CompileTestDefinitions
                                           |  }
                                           |}""".stripMargin)
   val javaJvm23Project: TestInputs =
-    TestInputs(os.rel / "Main.java" -> """|public class Main{
-                                          |  public static void main(String[] args) {
-                                          |      System.out.println(javax.print.attribute.standard.OutputBin.LEFT);
-                                          |  }
-                                          |}""".stripMargin)
+    TestInputs(os.rel / "Main.java" ->
+      """|public class Main{
+         |  public static void main(String[] args) {
+         |      System.out.println(javax.print.attribute.standard.OutputBin.LEFT);
+         |  }
+         |}""".stripMargin)
 
   def inputs: Map[(String, Int), TestInputs] =
     if isScala38OrNewer

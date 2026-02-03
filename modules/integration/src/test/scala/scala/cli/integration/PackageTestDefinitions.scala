@@ -1125,7 +1125,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       os.rel / "Simple.scala" -> s"""object Simple extends App { println() }"""
     ).fromRoot { (root: os.Path) =>
       val jarPath =
-        os.rel / "out" / "inner-out" / "Simple.jar" // the `out` directory doesn't exist and should be created
+        os.rel / "out" / "inner-out" /
+          "Simple.jar" // the `out` directory doesn't exist and should be created
       os.proc(
         TestUtil.cli,
         "--power",
@@ -1451,12 +1452,13 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         Seq("--native") -> (if (Properties.isWin) ".exe" else ""),
         Nil             -> (if (Properties.isWin) ".bat" else ""),
         Seq(libraryArg) -> ".jar"
-      ) ++ (if (!TestUtil.isNativeCli || !Properties.isWin) Seq(
-              Seq("--assembly")     -> ".jar",
-              Seq("--native-image") -> (if (Properties.isWin) ".exe" else ""),
-              Seq(jsArg)            -> ".js"
-            )
-            else Nil)
+      ) ++
+        (if (!TestUtil.isNativeCli || !Properties.isWin) Seq(
+           Seq("--assembly")     -> ".jar",
+           Seq("--native-image") -> (if (Properties.isWin) ".exe" else ""),
+           Seq(jsArg)            -> ".js"
+         )
+         else Nil)
       packageDescription = packageOpts.headOption.getOrElse("bootstrap")
     } {
       test(s"package with main method in test scope ($packageDescription)") {
@@ -1466,8 +1468,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           val message           = "Hello"
           val outputFile        = mainClass + extension
           TestInputs(
-            os.rel / "Messages.scala" -> s"""object Messages { val msg = "$message" }""",
-            os.rel / testScopeFileName -> s"""object $mainClass extends App { println(Messages.msg) }"""
+            os.rel / "Messages.scala"  -> s"""object Messages { val msg = "$message" }""",
+            os.rel / testScopeFileName ->
+              s"""object $mainClass extends App { println(Messages.msg) }"""
           ).fromRoot { root =>
             os.proc(
               TestUtil.cli,

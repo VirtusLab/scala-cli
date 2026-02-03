@@ -45,8 +45,13 @@ if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
 else
   if [ $# == "0" ]; then
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
-      COMMAND="cli[].linux-docker-image.writeDefaultNativeImageScript"
-      CLEANUP=("sudo" "rm" "-rf" "out/cli/linux-docker-image/nativeImageDockerWorkingDir")
+      if [[ "$(uname -m)" == "aarch64" ]]; then
+        COMMAND="cli[].base-image.writeDefaultNativeImageScript"
+        CLEANUP=("true")
+      else
+        COMMAND="cli[].linux-docker-image.writeDefaultNativeImageScript"
+        CLEANUP=("sudo" "rm" "-rf" "out/cli/linux-docker-image/nativeImageDockerWorkingDir")
+      fi
     else
       CLEANUP=("true")
     fi
