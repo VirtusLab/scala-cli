@@ -4863,7 +4863,7 @@ Added by [@wleczny](https://github.com/wleczny) in [#1505](https://github.com/Vi
 
 The `--jvm` option can now be added via using directives, like
 ```scala
-//> using jvm "adopt:11"
+//> using jvm "temurin:11"
 ```
 
 Added by [@lwronski](https://github.com/lwronski) in [#1539](https://github.com/VirtusLab/scala-cli/pull/1539)
