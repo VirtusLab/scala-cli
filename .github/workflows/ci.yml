@@ -695,6 +695,8 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+      - name: Install Bloop separately
+        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
@@ -730,6 +732,8 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+      - name: Install Bloop separately
+        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
@@ -765,6 +769,8 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+      - name: Install Bloop separately
+        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
@@ -800,6 +806,8 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+      - name: Install Bloop separately
+        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
