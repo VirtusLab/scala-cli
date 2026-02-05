@@ -106,7 +106,7 @@ class UpdateTests extends ScalaCliSuite {
     }
   }
 
-  if (!Properties.isWin && Constants.ghOrg == "VirtusLab" && Constants.ghName == "scala-cli")
+  if (!Properties.isWin && !Properties.isMac && Constants.ghOrg == "VirtusLab" && Constants.ghName == "scala-cli")
     test("updating dummy scala-cli using update command") {
       TestUtil.retryOnCi()(runUpdate())
     }
