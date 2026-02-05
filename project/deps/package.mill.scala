@@ -146,7 +146,7 @@ object Deps {
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.9"
     def bloop                             = "2.0.17"
-    def sbtVersion                        = "1.11.7"
+    def sbtVersion                        = "1.12.2"
     def mill012Version                    = "0.12.17"
     def mill10Version                     =
       if (BuildInfo.millVersion.startsWith("1.0.")) BuildInfo.millVersion else "1.0.6"
