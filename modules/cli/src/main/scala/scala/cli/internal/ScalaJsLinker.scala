@@ -1,8 +1,8 @@
 package scala.cli.internal
 
+import coursier.VersionConstraint
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.util.Task
-import coursier.{Repositories, VersionConstraint}
 import dependency.*
 import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 
@@ -60,8 +60,6 @@ object ScalaJsLinker {
           if scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT")
           then
             Seq(
-              Repositories.sonatype("snapshots"),
-              Repositories.sonatypeS01("snapshots"),
               RepositoryUtils.snapshotsRepository,
               RepositoryUtils.scala3NightlyRepository
             )

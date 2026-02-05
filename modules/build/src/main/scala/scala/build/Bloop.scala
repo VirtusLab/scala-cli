@@ -68,7 +68,6 @@ object Bloop {
         )
         Left(ex)
     }
-
   def bloopClassPath(
     dep: AnyDependency,
     params: ScalaParameters,
@@ -80,8 +79,7 @@ object Bloop {
         Artifacts.artifacts(
           Seq(Positioned.none(dep)),
           Seq(
-            coursier.Repositories.sonatype("snapshots"),
-            coursier.Repositories.sonatypeS01("snapshots"),
+            coursier.Repositories.centralMavenSnapshots,
             RepositoryUtils.snapshotsRepository,
             RepositoryUtils.scala3NightlyRepository
           ),
