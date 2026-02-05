@@ -1,6 +1,4 @@
 package scala.cli.commands.pgp
-
-import coursier.Repositories
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.util.Task
 import dependency.*
@@ -186,8 +184,6 @@ object PgpExternalCommand {
       val extraRepos =
         if version.endsWith("SNAPSHOT") then
           Seq(
-            Repositories.sonatype("snapshots"),
-            Repositories.sonatypeS01("snapshots"),
             RepositoryUtils.snapshotsRepository,
             RepositoryUtils.scala3NightlyRepository
           )

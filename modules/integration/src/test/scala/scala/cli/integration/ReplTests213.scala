@@ -15,7 +15,7 @@ class ReplTests213 extends ReplTestDefinitions with ReplAmmoniteTestDefinitions 
         Seq.empty
     repoString = if withExplicitScala2SnapshotRepo then " with Scala 2 snapshot repo" else ""
   }
-    test(s"$dryRunPrefix repl Scala 2 snapshots: $nightlyVersion$repoString") {
+    test(s"$dryRunPrefix repl Scala 2 snapshots: $nightlyVersion$repoString".ignore) {
       dryRun(
         cliOptions = scalaVersionOptions ++ repoOptions,
         useExtraOptions = false

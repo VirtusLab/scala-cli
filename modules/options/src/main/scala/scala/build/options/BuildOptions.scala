@@ -268,8 +268,6 @@ final case class BuildOptions(
       if classPathOptions.extraRepositories.contains("snapshots")
       then
         Seq(
-          coursier.Repositories.sonatype("snapshots"),
-          coursier.Repositories.sonatypeS01("snapshots"),
           RepositoryUtils.snapshotsRepository,
           RepositoryUtils.scala3NightlyRepository
         )

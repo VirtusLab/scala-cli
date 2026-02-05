@@ -31,7 +31,6 @@ object LauncherCli {
       val scalaParameters = ScalaParameters(scalaVersion)
       val snapshotsRepo   = Seq(
         Repositories.central,
-        Repositories.sonatype("snapshots"),
         RepositoryUtils.snapshotsRepository,
         RepositoryUtils.scala3NightlyRepository
       )
