@@ -280,7 +280,7 @@ passed, Scala CLI throws an error.
 Scala CLI can also compile and run Scala scripts:
 
 ```scala title=HelloScript.sc
-#!/ usr / bin / env -S scala -cli shebang
+#!/usr/bin/env -S scala shebang
 
 println("Hello world from scala script")
 ```
