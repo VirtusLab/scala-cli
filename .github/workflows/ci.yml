@@ -75,7 +75,7 @@ jobs:
       run: |
         fish -c './mill __.compile'
 
-  jvm-bootstrapped-tests:
+  jvm-bootstrapped-tests-default:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     steps:
@@ -92,15 +92,15 @@ jobs:
           SCALA_CLI_IT_GROUP: 1
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc jvm-bootstrapped-tests 'Scala CLI JVM Bootstrapped Tests' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc jvm-bootstrapped-tests-default 'Scala CLI JVM Bootstrapped Tests' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-jvm-bootstrapped-tests
+          name: test-results-jvm-bootstrapped-tests-default
           path: test-report.xml
 
-  jvm-tests-1:
+  jvm-tests-default:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     steps:
@@ -117,15 +117,15 @@ jobs:
         SCALA_CLI_IT_GROUP: 1
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc jvm-tests-1 'Scala CLI JVM Tests (1)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc jvm-tests-default 'Scala CLI JVM Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: test-results-jvm-tests-1
+        name: test-results-jvm-tests-default
         path: test-report.xml
 
-  jvm-tests-2:
+  jvm-tests-scala-2-13:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     steps:
@@ -142,15 +142,15 @@ jobs:
         SCALA_CLI_IT_GROUP: 2
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc jvm-tests-2 'Scala CLI JVM Tests (2)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc jvm-tests-scala-2-13 'Scala CLI JVM Tests (Scala 2.13)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: test-results-jvm-tests-2
+        name: test-results-jvm-tests-scala-2-13
         path: test-report.xml
 
-  jvm-tests-3:
+  jvm-tests-scala-2-12:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     steps:
@@ -167,15 +167,15 @@ jobs:
         SCALA_CLI_IT_GROUP: 3
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc jvm-tests-3 'Scala CLI JVM Tests (3)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc jvm-tests-scala-2-12 'Scala CLI JVM Tests (Scala 2.12)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: test-results-jvm-tests-3
+        name: test-results-jvm-tests-scala-2-12
         path: test-report.xml
 
-  jvm-tests-4:
+  jvm-tests-lts:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     steps:
@@ -192,15 +192,15 @@ jobs:
           SCALA_CLI_IT_GROUP: 4
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc jvm-tests-4 'Scala CLI JVM Tests (4)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc jvm-tests-lts 'Scala CLI JVM Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-jvm-tests-4
+          name: test-results-jvm-tests-lts
           path: test-report.xml
 
-  jvm-tests-5:
+  jvm-tests-rc:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     steps:
@@ -217,12 +217,12 @@ jobs:
           SCALA_CLI_IT_GROUP: 5
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc jvm-tests-5 'Scala CLI JVM Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc jvm-tests-rc 'Scala CLI JVM Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-jvm-tests-5
+          name: test-results-jvm-tests-rc
           path: test-report.xml
 
   generate-linux-launcher:
@@ -251,7 +251,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  native-linux-tests-1:
+  native-linux-tests-default:
     needs: generate-linux-launcher
     timeout-minutes: 150
     runs-on: ubuntu-24.04
@@ -276,15 +276,15 @@ jobs:
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc linux-tests-1 'Scala CLI Linux Tests (1)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc linux-tests-default 'Scala CLI Linux Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: test-results-linux-tests-1
+        name: test-results-linux-tests-default
         path: test-report.xml
 
-  native-linux-tests-2:
+  native-linux-tests-scala-2-13:
     needs: generate-linux-launcher
     timeout-minutes: 150
     runs-on: ubuntu-24.04
@@ -309,15 +309,15 @@ jobs:
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc linux-tests-2 'Scala CLI Linux Tests (2)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc linux-tests-scala-2-13 'Scala CLI Linux Tests (Scala 2.13)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: test-results-linux-tests-2
+        name: test-results-linux-tests-scala-2-13
         path: test-report.xml
 
-  native-linux-tests-3:
+  native-linux-tests-scala-2-12:
     needs: generate-linux-launcher
     timeout-minutes: 150
     runs-on: ubuntu-24.04
@@ -342,15 +342,15 @@ jobs:
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc linux-tests-3 'Scala CLI Linux Tests (3)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc linux-tests-scala-2-12 'Scala CLI Linux Tests (Scala 2.12)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: test-results-linux-tests-3
+        name: test-results-linux-tests-scala-2-12
         path: test-report.xml
 
-  native-linux-tests-4:
+  native-linux-tests-lts:
     needs: generate-linux-launcher
     timeout-minutes: 150
     runs-on: ubuntu-24.04
@@ -375,15 +375,15 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc linux-tests-4 'Scala CLI Linux Tests (4)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc linux-tests-lts 'Scala CLI Linux Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-linux-tests-4
+          name: test-results-linux-tests-lts
           path: test-report.xml
 
-  native-linux-tests-5:
+  native-linux-tests-rc:
     needs: generate-linux-launcher
     timeout-minutes: 150
     runs-on: ubuntu-24.04
@@ -408,12 +408,12 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc linux-tests-5 'Scala CLI Linux Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc linux-tests-rc 'Scala CLI Linux Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-linux-tests-5
+          name: test-results-linux-tests-rc
           path: test-report.xml
 
   generate-linux-arm64-native-launcher:
@@ -446,7 +446,7 @@ jobs:
           if-no-files-found: error
           retention-days: 2
 
-  native-linux-arm64-tests-1:
+  native-linux-arm64-tests-default:
     needs: generate-linux-arm64-native-launcher
     timeout-minutes: 150
     runs-on: ubuntu-24.04-arm
@@ -471,15 +471,15 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc linux-tests-1 'Scala CLI Linux ARM 64 Tests (1)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc linux-tests-default 'Scala CLI Linux ARM 64 Tests (default)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-linux-arm64-tests-1
+          name: test-results-linux-arm64-tests-default
           path: test-report.xml
 
-  native-linux-arm64-tests-5:
+  native-linux-arm64-tests-rc:
     needs: generate-linux-arm64-native-launcher
     timeout-minutes: 150
     runs-on: ubuntu-24.04-arm
@@ -504,12 +504,12 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc linux-tests-5 'Scala CLI Linux ARM64 Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc linux-tests-rc 'Scala CLI Linux ARM64 Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-linux-arm64-tests-5
+          name: test-results-linux-arm64-tests-rc
           path: test-report.xml
 
   generate-macos-launcher:
@@ -542,7 +542,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  native-macos-tests-1:
+  native-macos-tests-default:
     needs: generate-macos-launcher
     timeout-minutes: 150
     runs-on: "macOS-15-intel"
@@ -571,15 +571,15 @@ jobs:
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc macos-tests-1 'Scala CLI MacOS Tests (1)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc macos-tests-default 'Scala CLI MacOS Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: test-results-macos-tests-1
+        name: test-results-macos-tests-default
         path: test-report.xml
 
-  native-macos-tests-5:
+  native-macos-tests-rc:
     needs: generate-macos-launcher
     timeout-minutes: 150
     runs-on: "macOS-15-intel"
@@ -608,15 +608,15 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc macos-tests-5 'Scala CLI MacOS Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc macos-tests-rc 'Scala CLI MacOS Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-macos-tests-5
+          name: test-results-macos-tests-rc
           path: test-report.xml
 
-  generate-macos-m1-launcher:
+  generate-macos-arm64-launcher:
     timeout-minutes: 120
     runs-on: "macOS-15"
     steps:
@@ -641,13 +641,13 @@ jobs:
         run: ./mill -i copyDefaultLauncher --directory artifacts/
       - uses: actions/upload-artifact@v6
         with:
-          name: macos-m1-launchers
+          name: macos-arm64-launchers
           path: artifacts/
           if-no-files-found: error
           retention-days: 2
 
-  native-macos-m1-tests-1:
-    needs: generate-macos-m1-launcher
+  native-macos-arm64-tests-default:
+    needs: generate-macos-arm64-launcher
     timeout-minutes: 150
     runs-on: "macOS-15"
     steps:
@@ -664,7 +664,7 @@ jobs:
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
         with:
-          name: macos-m1-launchers
+          name: macos-arm64-launchers
           path: artifacts/
       - name: Native integration tests
         run: ./mill -i nativeIntegrationTests
@@ -675,16 +675,16 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc macos-m1-tests-1 'Scala CLI MacOS M1 Tests (1)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-default 'Scala CLI MacOS ARM64 Tests (default)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-macos-m1-tests-1
+          name: test-results-macos-arm64-tests-default
           path: test-report.xml
 
-  native-macos-m1-tests-4:
-    needs: generate-macos-m1-launcher
+  native-macos-arm64-tests-lts:
+    needs: generate-macos-arm64-launcher
     timeout-minutes: 150
     runs-on: "macOS-15"
     steps:
@@ -701,7 +701,7 @@ jobs:
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
         with:
-          name: macos-m1-launchers
+          name: macos-arm64-launchers
           path: artifacts/
       - name: Native integration tests
         run: ./mill -i nativeIntegrationTests
@@ -712,16 +712,16 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc macos-m1-tests-4 'Scala CLI MacOS M1 Tests (4)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-lts 'Scala CLI MacOS ARM64 Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-macos-m1-tests-4
+          name: test-results-macos-arm64-tests-lts
           path: test-report.xml
 
-  native-macos-m1-tests-5:
-    needs: generate-macos-m1-launcher
+  native-macos-arm64-tests-rc:
+    needs: generate-macos-arm64-launcher
     timeout-minutes: 150
     runs-on: "macOS-15"
     steps:
@@ -738,7 +738,7 @@ jobs:
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
         with:
-          name: macos-m1-launchers
+          name: macos-arm64-launchers
           path: artifacts/
       - name: Native integration tests
         run: ./mill -i nativeIntegrationTests
@@ -749,12 +749,12 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc macos-m1-tests-5 'Scala CLI MacOS M1 Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-rc 'Scala CLI MacOS ARM64 Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-macos-m1-tests-5
+          name: test-results-macos-arm64-tests-rc
           path: test-report.xml
 
   generate-windows-launcher:
@@ -792,7 +792,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  native-windows-tests-1:
+  native-windows-tests-default:
     needs: generate-windows-launcher
     timeout-minutes: 150
     runs-on: "windows-2025"
@@ -829,15 +829,15 @@ jobs:
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-1 'Scala CLI Windows Tests (1)' test-report.xml out/
+      run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-default 'Scala CLI Windows Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: test-results-windows-tests-1
+        name: test-results-windows-tests-default
         path: test-report.xml
 
-  native-windows-tests-4:
+  native-windows-tests-lts:
     needs: generate-windows-launcher
     timeout-minutes: 150
     runs-on: "windows-2025"
@@ -874,15 +874,15 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-4 'Scala CLI Windows Tests (4)' test-report.xml out/
+        run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-lts 'Scala CLI Windows Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-windows-tests-4
+          name: test-results-windows-tests-lts
           path: test-report.xml
 
-  native-windows-tests-5:
+  native-windows-tests-rc:
     needs: generate-windows-launcher
     timeout-minutes: 150
     runs-on: "windows-2025"
@@ -919,12 +919,12 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-5 'Scala CLI Windows Tests (5)' test-report.xml out/
+        run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-rc 'Scala CLI Windows Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-windows-tests-5
+          name: test-results-windows-tests-rc
           path: test-report.xml
 
   generate-mostly-static-launcher:
@@ -950,7 +950,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  native-mostly-static-tests-1:
+  native-mostly-static-tests-default:
     needs: generate-mostly-static-launcher
     timeout-minutes: 150
     runs-on: ubuntu-24.04
@@ -980,12 +980,12 @@ jobs:
       run: ./mill integration.docker-slim.test
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-1 'Scala CLI Native Mostly Static Tests (1)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-default 'Scala CLI Native Mostly Static Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: test-results-native-mostly-static-tests-1
+        name: test-results-native-mostly-static-tests-default
         path: test-report.xml
     - name: Login to GitHub Container Registry
       if: startsWith(github.ref, 'refs/tags/v')
@@ -997,7 +997,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       run: .github/scripts/publish-slim-docker-images.sh
 
-  native-mostly-static-tests-5:
+  native-mostly-static-tests-rc:
     needs: generate-mostly-static-launcher
     timeout-minutes: 150
     runs-on: ubuntu-24.04
@@ -1022,12 +1022,12 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-5 'Scala CLI Native Mostly Static Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-rc 'Scala CLI Native Mostly Static Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-native-mostly-static-tests-5
+          name: test-results-native-mostly-static-tests-rc
           path: test-report.xml
 
 
@@ -1054,7 +1054,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  native-static-tests-1:
+  native-static-tests-default:
     needs: generate-static-launcher
     timeout-minutes: 150
     runs-on: ubuntu-24.04
@@ -1084,12 +1084,12 @@ jobs:
       run: ./mill integration.docker.test
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc native-static-tests-1 'Scala CLI Native Static Tests (1)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc native-static-tests-default 'Scala CLI Native Static Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: test-results-native-static-tests-1
+        name: test-results-native-static-tests-default
         path: test-report.xml
     - name: Login to GitHub Container Registry
       if: startsWith(github.ref, 'refs/tags/v')
@@ -1101,7 +1101,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       run: .github/scripts/publish-docker-images.sh
 
-  native-static-tests-5:
+  native-static-tests-rc:
     needs: generate-static-launcher
     timeout-minutes: 150
     runs-on: ubuntu-24.04
@@ -1128,12 +1128,12 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc native-static-tests-5 'Scala CLI Native Static Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc native-static-tests-rc 'Scala CLI Native Static Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v6
         if: success() || failure()
         with:
-          name: test-results-native-static-tests-5
+          name: test-results-native-static-tests-rc
           path: test-report.xml
 
   docs-tests:
@@ -1291,31 +1291,31 @@ jobs:
   publish:
     needs:
       - unit-tests
-      - jvm-bootstrapped-tests
-      - jvm-tests-1
-      - jvm-tests-2
-      - jvm-tests-3
-      - jvm-tests-4
-      - jvm-tests-5
-      - native-linux-tests-1
-      - native-linux-tests-2
-      - native-linux-tests-3
-      - native-linux-tests-4
-      - native-linux-tests-5
-      - native-linux-arm64-tests-1
-      - native-linux-arm64-tests-5
-      - native-macos-tests-1
-      - native-macos-tests-5
-      - native-macos-m1-tests-1
-      - native-macos-m1-tests-4
-      - native-macos-m1-tests-5
-      - native-windows-tests-1
-      - native-windows-tests-4
-      - native-windows-tests-5
-      - native-mostly-static-tests-1
-      - native-mostly-static-tests-5
-      - native-static-tests-1
-      - native-static-tests-5
+      - jvm-bootstrapped-tests-default
+      - jvm-tests-default
+      - jvm-tests-scala-2-13
+      - jvm-tests-scala-2-12
+      - jvm-tests-lts
+      - jvm-tests-rc
+      - native-linux-tests-default
+      - native-linux-tests-scala-2-13
+      - native-linux-tests-scala-2-12
+      - native-linux-tests-lts
+      - native-linux-tests-rc
+      - native-linux-arm64-tests-default
+      - native-linux-arm64-tests-rc
+      - native-macos-tests-default
+      - native-macos-tests-rc
+      - native-macos-arm64-tests-default
+      - native-macos-arm64-tests-lts
+      - native-macos-arm64-tests-rc
+      - native-windows-tests-default
+      - native-windows-tests-lts
+      - native-windows-tests-rc
+      - native-mostly-static-tests-default
+      - native-mostly-static-tests-rc
+      - native-static-tests-default
+      - native-static-tests-rc
       - vc-redist
       - format
       - checks
@@ -1368,31 +1368,31 @@ jobs:
     timeout-minutes: 20
     needs:
       - unit-tests
-      - jvm-bootstrapped-tests
-      - jvm-tests-1
-      - jvm-tests-2
-      - jvm-tests-3
-      - jvm-tests-4
-      - jvm-tests-5
-      - native-linux-tests-1
-      - native-linux-tests-2
-      - native-linux-tests-3
-      - native-linux-tests-4
-      - native-linux-tests-5
-      - native-linux-arm64-tests-1
-      - native-linux-arm64-tests-5
-      - native-macos-tests-1
-      - native-macos-tests-5
-      - native-macos-m1-tests-1
-      - native-macos-m1-tests-4
-      - native-macos-m1-tests-5
-      - native-windows-tests-1
-      - native-windows-tests-4
-      - native-windows-tests-5
-      - native-mostly-static-tests-1
-      - native-mostly-static-tests-5
-      - native-static-tests-1
-      - native-static-tests-5
+      - jvm-bootstrapped-tests-default
+      - jvm-tests-default
+      - jvm-tests-scala-2-13
+      - jvm-tests-scala-2-12
+      - jvm-tests-lts
+      - jvm-tests-rc
+      - native-linux-tests-default
+      - native-linux-tests-scala-2-13
+      - native-linux-tests-scala-2-12
+      - native-linux-tests-lts
+      - native-linux-tests-rc
+      - native-linux-arm64-tests-default
+      - native-linux-arm64-tests-rc
+      - native-macos-tests-default
+      - native-macos-tests-rc
+      - native-macos-arm64-tests-default
+      - native-macos-arm64-tests-lts
+      - native-macos-arm64-tests-rc
+      - native-windows-tests-default
+      - native-windows-tests-lts
+      - native-windows-tests-rc
+      - native-mostly-static-tests-default
+      - native-mostly-static-tests-rc
+      - native-static-tests-default
+      - native-static-tests-rc
       - vc-redist
       - format
       - checks
@@ -1431,7 +1431,7 @@ jobs:
     - uses: actions/download-artifact@v7
       if: env.SHOULD_PUBLISH == 'true'
       with:
-        name: macos-m1-launchers
+        name: macos-arm64-launchers
         path: artifacts/
     - uses: actions/download-artifact@v7
       if: env.SHOULD_PUBLISH == 'true'
@@ -1492,7 +1492,7 @@ jobs:
           path: artifacts/
       - uses: actions/download-artifact@v7
         with:
-          name: macos-m1-launchers
+          name: macos-arm64-launchers
           path: artifacts/
       - uses: actions/download-artifact@v7
         with:
