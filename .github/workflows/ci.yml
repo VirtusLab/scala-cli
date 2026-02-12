@@ -21,6 +21,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -63,6 +64,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -83,6 +85,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -108,6 +111,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -133,6 +137,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -158,6 +163,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -183,6 +189,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -208,6 +215,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -233,6 +241,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -260,6 +269,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -293,6 +303,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -326,6 +337,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -359,6 +371,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -392,6 +405,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -424,6 +438,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -455,6 +470,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -488,6 +504,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -520,6 +537,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -551,6 +569,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -588,6 +607,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -624,6 +644,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
@@ -655,6 +676,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
@@ -692,6 +714,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
@@ -729,6 +752,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
@@ -769,6 +793,7 @@ jobs:
       uses: ./.github/actions/windows-reg-import
       with:
         reg-file: .github/ci/windows/custom.reg
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -809,6 +834,7 @@ jobs:
       uses: actions/setup-python@v6
       with:
         python-version: "3.10"
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -854,6 +880,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.10"
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -899,6 +926,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.10"
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -935,6 +963,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -959,6 +988,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1006,6 +1036,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -1039,6 +1070,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1063,6 +1095,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1110,6 +1143,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -1144,6 +1178,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "zulu:17"
@@ -1176,6 +1211,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1205,6 +1241,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
     - run: scala-cli fmt . --check
 
@@ -1236,6 +1273,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1258,6 +1296,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1277,6 +1316,7 @@ jobs:
       uses: ./.github/actions/windows-reg-import
       with:
         reg-file: .github/ci/windows/custom.reg
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1332,6 +1372,7 @@ jobs:
         fetch-depth: 0
         submodules: true
         ssh-key: ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1409,6 +1450,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1475,6 +1517,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -1571,6 +1614,7 @@ jobs:
       uses: ./.github/actions/windows-reg-import
       with:
         reg-file: .github/ci/windows/custom.reg
+    - uses: coursier/cache-action@v8
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
