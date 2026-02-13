@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.9.2">
 <title data-rh="true">Directives | Scala CLI</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" name="twitter:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" property="og:url" content="https://scala-cli.virtuslab.org/docs/reference/scala-command/directives"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Directives | Scala CLI"><meta data-rh="true" name="description" content="This document describes as scala-cli behaves if run as scala command. See more information in SIP-46"><meta data-rh="true" property="og:description" content="This document describes as scala-cli behaves if run as scala command. See more information in SIP-46"><link data-rh="true" rel="icon" href="/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://scala-cli.virtuslab.org/docs/reference/scala-command/directives"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/scala-command/directives" hreflang="en"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/scala-command/directives" hreflang="x-default"><script data-rh="true">!function(e,t,a,n){e[n]=e[n]||[],e[n].push({"gtm.start":(new Date).getTime(),event:"gtm.js"});var g=t.getElementsByTagName(a)[0],m=t.createElement(a);m.async=!0,m.src="https://www.googletagmanager.com/gtm.js?id=GTM-5TZTCGF",g.parentNode.insertBefore(m,g)}(window,document,"script","dataLayer")</script><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Scala CLI as scala","item":"https://scala-cli.virtuslab.org/docs/reference/scala-command/"},{"@type":"ListItem","position":2,"name":"Directives","item":"https://scala-cli.virtuslab.org/docs/reference/scala-command/directives"}]}</script><link rel="stylesheet" href="/assets/css/styles.30d055a9.css">
-<script src="/assets/js/runtime~main.ef29a7b5.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.3211bce8.js" defer="defer"></script>
 <script src="/assets/js/main.004e3185.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -121,11 +121,11 @@ Documentation is split into sections in the spirit of RFC keywords (<code>MUST</
 <p><code>//&gt; using exclude examples/* */resources/*</code></p>
 <p><code>//&gt; using exclude *.sc</code></p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="jvm-version">JVM version<a href="#jvm-version" class="hash-link" aria-label="Direct link to JVM version" title="Direct link to JVM version" translate="no">​</a></h3>
-<p>Use a specific JVM, such as <code>14</code>, <code>adopt:11</code>, or <code>graalvm:21</code>, or <code>system</code>. scala-cli uses <a href="https://get-coursier.io/" target="_blank" rel="noopener noreferrer" class="">coursier</a> to fetch JVMs, so you can use <code>cs java --available</code> to list the available JVMs.</p>
+<p>Use a specific JVM, such as <code>14</code>, <code>temurin:11</code>, or <code>graalvm:21</code>, or <code>system</code>. scala-cli uses <a href="https://get-coursier.io/" target="_blank" rel="noopener noreferrer" class="">coursier</a> to fetch JVMs, so you can use <code>cs java --available</code> to list the available JVMs.</p>
 <p><code>//&gt; using jvm</code> <em>value</em></p>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="examples-10">Examples<a href="#examples-10" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples" translate="no">​</a></h4>
 <p><code>//&gt; using jvm 11</code></p>
-<p><code>//&gt; using jvm adopt:11</code></p>
+<p><code>//&gt; using jvm temurin:11</code></p>
 <p><code>//&gt; using jvm graalvm:21</code></p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="java-home">Java home<a href="#java-home" class="hash-link" aria-label="Direct link to Java home" title="Direct link to Java home" translate="no">​</a></h3>
 <p>Sets Java home used to run your application or tests</p>
@@ -253,7 +253,7 @@ Documentation is split into sections in the spirit of RFC keywords (<code>MUST</
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="toolkit">Toolkit<a href="#toolkit" class="hash-link" aria-label="Direct link to Toolkit" title="Direct link to Toolkit" translate="no">​</a></h3>
 <p>Use a toolkit as dependency (not supported in Scala 2.12), &#x27;default&#x27; version for Scala toolkit: 0.8.0, &#x27;default&#x27; version for typelevel toolkit: 0.1.29</p>
 <p><code>//&gt; using toolkit</code> <em>version</em></p>
-<p>//&gt; using test.toolkit` <em>version</em></p>
+<p><code>//&gt; using test.toolkit</code> <em>version</em></p>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="examples-19">Examples<a href="#examples-19" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples" translate="no">​</a></h4>
 <p><code>//&gt; using toolkit 0.8.0</code></p>
 <p><code>//&gt; using toolkit default</code></p>
