@@ -1,8 +1,8 @@
 package scala.cli.internal
 
-import coursier.VersionConstraint
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.util.Task
+import coursier.{Repositories, VersionConstraint}
 import dependency.*
 import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 

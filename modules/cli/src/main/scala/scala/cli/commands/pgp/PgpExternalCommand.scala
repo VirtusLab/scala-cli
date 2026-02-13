@@ -1,4 +1,6 @@
 package scala.cli.commands.pgp
+
+import coursier.Repositories
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.util.Task
 import dependency.*
