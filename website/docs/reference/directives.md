@@ -188,14 +188,14 @@ Exclude sources from the project
 
 ### JVM version
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 `//> using jvm` _value_
 
 #### Examples
 `//> using jvm 11`
 
-`//> using jvm adopt:11`
+`//> using jvm temurin:11`
 
 `//> using jvm graalvm:21`
 
@@ -685,7 +685,7 @@ Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for
 
 `//> using toolkit` _version_
 
-//> using test.toolkit` _version_
+`//> using test.toolkit` _version_
 
 
 #### Examples
