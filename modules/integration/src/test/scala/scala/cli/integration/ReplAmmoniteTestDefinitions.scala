@@ -84,7 +84,7 @@ trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
   }
 
   def ammoniteTest(): Unit = {
-    TestInputs.empty.fromRoot { root =>
+    TestInputs.empty.fromRoot { _ =>
       val code =
         if actualScalaVersion.startsWith("3") then
           "dotty.tools.dotc.config.Properties.simpleVersionString"
