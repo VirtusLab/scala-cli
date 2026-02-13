@@ -219,7 +219,7 @@ object Deps {
   def munit              = mvn"org.scalameta::munit:1.2.1"
   def nativeTestRunner   = mvn"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools        = mvn"org.scala-native::tools:${Versions.scalaNative}"
-  def osLib              = mvn"com.lihaoyi::os-lib:0.11.6"
+  def osLib              = mvn"com.lihaoyi::os-lib:0.11.8"
   def pprint             = mvn"com.lihaoyi::pprint:0.9.5"
   def pythonInterface    = mvn"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs   = mvn"ai.kien::python-native-libs:0.2.5"
