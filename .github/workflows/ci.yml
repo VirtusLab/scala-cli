@@ -27,8 +27,6 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - name: Install Bloop separately
-      run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher --directory artifacts/
       if: runner.os == 'Linux'
@@ -577,8 +575,6 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - name: Install Bloop separately
-      run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
     - name: Ensure it's not running on aarch64
       run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
     - name: Generate native launcher
@@ -611,8 +607,6 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - name: Install Bloop separately
-      run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
     - name: Ensure it's not running on aarch64
       run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
     - uses: actions/download-artifact@v7
@@ -651,8 +645,6 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - name: Install Bloop separately
-        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's not running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
       - uses: actions/download-artifact@v7
@@ -690,8 +682,6 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Install Bloop separately
-        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - name: Generate native launcher
@@ -724,8 +714,6 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Install Bloop separately
-        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
@@ -764,8 +752,6 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Install Bloop separately
-        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
@@ -804,8 +790,6 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Install Bloop separately
-        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
@@ -1252,8 +1236,6 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "zulu:17"
-    - name: Install Bloop separately
-      run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
     - uses: actions/setup-node@v6
       with:
         node-version: 24
@@ -1293,8 +1275,6 @@ jobs:
       run: ./mill -i __.checkNativeImageConfFormat
     - name: Check Ammonite availability
       run: ./mill -i 'dummy.amm[_].resolvedRunMvnDeps'
-    - name: Install Bloop separately
-      run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
     - name: Check for cross Scala version conflicts
       run: .github/scripts/check-cross-version-deps.sc
     - name: Scalafix check
