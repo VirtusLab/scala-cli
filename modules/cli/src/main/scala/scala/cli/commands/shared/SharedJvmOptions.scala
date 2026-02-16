@@ -18,7 +18,7 @@ final case class SharedJvmOptions(
     javaHome: Option[String] = None,
 
   @Group(HelpGroup.Java.toString)
-  @HelpMessage("Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. " +
+  @HelpMessage("Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. " +
   "scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.")
   @ValueDescription("jvm-name")
   @Tag(tags.should)
