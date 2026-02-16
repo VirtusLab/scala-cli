@@ -2666,6 +2666,11 @@
   resolved "https://registry.yarnpkg.com/@svta/cml-cmsd/-/cml-cmsd-1.0.1.tgz#f5a70ddbae413fd6cb898af8dce8f1303691bc46"
   integrity sha512-+nIB8PuSfb/qw+xGaArPhNqPm84tBJUbe3H1DnPL5QUsjSUI7mUIUQwAtRV1ZdEu0+80g9i0op79woB0OIwr/g==
 
+"@svta/cml-cta@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@svta/cml-cta/-/cml-cta-1.0.1.tgz#fdaa11d1e768e13e7581cb78f636038494c104b8"
+  integrity sha512-jcXqNIPv26bmFxIOFh8/c3+6WLH4qBjKpq9qTQcggDPoHuV1YBydMsJLOnYPDeK8rNMKcAkFLbnDRvyJthu5yw==
+
 "@svta/cml-dash@1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@svta/cml-dash/-/cml-dash-1.0.1.tgz#644124536223a80083e142e881f5342ec85552e8"
@@ -2680,6 +2685,16 @@
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@svta/cml-request/-/cml-request-1.0.1.tgz#49eb488a00fc7a8309b4cc6b10ee6007fe2001db"
   integrity sha512-enL19BuXUjFkDDDF9jdNwUclMNPRsagnjGAetVC7xcmpDMpEx+ZLgsDip6BFNg5p6izSEk/OyujTWW1r8bDNiA==
+
+"@svta/cml-structured-field-values@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@svta/cml-structured-field-values/-/cml-structured-field-values-1.0.1.tgz#a4b1b69239199cdcea32bdfcb002952706ecb580"
+  integrity sha512-Kibciki59Pon3Pn/sl5uyrbJcSpZQDKqdCfDrokBvOdLoqqcd0oFrkEPsZBiuuIODX1CB80612xe8hopeFDyBA==
+
+"@svta/cml-utils@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@svta/cml-utils/-/cml-utils-1.0.1.tgz#3ae434f6e57a917ecca455e720b9292df6971465"
+  integrity sha512-kso3curTJfp00I1mKFoBliBApjn4aPE+wF8cPucf7TrSDVWZDeLLuF14ASmUE9m7rnrqTTK4878VvmXaXcCCfQ==
 
 "@svta/cml-xml@1.0.1":
   version "1.0.1"
