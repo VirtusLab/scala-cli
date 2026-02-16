@@ -384,7 +384,7 @@ Project name to be used on Mill build file
 
 ### `--sbt-version`
 
-Version of SBT to be used for the export (1.11.7 by default)
+Version of SBT to be used for the export (1.12.2 by default)
 
 ### `--mill-version`
 
@@ -505,7 +505,7 @@ Pass a global dialect for scalafmt. This overrides whatever value is configured 
 
 Aliases: `--fmt-version`
 
-Pass scalafmt version before running it (3.10.4 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.10.7 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -1254,7 +1254,7 @@ Use Ammonite (instead of the default Scala REPL)
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version (3.0.7 by default)
+Set the Ammonite version (3.0.8 by default)
 
 ### `--ammonite-arg`
 

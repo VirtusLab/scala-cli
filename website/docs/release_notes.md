@@ -8,6 +8,18 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.12.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.12.2)
+
+### Old sonatype snapshot is causing Scala CLI to timeout
+
+Until the recent migration to new Sonatype Central repository there was an older snapshots repository in use. Unfortuntately, last week it started to make requests to it timeout and hang Scala CLI. We decided remove any references to the old repository, so older (one might say ancient) Scala CLI nightly versions will not be available. This was done by [@tgodzik](https://github.com/tgodzik) in [#4106](https://github.com/VirtusLab/scala-cli/pull/4106).
+
+### Updates
+
+* Bump react and @types/react in /website by @dependabot[bot] in [#4079](https://github.com/VirtusLab/scala-cli/pull/4079)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.12.1...v1.12.2
+
 ## [v1.12.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.12.1)
 
 ### Change default Scala version to 3.8.1

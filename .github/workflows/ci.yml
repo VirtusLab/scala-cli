@@ -21,11 +21,12 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - name: Install Bloop separately
-      run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher --directory artifacts/
       if: runner.os == 'Linux'
@@ -63,6 +64,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -83,6 +87,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -108,6 +115,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -133,6 +143,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -158,6 +171,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -183,6 +199,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -208,6 +227,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -233,6 +255,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -260,6 +285,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -293,6 +321,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -326,6 +357,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -359,6 +393,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -392,6 +429,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -424,6 +464,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -455,6 +498,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -488,6 +534,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -520,11 +569,12 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - name: Install Bloop separately
-      run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
     - name: Ensure it's not running on aarch64
       run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
     - name: Generate native launcher
@@ -551,11 +601,12 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - name: Install Bloop separately
-      run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
     - name: Ensure it's not running on aarch64
       run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
     - uses: actions/download-artifact@v7
@@ -588,11 +639,12 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - name: Install Bloop separately
-        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's not running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
       - uses: actions/download-artifact@v7
@@ -624,11 +676,12 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Install Bloop separately
-        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - name: Generate native launcher
@@ -655,11 +708,12 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Install Bloop separately
-        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
@@ -692,11 +746,12 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Install Bloop separately
-        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
@@ -729,11 +784,12 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Install Bloop separately
-        run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v7
@@ -769,6 +825,9 @@ jobs:
       uses: ./.github/actions/windows-reg-import
       with:
         reg-file: .github/ci/windows/custom.reg
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -809,6 +868,9 @@ jobs:
       uses: actions/setup-python@v6
       with:
         python-version: "3.10"
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -854,6 +916,9 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.10"
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -899,6 +964,9 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.10"
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -935,6 +1003,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -959,6 +1030,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1006,6 +1080,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -1039,6 +1116,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1063,6 +1143,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1110,6 +1193,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -1144,11 +1230,12 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "zulu:17"
-    - name: Install Bloop separately
-      run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
     - uses: actions/setup-node@v6
       with:
         node-version: 24
@@ -1176,6 +1263,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1185,8 +1275,6 @@ jobs:
       run: ./mill -i __.checkNativeImageConfFormat
     - name: Check Ammonite availability
       run: ./mill -i 'dummy.amm[_].resolvedRunMvnDeps'
-    - name: Install Bloop separately
-      run: cs fetch ch.epfl.scala:bloop-frontend_2.12:2.0.17 
     - name: Check for cross Scala version conflicts
       run: .github/scripts/check-cross-version-deps.sc
     - name: Scalafix check
@@ -1205,6 +1293,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
     - run: scala-cli fmt . --check
 
@@ -1236,6 +1327,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1258,6 +1352,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1277,6 +1374,9 @@ jobs:
       uses: ./.github/actions/windows-reg-import
       with:
         reg-file: .github/ci/windows/custom.reg
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1332,6 +1432,9 @@ jobs:
         fetch-depth: 0
         submodules: true
         ssh-key: ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1409,6 +1512,9 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1475,6 +1581,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -1571,6 +1680,9 @@ jobs:
       uses: ./.github/actions/windows-reg-import
       with:
         reg-file: .github/ci/windows/custom.reg
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"

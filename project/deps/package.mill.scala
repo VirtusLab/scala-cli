@@ -21,7 +21,7 @@ object Scala {
   def scala3NextPrefix = "3.8"
   def scala3Next       = s"$scala3NextPrefix.1" // the newest/next version of Scala
   def scala3NextAnnounced   = scala3Next   // the newest/next version of Scala that's been announced
-  def scala3NextRc          = "3.8.2-RC1"  // the latest RC version of Scala Next
+  def scala3NextRc          = "3.8.2-RC2"  // the latest RC version of Scala Next
   def scala3NextRcAnnounced = scala3NextRc // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
@@ -87,7 +87,7 @@ object Scala {
 
   def maxAmmoniteScala212Version                    = "2.12.21"
   def maxAmmoniteScala213Version                    = "2.13.18"
-  def maxAmmoniteScala3Version                      = "3.8.0"
+  def maxAmmoniteScala3Version                      = "3.8.1"
   def maxAmmoniteScala3LtsVersion                   = "3.3.7"
   lazy val listMaxAmmoniteScalaVersion: Seq[String] =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
@@ -120,7 +120,7 @@ object TestDeps {
 
 object Deps {
   object Versions {
-    def ammonite             = "3.0.7"
+    def ammonite             = "3.0.8"
     def ammoniteForScala3Lts = ammonite
     def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
@@ -129,10 +129,10 @@ object Deps {
     def coursierCli                       = coursierDefault
     def coursierPublish                   = "0.4.4"
     def jmh                               = "1.37"
-    def jsoniterScala                     = "2.38.5"
+    def jsoniterScala                     = "2.38.8"
     def jsoup                             = "1.21.2"
-    def scalaMeta                         = "4.14.1"
-    def scalafmt                          = "3.10.4"
+    def scalaMeta                         = "4.15.2"
+    def scalafmt                          = "3.10.7"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.10"
     def scalaNative                       = scalaNative05
@@ -146,7 +146,7 @@ object Deps {
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.9"
     def bloop                             = "2.0.17"
-    def sbtVersion                        = "1.11.7"
+    def sbtVersion                        = "1.12.2"
     def mill012Version                    = "0.12.17"
     def mill10Version                     =
       if (BuildInfo.millVersion.startsWith("1.0.")) BuildInfo.millVersion else "1.0.6"
@@ -156,7 +156,7 @@ object Deps {
     def mavenAppArtifactId              = "maven-app"
     def mavenAppGroupId                 = "com.example"
     def mavenAppVersion                 = "0.1-SNAPSHOT"
-    def scalafix                        = "0.14.4"
+    def scalafix                        = "0.14.5"
   }
 
   // DO NOT hardcode a Scala version in this dependency string
@@ -166,7 +166,7 @@ object Deps {
   def ammoniteForScala3Lts = mvn"com.lihaoyi:::ammonite:${Versions.ammoniteForScala3Lts}"
   def argonautShapeless    =
     mvn"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"
-  def asm = mvn"org.ow2.asm:asm:9.9"
+  def asm = mvn"org.ow2.asm:asm:9.9.1"
   // Force using of 2.13 - is there a better way?
   def bloopConfig = mvn"ch.epfl.scala:bloop-config_2.13:2.3.3"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
@@ -214,12 +214,12 @@ object Deps {
   def jsoup              = mvn"org.jsoup:jsoup:${Versions.jsoup}"
   def libsodiumjni       = mvn"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
   def metaconfigTypesafe =
-    mvn"org.scalameta::metaconfig-typesafe-config:0.16.0"
+    mvn"org.scalameta::metaconfig-typesafe-config:0.18.2"
       .exclude(("org.scala-lang", "scala-compiler"))
-  def munit              = mvn"org.scalameta::munit:1.2.1"
+  def munit              = mvn"org.scalameta::munit:1.2.2"
   def nativeTestRunner   = mvn"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools        = mvn"org.scala-native::tools:${Versions.scalaNative}"
-  def osLib              = mvn"com.lihaoyi::os-lib:0.11.6"
+  def osLib              = mvn"com.lihaoyi::os-lib:0.11.8"
   def pprint             = mvn"com.lihaoyi::pprint:0.9.5"
   def pythonInterface    = mvn"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs   = mvn"ai.kien::python-native-libs:0.2.5"
