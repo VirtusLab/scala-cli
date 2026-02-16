@@ -2691,10 +2691,10 @@
   resolved "https://registry.yarnpkg.com/@svta/cml-structured-field-values/-/cml-structured-field-values-1.0.1.tgz#a4b1b69239199cdcea32bdfcb002952706ecb580"
   integrity sha512-Kibciki59Pon3Pn/sl5uyrbJcSpZQDKqdCfDrokBvOdLoqqcd0oFrkEPsZBiuuIODX1CB80612xe8hopeFDyBA==
 
-"@svta/cml-utils@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@svta/cml-utils/-/cml-utils-1.0.1.tgz#3ae434f6e57a917ecca455e720b9292df6971465"
-  integrity sha512-kso3curTJfp00I1mKFoBliBApjn4aPE+wF8cPucf7TrSDVWZDeLLuF14ASmUE9m7rnrqTTK4878VvmXaXcCCfQ==
+"@svta/cml-utils@1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@svta/cml-utils/-/cml-utils-1.4.0.tgz#85b406c146e00b39eee11df2d18ae82f0297cd88"
+  integrity sha512-vNtHtv/z+9I9ysxFwNrgwxic1oceVPr8TpcpV/NA1l8Gy4phynwtOppkCIBB+PmoyKDcqE4lO85g+lfsuSTBBA==
 
 "@svta/cml-xml@1.0.1":
   version "1.0.1"

@@ -32,7 +32,7 @@
     "search-insights": "^2.17.3",
     "@svta/cml-cta": "1.0.1",
     "@svta/cml-structured-field-values": "1.0.1",
-    "@svta/cml-utils": "1.0.1"
+    "@svta/cml-utils": "1.4.0"
   },
   "resolutions": {
     "react-loadable": "^5.5.0",
@@ -41,7 +41,7 @@
     "@types/react": "^19.2.14",
     "@svta/cml-cta": "1.0.1",
     "@svta/cml-structured-field-values": "1.0.1",
-    "@svta/cml-utils": "1.0.1"
+    "@svta/cml-utils": "1.4.0"
   },
   "browserslist": {
     "production": [
