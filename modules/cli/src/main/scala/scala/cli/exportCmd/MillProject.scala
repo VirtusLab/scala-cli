@@ -177,7 +177,7 @@ final case class MillProject(
       os.write(path0, content, createFolders = true)
     }
 
-    val outputBuildFile = if isMill1OrNewer then dir / "build.mill.scala" else dir / "build.sc"
+    val outputBuildFile = if isMill1OrNewer then dir / "build.mill" else dir / "build.sc"
     os.write(outputBuildFile, buildFileContent.getBytes(charSet))
   }
 }
