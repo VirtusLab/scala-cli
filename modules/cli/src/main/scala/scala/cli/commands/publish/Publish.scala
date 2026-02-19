@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.build.*
 import scala.build.EitherCps.{either, value}
@@ -255,7 +256,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       publishLocal = false,
       forceSigningExternally = options.signingCli.forceSigningExternally.getOrElse(false),
       parallelUpload = options.parallelUpload,
-      options.watch.watch,
+      watch = options.watch.watch,
+      watchClearScreen = options.watch.watchClearScreen,
       isCi = options.publishParams.isCi,
       () => configDb,
       options.mainClass,
@@ -279,6 +281,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     watch: Boolean,
+    watchClearScreen: Boolean,
     isCi: Boolean,
     configDb: () => ConfigDb,
     mainClassOptions: MainClassOptions,
@@ -288,7 +291,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val actionableDiagnostics = configDb().get(Keys.actions).getOrElse(None)
 
     if watch then {
-      val watcher = Build.watch(
+      val isFirstRun = new AtomicBoolean(true)
+      val watcher    = Build.watch(
         inputs = inputs,
         options = initialBuildOptions,
         compilerMaker = compilerMaker,
@@ -299,8 +303,10 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
-      ) {
-        _.orReport(logger).foreach { builds =>
+      ) { res =>
+        if (watchClearScreen && !isFirstRun.getAndSet(false))
+          WatchUtil.clearScreen()
+        res.orReport(logger).foreach { builds =>
           maybePublish(
             builds = builds,
             workingDir = workingDir,

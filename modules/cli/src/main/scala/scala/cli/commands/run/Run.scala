@@ -7,7 +7,7 @@ import caseapp.core.help.HelpFormat
 import java.io.File
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
 import scala.build.*
 import scala.build.EitherCps.{either, value}
@@ -252,7 +252,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         */
       val mainThreadOpt = AtomicReference(Option.empty[Thread])
 
-      val watcher = Build.watch(
+      val isFirstRun = new AtomicBoolean(true)
+      val watcher    = Build.watch(
         inputs = inputs,
         options = initialBuildOptions,
         compilerMaker = compilerMaker,
@@ -266,6 +267,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           if processOpt.get().exists(_._1.isAlive()) then WatchUtil.printWatchWhileRunningMessage()
           else WatchUtil.printWatchMessage()
       ) { res =>
+        if (options.sharedRun.watch.watchClearScreen && !isFirstRun.getAndSet(false))
+          WatchUtil.clearScreen()
         for ((process, onExitProcess) <- processOpt.get()) {
           onExitProcess.cancel(true)
           ProcUtil.interruptProcess(process, logger)
