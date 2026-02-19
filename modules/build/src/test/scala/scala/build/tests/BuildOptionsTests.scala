@@ -206,7 +206,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  test("-S 2.nightly option works".flaky) {
+  test("-S 2.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = Some(MaybeScalaVersion("2.nightly"))
@@ -219,7 +219,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  test("-S 2.13.nightly option works".flaky) {
+  test("-S 2.13.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = Some(MaybeScalaVersion("2.13.nightly"))
@@ -245,7 +245,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  test("-S 2.12.nightly option works".flaky) {
+  test("-S 2.12.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = Some(MaybeScalaVersion("2.12.nightly"))

@@ -22,7 +22,7 @@ class RunTests213 extends RunTestDefinitions with Test213 {
         expect(res.out.trim() == "2.13.11-20221128-143922-89f3de5")
     }
   }
-  test("2.13.nightly".flaky) {
+  test("2.13.nightly") {
     TestInputs(os.rel / "sample.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
       root =>
         val res =
