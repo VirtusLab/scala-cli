@@ -31,6 +31,7 @@ final case class ScalaNativeOptions(
   modeStr: Option[String] = None,
   ltoStr: Option[String] = None,
   gcStr: Option[String] = None,
+  targetTripleStr: Option[String] = None,
   clang: Option[String] = None,
   clangpp: Option[String] = None,
   linkingOptions: List[String] = Nil,
@@ -79,6 +80,12 @@ final case class ScalaNativeOptions(
   private def gcCliOption(): List[String] =
     List("--gc", gc().name)
 
+  private def targetTripleCliOption(): List[String] =
+    if (!targetTripleStr.isEmpty)
+      List("--target-triple", targetTripleStr.get)
+    else
+      Nil
+
   private def mode(): sn.Mode =
     modeStr.map(_.trim).filter(_.nonEmpty) match {
       case Some("default") | None => sn.Discover.mode()
@@ -102,9 +109,9 @@ final case class ScalaNativeOptions(
     List("--clang-pp", clangppPath().toString())
 
   private def finalLinkingOptions(): List[String] =
-    linkingOptions ++ (if (linkingDefaults.getOrElse(true)) sn.Discover.linkingOptions() else Nil)
+    linkingOptions ++ (if (linkingDefaults.getOrElse(true) && targetTripleStr.isEmpty) sn.Discover.linkingOptions() else Nil)
   private def finalCompileOptions(): List[String] =
-    compileOptions ++ (if (compileDefaults.getOrElse(true)) sn.Discover.compileOptions() else Nil)
+    compileOptions ++ (if (compileDefaults.getOrElse(true) && targetTripleStr.isEmpty) sn.Discover.compileOptions() else Nil)
 
   private def linkingCliOptions(): List[String] =
     finalLinkingOptions().flatMap(option => List("--linking-option", option))
@@ -160,7 +167,7 @@ final case class ScalaNativeOptions(
           BloopConfig.LinkerMode.Release
         else BloopConfig.LinkerMode.Debug,
       gc = gc().name,
-      targetTriple = None,
+      targetTriple = targetTripleStr,
       clang = clangPath(),
       clangpp = clangppPath(),
       toolchain = Nil,
@@ -178,6 +185,7 @@ final case class ScalaNativeOptions(
     gcCliOption() ++
       modeCliOption() ++
       ltoOptions() ++
+      targetTripleCliOption() ++
       clangCliOption() ++
       clangppCliOption() ++
       linkingCliOptions() ++

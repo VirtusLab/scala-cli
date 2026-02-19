@@ -1442,6 +1442,10 @@ Link-time optimisation mode (none by default): none, full, thin
 
 Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
+### `--native-target-triple`
+
+Set a target triple to which Scala Native can cross-compile
+
 ### `--native-clang`
 
 Path to the Clang command

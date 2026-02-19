@@ -317,6 +317,8 @@ Add Scala Native options
 
 `//> using nativeLto` **none**_|full|thin_
 
+`//> using nativeTargetTriple` _value_
+
 `//> using nativeVersion` _value_
 
 `//> using nativeCompile` _value1_ _value2_ …
