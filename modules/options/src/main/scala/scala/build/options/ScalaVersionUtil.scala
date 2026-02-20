@@ -84,6 +84,37 @@ object ScalaVersionUtil {
       val codec: JsonValueCodec[ScalaVersionsMetaData] = JsonCodecMaker.make
     }
 
+    private object GitHubScalaRepo {
+      final case class Commit(sha: String)
+      val codec: JsonValueCodec[List[Commit]] = JsonCodecMaker.make
+    }
+
+    private def fetchScalaRepoCommitHashes(
+      versionPrefix: String,
+      cache: FileCache[Task]
+    ): Either[BuildException, List[String]] = either {
+      val branch = s"$versionPrefix.x"
+      val url    =
+        s"https://api.github.com/repos/scala/scala/commits?sha=$branch&per_page=20"
+      val artifact = Artifact(url).withChanging(true)
+      val file     = value {
+        cache.fileWithTtl0(artifact).left.map { err =>
+          new ScalaVersionError(
+            s"Unable to fetch commits from GitHub for scala/scala branch $branch",
+            cause = err
+          )
+        }
+      }
+      val content = os.read.bytes(os.Path(file, os.pwd))
+      readFromArray(content)(using GitHubScalaRepo.codec).map(_.sha)
+    }
+
+    private def extractNightlyHash(version: String): Option[String] =
+      version.split("-bin-") match {
+        case Array(_, hash) => Some(hash)
+        case _              => None
+      }
+
     private def downloadScala2RepoPage(cache: FileCache[Task])
       : Either[BuildException, Array[Byte]] =
       either {
@@ -108,29 +139,57 @@ object ScalaVersionUtil {
       cache: FileCache[Task]
     ): Either[BuildException, String] = either {
       val webPageScala2Repo = value(downloadScala2RepoPage(cache))
-      val scala2Repo        = value {
+      val maybeScala2Repo   =
         try Right(readFromArray(webPageScala2Repo)(using Scala2Repo.codec))
-        catch {
-          case e: JsonReaderException =>
+        catch { case e: JsonReaderException => Left(e) }
+      maybeScala2Repo match {
+        case Right(scala2Repo) =>
+          val versions      = scala2Repo.children
+          val sortedVersion =
+            versions
+              .filter(_.name.startsWith(versionPrefix))
+              .filterNot(_.name.contains("pre"))
+              .sortBy(_.lastModified)
+
+          val latestNightly = sortedVersion.lastOption.map(_.name)
+          latestNightly.getOrElse {
+            val msg = s"""|Unable to compute the latest Scala $versionPrefix nightly version.
+                          |Pass explicitly full Scala 2 nightly version.""".stripMargin
+            throw new ScalaVersionError(msg)
+          }
+        case Left(jsonReaderException) =>
+          // in case the Scala 2 repo page is down or the JSON format gets truncated/changed, we fall back to
+          // fetching it with coursier from the maven repository/cache
+          val allVersions = cache
+            .versionsWithTtl0(scala2Library, Seq(coursier.Repositories.scalaIntegration))
+            .versions.available0
+            .map(_.asString)
+          val nightlyVersions = allVersions
+            .filter(_.startsWith(versionPrefix))
+            .filterNot(_.contains("pre"))
+
+          // the only way to figure out which version is actually the latest there in the case of nightlies
+          // is to check the order of commit hashes in the actual scala/scala repository
+          // sorting by version itself is insufficient
+          val latestByCommitOrder = fetchScalaRepoCommitHashes(versionPrefix, cache)
+            .toOption
+            .flatMap { commitHashes =>
+              commitHashes.iterator.flatMap { fullHash =>
+                nightlyVersions.find(v =>
+                  extractNightlyHash(v).exists(fullHash.startsWith)
+                )
+              }.nextOption()
+            }
+
+          latestByCommitOrder.getOrElse {
             val msg =
               s"""|Unable to compute the latest Scala 2 nightly version.
-                  |Throws error during parsing web page repository for Scala 2.
-                  |${e.getMessage}""".stripMargin
-            Left(new ScalaVersionError(msg, cause = e))
-        }
-      }
-      val versions      = scala2Repo.children
-      val sortedVersion =
-        versions
-          .filter(_.name.startsWith(versionPrefix))
-          .filterNot(_.name.contains("pre"))
-          .sortBy(_.lastModified)
-
-      val latestNightly = sortedVersion.lastOption.map(_.name)
-      latestNightly.getOrElse {
-        val msg = s"""|Unable to compute the latest Scala $versionPrefix nightly version.
-                      |Pass explicitly full Scala 2 nightly version.""".stripMargin
-        throw new ScalaVersionError(msg)
+                  |An error was thrown during parsing web page repository for Scala 2.
+                  |${jsonReaderException.getMessage}
+                  |
+                  |No appropriate Scala 2 nightly versions were found in cache, either.""".stripMargin
+            throw new ScalaVersionError(msg, cause = jsonReaderException)
+          }
       }
     }
 
