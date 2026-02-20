@@ -1,5 +1,7 @@
 package scala.build.options
 
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.Versions
 import coursier.cache.{ArtifactError, FileCache}
 import coursier.core.{Module, Repository, Versions as CoreVersions}
@@ -9,7 +11,7 @@ import coursier.version.Version
 import java.io.File
 
 import scala.build.CoursierUtils.*
-import scala.build.EitherCps.either
+import scala.build.EitherCps.{either, value}
 import scala.build.RepositoryUtils
 import scala.build.errors.{
   BuildException,
@@ -75,21 +77,47 @@ object ScalaVersionUtil {
 
   object GetNightly {
 
+    private object Scala2Repo {
+      final case class ScalaVersion(name: String, lastModified: Long)
+      final case class ScalaVersionsMetaData(repo: String, children: List[ScalaVersion])
+
+      val codec: JsonValueCodec[ScalaVersionsMetaData] = JsonCodecMaker.make
+    }
+
+    private def downloadScala2RepoPage(cache: FileCache[Task])
+      : Either[BuildException, Array[Byte]] =
+      either {
+        val scala2NightlyRepo =
+          "https://scala-ci.typesafe.com/ui/api/v1/ui/nativeBrowser/scala-integration/org/scala-lang/scala-compiler"
+        val artifact = Artifact(scala2NightlyRepo).withChanging(true)
+        val res      = cache.fileWithTtl0(artifact)
+          .left.map { err =>
+            val msg =
+              """|Unable to compute the latest Scala 2 nightly version.
+                 |Throws error during downloading web page repository for Scala 2.""".stripMargin
+            new ScalaVersionError(msg, cause = err)
+          }
+
+        val res0    = value(res)
+        val content = os.read.bytes(os.Path(res0, os.pwd))
+        content
+      }
+
     def scala2(
       versionPrefix: String,
       cache: FileCache[Task]
     ): Either[BuildException, String] = either {
-      val allVersions = cache
-        .versionsWithTtl0(scala2Library, Seq(coursier.Repositories.scalaIntegration))
-        .versions.available0
-        .map(_.asString)
-      val nightlyVersions = allVersions
-        .filter(_.startsWith(versionPrefix))
-        .filterNot(_.contains("pre"))
-        .map(Version(_))
-        .sorted
+      val webPageScala2Repo = value(downloadScala2RepoPage(cache))
+      val scala2Repo        = readFromArray(webPageScala2Repo)(using Scala2Repo.codec)
+      val versions          = scala2Repo.children
+      val sortedVersion     =
+        versions
+          .filter(_.name.startsWith(versionPrefix))
+          .filterNot(_.name.contains("pre"))
+          .sortBy(_.lastModified)
 
-      nightlyVersions.lastOption.map(_.repr).getOrElse {
+      val latestNightly = sortedVersion.lastOption.map(_.name)
+      latestNightly.getOrElse {
         val msg = s"""|Unable to compute the latest Scala $versionPrefix nightly version.
                       |Pass explicitly full Scala 2 nightly version.""".stripMargin
         throw new ScalaVersionError(msg)
