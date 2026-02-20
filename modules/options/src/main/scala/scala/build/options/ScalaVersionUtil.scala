@@ -108,9 +108,19 @@ object ScalaVersionUtil {
       cache: FileCache[Task]
     ): Either[BuildException, String] = either {
       val webPageScala2Repo = value(downloadScala2RepoPage(cache))
-      val scala2Repo        = readFromArray(webPageScala2Repo)(using Scala2Repo.codec)
-      val versions          = scala2Repo.children
-      val sortedVersion     =
+      val scala2Repo        = value {
+        try Right(readFromArray(webPageScala2Repo)(using Scala2Repo.codec))
+        catch {
+          case e: JsonReaderException =>
+            val msg =
+              s"""|Unable to compute the latest Scala 2 nightly version.
+                  |Throws error during parsing web page repository for Scala 2.
+                  |${e.getMessage}""".stripMargin
+            Left(new ScalaVersionError(msg, cause = e))
+        }
+      }
+      val versions      = scala2Repo.children
+      val sortedVersion =
         versions
           .filter(_.name.startsWith(versionPrefix))
           .filterNot(_.name.contains("pre"))
