@@ -175,7 +175,7 @@ object ScalaVersionUtil {
       else scalaVersionStringArg + "."
     val matchingVersions = versionPool.filter(_.startsWith(prefix)).map(Version(_))
     if matchingVersions.isEmpty ||
-      (isExactVersion && !matchingVersions.contains(scalaVersionStringArg))
+      (isExactVersion && !matchingVersions.exists(_.repr == scalaVersionStringArg))
     then Left(new InvalidBinaryScalaVersionError(scalaVersionStringArg))
     else {
       val supportedMatchingVersions = matchingVersions.filter(v => isSupportedVersion(v.repr))
