@@ -1,5 +1,7 @@
 package scala.build.options
 
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.Versions
 import coursier.cache.{ArtifactError, FileCache}
 import coursier.core.{Module, Repository, Versions as CoreVersions}
@@ -9,7 +11,7 @@ import coursier.version.Version
 import java.io.File
 
 import scala.build.CoursierUtils.*
-import scala.build.EitherCps.either
+import scala.build.EitherCps.{either, value}
 import scala.build.RepositoryUtils
 import scala.build.errors.{
   BuildException,
@@ -75,24 +77,119 @@ object ScalaVersionUtil {
 
   object GetNightly {
 
+    private object Scala2Repo {
+      final case class ScalaVersion(name: String, lastModified: Long)
+      final case class ScalaVersionsMetaData(repo: String, children: List[ScalaVersion])
+
+      val codec: JsonValueCodec[ScalaVersionsMetaData] = JsonCodecMaker.make
+    }
+
+    private object GitHubScalaRepo {
+      final case class Commit(sha: String)
+      val codec: JsonValueCodec[List[Commit]] = JsonCodecMaker.make
+    }
+
+    private def fetchScalaRepoCommitHashes(
+      versionPrefix: String,
+      cache: FileCache[Task]
+    ): Either[BuildException, List[String]] = either {
+      val branch = s"$versionPrefix.x"
+      val url    =
+        s"https://api.github.com/repos/scala/scala/commits?sha=$branch&per_page=20"
+      val artifact = Artifact(url).withChanging(true)
+      val file     = value {
+        cache.fileWithTtl0(artifact).left.map { err =>
+          new ScalaVersionError(
+            s"Unable to fetch commits from GitHub for scala/scala branch $branch",
+            cause = err
+          )
+        }
+      }
+      val content = os.read.bytes(os.Path(file, os.pwd))
+      readFromArray(content)(using GitHubScalaRepo.codec).map(_.sha)
+    }
+
+    private def extractNightlyHash(version: String): Option[String] =
+      version.split("-bin-") match {
+        case Array(_, hash) => Some(hash)
+        case _              => None
+      }
+
+    private def downloadScala2RepoPage(cache: FileCache[Task])
+      : Either[BuildException, Array[Byte]] =
+      either {
+        val scala2NightlyRepo =
+          "https://scala-ci.typesafe.com/ui/api/v1/ui/nativeBrowser/scala-integration/org/scala-lang/scala-compiler"
+        val artifact = Artifact(scala2NightlyRepo).withChanging(true)
+        val res      = cache.fileWithTtl0(artifact)
+          .left.map { err =>
+            val msg =
+              """|Unable to compute the latest Scala 2 nightly version.
+                 |Throws error during downloading web page repository for Scala 2.""".stripMargin
+            new ScalaVersionError(msg, cause = err)
+          }
+
+        val res0    = value(res)
+        val content = os.read.bytes(os.Path(res0, os.pwd))
+        content
+      }
+
     def scala2(
       versionPrefix: String,
       cache: FileCache[Task]
     ): Either[BuildException, String] = either {
-      val allVersions = cache
-        .versionsWithTtl0(scala2Library, Seq(coursier.Repositories.scalaIntegration))
-        .versions.available0
-        .map(_.asString)
-      val nightlyVersions = allVersions
-        .filter(_.startsWith(versionPrefix))
-        .filterNot(_.contains("pre"))
-        .map(Version(_))
-        .sorted
+      val webPageScala2Repo = value(downloadScala2RepoPage(cache))
+      val maybeScala2Repo   =
+        try Right(readFromArray(webPageScala2Repo)(using Scala2Repo.codec))
+        catch { case e: JsonReaderException => Left(e) }
+      maybeScala2Repo match {
+        case Right(scala2Repo) =>
+          val versions      = scala2Repo.children
+          val sortedVersion =
+            versions
+              .filter(_.name.startsWith(versionPrefix))
+              .filterNot(_.name.contains("pre"))
+              .sortBy(_.lastModified)
 
-      nightlyVersions.lastOption.map(_.repr).getOrElse {
-        val msg = s"""|Unable to compute the latest Scala $versionPrefix nightly version.
-                      |Pass explicitly full Scala 2 nightly version.""".stripMargin
-        throw new ScalaVersionError(msg)
+          val latestNightly = sortedVersion.lastOption.map(_.name)
+          latestNightly.getOrElse {
+            val msg = s"""|Unable to compute the latest Scala $versionPrefix nightly version.
+                          |Pass explicitly full Scala 2 nightly version.""".stripMargin
+            throw new ScalaVersionError(msg)
+          }
+        case Left(jsonReaderException) =>
+          // in case the Scala 2 repo page is down or the JSON format gets truncated/changed, we fall back to
+          // fetching it with coursier from the maven repository/cache
+          val allVersions = cache
+            .versionsWithTtl0(scala2Library, Seq(coursier.Repositories.scalaIntegration))
+            .versions.available0
+            .map(_.asString)
+          val nightlyVersions = allVersions
+            .filter(_.startsWith(versionPrefix))
+            .filterNot(_.contains("pre"))
+
+          // the only way to figure out which version is actually the latest there in the case of nightlies
+          // is to check the order of commit hashes in the actual scala/scala repository
+          // sorting by version itself is insufficient
+          val latestByCommitOrder = fetchScalaRepoCommitHashes(versionPrefix, cache)
+            .toOption
+            .flatMap { commitHashes =>
+              commitHashes.iterator.flatMap { fullHash =>
+                nightlyVersions.find(v =>
+                  extractNightlyHash(v).exists(fullHash.startsWith)
+                )
+              }.nextOption()
+            }
+
+          latestByCommitOrder.getOrElse {
+            val msg =
+              s"""|Unable to compute the latest Scala 2 nightly version.
+                  |An error was thrown during parsing web page repository for Scala 2.
+                  |${jsonReaderException.getMessage}
+                  |
+                  |No appropriate Scala 2 nightly versions were found in cache, either.""".stripMargin
+            throw new ScalaVersionError(msg, cause = jsonReaderException)
+          }
       }
     }
 
