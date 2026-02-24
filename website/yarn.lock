@@ -2686,10 +2686,10 @@
   resolved "https://registry.yarnpkg.com/@svta/cml-request/-/cml-request-1.0.1.tgz#49eb488a00fc7a8309b4cc6b10ee6007fe2001db"
   integrity sha512-enL19BuXUjFkDDDF9jdNwUclMNPRsagnjGAetVC7xcmpDMpEx+ZLgsDip6BFNg5p6izSEk/OyujTWW1r8bDNiA==
 
-"@svta/cml-structured-field-values@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@svta/cml-structured-field-values/-/cml-structured-field-values-1.0.1.tgz#a4b1b69239199cdcea32bdfcb002952706ecb580"
-  integrity sha512-Kibciki59Pon3Pn/sl5uyrbJcSpZQDKqdCfDrokBvOdLoqqcd0oFrkEPsZBiuuIODX1CB80612xe8hopeFDyBA==
+"@svta/cml-structured-field-values@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@svta/cml-structured-field-values/-/cml-structured-field-values-1.1.2.tgz#a5a08d5255977dd3f92cfbea12805ccf11686445"
+  integrity sha512-9Se5b/T7BqgHECVacf/sNZ5wFIOm6d6vXLpfcIfHRGplOaOxDzcGgP+OezQ2CxBcYJKZMkw6pT+QMYDyGKOb1g==
 
 "@svta/cml-utils@1.4.0":
   version "1.4.0"
