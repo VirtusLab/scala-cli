@@ -269,6 +269,8 @@ jobs:
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
       run: ./mill -i copyDefaultLauncher --directory artifacts/
+    - name: Verify native launcher CPU compatibility
+      run: .github/scripts/verify_old_cpus.sh artifacts/scala-cli-x86_64-pc-linux.gz
     - uses: actions/upload-artifact@v6
       with:
         name: linux-launchers
