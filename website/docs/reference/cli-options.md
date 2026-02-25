@@ -384,7 +384,7 @@ Project name to be used on Mill build file
 
 ### `--sbt-version`
 
-Version of SBT to be used for the export (1.12.2 by default)
+Version of SBT to be used for the export (1.12.4 by default)
 
 ### `--mill-version`
 
