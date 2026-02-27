@@ -2394,4 +2394,55 @@ abstract class BspTestDefinitions extends ScalaCliSuite
       }
     }
   }
+
+  test("buildTarget/wrappedSources") {
+    val inputs = TestInputs(
+      os.rel / "simple.sc" ->
+        s"""val msg = "Hello"
+           |println(msg)
+           |""".stripMargin
+    )
+
+    withBsp(inputs, Seq(".")) { (root, _, remoteServer) =>
+      Future {
+        val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+        val target           = {
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+          expect(targets.length == 2)
+          extractMainTargets(targets)
+        }
+
+        val targets = List(target).asJava
+
+        val compileResp =
+          remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
+        expect(compileResp.getStatusCode == b.StatusCode.OK)
+
+        val resp = remoteServer
+          .buildTargetWrappedSources(new b.SourcesParams(targets))
+          .asScala
+          .await
+
+        val items = resp.items.asScala
+        expect(items.nonEmpty)
+
+        val mainItem = items.find(_.target.getUri == target.getUri).get
+
+        val sources = mainItem.sources.asScala
+        expect(sources.size == 1)
+
+        val wrappedSource = sources.head
+        val sourceUri     = TestUtil.normalizeUri(wrappedSource.uri)
+        val expectedUri   =
+          TestUtil.normalizeUri((root / "simple.sc").toNIO.toUri.toASCIIString)
+        expect(sourceUri == expectedUri)
+
+        expect(wrappedSource.topWrapper.contains("simple"))
+        expect(wrappedSource.topWrapper.contains("scriptPath"))
+        expect(wrappedSource.bottomWrapper == "}")
+        expect(wrappedSource.generatedUri.endsWith(".scala"))
+        expect(wrappedSource.generatedUri.contains("simple"))
+      }
+    }
+  }
 }
