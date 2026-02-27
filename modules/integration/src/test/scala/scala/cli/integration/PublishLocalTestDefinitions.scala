@@ -2,6 +2,9 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.concurrent.duration.DurationInt
+import scala.util.Properties
+
 abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
   protected def extraOptions: Seq[String] =
@@ -382,6 +385,55 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           extraOptions
         )
           .call(cwd = root)
+      }
+    }
+
+  // TODO make this pass reliably on Mac CI
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("publish local --watch with --watch-clear-screen clears screen on republish") {
+      TestInputs(
+        os.rel / "project.scala" ->
+          s"""//> using publish.organization test.org
+             |//> using publish.name test-proj
+             |//> using publish.version 1.0.0
+             |
+             |object Project { def value = 1 }
+             |""".stripMargin
+      ).fromRoot { root =>
+        val ivy2Local = root / "ivy2-local"
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "--power",
+            "publish",
+            "local",
+            ".",
+            "--watch",
+            "--watch-clear-screen",
+            "--ivy2-home",
+            ivy2Local.toString,
+            extraOptions
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true),
+          timeout = 180.seconds
+        ) { (proc, timeout, ec) =>
+          var line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains("Watching sources"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          os.write.over(
+            root / "project.scala",
+            s"""//> using publish.organization test.org
+               |//> using publish.name test-proj
+               |//> using publish.version 1.0.0
+               |
+               |object Project { def value = 2 }
+               |""".stripMargin
+          )
+          line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains("Watching sources") && !line.contains("\u001b[2J"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(line.contains("Watching sources") || line.contains("\u001b[2J"))
+        }
       }
     }
 }

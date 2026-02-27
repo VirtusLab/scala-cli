@@ -5,6 +5,8 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.annotation.tailrec
 import scala.cli.integration.Constants.munitVersion
 import scala.cli.integration.TestUtil.StringOps
+import scala.concurrent.duration.DurationInt
+import scala.util.Properties
 
 abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
@@ -1036,6 +1038,51 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           val err = res.err.trim()
           expect(err.contains(expectedWarning))
           expect(err.countOccurrences(expectedWarning) == 1)
+      }
+    }
+
+  // TODO make this pass reliably on Mac CI
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("test --watch with --watch-clear-screen clears screen on rerun") {
+      val inputPath        = os.rel / "MyTests.test.scala"
+      val expectedMessage1 = "test1"
+      val expectedMessage2 = "test2"
+
+      def code(message: String) =
+        s"""//> using dep org.scalameta::munit::$munitVersion
+           |
+           |class MyTests extends munit.FunSuite {
+           |  test("foo") {
+           |    assert(2 + 2 == 4)
+           |    println("$message")
+           |  }
+           |}
+           |""".stripMargin
+
+      TestInputs(inputPath -> code(expectedMessage1)).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "test",
+            inputPath.toString(),
+            "--watch",
+            "--watch-clear-screen",
+            extraOptions
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true),
+          timeout = 180.seconds
+        ) { (proc, timeout, ec) =>
+          var line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains("Watching sources"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          os.write.over(root / inputPath, code(expectedMessage2))
+          line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains(expectedMessage2) && !line.contains("\u001b[2J"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains(expectedMessage2))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(line.contains(expectedMessage2))
+        }
       }
     }
 }

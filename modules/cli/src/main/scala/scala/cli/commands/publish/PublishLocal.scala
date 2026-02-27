@@ -81,6 +81,7 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       forceSigningExternally = options.scalaSigning.forceSigningExternally.getOrElse(false),
       parallelUpload = Some(true),
       watch = options.watch.watch,
+      watchClearScreen = options.watch.watchClearScreen,
       isCi = options.publishParams.isCi,
       configDb = () => ConfigDb.empty, // shouldn't be used, no need of repo credentials here
       mainClassOptions = options.mainClass,

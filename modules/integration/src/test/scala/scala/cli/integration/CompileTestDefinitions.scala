@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.File
 
 import scala.cli.integration.util.BloopUtil
+import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 
 abstract class CompileTestDefinitions
@@ -907,4 +908,40 @@ abstract class CompileTestDefinitions
       )
     }
   }
+
+  // TODO make this pass reliably on Mac CI
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("compile --watch with --watch-clear-screen clears screen on recompile") {
+      val inputPath = os.rel / "example.scala"
+
+      def code(hasError: Boolean) =
+        if (hasError) """object Example { val x: String = 1 }""" // compile error
+        else """object Example { val x: Int = 1 }"""             // compiles fine
+
+      TestInputs(inputPath -> code(hasError = false)).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "compile",
+            inputPath.toString(),
+            "--watch",
+            "--watch-clear-screen",
+            extraOptions
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          var line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains("Watching sources"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          os.write.over(root / inputPath, code(hasError = true))
+          line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.contains("error") && !line.contains("\u001b[2J"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          while (!line.toLowerCase.contains("error"))
+            line = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(line.toLowerCase.contains("error"))
+        }
+      }
+    }
 }
