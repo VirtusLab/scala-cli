@@ -1243,6 +1243,42 @@
     "allDeclaredFields": true
   },
   {
+    "name": "scala.build.bsp.ScalaScriptBuildServer",
+    "queryAllDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.WrappedSourceItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.WrappedSourcesItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.WrappedSourcesParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.WrappedSourcesResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "scala.build.bsp.protocol.TextEdit",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,

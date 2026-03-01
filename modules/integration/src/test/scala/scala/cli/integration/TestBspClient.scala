@@ -4,8 +4,9 @@ import ch.epfl.scala.bsp4j as b
 import org.eclipse.lsp4j.jsonrpc
 
 import java.io.{InputStream, OutputStream}
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.{CompletableFuture, ExecutorService}
 
+import scala.cli.integration.bsp.WrappedSourcesResult
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
@@ -100,8 +101,14 @@ class TestBspClient extends b.BuildClient {
 
 object TestBspClient {
 
+  trait WrappedSourcesBuildServer {
+    @org.eclipse.lsp4j.jsonrpc.services.JsonRequest("buildTarget/wrappedSources")
+    def buildTargetWrappedSources(params: b.SourcesParams)
+      : CompletableFuture[WrappedSourcesResult]
+  }
+
   private trait BuildServer extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
-      with b.JvmBuildServer
+      with b.JvmBuildServer with WrappedSourcesBuildServer
 
   def connect(
     in: InputStream,
@@ -109,7 +116,8 @@ object TestBspClient {
     es: ExecutorService
   ): (
     TestBspClient,
-    b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer,
+    b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+      WrappedSourcesBuildServer,
     Future[Unit]
   ) = {
 

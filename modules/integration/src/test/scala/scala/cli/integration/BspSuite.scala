@@ -79,7 +79,8 @@ trait BspSuite { this: ScalaCliSuite =>
     f: (
       os.Path,
       TestBspClient,
-      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer
+      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+        TestBspClient.WrappedSourcesBuildServer
     ) => Future[T]
   ): T = withBspInitResults(
     inputs,
@@ -107,7 +108,8 @@ trait BspSuite { this: ScalaCliSuite =>
     f: (
       os.Path,
       TestBspClient,
-      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer,
+      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+        TestBspClient.WrappedSourcesBuildServer,
       b.InitializeBuildResult
     ) => Future[T]
   ): T = {
@@ -120,8 +122,9 @@ trait BspSuite { this: ScalaCliSuite =>
 
       val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptionsOverride, args)
         .spawn(cwd = root, stderr = stderr, env = bspEnvs)
-      var remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer =
-        null
+      var remoteServer
+        : b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+          TestBspClient.WrappedSourcesBuildServer = null
 
       val bspServerExited = Promise[Unit]()
       val t               = new Thread("bsp-server-watcher") {
