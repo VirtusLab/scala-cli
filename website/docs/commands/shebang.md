@@ -24,5 +24,5 @@ the input, while everything after the input is considered a program argument.
 scala-cli shebang [scala_cli_options]... input [program_arguments]...
 ```
 
-More details can be found in [Shebang guide](../guides/scripting/shebang).
+More details can be found in [Shebang guide](../guides/scripting/shebang.md).
 
