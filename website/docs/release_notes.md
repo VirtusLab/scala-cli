@@ -8,6 +8,21 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.12.4](https://github.com/VirtusLab/scala-cli/releases/tag/v1.12.4)
+
+This is just a small patch fixing a bug ([#4152](https://github.com/VirtusLab/scala-cli/issues/4152)) breaking Metals support in Scala CLI v1.12.3.
+
+### Fixes
+* Fix BSP `buildTarget/wrappedSources` for GraalVM native image by [@Gedochao](https://github.com/Gedochao) in [#4153](https://github.com/VirtusLab/scala-cli/pull/4153)
+
+### Documentation changes
+* Fix docs' links with inconsistent routing by [@Gedochao](https://github.com/Gedochao) in [#4154](https://github.com/VirtusLab/scala-cli/pull/4154)
+
+### Updates
+* Update scala-cli.sh launcher for 1.12.3 by @github-actions[bot] in [#4151](https://github.com/VirtusLab/scala-cli/pull/4151)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.12.3...v1.12.4
+
 ## [v1.12.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.12.3)
 
 ### Change default Scala version to 3.8.2
