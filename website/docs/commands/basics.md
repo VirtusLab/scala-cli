@@ -402,4 +402,4 @@ about the start of compilation, and so on.
 
 Some particular warning logs can be suppressed, either for a particular command by passing an option or with a global
 config.
-More details can be found in the [verbosity guide](..//guides/advanced/verbosity.md)
+More details can be found in the [verbosity guide](../guides/advanced/verbosity.md)

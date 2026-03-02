@@ -67,7 +67,7 @@ Watching sources, press Ctrl+C to exit.
 ## Scala version
 
 Scala CLI uses the latest stable version of Scala which was tested in Scala CLI (see our list
-of [Supported Scala Versions](../reference/scala-versions)). You can specify the Scala version you'd like to use
+of [Supported Scala Versions](../reference/scala-versions.md)). You can specify the Scala version you'd like to use
 with `--scala`:
 
 ```bash
@@ -482,7 +482,7 @@ line parameter `--exclude` along with a pattern:
 :::note
 The `exclude` directive should be placed in your `project.scala` file, which Scala CLI uses to determine the project
 root directory.
-For more details on `project.file`, see [the `Project root directory` reference](../reference/root-dir).
+For more details on `project.file`, see [the `Project root directory` reference](../reference/root-dir.md).
 :::
 
 For example, to exclude all files in the `example/scala` directory, add the following directive to your
