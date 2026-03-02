@@ -2666,10 +2666,10 @@
   resolved "https://registry.yarnpkg.com/@svta/cml-cmsd/-/cml-cmsd-1.0.1.tgz#f5a70ddbae413fd6cb898af8dce8f1303691bc46"
   integrity sha512-+nIB8PuSfb/qw+xGaArPhNqPm84tBJUbe3H1DnPL5QUsjSUI7mUIUQwAtRV1ZdEu0+80g9i0op79woB0OIwr/g==
 
-"@svta/cml-cta@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@svta/cml-cta/-/cml-cta-1.0.1.tgz#fdaa11d1e768e13e7581cb78f636038494c104b8"
-  integrity sha512-jcXqNIPv26bmFxIOFh8/c3+6WLH4qBjKpq9qTQcggDPoHuV1YBydMsJLOnYPDeK8rNMKcAkFLbnDRvyJthu5yw==
+"@svta/cml-cta@1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@svta/cml-cta/-/cml-cta-1.0.5.tgz#b5976407b3100dba9187acc3d514ecc3d20dd7d0"
+  integrity sha512-SgWZprP+fLHN98fOlMVqXhANAR9sqaasdtZbJFcqiJhrn+mfyGmO/OFE3xLDGaCQdrtfgSrNkuXQmKWspLFdlA==
 
 "@svta/cml-dash@1.0.1":
   version "1.0.1"

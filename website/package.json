@@ -30,7 +30,7 @@
     "react-player": "^3.4.0",
     "sass": "^1.97.3",
     "search-insights": "^2.17.3",
-    "@svta/cml-cta": "1.0.1",
+    "@svta/cml-cta": "1.0.5",
     "@svta/cml-structured-field-values": "1.1.2",
     "@svta/cml-utils": "1.4.0"
   },
@@ -39,7 +39,7 @@
     "search-insights": "^2.17.3",
     "@algolia/client-search": "^5.48.1",
     "@types/react": "^19.2.14",
-    "@svta/cml-cta": "1.0.1",
+    "@svta/cml-cta": "1.0.5",
     "@svta/cml-structured-field-values": "1.1.2",
     "@svta/cml-utils": "1.4.0"
   },
