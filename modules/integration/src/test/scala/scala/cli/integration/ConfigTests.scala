@@ -602,6 +602,7 @@ class ConfigTests extends ScalaCliSuite {
           else expect(r.exitCode == 1)
           os.proc(TestUtil.cli, "config", "offline", "--unset")
             .call(cwd = root, env = envs)
+          os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
         }
     }
 
