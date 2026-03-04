@@ -1,47 +1,38 @@
 package scala.build.tests
 
 import bloop.config.Config.LinkerMode
+import bloop.rifle.BloopRifleConfig
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.Gson
-import coursier.cache.ArtifactError
 import dependency.parser.DependencyParser
 
 import java.io.IOException
+
 import scala.build.Ops.*
 import scala.build.errors.{
   DependencyFormatError,
   InvalidBinaryScalaVersionError,
   ScalaNativeCompatibilityError
 }
-import scala.build.options.{
-  BuildOptions,
-  InternalOptions,
-  JavaOpt,
-  MaybeScalaVersion,
-  ScalaJsMode,
-  ScalacOpt,
-  ScriptOptions,
-  ShadowingSeq
-}
+import scala.build.options.*
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil.*
 import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Positioned}
+import scala.jdk.CollectionConverters.*
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
-import scala.jdk.CollectionConverters.*
 
 abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   private def hasDiagnostics = server
 
-  val buildThreads = BuildThreads.create()
-  def bloopConfigOpt =
-    if (server) Some(BloopServer.bloopConfig)
-    else None
+  val buildThreads: BuildThreads               = BuildThreads.create()
+  def bloopConfigOpt: Option[BloopRifleConfig] =
+    if server then Some(BloopServer.bloopConfig) else None
 
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
 
   override def afterAll(): Unit = {
     TestInputs.tryRemoveAll(extraRepoTmpDir)
@@ -55,8 +46,8 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     )
   )
 
-  def sv2 = Constants.defaultScala213Version
-  val defaultOptions = baseOptions.copy(
+  def sv2: String                  = Constants.defaultScala213Version
+  val defaultOptions: BuildOptions = baseOptions.copy(
     scalaOptions = baseOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv2)),
       scalaBinaryVersion = None
@@ -64,8 +55,8 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     scriptOptions = ScriptOptions(Some(true))
   )
 
-  def sv3 = Constants.defaultScalaVersion
-  val defaultScala3Options = defaultOptions.copy(
+  def sv3: String                        = Constants.defaultScalaVersion
+  val defaultScala3Options: BuildOptions = defaultOptions.copy(
     scalaOptions = defaultOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv3)),
       scalaBinaryVersion = None
@@ -118,7 +109,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           "simple$package.class",
           "simple$package.tasty"
         )
-        maybeBuild.orThrow.assertNoDiagnostics
+        maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
 
@@ -142,7 +133,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           "other$package.class",
           "other$package.tasty"
         )
-        maybeBuild.orThrow.assertNoDiagnostics
+        maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
 
@@ -177,7 +168,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
       )
     )
 
-    val testInputs = TestInputs(os.rel / "simple.sc" -> scriptContents)
+    val testInputs   = TestInputs(os.rel / "simple.sc" -> scriptContents)
     val buildOptions = defaultOptions.copy(
       scalaOptions = defaultOptions.scalaOptions.copy(
         semanticDbOptions = defaultOptions.scalaOptions.semanticDbOptions.copy(
@@ -193,7 +184,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
         "simple.class",
         "META-INF/semanticdb/simple.sc.semanticdb"
       )
-      maybeBuild.orThrow.assertNoDiagnostics
+      maybeBuild.orThrow.assertNoDiagnostics()
 
       val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
       val semDb     = os.read.bytes(outputDir / "META-INF" / "semanticdb" / "simple.sc.semanticdb")
@@ -247,7 +238,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
         "simple$package.tasty",
         "META-INF/semanticdb/simple.sc.semanticdb"
       )
-      maybeBuild.orThrow.assertNoDiagnostics
+      maybeBuild.orThrow.assertNoDiagnostics()
       val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
       val tastyData = TastyData.read(os.read.bytes(outputDir / "simple$_.tasty")).orThrow
       val names     = tastyData.names.simpleNames
@@ -272,7 +263,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           "simple.class",
           "simple.sjsir"
         )
-        maybeBuild.orThrow.assertNoDiagnostics
+        maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
 
@@ -293,7 +284,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           "simple.class",
           "simple.nir"
         )
-        maybeBuild.orThrow.assertNoDiagnostics
+        maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
   if (!Properties.isWin)
@@ -316,7 +307,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
         "simple$.class",
         "simple$delayedInit$body.class"
       )
-      maybeBuild.orThrow.assertNoDiagnostics
+      maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
 
@@ -330,7 +321,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           |pprint.log(g)
           |""".stripMargin,
       os.rel / "simple2.sc" ->
-        """//> using dep com.lihaoyi::geny:0.6.5, "com.lihaoyi::pprint:0.6.6"
+        """//> using dep com.lihaoyi::geny:0.6.5 com.lihaoyi::pprint:0.6.6
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
@@ -345,7 +336,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
         "simple2$delayedInit$body.class",
         "simple2.class"
       )
-      maybeBuild.orThrow.assertNoDiagnostics
+      maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
 
@@ -422,7 +413,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           |}
           |""".stripMargin,
       os.rel / "Ignored.scala" ->
-        """//> using target.scala.== "2.12"
+        """//> using target.scala.== 2.12
           |object Ignored {
           |  def foo = 2
           |}
@@ -596,7 +587,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
 
   test("cli dependency options shadowing using directives") {
     val usingDependency = "org.scalameta::munit::1.0.0-M1"
-    val cliDependency   = "org.scalameta::munit::1.0.2"
+    val cliDependency   = "org.scalameta::munit::1.1.1"
 
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
@@ -656,7 +647,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     val buildOptions = defaultOptions.copy(
       scalaOptions = defaultOptions.scalaOptions.copy(
         scalacOptions = ShadowingSeq.from(
-          cliScalacOptions.map(ScalacOpt(_)).map(Positioned.commandLine(_))
+          cliScalacOptions.map(ScalacOpt(_)).map(Positioned.commandLine)
         )
       )
     )
@@ -687,7 +678,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     val buildOptions = defaultOptions.copy(
       javaOptions = defaultOptions.javaOptions.copy(
         javaOpts = ShadowingSeq.from(
-          cliJavaOptions.map(JavaOpt(_)).map(Positioned.commandLine(_))
+          cliJavaOptions.map(JavaOpt(_)).map(Positioned.commandLine)
         )
       )
     )
@@ -702,16 +693,16 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   test("repeated Java options") {
     val inputs = TestInputs(
       os.rel / "foo.sc" ->
-        """//> using javaOpt --add-opens, "foo/bar"
-          |//> using javaOpt --add-opens, "other/thing"
-          |//> using javaOpt --add-exports, "foo/bar"
-          |//> using javaOpt --add-exports, "other/thing"
-          |//> using javaOpt --add-modules, "foo/bar"
-          |//> using javaOpt --add-modules, other/thing
-          |//> using javaOpt --add-reads, "foo/bar"
-          |//> using javaOpt --add-reads, "other/thing"
-          |//> using javaOpt "--patch-module", "foo/bar"
-          |//> using javaOpt "--patch-module", "other/thing"
+        """//> using javaOpt --add-opens foo/bar
+          |//> using javaOpt --add-opens other/thing
+          |//> using javaOpt --add-exports foo/bar
+          |//> using javaOpt --add-exports other/thing
+          |//> using javaOpt --add-modules foo/bar
+          |//> using javaOpt --add-modules other/thing
+          |//> using javaOpt --add-reads foo/bar
+          |//> using javaOpt --add-reads other/thing
+          |//> using javaOpt --patch-module foo/bar
+          |//> using javaOpt --patch-module other/thing
           |
           |def foo = "bar"
           |""".stripMargin
@@ -743,14 +734,14 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   test("-source:future not internally duplicating") {
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
-        """//> using option "-source:future"
+        """//> using option -source:future
           |def foo = "bar"
           |""".stripMargin
     )
 
     inputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val expectedOptions = Seq("-source:future")
-      val scalacOptions =
+      val scalacOptions   =
         maybeBuild.orThrow.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
       expect(scalacOptions == expectedOptions)
     }
@@ -762,7 +753,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
         """//> using scala 2.13
-          |//> using options -deprecation, "-feature", "-Xmaxwarns", "1"
+          |//> using options -deprecation -feature -Xmaxwarns 1
           |//> using option -Xdisable-assertions
           |
           |def foo = "bar"
@@ -900,7 +891,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           .toOption
           .flatMap(_.successfulOpt)
           .getOrElse(sys.error("cannot happen"))
-        val cp = build.fullClassPath
+        val cp     = build.fullClassPath
         val coreCp = cp.filter { f =>
           val name = f.last
           !name.startsWith("scala-library") &&
@@ -913,7 +904,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
 
   test("declared sources in using directive should be included to count project hash") {
     val helloFile = "Hello.scala"
-    val inputs =
+    val inputs    =
       TestInputs(
         os.rel / helloFile ->
           """|//> using file Utils.scala
@@ -956,9 +947,9 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   for (options <- Seq(defaultOptions, defaultScala3Options))
     test(s"compile 12k sources for Scala ${options.scalaOptions.scalaVersion.get.asString}") {
       val mainInput = os.rel / "main.sc" ->
-        """//> using jvm 11
-          |println("Hello from big build")
-          |""".stripMargin
+        s"""//> using jvm ${scala.build.internal.Constants.scala38MinJavaVersion}
+           |println("Hello from big build")
+           |""".stripMargin
 
       val additionalInputs = 1 to 12000 map { i =>
         os.rel / s"Foo$i.scala" ->
@@ -966,7 +957,8 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
              |""".stripMargin
       }
 
-      val testInputs = TestInputs(mainInput +: additionalInputs: _*)
+      val allInputs  = mainInput +: additionalInputs
+      val testInputs = TestInputs(allInputs*)
 
       testInputs.withBuild(options, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
         expect(maybeBuild.exists(_.success))

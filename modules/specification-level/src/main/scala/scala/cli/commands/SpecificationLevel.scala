@@ -70,8 +70,8 @@ object tags {
   // other tags
   // the `inShortHelp` tag whitelists options to be included in --help
   // this is in contrast to blacklisting options in --help with the @Hidden annotation
-  val inShortHelp: String      = "inShortHelp" // included in --help by default
-  val deprecatedPrefix: String = "deprecated"
+  val inShortHelp: String              = "inShortHelp" // included in --help by default
+  val deprecatedPrefix: String         = "deprecated"
   def deprecated(name: String): String =
     s"$deprecatedPrefix$valueSeparator$name" // produces a deprecated warning for the given name
 

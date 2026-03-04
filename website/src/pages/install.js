@@ -1,5 +1,6 @@
 import React from 'react';
 import Layout from '@theme/Layout';
+import Heading from '@theme/Heading';
 
 import Section from "../components/Section"
 import BigHeader from "../components/BigHeader"
@@ -11,7 +12,6 @@ const Index = (props) => {
     <Layout title='Install Scala CLI' description="How to install Scala CLI">
 
       <div className="container content">
-
 
 		{/* Install Scala CLI */}
         <Section className="section-install-cli">
@@ -30,7 +30,10 @@ const Index = (props) => {
 		
 
 		<Section className="section-about advanced-install">
-
+			{/* Anchor targets for deep linking - using Heading so Docusaurus can detect them */}
+			<Heading as="h2" id="advanced-installation" style={{display: 'none', margin: 0, padding: 0}}>Advanced Installation</Heading>
+			<Heading as="h2" id="scala-js" style={{display: 'none', margin: 0, padding: 0}}>Scala.js</Heading>
+			<Heading as="h2" id="scala-native" style={{display: 'none', margin: 0, padding: 0}}>Scala Native</Heading>
 			<AdvancedInstallation/>
 
 		</Section>

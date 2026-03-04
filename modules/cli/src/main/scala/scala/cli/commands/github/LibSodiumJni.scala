@@ -38,15 +38,17 @@ object LibSodiumJni {
     }
   }
 
-  private def libsodiumVersion    = Constants.libsodiumVersion
-  private def libsodiumjniVersion = Constants.libsodiumjniVersion
+  private def condaLibsodiumVersion  = Constants.condaLibsodiumVersion
+  private def alpineLibsodiumVersion = Constants.alpineLibsodiumVersion
+  private def libsodiumjniVersion    = Constants.libsodiumjniVersion
+  private def alpineVersion          = Constants.alpineVersion
 
   private def archiveUrlAndPath() =
     if (Properties.isLinux && launcherKindOpt.contains("static"))
       // Should actually be unused, as we statically link libsodium from the static launcher
       // Keeping it just-in-case. This could be useful from a musl-based JVM.
       (
-        s"https://dl-cdn.alpinelinux.org/alpine/v3.15/main/x86_64/libsodium-$libsodiumVersion-r0.apk",
+        s"https://dl-cdn.alpinelinux.org/alpine/v$alpineVersion/main/x86_64/libsodium-$alpineLibsodiumVersion-r1.apk",
         os.rel / "usr" / "lib" / "libsodium.so.23.3.0" // FIXME Could this change?
       )
     else {
@@ -70,7 +72,7 @@ object LibSodiumJni {
         case other           => sys.error(s"Unrecognized conda platform $other")
       }
       (
-        s"https://anaconda.org/conda-forge/libsodium/$libsodiumVersion/download/$condaPlatform/libsodium-$libsodiumVersion$suffix.tar.bz2",
+        s"https://anaconda.org/conda-forge/libsodium/$condaLibsodiumVersion/download/$condaPlatform/libsodium-$condaLibsodiumVersion$suffix.tar.bz2",
         relPath
       )
     }
@@ -81,7 +83,7 @@ object LibSodiumJni {
     import scala.build.internal.Util.DependencyOps
 
     val classifier = FetchExternalBinary.platformSuffix(supportsMusl = false)
-    val ext =
+    val ext        =
       if (Properties.isLinux) "so"
       else if (Properties.isMac) "dylib"
       else if (Properties.isWin) "dll"
@@ -118,7 +120,7 @@ object LibSodiumJni {
 
     if (!allStaticallyLinked) {
       val (archiveUrl, pathInArchive) = archiveUrlAndPath()
-      val sodiumLibOpt = value {
+      val sodiumLibOpt                = value {
         FetchExternalBinary.fetchLauncher(
           archiveUrl,
           changing = false,

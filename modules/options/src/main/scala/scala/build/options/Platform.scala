@@ -29,8 +29,8 @@ object Platform {
     acc: Set[Platform]
   ): Option[Set[Platform]] =
     l match {
-      case Nil      => None
-      case p :: Nil => parse(p).map(p0 => acc + p0)
+      case Nil       => None
+      case p :: Nil  => parse(p).map(p0 => acc + p0)
       case p :: tail =>
         parse(p) match {
           case Some(p0) => parseSpec0(tail, acc + p0)

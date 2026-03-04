@@ -11,7 +11,7 @@ import scala.build.preprocessing.directives.DirectiveUtil.*
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Compiler plugins")
-@DirectiveExamples("//> using plugin org.typelevel:::kind-projector:0.13.2")
+@DirectiveExamples("//> using plugin org.typelevel:::kind-projector:0.13.4")
 @DirectiveUsage(
   "//> using plugin org:name:ver | //> using plugins org:name:ver org2:name2:ver2",
   "`using plugin` _org_`:`_name_`:`_ver_"

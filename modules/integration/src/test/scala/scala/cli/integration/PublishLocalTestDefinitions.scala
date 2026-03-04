@@ -3,7 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
+  this: TestScalaVersion =>
   protected def extraOptions: Seq[String] =
     scalaVersionArgs ++ TestUtil.extraOptions ++ Seq("--suppress-experimental-feature-warning")
 
@@ -14,18 +14,30 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
 
   def testPublishVersion: String = "1.5.6"
 
-  private object PublishTestInputs {
+  protected object PublishTestInputs {
     def testOrg: String  = "test-local-org.sth"
     def testName: String = "my-proj"
-    def projFile(message: String): String =
-      s"""//> using scala "$testedPublishedScalaVersion"
-         |//> using dep "com.lihaoyi::os-lib:0.9.1"
+    def projFile(
+      message: String,
+      exclude: Boolean = false,
+      useTestScope: Boolean = false,
+      crossVersions: Option[Seq[String]] = None
+    ): String =
+      s"""//> using scala ${crossVersions.map(
+          _.mkString(" ")
+        ).getOrElse(testedPublishedScalaVersion)}
+         |${if (useTestScope) "//> using target.scope test" else ""}
+         |//> using dep com.lihaoyi::os-lib:0.11.3${Some(",exclude=com.lihaoyi%%geny").filter(_ =>
+          exclude
+        ).getOrElse("")}
          |
          |object Project {
          |  def message = "$message"
          |
-         |  def main(args: Array[String]): Unit =
+         |  def main(args: Array[String]): Unit = {
+         |    os.pwd
          |    println(message)
+         |  }
          |}
          |""".stripMargin
 
@@ -39,10 +51,18 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
          |""".stripMargin
     }
 
-    def inputs(message: String = "Hello", includePublishVersion: Boolean = true): TestInputs =
+    lazy val projectFilePath: os.RelPath = os.rel / "src" / "project.scala"
+    lazy val projectConfPath: os.RelPath = os.rel / "src" / "publish-conf.scala"
+    def inputs(
+      message: String = "Hello",
+      includePublishVersion: Boolean = true,
+      excludeGeny: Boolean = false,
+      useTestScope: Boolean = false,
+      crossVersions: Option[Seq[String]] = None
+    ): TestInputs =
       TestInputs(
-        os.rel / "project.scala"      -> projFile(message),
-        os.rel / "publish-conf.scala" -> publishConfFile(includePublishVersion)
+        projectFilePath -> projFile(message, excludeGeny, useTestScope, crossVersions),
+        projectConfPath -> publishConfFile(includePublishVersion)
       )
   }
 
@@ -52,8 +72,8 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
       else " without explicit publish.version, reading it from git:tag"
     test(s"publish local$withPublishVersionString") {
       val expectedFiles = {
-        val modName = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
-        val base    = os.rel / PublishTestInputs.testOrg / modName / testPublishVersion
+        val modName   = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
+        val base      = os.rel / PublishTestInputs.testOrg / modName / testPublishVersion
         val baseFiles = Seq(
           base / "jars" / s"$modName.jar",
           base / "docs" / s"$modName-javadoc.jar",
@@ -90,7 +110,7 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
             ciOptions
           )
             .call(cwd = root)
-          val ivy2Local = root / "ivy2" / "local"
+          val ivy2Local  = root / "ivy2" / "local"
           val foundFiles = os.walk(ivy2Local)
             .filter(os.isFile(_))
             .map(_.relativeTo(ivy2Local))
@@ -134,14 +154,19 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           .call(cwd = root)
           .out.trim()
 
+      val expectedMessage1 = "Hello"
+      val expectedMessage2 = "olleH"
       publishLocal()
       val output1 = output()
-      expect(output1 == "Hello")
+      expect(output1 == expectedMessage1)
 
-      os.write.over(root / "project.scala", PublishTestInputs.projFile("olleH"))
+      os.write.over(
+        root / PublishTestInputs.projectFilePath,
+        PublishTestInputs.projFile(expectedMessage2)
+      )
       publishLocal()
       val output2 = output()
-      expect(output2 == "olleH")
+      expect(output2 == expectedMessage2)
     }
   }
 
@@ -215,4 +240,148 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
     }
   }
 
+  if (actualScalaVersion.startsWith("3"))
+    test("publish local excluding a transitive dependency") {
+      PublishTestInputs.inputs(excludeGeny = true).fromRoot { root =>
+        val failPublishAsGenyIsntProvided =
+          os.proc(
+            TestUtil.cli,
+            "--power",
+            "publish",
+            "local",
+            ".",
+            extraOptions
+          )
+            .call(cwd = root, check = false)
+        expect(failPublishAsGenyIsntProvided.exitCode == 1)
+        val genyDep = "com.lihaoyi::geny:1.1.1"
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          "local",
+          ".",
+          "--compile-dep",
+          genyDep,
+          extraOptions
+        )
+          .call(cwd = root)
+        val publishedDep =
+          s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
+        val failRunAsGenyIsntProvided = os.proc(TestUtil.cli, "run", "--dep", publishedDep)
+          .call(cwd = root, check = false)
+        expect(failRunAsGenyIsntProvided.exitCode == 1)
+        os.proc(TestUtil.cli, "run", "--dep", publishedDep, "--dep", genyDep).call(cwd = root)
+      }
+    }
+
+    test("publish local without docs") {
+      val expectedFiles = {
+        val modName   = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
+        val base      = os.rel / PublishTestInputs.testOrg / modName / testPublishVersion
+        val baseFiles = Seq(
+          base / "jars" / s"$modName.jar",
+          base / "srcs" / s"$modName-sources.jar",
+          base / "poms" / s"$modName.pom",
+          base / "ivys" / "ivy.xml"
+        )
+        baseFiles
+          .flatMap { f =>
+            val md5  = f / os.up / s"${f.last}.md5"
+            val sha1 = f / os.up / s"${f.last}.sha1"
+            Seq(f, md5, sha1)
+          }
+          .toSet
+      }
+
+      PublishTestInputs.inputs()
+        .fromRoot { root =>
+          os.proc(
+            TestUtil.cli,
+            "--power",
+            "publish",
+            "local",
+            ".",
+            "--ivy2-home",
+            os.rel / "ivy2",
+            extraOptions,
+            "--doc=false"
+          )
+            .call(cwd = root)
+          val ivy2Local  = root / "ivy2" / "local"
+          val foundFiles = os.walk(ivy2Local)
+            .filter(os.isFile(_))
+            .map(_.relativeTo(ivy2Local))
+            .toSet
+          val missingFiles    = expectedFiles -- foundFiles
+          val unexpectedFiles = foundFiles -- expectedFiles
+          if (missingFiles.nonEmpty)
+            pprint.err.log(missingFiles)
+          if (unexpectedFiles.nonEmpty)
+            pprint.err.log(unexpectedFiles)
+          expect(missingFiles.isEmpty)
+          expect(unexpectedFiles.isEmpty)
+        }
+    }
+
+  test("publish local with test scope") {
+    val expectedMessage = "Hello"
+    PublishTestInputs.inputs(message = expectedMessage, useTestScope = true).fromRoot { root =>
+      val scalaVersionArgs =
+        if (actualScalaVersion == Constants.scala3Next)
+          Seq("-S", actualScalaVersion)
+        else Nil
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "local",
+        ".",
+        "--test",
+        scalaVersionArgs,
+        extraOptions
+      )
+        .call(cwd = root)
+      val publishedDep =
+        s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
+      val r = os.proc(TestUtil.cli, "run", "--dep", publishedDep, extraOptions).call(cwd = root)
+      expect(r.out.trim() == expectedMessage)
+    }
+  }
+
+  if actualScalaVersion.startsWith("3") then
+    test("publish local with compileOnly.dep") {
+      TestInputs(
+        os.rel / "project.scala" ->
+          s"""//> using compileOnly.dep org.springframework.boot:spring-boot:3.5.6
+             |//> using test.dep org.springframework.boot:spring-boot:3.5.6
+             |
+             |//> using publish.organization my.org
+             |//> using publish.name scala-cli-publish-bug
+             |//> using publish.version 1.0.0
+             |""".stripMargin,
+        os.rel / "RootLoggerConfigurer.scala" ->
+          s"""import org.springframework.beans.factory.annotation.Autowired
+             |import scala.compiletime.uninitialized
+             |
+             |class RootLoggerConfigurer:
+             |  @Autowired var sentryClient: String = uninitialized
+             |""".stripMargin
+      ).fromRoot { root =>
+        val scalaVersionArgs =
+          if (actualScalaVersion == Constants.scala3Next)
+            Seq("-S", actualScalaVersion)
+          else Nil
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          "local",
+          ".",
+          scalaVersionArgs,
+          extraOptions
+        )
+          .call(cwd = root)
+      }
+    }
 }

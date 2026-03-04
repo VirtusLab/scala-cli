@@ -49,7 +49,7 @@ object Ops {
     def traverseN: Either[::[Ex], (A, B)] =
       eithers match {
         case (Right(a), Right(b)) => Right((a, b))
-        case _ =>
+        case _                    =>
           val errors = eithers._1.left.toOption.toSeq ++
             eithers._2.left.toOption.toSeq
           val errors0 = errors.toList match {
@@ -66,7 +66,7 @@ object Ops {
     def traverseN: Either[::[Ex], (A, B, C)] =
       eithers match {
         case (Right(a), Right(b), Right(c)) => Right((a, b, c))
-        case _ =>
+        case _                              =>
           val errors = eithers._1.left.toOption.toSeq ++
             eithers._2.left.toOption.toSeq ++
             eithers._3.left.toOption.toSeq
@@ -94,7 +94,7 @@ object Ops {
     def traverseN: Either[::[Ex], (A, B, C, D)] =
       eithers match {
         case (Right(a), Right(b), Right(c), Right(d)) => Right((a, b, c, d))
-        case _ =>
+        case _                                        =>
           val errors = eithers._1.left.toOption.toSeq ++
             eithers._2.left.toOption.toSeq ++
             eithers._3.left.toOption.toSeq ++
@@ -131,7 +131,7 @@ object Ops {
     def traverseN: Either[::[Ex], (A, B, C, D, E)] =
       eithers match {
         case (Right(a), Right(b), Right(c), Right(d), Right(e)) => Right((a, b, c, d, e))
-        case _ =>
+        case _                                                  =>
           val errors = eithers._1.left.toOption.toSeq ++
             eithers._2.left.toOption.toSeq ++
             eithers._3.left.toOption.toSeq ++

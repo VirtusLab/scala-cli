@@ -53,7 +53,7 @@ object InstallCompletionsOptions {
   implicit lazy val parser: Parser[InstallCompletionsOptions] = Parser.derive
   implicit lazy val help: Help[InstallCompletionsOptions]     = Help.derive
 
-  private val helpHeader = s"Installs $fullRunnerName completions into your shell"
+  private val helpHeader  = s"Installs $fullRunnerName completions into your shell"
   val helpMessage: String =
     s"""$helpHeader
        |

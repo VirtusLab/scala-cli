@@ -3,7 +3,6 @@ package scala.cli.commands.publish
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
 
-import scala.build.options.BuildOptions
 import scala.build.{BuildThreads, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
@@ -12,10 +11,9 @@ import scala.cli.config.ConfigDb
 import scala.cli.util.ArgHelpers.*
 
 object PublishLocal extends ScalaCommand[PublishLocalOptions] {
-
   override def group: String           = HelpCommandGroup.Main.toString
   override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
-  override def helpFormat: HelpFormat =
+  override def helpFormat: HelpFormat  =
     super.helpFormat
       .withHiddenGroups(Publish.hiddenHelpGroups)
       .withPrimaryGroups(Publish.primaryHelpGroups)
@@ -51,8 +49,8 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
     ).orExit(logger)
     val threads = BuildThreads.create()
 
-    val compilerMaker    = options.shared.compilerMaker(threads)
-    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true)
+    val compilerMaker       = options.shared.compilerMaker(threads)
+    val docCompilerMakerOpt = options.sharedPublish.docCompilerMakerOpt
 
     val cross = options.compileCross.cross.getOrElse(false)
 
@@ -71,22 +69,23 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       .map(os.Path(_, os.pwd))
 
     Publish.doRun(
-      inputs,
-      logger,
-      initialBuildOptions,
-      compilerMaker,
-      docCompilerMaker,
-      cross,
-      workingDir,
-      ivy2HomeOpt,
+      inputs = inputs,
+      logger = logger,
+      initialBuildOptions = initialBuildOptions,
+      compilerMaker = compilerMaker,
+      docCompilerMaker = docCompilerMakerOpt,
+      cross = cross,
+      workingDir = workingDir,
+      ivy2HomeOpt = ivy2HomeOpt,
       publishLocal = true,
       forceSigningExternally = options.scalaSigning.forceSigningExternally.getOrElse(false),
       parallelUpload = Some(true),
-      options.watch.watch,
+      watch = options.watch.watch,
       isCi = options.publishParams.isCi,
-      () => ConfigDb.empty, // shouldn't be used, no need of repo credentials here
-      options.mainClass,
-      dummy = options.sharedPublish.dummy
+      configDb = () => ConfigDb.empty, // shouldn't be used, no need of repo credentials here
+      mainClassOptions = options.mainClass,
+      dummy = options.sharedPublish.dummy,
+      buildTests = options.shared.scope.test.getOrElse(false)
     )
   }
 }

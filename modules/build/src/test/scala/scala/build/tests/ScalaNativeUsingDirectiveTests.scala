@@ -1,5 +1,6 @@
 package scala.build.tests
 
+import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.errors.UsingDirectiveValueNumError
@@ -8,12 +9,11 @@ import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 
 class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
+  val buildThreads: BuildThreads            = BuildThreads.create()
+  def bloopConfig: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
 
-  val buildThreads = BuildThreads.create()
-  def bloopConfig  = Some(BloopServer.bloopConfig)
-
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
 
   val buildOptions = BuildOptions(
     internal = InternalOptions(
@@ -39,7 +39,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-gc with multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-gc` 78, 12
+        """//> using native-gc 78 12
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -54,7 +54,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-gc") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-gc` "78"
+        """//> using native-gc 78
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -81,7 +81,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-mode with multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-mode` "debug", "release-full"
+        """//> using native-mode debug release-full
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -95,7 +95,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-mode") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-mode` "release-full"
+        """//> using native-mode release-full
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -107,7 +107,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-version with multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-version` "0.4.0", "0.3.3"
+        """//> using native-version 0.4.0 0.3.3
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -122,7 +122,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-version") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-version` "0.4.0"
+        """//> using native-version 0.4.0
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -135,20 +135,62 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-compile") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-compile` "compileOption1", "compileOption2"
+        """//> using native-compile compileOption1 compileOption2
           |def foo() = println("hello foo")
           |""".stripMargin
     )
 
     inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.options.scalaNativeOptions.compileOptions(0) == "compileOption1"
+        maybeBuild.options.scalaNativeOptions.compileOptions.head == "compileOption1"
       )
       assert(
         maybeBuild.options.scalaNativeOptions.compileOptions(1) == "compileOption2"
       )
     }
   }
+
+  for { directiveKey <- Seq("nativeCCompile", "native-c-compile") }
+    test(s"ScalaNativeOptions for $directiveKey") {
+      val expectedOption1 = "compileOption1"
+      val expectedOption2 = "compileOption2"
+      val inputs          = TestInputs(
+        os.rel / "p.sc" ->
+          s"""//> using $directiveKey $expectedOption1 $expectedOption2
+             |def foo() = println("hello foo")
+             |""".stripMargin
+      )
+
+      inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+        assert(
+          maybeBuild.options.scalaNativeOptions.cCompileOptions.head == expectedOption1
+        )
+        assert(
+          maybeBuild.options.scalaNativeOptions.cCompileOptions.drop(1).head == expectedOption2
+        )
+      }
+    }
+
+  for { directiveKey <- Seq("nativeCppCompile", "native-cpp-compile") }
+    test(s"ScalaNativeOptions for $directiveKey") {
+      val expectedOption1 = "compileOption1"
+      val expectedOption2 = "compileOption2"
+      val inputs          = TestInputs(
+        os.rel / "p.sc" ->
+          s"""//> using $directiveKey $expectedOption1 $expectedOption2
+             |def foo() = println("hello foo")
+             |""".stripMargin
+      )
+
+      inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+        assert(
+          maybeBuild.options.scalaNativeOptions.cppCompileOptions.head == expectedOption1
+        )
+        assert(
+          maybeBuild.options.scalaNativeOptions.cppCompileOptions.drop(1).head == expectedOption2
+        )
+      }
+    }
 
   test("ScalaNativeOptions for native-linking and no value") {
     val inputs = TestInputs(
@@ -167,13 +209,13 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-linking") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-linking` "linkingOption1", "linkingOption2"
+        """//> using native-linking linkingOption1 linkingOption2
           |def foo() = println("hello foo")
           |""".stripMargin
     )
     inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.options.scalaNativeOptions.linkingOptions(0) == "linkingOption1"
+        maybeBuild.options.scalaNativeOptions.linkingOptions.head == "linkingOption1"
       )
       assert(
         maybeBuild.options.scalaNativeOptions.linkingOptions(1) == "linkingOption2"
@@ -184,7 +226,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-clang") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-clang` "clang/path"
+        """//> using native-clang clang/path
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -198,7 +240,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-clang and multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-clang` "path1", "path2"
+        """//> using native-clang path1 path2
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -212,7 +254,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-clang-pp") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-clang-pp` "clangpp/path"
+        """//> using native-clang-pp clangpp/path
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -226,7 +268,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-clang-pp and multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-clang-pp` "path1", "path2"
+        """//> using native-clang-pp path1 path2
           |def foo() = println("hello foo")
           |""".stripMargin
     )

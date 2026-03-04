@@ -3,7 +3,6 @@ package scala.cli.commands.uninstall
 import caseapp.*
 
 import scala.build.Logger
-import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.bloop.BloopExit
 import scala.cli.commands.uninstallcompletions.{UninstallCompletions, UninstallCompletionsOptions}

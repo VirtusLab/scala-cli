@@ -1,17 +1,15 @@
 package scala.cli.commands.repl
-
-import ai.kien.python.Python
 import caseapp.*
 import caseapp.core.help.HelpFormat
 import coursier.cache.FileCache
-import coursier.error.{FetchError, ResolutionError}
+import coursier.error.ResolutionError
 import dependency.*
 
 import java.io.File
 import java.util.zip.ZipFile
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.{
   BuildException,
   CantDownloadAmmoniteError,
@@ -20,29 +18,25 @@ import scala.build.errors.{
 }
 import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
-import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, Scope}
-import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.run.Run.{
-  maybePrintSimpleScalacOutput,
-  orPythonDetectionError,
-  pythonPathEnv
-}
+import scala.build.options.ScalacOpt.noDashPrefixes
+import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, ScalaVersionUtil, Scope}
+import scala.cli.CurrentParams
+import scala.cli.commands.run.Run.{createPythonInstance, orPythonDetectionError, pythonPathEnv}
 import scala.cli.commands.run.RunMode
-import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
+import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, ScalacOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.{ScalaCommand, WatchUtil}
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.packaging.Library
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
-import scala.cli.{CurrentParams, ScalaCli}
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
   override def group: String           = HelpCommandGroup.Main.toString
   override def scalaSpecificationLevel = SpecificationLevel.MUST
-  override def helpFormat: HelpFormat = super.helpFormat
+  override def helpFormat: HelpFormat  = super.helpFormat
     .withHiddenGroup(HelpGroup.Watch)
     .withPrimaryGroup(HelpGroup.Repl)
   override def names: List[List[String]] = List(
@@ -52,10 +46,15 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
   override def sharedOptions(options: ReplOptions): Option[SharedOptions] = Some(options.shared)
 
   override def buildOptions(ops: ReplOptions): Some[BuildOptions] =
-    Some(buildOptions0(ops, scala.cli.internal.Constants.maxAmmoniteScala3Version))
+    Some(buildOptions0(
+      ops,
+      scala.cli.internal.Constants.maxAmmoniteScala3Version,
+      scala.cli.internal.Constants.maxAmmoniteScala3LtsVersion
+    ))
   private[commands] def buildOptions0(
     ops: ReplOptions,
-    maxAmmoniteScalaVer: String
+    maxAmmoniteScalaVer: String,
+    maxAmmoniteScalaLtsVer: String
   ): BuildOptions = {
     import ops.*
     import ops.sharedRepl.*
@@ -64,29 +63,39 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
 
     val ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
     val baseOptions        = shared.buildOptions().orExit(logger)
+
+    val maybeDowngradedScalaVersion = {
+      val isDefaultAmmonite = ammonite.contains(true) && ammoniteVersionOpt.isEmpty
+      extension (s: MaybeScalaVersion)
+        private def isLtsAlias: Boolean =
+          s.versionOpt.exists(v => ScalaVersionUtil.scala3Lts.contains(v.toLowerCase))
+        private def isLts: Boolean =
+          s.versionOpt.exists(_.startsWith(Constants.scala3LtsPrefix)) || isLtsAlias
+      baseOptions.scalaOptions.scalaVersion match {
+        case Some(s)
+            if isDefaultAmmonite &&
+            s.isLts &&
+            (s
+              .versionOpt.exists(_.coursierVersion > maxAmmoniteScalaLtsVer.coursierVersion) ||
+            s.isLtsAlias) =>
+          val versionString = s.versionOpt.filter(_ => !s.isLtsAlias).getOrElse(Constants.scala3Lts)
+          logger.message(s"Scala $versionString is not yet supported with this version of Ammonite")
+          logger.message(s"Defaulting to Scala $maxAmmoniteScalaLtsVer")
+          Some(MaybeScalaVersion(maxAmmoniteScalaLtsVer))
+        case None
+            if isDefaultAmmonite &&
+            maxAmmoniteScalaVer.coursierVersion < defaultScalaVersion.coursierVersion =>
+          logger.message(
+            s"Scala $defaultScalaVersion is not yet supported with this version of Ammonite"
+          )
+          logger.message(s"Defaulting to Scala $maxAmmoniteScalaVer")
+          Some(MaybeScalaVersion(maxAmmoniteScalaVer))
+        case s => s
+      }
+    }
+
     baseOptions.copy(
-      scalaOptions = baseOptions.scalaOptions.copy(
-        scalaVersion = baseOptions.scalaOptions.scalaVersion
-          .orElse {
-            val shouldDowngrade = {
-              def needsDowngradeForAmmonite = {
-                import coursier.core.Version
-                Version(maxAmmoniteScalaVer) < Version(defaultScalaVersion)
-              }
-              ammonite.contains(true) &&
-              ammoniteVersionOpt.isEmpty &&
-              needsDowngradeForAmmonite
-            }
-            if (shouldDowngrade) {
-              logger.message(
-                s"Scala $defaultScalaVersion is not yet supported with this version of Ammonite"
-              )
-              logger.message(s"Defaulting to Scala $maxAmmoniteScalaVer")
-              Some(MaybeScalaVersion(maxAmmoniteScalaVer))
-            }
-            else None
-          }
-      ),
+      scalaOptions = baseOptions.scalaOptions.copy(scalaVersion = maybeDowngradedScalaVersion),
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
@@ -109,7 +118,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
 
   override def runCommand(options: ReplOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
-    def default = Inputs.default().getOrElse {
+    def default             = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd, options.shared.markdown.enableMarkdown)
     }
     val inputs =
@@ -120,8 +129,6 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     val threads = BuildThreads.create()
     // compilerMaker should be a lazy val to prevent download a JAVA 17 for bloop when users run the repl without sources
     lazy val compilerMaker = options.shared.compilerMaker(threads)
-
-    val directories = Directories.directories
 
     def doRunRepl(
       buildOptions: BuildOptions,
@@ -136,7 +143,6 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         programArgs = programArgs,
         allArtifacts = allArtifacts,
         mainJarsOrClassDirs = mainJarsOrClassDirs,
-        directories = directories,
         logger = logger,
         allowExit = allowExit,
         dryRun = options.sharedRepl.replDryRun,
@@ -162,29 +168,30 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         buildOptions = builds.head.options,
         allArtifacts = builds.map(_.artifacts),
         mainJarsOrClassDirs =
-          if (asJar) builds.map(Library.libraryJar(_)) else builds.map(_.output),
+          if asJar then Seq(Library.libraryJar(builds)) else builds.map(_.output),
         allowExit = allowExit,
         runMode = runMode,
         successfulBuilds = builds
       )
     }
 
-    val cross    = options.sharedRepl.compileCross.cross.getOrElse(false)
-    val configDb = ConfigDbUtils.configDb.orExit(logger)
+    val cross                 = options.sharedRepl.compileCross.cross.getOrElse(false)
+    val configDb              = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
       )
 
+    val shouldBuildTestScope = options.shared.scope.test.getOrElse(false)
     if (inputs.isEmpty) {
       val allArtifacts =
         Seq(initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)) ++
-          (if options.sharedRepl.scope.test
+          (if shouldBuildTestScope
            then Seq(initialBuildOptions.artifacts(logger, Scope.Test).orExit(logger))
            else Nil)
       // synchronizing, so that multiple presses to enter (handled by WatchUtil.waitForCtrlC)
       // don't try to run repls in parallel
-      val lock = new Object
+      val lock       = new Object
       def runThing() = lock.synchronized {
         doRunRepl(
           buildOptions = initialBuildOptions,
@@ -210,7 +217,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         None,
         logger,
         crossBuilds = cross,
-        buildTests = options.sharedRepl.scope.test,
+        buildTests = shouldBuildTestScope,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
@@ -238,7 +245,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           None,
           logger,
           crossBuilds = cross,
-          buildTests = options.sharedRepl.scope.test,
+          buildTests = shouldBuildTestScope,
           partial = None,
           actionableDiagnostics = actionableDiagnostics
         )
@@ -281,14 +288,12 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     programArgs: Seq[String],
     allArtifacts: Seq[Artifacts],
     mainJarsOrClassDirs: Seq[os.Path],
-    directories: scala.build.Directories,
     logger: Logger,
     allowExit: Boolean,
     dryRun: Boolean,
     runMode: RunMode.HasRepl,
     successfulBuilds: Seq[Build.Successful]
   ): Either[BuildException, Unit] = either {
-
     val setupPython = options.notForBloopOptions.python.getOrElse(false)
 
     val cache             = options.internal.cache.getOrElse(FileCache())
@@ -306,7 +311,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     val (scalapyJavaOpts, scalapyExtraEnv) =
       if (setupPython) {
         val props = value {
-          val python       = Python()
+          val python       = value(createPythonInstance().orPythonDetectionError)
           val propsOrError = python.scalapyProperties
           logger.debug(s"Python Java properties: $propsOrError")
           propsOrError.orPythonDetectionError
@@ -318,7 +323,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
         // for context.
         val dirs = successfulBuilds.map(_.inputs.workspace) ++ Seq(os.pwd)
-        (props0, pythonPathEnv(dirs: _*))
+        (props0, pythonPathEnv(dirs*))
       }
       else
         (Nil, Map.empty[String, String])
@@ -390,11 +395,19 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       replArgs: Seq[String],
       extraEnv: Map[String, String] = Map.empty,
       extraProps: Map[String, String] = Map.empty
-    ): Unit =
-      if (dryRun)
-        logger.message("Dry run, not running REPL.")
+    ): Unit = {
+      val isAmmonite = replArtifacts.replMainClass.startsWith("ammonite")
+      if isAmmonite then
+        replArgs
+          .map(_.noDashPrefixes)
+          .filter(ScalacOptions.replExecuteScriptOptions.contains)
+          .foreach(arg =>
+            logger.message(
+              s"The '--$arg' option is not supported with Ammonite. Did you mean to use '--ammonite-arg -c' to execute a script?"
+            )
+          )
+      if dryRun then logger.message("Dry run, not running REPL.")
       else {
-        val isAmmonite = replArtifacts.replMainClass.startsWith("ammonite")
         val depClassPathArgs: Seq[String] =
           if replArtifacts.depsClassPath.nonEmpty && !isAmmonite then
             Seq(
@@ -422,42 +435,50 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         if (retCode != 0)
           value(Left(new ReplError(retCode)))
       }
+    }
 
     def defaultArtifacts(): Either[BuildException, ReplArtifacts] = either {
       value {
         ReplArtifacts.default(
-          scalaParams,
-          allArtifacts.flatMap(_.userDependencies).distinct,
-          allArtifacts.flatMap(_.extraClassPath).distinct,
-          logger,
-          cache,
-          value(options.finalRepositories),
+          scalaParams = scalaParams,
+          dependencies = allArtifacts.flatMap(_.userDependencies).distinct,
+          extraClassPath = allArtifacts.flatMap(_.extraClassPath).distinct,
+          logger = logger,
+          cache = cache,
+          repositories = value(options.finalRepositories),
           addScalapy =
-            if (setupPython)
+            if setupPython then
               Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
-            else None
+            else None,
+          javaVersion = options.javaHome().value.version
         )
       }
     }
     def ammoniteArtifacts(): Either[BuildException, ReplArtifacts] =
       ReplArtifacts.ammonite(
-        scalaParams,
-        options.notForBloopOptions.replOptions.ammoniteVersion(scalaParams.scalaVersion, logger),
-        allArtifacts.flatMap(_.userDependencies),
-        allArtifacts.flatMap(_.extraClassPath),
-        allArtifacts.flatMap(_.extraSourceJars),
-        value(options.finalRepositories),
-        logger,
-        cache,
-        directories,
+        scalaParams = scalaParams,
+        ammoniteVersion =
+          options.notForBloopOptions.replOptions.ammoniteVersion(scalaParams.scalaVersion, logger),
+        dependencies = allArtifacts.flatMap(_.userDependencies),
+        extraClassPath = allArtifacts.flatMap(_.extraClassPath),
+        extraSourceJars = allArtifacts.flatMap(_.extraSourceJars),
+        extraRepositories = value(options.finalRepositories),
+        logger = logger,
+        cache = cache,
         addScalapy =
           if (setupPython)
             Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
           else None
       ).left.map {
         case FetchingDependenciesError(e: ResolutionError.CantDownloadModule, positions)
-            if shouldUseAmmonite && e.module.name.value == s"ammonite_${scalaParams.scalaVersion}" =>
-          CantDownloadAmmoniteError(e.version, scalaParams.scalaVersion, e, positions)
+            if shouldUseAmmonite &&
+            e.module.name.value == s"ammonite_${scalaParams.scalaVersion}" =>
+          CantDownloadAmmoniteError(
+            e.versionConstraint.asString,
+            scalaParams.scalaVersion,
+            e,
+            positions
+          )
         case other => other
       }
 

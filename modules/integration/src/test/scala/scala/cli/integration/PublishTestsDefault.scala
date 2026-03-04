@@ -2,16 +2,18 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.nio.file.Paths
+
 class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
   test("Pure Java") {
     val testOrg     = "test-org.foo"
     val testName    = "foo"
     val testVersion = "0.3.1"
-    val inputs = TestInputs(
+    val inputs      = TestInputs(
       os.rel / "Foo.java" ->
-        s"""//> using publish.organization "$testOrg"
-           |//> using publish.name "$testName"
-           |//> using publish.version "$testVersion"
+        s"""//> using publish.organization $testOrg
+           |//> using publish.name $testName
+           |//> using publish.version $testVersion
            |
            |package foo;
            |
@@ -154,20 +156,20 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
   test("missing sonatype requirements") {
     val inputs = TestInputs(
       os.rel / "messages" / "Messages.scala" ->
-        """//> using publish.repository "central"
-          |//> using publish.organization "test-org"
-          |//> using publish.name "test-name"
-          |//> using publish.version "0.1.0"
+        """//> using publish.repository central
+          |//> using publish.organization test-org
+          |//> using publish.name test-name
+          |//> using publish.version 0.1.0
           |package messages
           |object Messages {
           |  def hello = "Hello"
           |}
           |""".stripMargin,
       os.rel / "publish-conf.scala" ->
-        """//> using publish.url "https://github.com/me/my-project"
-          |//> using publish.license "Apache-2.0"
-          |//> using publish.scm "github:test-org/test-name"
-          |//> using publish.developer "me|Me|https://me.me"
+        """//> using publish.url https://github.com/me/my-project
+          |//> using publish.license Apache-2.0
+          |//> using publish.scm github:test-org/test-name
+          |//> using publish.developer me|Me|https://me.me
           |""".stripMargin
     )
     def checkWarnings(output: String, hasWarnings: Boolean): Unit = {
@@ -200,6 +202,43 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
         .call(cwd = root, mergeErrIntoOut = true)
       checkWarnings(okRes.out.text(), hasWarnings = false)
       checkCredentialsWarning(okRes.out.text())
+    }
+  }
+
+  test(s"simple failed upload") {
+    val secretKey = {
+      val uri = Thread.currentThread().getContextClassLoader
+        .getResource("test-keys/key.skr")
+        .toURI
+      os.Path(Paths.get(uri))
+    }
+
+    val signingOptions = Seq(
+      "--secret-key",
+      s"file:$secretKey",
+      "--secret-key-password",
+      "value:1234",
+      "--signer",
+      "bc"
+    )
+
+    TestCase.testInputs().fromRoot { root =>
+      val r = os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        extraOptions,
+        signingOptions,
+        "project",
+        "--publish-repository",
+        "sonatype:central"
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = false
+      )
+      expect(r.exitCode != 0)
     }
   }
 }

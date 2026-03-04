@@ -2,19 +2,16 @@ package scala.cli.exportCmd
 
 import coursier.maven.MavenRepository
 import coursier.parse.RepositoryParser
-import dependency.NoAttributes
 
-import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
-import scala.build.internal.Runner.frameworkName
+import scala.build.internal.Runner.frameworkNames
 import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
 import scala.cli.ScalaCli
-import scala.cli.util.SeqHelpers.*
 
 final case class MillProjectDescriptor(
   millVersion: String,
@@ -33,14 +30,14 @@ final case class MillProjectDescriptor(
 
     val pureJava = ProjectDescriptor.isPureJavaProject(options, sources)
 
-    val sv = options.scalaParams.toOption.flatten.map(_.scalaVersion).getOrElse(
-      ScalaCli.getDefaultScalaVersion
-    )
+    val sv = options.scalaParams
+      .toOption
+      .flatten
+      .map(_.scalaVersion)
+      .getOrElse(ScalaCli.getDefaultScalaVersion)
 
-    if (pureJava)
-      MillProject()
-    else
-      MillProject(scalaVersion = Some(sv))
+    if pureJava then MillProject()
+    else MillProject(scalaVersion = Some(sv))
   }
 
   private def scalaCompilerPlugins(buildOptions: BuildOptions): MillProject =
@@ -52,9 +49,7 @@ final case class MillProjectDescriptor(
     MillProject(scalacOptions = buildOptions.scalaOptions.scalacOptions.toSeq.map(_.value.value))
 
   private def scalaJsSettings(options: ScalaJsOptions): MillProject = {
-
-    val scalaJsVersion = Some(options.version.getOrElse(Constants.scalaJsVersion))
-
+    val scalaJsVersion  = Some(options.version.getOrElse(Constants.scalaJsVersion))
     val moduleKindDecls =
       if (options.moduleKindStr.isEmpty) Nil
       else
@@ -73,10 +68,10 @@ final case class MillProjectDescriptor(
     mainOptions: BuildOptions,
     testOptions: BuildOptions
   ): MillProject = {
-    val mainDeps = mainOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
+    val mainDeps        = mainOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
     val compileMainDeps =
       mainOptions.classPathOptions.extraCompileOnlyDependencies.toSeq.map(_.value.render)
-    val testDeps = testOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
+    val testDeps        = testOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
     val compileTestDeps =
       testOptions.classPathOptions.extraCompileOnlyDependencies.toSeq.map(_.value.render)
     MillProject(
@@ -111,14 +106,12 @@ final case class MillProjectDescriptor(
   }
 
   private def customResourcesSettings(options: BuildOptions): MillProject =
-    MillProject(
-      resourcesDirs = options.classPathOptions.resourcesDir
-    )
+    MillProject(resourcesDirs = options.classPathOptions.resourcesDir)
 
   private def customJarsSettings(options: BuildOptions): MillProject = {
 
     val customCompileOnlyJarsDecls =
-      if (options.classPathOptions.extraCompileOnlyJars.isEmpty) Nil
+      if options.classPathOptions.extraCompileOnlyJars.isEmpty then Nil
       else {
         val jars =
           options.classPathOptions.extraCompileOnlyJars.map(p => s"""PathRef(os.Path("$p"))""")
@@ -126,7 +119,7 @@ final case class MillProjectDescriptor(
       }
 
     val customJarsDecls =
-      if (options.classPathOptions.extraClassPath.isEmpty) Nil
+      if options.classPathOptions.extraClassPath.isEmpty then Nil
       else {
         val jars = options.classPathOptions.extraClassPath.map(p => s"""PathRef(os.Path("$p"))""")
         Seq(
@@ -134,26 +127,24 @@ final case class MillProjectDescriptor(
         )
       }
 
-    MillProject(
-      extraDecls = customCompileOnlyJarsDecls ++ customJarsDecls
-    )
+    MillProject(extraDecls = customCompileOnlyJarsDecls ++ customJarsDecls)
   }
 
   private def testFrameworkSettings(options: BuildOptions): MillProject = {
-
     val testClassPath: Seq[Path] = options.artifacts(logger, Scope.Test) match {
       case Right(artifacts) => artifacts.classPath.map(_.toNIO)
-      case Left(exception) =>
+      case Left(exception)  =>
         logger.debug(exception.message)
         Seq.empty
     }
     val parentInspector = new AsmTestRunner.ParentInspector(testClassPath)
-    val frameworkName0 = options.testOptions.frameworkOpt.orElse {
-      frameworkName(testClassPath, parentInspector).toOption
+    val frameworkName0  = options.testOptions.frameworks.headOption.orElse {
+      frameworkNames(testClassPath, parentInspector, logger).toOption
+        .flatMap(_.headOption) // TODO: handle multiple frameworks here
     }
 
     val testFrameworkDecls = frameworkName0 match {
-      case None => Nil
+      case None     => Nil
       case Some(fw) =>
         Seq(s"""def testFramework = "$fw"""")
     }
@@ -187,9 +178,9 @@ final case class MillProjectDescriptor(
       scalaCompilerPlugins(optionsMain),
       dependencySettings(optionsMain, optionsTest),
       repositorySettings(optionsMain),
-      if (optionsMain.platform.value == Platform.JS) scalaJsSettings(optionsMain.scalaJsOptions)
+      if optionsMain.platform.value == Platform.JS then scalaJsSettings(optionsMain.scalaJsOptions)
       else MillProject(),
-      if (optionsMain.platform.value == Platform.Native)
+      if optionsMain.platform.value == Platform.Native then
         scalaNativeSettings(optionsMain.scalaNativeOptions)
       else MillProject(),
       customResourcesSettings(optionsMain),

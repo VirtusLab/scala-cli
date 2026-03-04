@@ -20,7 +20,7 @@ class RunDockerTests extends munit.FunSuite {
   test("run simple app in in docker") {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""val msg = "$message"
            |println(msg)
@@ -28,7 +28,7 @@ class RunDockerTests extends munit.FunSuite {
     )
     inputs.fromRoot { root =>
       val rawOutput = new ByteArrayOutputStream
-      val cmd = Seq[os.Shellable](
+      val cmd       = Seq[os.Shellable](
         // format: off
         "docker", "run", "--rm", termOpt, "-v", s"$root:/data", "-w", "/data", ciOpt,
         imageName, fileName
@@ -50,7 +50,7 @@ class RunDockerTests extends munit.FunSuite {
   if (!imageName.contains(slimScalaCliImage)) {
     test("package simple app with native in docker") {
       val fileName = "simple.sc"
-      val inputs = TestInputs(
+      val inputs   = TestInputs(
         os.rel / fileName -> """println("Hello")"""
       )
       inputs.fromRoot { root =>
@@ -66,7 +66,7 @@ class RunDockerTests extends munit.FunSuite {
     }
     test("package simple app with graalVM in docker") {
       val fileName = "simple.sc"
-      val inputs = TestInputs(
+      val inputs   = TestInputs(
         os.rel / fileName -> """println("Hello")"""
       )
       inputs.fromRoot { root =>

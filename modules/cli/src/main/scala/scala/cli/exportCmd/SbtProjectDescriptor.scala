@@ -5,12 +5,10 @@ import coursier.maven.MavenRepository
 import coursier.parse.RepositoryParser
 import dependency.{AnyDependency, NoAttributes, ScalaNameAttributes}
 
-import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
 import scala.build.errors.BuildException
-import scala.build.internal.Constants
-import scala.build.internal.Runner.frameworkName
+import scala.build.internal.Runner.frameworkNames
 import scala.build.options.{
   BuildOptions,
   Platform,
@@ -73,7 +71,7 @@ final case class SbtProjectDescriptor(
       "scalaJSUseMainModuleInitializer := true"
     )
 
-    val linkerConfigCalls = ProjectDescriptor.scalaJsLinkerCalls(options, logger)
+    val linkerConfigCalls    = ProjectDescriptor.scalaJsLinkerCalls(options, logger)
     val linkerConfigSettings =
       if (linkerConfigCalls.isEmpty) Nil
       else
@@ -222,7 +220,7 @@ final case class SbtProjectDescriptor(
   private def mainClassSettings(options: BuildOptions): SbtProject = {
 
     val mainClassOptions = options.mainClass match {
-      case None => Nil
+      case None            => Nil
       case Some(mainClass) =>
         Seq(s"""Compile / mainClass := Some("$mainClass")""")
     }
@@ -255,18 +253,19 @@ final case class SbtProjectDescriptor(
 
     val testClassPath: Seq[Path] = options.artifacts(logger, Scope.Test) match {
       case Right(artifacts) => artifacts.classPath.map(_.toNIO)
-      case Left(exception) =>
+      case Left(exception)  =>
         logger.debug(exception.message)
         Seq.empty
     }
 
     val parentInspector = new AsmTestRunner.ParentInspector(testClassPath)
-    val frameworkName0 = options.testOptions.frameworkOpt.orElse {
-      frameworkName(testClassPath, parentInspector).toOption
+    val frameworkName0  = options.testOptions.frameworks.headOption.orElse {
+      frameworkNames(testClassPath, parentInspector, logger).toOption
+        .flatMap(_.headOption) // TODO: handle multiple frameworks here
     }
 
     val testFrameworkSettings = frameworkName0 match {
-      case None => Nil
+      case None     => Nil
       case Some(fw) =>
         Seq(s"""testFrameworks += new TestFramework("$fw")""")
     }
@@ -288,7 +287,7 @@ final case class SbtProjectDescriptor(
           // TODO dep.exclude
           // TODO dep.attributes
           val (sep, suffixOpt) = dep.nameAttributes match {
-            case NoAttributes => ("%", None)
+            case NoAttributes           => ("%", None)
             case s: ScalaNameAttributes =>
               val suffixOpt0 =
                 if (s.fullCrossVersion.getOrElse(false)) Some(".cross(CrossVersion.full)")
@@ -313,7 +312,7 @@ final case class SbtProjectDescriptor(
       else if (allDepStrings.lengthCompare(1) == 0)
         Seq(s"""libraryDependencies += ${allDepStrings.head}""")
       else {
-        val count = allDepStrings.length
+        val count   = allDepStrings.length
         val allDeps = allDepStrings
           .iterator
           .zipWithIndex

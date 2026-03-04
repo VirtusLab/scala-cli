@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.Ops.*
 import scala.build.errors.CompositeBuildException
-import scala.build.options.{BuildOptions, InternalOptions, Scope, SuppressWarningOptions}
+import scala.build.options.{BuildOptions, InternalOptions, Scope}
 import scala.build.{CrossSources, Directories, Logger, Sources}
 import scala.cli.ScalaCli
 import scala.cli.commands.github.{LibSodiumJni, SecretCreate, SecretList}
@@ -16,7 +16,7 @@ import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.{HelpCommandGroup, SharedOptions}
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.internal.Constants
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
@@ -89,12 +89,13 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
         ),
         logger,
         cliBuildOptions.suppressWarningOptions,
-        cliBuildOptions.internal.exclude
+        cliBuildOptions.internal.exclude,
+        download = cliBuildOptions.downloader
       ).orExit(logger)
 
       val crossSourcesSharedOptions = crossSources.sharedOptions(cliBuildOptions)
       val scopedSources = crossSources.scopedSources(crossSourcesSharedOptions).orExit(logger)
-      val sources =
+      val sources       =
         scopedSources.sources(Scope.Main, crossSourcesSharedOptions, inputs.workspace, logger)
           .orExit(logger)
 
@@ -106,8 +107,8 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     val backend = ScalaCliSttpBackend.httpURLConnection(logger)
 
     val checksInputOpt = options.checks.map(_.trim).filter(_.nonEmpty).filter(_ != "all")
-    val checkKinds = checksInputOpt match {
-      case None => OptionCheck.Kind.all.toSet
+    val checkKinds     = checksInputOpt match {
+      case None              => OptionCheck.Kind.all.toSet
       case Some(checksInput) =>
         OptionCheck.Kind.parseList(checksInput)
           .left.map { unrecognized =>
@@ -262,14 +263,17 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
         def extraDirectivesLines(extraDirectives: Seq[(String, String)]) =
           extraDirectives.map {
-            case (k, v) =>
-              s"""//> using $k "$v"""" + nl
+            case (k, v) if v.exists(_.isWhitespace) => s"""//> using $k "$v"""" + nl
+            case (k, v)                             => s"""//> using $k $v""" + nl
           }.mkString
 
         val extraLines = missingFieldsWithDefaultsAndValues.map {
           case (_, default, None) => extraDirectivesLines(default.extraDirectives)
-          case (check, default, Some(value)) =>
+          case (check, default, Some(value)) if value.exists(_.isWhitespace) =>
             s"""//> using ${check.directivePath} "$value"""" + nl +
+              extraDirectivesLines(default.extraDirectives)
+          case (check, default, Some(value)) =>
+            s"""//> using ${check.directivePath} $value""" + nl +
               extraDirectivesLines(default.extraDirectives)
         }
 
@@ -290,7 +294,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
       }
 
       if (options.checkWorkflow.getOrElse(options.publishParams.setupCi)) {
-        val workflowDir = inputs.workspace / ".github" / "workflows"
+        val workflowDir  = inputs.workspace / ".github" / "workflows"
         val hasWorkflows = os.isDir(workflowDir) &&
           os.list(workflowDir)
             .filter(_.last.endsWith(".yml")) // FIXME Accept more extensions?
@@ -300,7 +304,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
             s"Found some workflow files under ${CommandUtils.printablePath(workflowDir)}, not writing Scala CLI workflow"
           )
         else {
-          val dest = workflowDir / "ci.yml"
+          val dest    = workflowDir / "ci.yml"
           val content = {
             val resourcePath = Constants.defaultFilesResourcePath + "/workflows/default.yml"
             val cl           = Thread.currentThread().getContextClassLoader

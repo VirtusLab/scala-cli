@@ -5,12 +5,12 @@ sealed abstract class RunMode extends Product with Serializable
 object RunMode {
 
   sealed abstract class HasRepl extends RunMode
-  sealed abstract class Spark extends RunMode {
+  sealed abstract class Spark   extends RunMode {
     def submitArgs: Seq[String]
     def withSubmitArgs(args: Seq[String]): Spark
   }
 
-  case object Default extends HasRepl
+  case object Default                                   extends HasRepl
   final case class SparkSubmit(submitArgs: Seq[String]) extends Spark {
     def withSubmitArgs(args: Seq[String]): SparkSubmit =
       copy(submitArgs = args)

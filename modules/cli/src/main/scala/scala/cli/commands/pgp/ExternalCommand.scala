@@ -8,7 +8,7 @@ abstract class ExternalCommand extends Command[DummyOptions] with CommandHelpers
   override def hasHelp                 = false
   override def stopAtFirstUnrecognized = true
 
-  def actualHelp: Help[_]
+  def actualHelp: Help[?]
 
   def run(options: DummyOptions, args: RemainingArgs): Unit = {
     val unparsedPart =

@@ -11,13 +11,13 @@ object ScalaParse {
   // from https://github.com/com-lihaoyi/Ammonite/blob/0f0d597f04e62e86cbf76d3bd16deb6965331470/amm/compiler/src/main/scala/ammonite/compiler/Parsers.scala#L162-L176
   def formatFastparseError(fileName: String, rawCode: String, f: Parsed.Failure) = {
 
-    val newLine      = System.lineSeparator()
-    val lineColIndex = f.extra.input.prettyIndex(f.index)
-    val expected     = f.trace().failure.label
+    val newLine        = System.lineSeparator()
+    val lineColIndex   = f.extra.input.prettyIndex(f.index)
+    val expected       = f.trace().failure.label
     val locationString = {
       val (first, last) = rawCode.splitAt(f.index)
       val lastSnippet   = last.split(newLine).headOption.getOrElse("")
-      val firstSnippet = first.reverse
+      val firstSnippet  = first.reverse
         .split(newLine.reverse)
         .lift(0).getOrElse("").reverse
       firstSnippet + lastSnippet + newLine + (" " * firstSnippet.length) + "^"

@@ -1,12 +1,14 @@
 #!/usr/bin/env -S scala-cli shebang
 //> using scala 3
 //> using toolkit default
-//> using dep org.scala-lang.modules::scala-xml:2.3.0
+//> using dep org.scala-lang.modules::scala-xml:2.4.0
+//> using options -Werror -Wunused:all
 // adapted from https://github.com/vic/mill-test-junit-report
 import java.io.File
 import scala.collection.mutable.ArrayBuffer
 import scala.annotation.tailrec
 import java.nio.file.Paths
+import scala.util.Try
 
 case class Trace(declaringClass: String, methodName: String, fileName: String, lineNumber: Int) {
   override def toString: String = s"$declaringClass.$methodName($fileName:$lineNumber)"
@@ -24,7 +26,7 @@ case class Test(
 @tailrec
 def findFiles(paths: Seq[os.Path], result: Seq[os.Path] = Nil): Seq[os.Path] =
   paths match
-    case Nil => result
+    case Nil          => result
     case head :: tail =>
       val newFiles =
         if head.segments.contains("test") && head.last.endsWith(".dest") && os.isDir(head) then
@@ -52,7 +54,7 @@ if new File(args(2)).exists() then {
 }
 val into = args(2).toNormalisedPath
 
-val pathArg = args(3)
+val pathArg           = args(3)
 val rootPath: os.Path =
   if Paths.get(pathArg).isAbsolute then os.Path(pathArg) else os.Path(pathArg, os.pwd)
 if !os.isDir(rootPath) then {
@@ -97,11 +99,14 @@ val suites = tests.groupBy(_.fullyQualifiedName).map { case (suit, tests) =>
     } time={test.duration.toString}>
         {
       test.failure.map { failure =>
+        val maybeTrace = Try(failure.trace(1)).toOption
+        val fileName   = maybeTrace.map(_.fileName).getOrElse("unknown")
+        val lineNumber = maybeTrace.map(_.lineNumber).getOrElse(-1)
         <failure message={failure.message} type="ERROR">
             ERROR: {failure.message}
             Category: {failure.name}
-            File: {failure.trace(1).fileName}
-            Line: {failure.trace(1).lineNumber}
+            File: {fileName}
+            Line: {lineNumber}
           </failure>
       }.orNull
     }

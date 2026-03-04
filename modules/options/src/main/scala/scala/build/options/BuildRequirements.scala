@@ -15,14 +15,14 @@ final case class BuildRequirements(
   }
   def withPlatform(pf: Platform): Either[String, BuildRequirements] =
     BuildRequirements.PlatformRequirement.merge(platform) match {
-      case None => Right(this)
+      case None            => Right(this)
       case Some(platform0) =>
         if (platform0.valid(pf)) Right(copy(platform = Nil))
         else Left(platform0.failedMessage)
     }
   def isEmpty: Boolean =
     this == BuildRequirements()
-  def nonEmpty: Boolean = !isEmpty
+  def nonEmpty: Boolean                                   = !isEmpty
   def orElse(other: BuildRequirements): BuildRequirements =
     BuildRequirements.monoid.orElse(this, other)
 }

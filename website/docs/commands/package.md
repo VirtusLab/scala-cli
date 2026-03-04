@@ -163,18 +163,13 @@ The docker image name parameter `--docker-image-repository` is mandatory.
 
 The following command generates a `hello-docker` image with the `latest` tag:
 
-```bash
+```bash ignore
 scala-cli --power package --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 
-<!-- Expected:
-Started building docker image with your application
-docker run hello-docker:latest
--->
-
 <ChainedSnippets>
 
-```bash
+```bash ignore
 docker run hello-docker
 ```
 
@@ -184,20 +179,12 @@ Hello from Docker
 
 </ChainedSnippets>
 
-<!-- Expected:
-Hello from Docker
--->
-
 You can also create Docker images for Scala.js and Scala Native applications.
 The following command shows how to create a Docker image (`--docker`) for a Scala.js (`--js`) application:
 
-```bash
+```bash ignore
 scala-cli --power package --js --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
-<!-- Expected:
-Started building docker image with your application
-docker run hello-docker:latest
--->
 
 Packaging Scala Native applications to a Docker image is only supported on Linux.
 
@@ -286,8 +273,7 @@ Note that Scala CLI automatically downloads and unpacks a GraalVM distribution
 using the [JVM management capabilities of coursier](https://get-coursier.io/docs/cli-java).
 
 Several options can be passed to adjust the GraalVM version used by Scala CLI:
-- `--graalvm-jvm-id` accepts a JVM identifier, such as `graalvm-java17:22.0.0` or `graalvm-java17:21` (short versions accepted).
-- `--graalvm-java-version` makes it possible to specify only a target Java version, such as `11` or `17` (note that only specific Java versions may be supported by the default GraalVM version that Scala CLI picks)
+- `--graalvm-jvm-id` accepts a JVM identifier, such as `graalvm-community:17.0.9` or `graalvm-java25:25.0.1`.
 - `--graalvm-version` makes it possible to specify only a GraalVM version, such as `22.0.0` or `21` (short versions accepted)
 - `--graalvm-args` makes it possible to pass args to GraalVM version
 
@@ -462,7 +448,7 @@ scala-cli --power package --msi --output path.msi Hello.scala
 
 ## Using directives
 
-Instead of passing the `package` options directly from bash, it is possible to pass some of them with [using directives](../guides/introduction/using-directives).
+Instead of passing the `package` options directly from bash, it is possible to pass some of them with [using directives](../guides/introduction/using-directives.md).
 
 ### packaging.packageType
 
@@ -524,4 +510,13 @@ The using directive allows you to define the image repository.
 
 ```scala compile power
 //> using packaging.dockerImageRepository scala-cli
+```
+
+#### packaging.dockerCmd
+
+The using directive allows you to override the executable used to run the application in docker, 
+otherwise it defaults to `sh` for the JVM platform and `node` for the JS platform
+
+```scala compile power
+//> using packaging.dockerCmd node
 ```

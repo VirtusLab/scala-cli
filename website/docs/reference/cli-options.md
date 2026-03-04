@@ -300,7 +300,7 @@ Aliases: `-r`, `--repo`
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 ### `--compiler-plugin`
 
@@ -384,19 +384,23 @@ Project name to be used on Mill build file
 
 ### `--sbt-version`
 
-Version of SBT to be used for the export
+Version of SBT to be used for the export (1.12.4 by default)
+
+### `--mill-version`
+
+Version of Mill to be used for the export (1.1.2 by default)
 
 ### `--mvn-version`
 
-Version of Maven Compiler Plugin to be used for the export
+Version of Maven Compiler Plugin to be used for the export (3.8.1 by default)
 
 ### `--mvn-scala-version`
 
-Version of Maven Scala Plugin to be used for the export
+Version of Maven Scala Plugin to be used for the export (4.9.1 by default)
 
 ### `--mvn-exec-plugin-version`
 
-Version of Maven Exec Plugin to be used for the export
+Version of Maven Exec Plugin to be used for the export (3.3.0 by default)
 
 ### `--mvn-app-artifact-id`
 
@@ -413,6 +417,30 @@ Version to be used for the maven export
 ### `--output`
 
 Aliases: `-o`
+
+## Fix options
+
+Available in commands:
+
+[`fix`](./commands.md#fix)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--check`
+
+Fail the invocation if rewrites are needed
+
+### `--enable-scalafix`
+
+Aliases: `--scalafix`
+
+Enable running Scalafix rules (enabled by default)
+
+### `--enable-built-in-rules`
+
+Aliases: `--built-in`, `--built-in-rules`, `--enable-built-in`
+
+Enable running built-in rules (enabled by default)
 
 ## Fmt options
 
@@ -477,7 +505,7 @@ Pass a global dialect for scalafmt. This overrides whatever value is configured 
 
 Aliases: `--fmt-version`
 
-Pass scalafmt version before running it (3.8.3 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.10.7 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -492,6 +520,12 @@ Available in commands:
 Aliases: `--suppress-experimental-warning`
 
 Suppress warnings about using experimental features
+
+### `--suppress-deprecated-feature-warning`
+
+Aliases: `--suppress-deprecated-feature-warnings`, `--suppress-deprecated-warning`, `--suppress-deprecated-warnings`
+
+Suppress warnings about using deprecated features
 
 ## Help options
 
@@ -639,7 +673,7 @@ Set the Java home directory
 
 Aliases: `-j`
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 ### `--jvm-index`
 
@@ -707,7 +741,7 @@ Specify which main class to run
 
 ### `--main-class-ls`
 
-Aliases: `--list-main-class`, `--list-main-classes`, `--main-class-list`
+Aliases: `--list-main-class`, `--list-main-classes`, `--list-main-method`, `--list-main-methods`, `--main-class-list`, `--main-method-list`, `--main-method-ls`
 
 List main classes available in the current context
 
@@ -749,9 +783,9 @@ Overwrite the destination file, if it exists
 
 Generate a library JAR rather than an executable JAR
 
-### `--src`
+### `--with-sources`
 
-Aliases: `--jar-sources`, [deprecated] `--source`, `--sources`, `--sources-jar`
+Aliases: `--jar-sources`, [deprecated] `--sources`, `--sources-jar`, [deprecated] `--src`
 
 Generate a source JAR rather than an executable JAR
 
@@ -942,13 +976,17 @@ The image tag; the default tag is `latest`
 
 Allows to override the executable used to run the application in docker, otherwise it defaults to sh for the JVM platform and node for the JS platform
 
+### `--docker-extra-directories`
+
+Extra directories to be added to the docker image
+
 ### `--graalvm-java-version`
 
 GraalVM Java major version to use to build GraalVM native images (17 by default)
 
 ### `--graalvm-version`
 
-GraalVM version to use to build GraalVM native images (22.3.1 by default)
+GraalVM version to use to build GraalVM native images (17.0.9 by default)
 
 ### `--graalvm-jvm-id`
 
@@ -1005,7 +1043,9 @@ Scala version suffix to append to the module name, like "_2.13" or "_3"
 [Internal]
 Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
 
-### `--sources`
+### `--with-sources`
+
+Aliases: `--jar-sources`, [deprecated] `--sources`, `--sources-jar`
 
 Whether to build and publish source JARs
 
@@ -1214,7 +1254,7 @@ Use Ammonite (instead of the default Scala REPL)
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version (3.0.0-2-6342755f by default)
+Set the Ammonite version (3.0.8 by default)
 
 ### `--ammonite-arg`
 
@@ -1289,7 +1329,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 ### `--js-version`
 
-The Scala.js version (1.17.0 by default).
+The Scala.js version (1.20.2 by default).
 
 ### `--js-mode`
 
@@ -1362,7 +1402,7 @@ Path to the Scala.js linker
 ### `--js-cli-version`
 
 [Internal]
-Scala.js CLI version to use for linking (1.17.0.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 ### `--js-cli-java-arg`
 
@@ -1388,19 +1428,19 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 ### `--native-version`
 
-Set the Scala Native version (0.5.6 by default).
+Set the Scala Native version (0.5.10 by default).
 
 ### `--native-mode`
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 ### `--native-lto`
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 ### `--native-gc`
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 ### `--native-clang`
 
@@ -1422,6 +1462,14 @@ Use default linking settings
 ### `--native-compile`
 
 List of compile options
+
+### `--native-c-compile`
+
+List of compile options (C files only)
+
+### `--native-cpp-compile`
+
+List of compile options (C++ files only)
 
 ### `--native-compile-defaults`
 
@@ -1478,11 +1526,31 @@ Aliases: `--verbose-scalac`
 
 Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
 
+## Scalafix options
+
+Available in commands:
+
+[`fix`](./commands.md#fix)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--scalafix-conf`
+
+Custom path to the scalafix configuration file.
+
+### `--scalafix-arg`
+
+Pass extra argument(s) to scalafix.
+
+### `--scalafix-rules`
+
+Run scalafix rule(s) explicitly, overriding the configuration file default.
+
 ## Scope options
 
 Available in commands:
 
-[`compile`](./commands.md#compile), [`repl` , `console`](./commands.md#repl)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1537,7 +1605,7 @@ Available in commands:
 
 Aliases: `-S`, `--scala`
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.8.2 by default)
 
 ### `--scala-binary-version`
 
@@ -1611,7 +1679,7 @@ Copy compilation results to output directory using either relative or absolute p
 
 Aliases: `--toolkit`
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 ### `--exclude`
 
@@ -1710,9 +1778,12 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-### `--test-framework`
+### `--test-frameworks`
 
-Name of the test framework's runner class to use while running tests
+Aliases: `--test-framework`
+
+Names of the test frameworks' runner classes to use while running tests.
+Skips framework lookup and only runs passed frameworks.
 
 ### `--require-tests`
 
@@ -2137,7 +2208,7 @@ Available in commands:
 ### `--signing-cli-version`
 
 [Internal]
-scala-cli-signing version when running externally (0.2.4 by default)
+scala-cli-signing version when running externally (0.2.13 by default)
 
 ### `--signing-cli-java-arg`
 

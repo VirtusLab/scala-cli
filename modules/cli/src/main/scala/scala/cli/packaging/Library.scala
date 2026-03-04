@@ -3,30 +3,28 @@ package scala.cli.packaging
 import java.io.OutputStream
 import java.nio.file.StandardOpenOption.{CREATE, TRUNCATE_EXISTING}
 import java.nio.file.attribute.FileTime
-import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
+import java.util.jar.{Attributes as JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.Build
 import scala.cli.internal.CachedBinary
 
 object Library {
-
   def libraryJar(
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     mainClassOpt: Option[String] = None
   ): os.Path = {
-
-    val workDir = build.inputs.libraryJarWorkDir
-    val dest    = workDir / "library.jar"
+    val workDir   = builds.head.inputs.libraryJarWorkDir
+    val dest      = workDir / "library.jar"
     val cacheData =
       CachedBinary.getCacheData(
-        build,
+        builds,
         mainClassOpt.toList.flatMap(c => List("--main-class", c)),
         dest,
         workDir
       )
 
-    if (cacheData.changed) {
+    if cacheData.changed then {
       var outputStream: OutputStream = null
       try {
         outputStream = os.write.outputStream(
@@ -36,13 +34,12 @@ object Library {
         )
         writeLibraryJarTo(
           outputStream,
-          build,
+          builds,
           mainClassOpt
         )
       }
       finally
-        if (outputStream != null)
-          outputStream.close()
+        if outputStream != null then outputStream.close()
 
       CachedBinary.updateProjectAndOutputSha(dest, workDir, cacheData.projectSha)
     }
@@ -52,7 +49,7 @@ object Library {
 
   def writeLibraryJarTo(
     outputStream: OutputStream,
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     mainClassOpt: Option[String] = None,
     hasActualManifest: Boolean = true,
     contentDirOverride: Option[os.Path] = None
@@ -61,16 +58,21 @@ object Library {
     val manifest = new java.util.jar.Manifest
     manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
 
-    if (hasActualManifest)
-      for (mainClass <- mainClassOpt.orElse(build.sources.defaultMainClass) if mainClass.nonEmpty)
-        manifest.getMainAttributes.put(JarAttributes.Name.MAIN_CLASS, mainClass)
+    if hasActualManifest then
+      for {
+        mainClass <- mainClassOpt.orElse(builds.flatMap(_.sources.defaultMainClass).headOption)
+        if mainClass.nonEmpty
+      } manifest.getMainAttributes.put(JarAttributes.Name.MAIN_CLASS, mainClass)
 
     var zos: ZipOutputStream = null
-    val contentDir           = contentDirOverride.getOrElse(build.output)
+    val contentDirs          = builds.map(b => contentDirOverride.getOrElse(b.output)).distinct
 
     try {
       zos = new JarOutputStream(outputStream, manifest)
-      for (path <- os.walk(contentDir) if os.isFile(path)) {
+      for {
+        contentDir <- contentDirs
+        path       <- os.walk(contentDir) if os.isFile(path)
+      } {
         val name         = path.relativeTo(contentDir).toString
         val lastModified = os.mtime(path)
         val ent          = new ZipEntry(name)
@@ -88,10 +90,10 @@ object Library {
   }
 
   extension (build: Build.Successful) {
-    def fullClassPathAsJar: Seq[os.Path] =
-      Seq(libraryJar(build)) ++ build.dependencyClassPath
+    private def fullClassPathAsJar: Seq[os.Path] =
+      Seq(libraryJar(Seq(build))) ++ build.dependencyClassPath
     def fullClassPathMaybeAsJar(asJar: Boolean): Seq[os.Path] =
-      if (asJar) fullClassPathAsJar else build.fullClassPath
+      if asJar then fullClassPathAsJar else build.fullClassPath
   }
 
 }

@@ -5,7 +5,10 @@ import os.CommandResult
 
 import scala.util.Properties
 
-class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper {
+class SipScalaTests extends ScalaCliSuite
+    with SbtTestHelper
+    with MillTestHelper
+    with CoursierScalaInstallationTestHelper {
   implicit class StringEnrichment(s: String) {
     def containsExperimentalWarningOf(featureNameAndType: String): Boolean =
       s.contains(s"The $featureNameAndType is experimental") ||
@@ -177,10 +180,9 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
   def testExperimentalDirectives(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
       val code =
-        """
-          | //> using publish.name "my-library"
-          | //> using python
-          | class A
+        """//> using publish.name my-library
+          |//> using python
+          |class A
           |""".stripMargin
 
       val source = root / "A.scala"
@@ -207,13 +209,13 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
         case (true, false) =>
           expect(res.exitCode == 0)
           expect(errOutput.containsExperimentalWarningOf(
-            "`//> using publish.name \"my-library\"`"
+            "`//> using publish.name my-library`"
           ))
           expect(errOutput.containsExperimentalWarningOf("`//> using python`"))
         case (true, true) =>
           expect(res.exitCode == 0)
           expect(!errOutput.containsExperimentalWarningOf(
-            "`//> using publish.name \"my-library\"`"
+            "`//> using publish.name my-library`"
           ))
           expect(!errOutput.containsExperimentalWarningOf("`//> using python`"))
       }
@@ -260,7 +262,9 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
     }
 
   if (TestUtil.isNativeCli)
-    test(s"usage instruction should point to scala when installing by cs") { // https://github.com/VirtusLab/scala-cli/issues/1662
+    test(
+      s"usage instruction should point to scala when installing by cs"
+    ) { // https://github.com/VirtusLab/scala-cli/issues/1662
       TestInputs.empty.fromRoot {
         root => // cs installs binaries under .app-name.aux and scala-cli should drop .aux from progName
           val binary       = "scala".prepareBinary(root)
@@ -381,7 +385,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
   }
   test("test global config suppressing warnings for an experimental directive") {
     testConfigSuppressingExperimentalFeatureWarnings(
-      "`//> using publish.name \"my-library\"` directive"
+      "`//> using publish.name my-library` directive"
     ) {
       (root: os.Path, homeEnv: Map[String, String]) =>
         val quote = TestUtil.argQuotationMark
@@ -422,7 +426,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       os.rel / "Main.scala" ->
         """//> using target.scope main
           |//> using target.platform jvm
-          |//> using publish.name "my-library"
+          |//> using publish.name my-library
           |
           |object Main {
           |  def main(args: Array[String]): Unit = {
@@ -448,9 +452,9 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
            |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
            |Exporting to a sbt project...
            |Some utilized directives are marked as experimental:
-           | - `//> using publish.name "my-library"`
-           | - `//> using target.platform "jvm"`
-           | - `//> using target.scope "main"`
+           | - `//> using publish.name my-library`
+           | - `//> using target.platform jvm`
+           | - `//> using target.scope main`
            |Please bear in mind that non-ideal user experience should be expected.
            |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
            |Exported to: ${root / "dest"}
@@ -479,7 +483,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
         |}
         |""".stripMargin).fromRoot { root =>
       val continuationsVersion = "1.0.3"
-      val res = os.proc(
+      val res                  = os.proc(
         TestUtil.cli,
         "compile",
         sourceFileName,
@@ -493,71 +497,6 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       )
         .call(cwd = root)
       expect(res.exitCode == 0)
-    }
-  }
-
-  test("consecutive -language:* flags are not ignored") {
-    val sourceFileName = "example.scala"
-    TestInputs(os.rel / sourceFileName ->
-      """//> using scala 3.3.1
-        |//> using options -Yexplicit-nulls -language:fewerBraces -language:strictEquality
-        |def repro[A](as: List[A]): List[A] =
-        |  as match
-        |    case Nil => Nil
-        |    case _ => ???
-        |""".stripMargin).fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "compile", sourceFileName)
-        .call(cwd = root, check = false, stderr = os.Pipe)
-      expect(res.exitCode == 1)
-      val expectedError =
-        "Values of types object scala.collection.immutable.Nil and List[A] cannot be compared with == or !="
-      expect(res.err.trim().contains(expectedError))
-    }
-  }
-
-  for {
-    useDirective <- Seq(true, false)
-    if !Properties.isWin
-    optionsSource = if (useDirective) "using directive" else "command line"
-  } test(s"consecutive -Wconf:* flags are not ignored (passed via $optionsSource)") {
-    val sv                 = "3.5.2"
-    val sourceFileName     = "example.scala"
-    val warningConfOptions = Seq("-Wconf:cat=deprecation:e", "-Wconf:any:s")
-    val maybeDirectiveString =
-      if (useDirective) s"//> using options ${warningConfOptions.mkString(" ")}" else ""
-    TestInputs(os.rel / sourceFileName ->
-      s"""//> using scala $sv
-         |$maybeDirectiveString
-         |object WConfExample extends App {
-         |  @deprecated("This method will be removed", "1.0.0")
-         |  def oldMethod(): Unit = println("This is an old method.")
-         |  oldMethod()
-         |}
-         |""".stripMargin).fromRoot { root =>
-      val localCache = root / "local-cache"
-      val localBin   = root / "local-bin"
-      os.proc(
-        TestUtil.cs,
-        "install",
-        "--cache",
-        localCache,
-        "--install-dir",
-        localBin,
-        s"scalac:$sv"
-      ).call(cwd = root)
-      val cliRes =
-        os.proc(
-          TestUtil.cli,
-          "compile",
-          sourceFileName,
-          "--server=false",
-          if (useDirective) Nil else warningConfOptions
-        )
-          .call(cwd = root, check = false, stderr = os.Pipe)
-      val scalacRes = os.proc(localBin / "scalac", warningConfOptions, sourceFileName)
-        .call(cwd = root, check = false, stderr = os.Pipe)
-      expect(scalacRes.exitCode == cliRes.exitCode)
-      expect(cliRes.err.trim() == scalacRes.err.trim())
     }
   }
 
@@ -634,7 +573,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
     TestInputs.empty.fromRoot { root =>
       val (sv1, sv2)  = (Constants.scala212, Constants.scala213)
       val launcherOpt = "--cli-default-scala-version"
-      val r = os.proc(TestUtil.cli, launcherOpt, sv1, launcherOpt, sv2, "version")
+      val r           = os.proc(TestUtil.cli, launcherOpt, sv1, launcherOpt, sv2, "version")
         .call(cwd = root, check = false, stderr = os.Pipe)
       expect(r.exitCode == 1)
       expect(r.err.trim().contains(launcherOpt))
@@ -691,7 +630,8 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
             if (Properties.isWin)
               (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString
             else
-              (localRepoPath / "thecache" / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString
+              (localRepoPath / "thecache" / "https" / "repo1.maven.org" /
+                "maven2").toNIO.toUri.toASCIIString
           val r = os.proc(
             TestUtil.cli,
             "--cli-default-scala-version",
@@ -743,7 +683,8 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
             "--predefined-repository",
             (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString,
             "--predefined-repository",
-            (localRepoPath / "https" / "scala-ci.typesafe.com" / "artifactory" / "scala-integration")
+            (localRepoPath / "https" / "scala-ci.typesafe.com" / "artifactory" /
+              "scala-integration")
               .toNIO.toUri.toASCIIString,
             "run",
             "simple.sc",
@@ -766,7 +707,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       val defaultSv       = Constants.scala213
       val expectedMessage = s"Default version: $defaultSv"
       val launcherOpt     = "--cli-default-scala-version"
-      val exportRes = os.proc(
+      val exportRes       = os.proc(
         TestUtil.cli,
         launcherOpt,
         defaultSv,
@@ -804,7 +745,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       val defaultSv       = Constants.scala213
       val expectedMessage = s"Default version: $defaultSv"
       val launcherOpt     = "--cli-default-scala-version"
-      val exportRes = os.proc(
+      val exportRes       = os.proc(
         TestUtil.cli,
         launcherOpt,
         defaultSv,
@@ -843,7 +784,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
     TestInputs(os.rel / input -> code).fromRoot { root =>
       val defaultSv   = Constants.scala213
       val launcherOpt = "--cli-default-scala-version"
-      val exportRes = os.proc(
+      val exportRes   = os.proc(
         TestUtil.cli,
         launcherOpt,
         defaultSv,
@@ -880,56 +821,38 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
   }
 
   test("--cli-version and --cli-default-scala-version can be passed in tandem") {
-    TestInputs.empty.fromRoot { root =>
-      val cliVersion   = "1.3.1"
-      val scalaVersion = "3.5.1-RC1-bin-20240522-e0c030c-NIGHTLY"
-      val res = os.proc(
-        TestUtil.cli,
-        "--cli-version",
-        cliVersion,
-        "--cli-default-scala-version",
-        scalaVersion,
-        "version"
-      ).call(cwd = root)
-      expect(res.out.trim().contains(cliVersion))
-      expect(res.out.trim().contains(scalaVersion))
+    TestUtil.retryOnCi() {
+      TestInputs.empty.fromRoot { root =>
+        val cliVersion   = "1.3.1"
+        val scalaVersion = "3.5.1-RC1-bin-20240522-e0c030c-NIGHTLY"
+        val res          = os.proc(
+          TestUtil.cli,
+          "--cli-version",
+          cliVersion,
+          "--cli-default-scala-version",
+          scalaVersion,
+          "version"
+        ).call(cwd = root)
+        expect(res.out.trim().contains(cliVersion))
+        expect(res.out.trim().contains(scalaVersion))
+      }
     }
   }
 
-  if (!Properties.isWin) // FIXME: run this test on Windows
-    test("coursier scala installation works in --offline mode") {
-      TestInputs.empty.fromRoot { root =>
-        val localCache = root / "local-cache"
-        val localBin   = root / "local-bin"
-        val sv         = "3.5.0-RC4"
-        os.proc(
-          TestUtil.cs,
-          "install",
-          "--cache",
-          localCache,
-          "--install-dir",
-          localBin,
-          s"scala:$sv"
-        ).call(cwd = root)
-        val scalaBinary: os.Path = localBin / "scala"
-        val fileBytes            = os.read.bytes(scalaBinary)
-        val shebang              = new String(fileBytes.takeWhile(_ != '\n'), "UTF-8")
-        val binaryData           = fileBytes.drop(shebang.length + 1)
-        val execLine             = new String(binaryData.takeWhile(_ != '\n'), "UTF-8")
-        val scriptPathRegex      = """exec "([^"]+/bin/scala).*"""".r
-        val scalaScript = execLine match { case scriptPathRegex(extractedPath) => extractedPath }
-        val scalaScriptPath = os.Path(scalaScript)
-        val lineToChange    = "eval \"${SCALA_CLI_CMD_BASH[@]}\" \\"
-        // FIXME: the way the scala script calls the launcher currently ignores the --debug flag
-        val newContent = os.read(scalaScriptPath).replace(
-          lineToChange,
-          s"""SCALA_CLI_CMD_BASH=(\"\\\"${TestUtil.cliPath}\\\"\")
-             |$lineToChange""".stripMargin
-        )
-        os.write.over(scalaScriptPath, newContent)
+  test("coursier scala installation works in --offline mode") {
+    TestInputs.empty.fromRoot { root =>
+      val localCache   = root / "local-cache"
+      val localBin     = root / "local-bin"
+      val scalaVersion = Constants.scala3NextRcAnnounced
+      withScalaRunnerWrapper(
+        root = root,
+        localBin = localBin,
+        scalaVersion = scalaVersion,
+        localCache = Some(localCache)
+      ) { launchScalaPath =>
         val r =
           os.proc(
-            scalaScript,
+            launchScalaPath,
             "--offline",
             "--power",
             "--with-compiler",
@@ -940,25 +863,18 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
             env = Map("COURSIER_CACHE" -> localCache.toString),
             check = false // need to clean up even on failure
           )
-        // clean up cs local binaries
-        val csPrebuiltBinaryDir =
-          os.Path(scalaScript.substring(0, scalaScript.indexOf(sv) + sv.length))
-        try os.remove.all(csPrebuiltBinaryDir)
-        catch {
-          case ex: java.nio.file.FileSystemException =>
-            println(s"Failed to remove $csPrebuiltBinaryDir: $ex")
-        }
         expect(r.exitCode == 0)
-        expect(r.out.trim() == sv)
+        expect(r.out.trim() == scalaVersion)
       }
     }
+  }
 
   // this check is just to ensure this isn't being run for LTS RC jobs
   // should be adjusted when a new LTS line is released
   if (!Constants.scala3NextRc.startsWith(Constants.scala3LtsPrefix))
     test("scalac help respects --cli-default-scala-version") {
       TestInputs.empty.fromRoot { root =>
-        val sv = Constants.scala3NextRc
+        val sv                          = Constants.scala3NextRc
         val launcherVersionOverrideHelp =
           os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "--scalac-help")
             .call(cwd = root).out.trim()

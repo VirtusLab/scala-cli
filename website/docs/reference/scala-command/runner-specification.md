@@ -92,7 +92,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -134,7 +134,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.17.0 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -178,19 +178,19 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.6 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -199,6 +199,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -216,7 +224,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -238,7 +246,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -300,6 +308,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -317,12 +331,6 @@ Aliases: `--revolver`
 Print the resulting class path
 
 Aliases: `-p` ,`--print-classpath`
-
-**--test**
-
-Include test scope
-
-Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 
@@ -361,6 +369,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -418,7 +432,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.17.0.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -628,7 +642,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -675,6 +689,7 @@ Available keys:
   - repositories.credentials                       Repository credentials, syntax: repositoryAddress value:user value:password [realm]
   - repositories.default                           Default repository, syntax: https://first-repo.company.com https://second-repo.company.com
   - repositories.mirrors                           Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven
+  - suppress-warning.deprecated-features           Globally suppresses warnings about deprecated features.
   - suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
   - suppress-warning.experimental-features         Globally suppresses warnings about experimental features.
   - suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.
@@ -707,7 +722,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -787,6 +802,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 **--ttl**
 
 Specify a TTL for changing dependencies, such as snapshots
@@ -862,7 +883,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -916,7 +937,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.17.0 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -960,19 +981,19 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.6 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -981,6 +1002,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -998,7 +1027,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -1020,7 +1049,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -1082,6 +1111,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 **--default-scaladoc-options**
 
 Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
@@ -1125,6 +1160,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -1182,7 +1223,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.17.0.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -1392,7 +1433,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -1451,7 +1492,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -1499,7 +1540,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.17.0 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -1543,19 +1584,19 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.6 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -1564,6 +1605,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -1581,7 +1630,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -1603,7 +1652,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -1665,6 +1714,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -1676,12 +1731,6 @@ Aliases: `-w`
 Run the application in the background, automatically kill the process and restart if sources have been changed
 
 Aliases: `--revolver`
-
-**--test**
-
-Include test scope
-
-Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 
@@ -1720,6 +1769,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -1777,7 +1832,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.17.0.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -1987,7 +2042,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -2060,7 +2115,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -2114,7 +2169,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.17.0 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -2158,19 +2213,19 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.6 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -2179,6 +2234,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -2196,7 +2259,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -2218,7 +2281,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -2280,6 +2343,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -2296,7 +2365,7 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
+Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes` ,`--list-main-methods` ,`--list-main-method` ,`--main-method-list` ,`--main-method-ls`
 
 **--command**
 
@@ -2339,6 +2408,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -2396,7 +2471,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.17.0.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -2606,7 +2681,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -2688,7 +2763,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -2742,7 +2817,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.17.0 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -2786,19 +2861,19 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.6 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -2807,6 +2882,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -2824,7 +2907,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -2846,7 +2929,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -2908,6 +2991,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -2924,7 +3013,7 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
+Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes` ,`--list-main-methods` ,`--list-main-method` ,`--main-method-list` ,`--main-method-ls`
 
 **--command**
 
@@ -2967,6 +3056,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -3024,7 +3119,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.17.0.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -3234,7 +3329,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -3304,7 +3399,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -3346,7 +3441,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.17.0 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -3390,19 +3485,19 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.6 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -3411,6 +3506,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -3428,7 +3531,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -3450,7 +3553,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -3512,6 +3615,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 **--check**
 
 Check if sources are well formatted
@@ -3553,6 +3662,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -3610,7 +3725,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.17.0.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -3820,7 +3935,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -3882,7 +3997,7 @@ Aliases: `--dialect`
 
 **--scalafmt-version**
 
-Pass scalafmt version before running it (3.8.3 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.10.7 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 Aliases: `--fmt-version`
 
@@ -3899,7 +4014,7 @@ Test sources are compiled separately (after the 'main' sources), and may use dif
 A source file is treated as a test source if:
   - the file name ends with `.test.scala`
   - the file comes from a directory that is provided as input, and the relative path from that file to its original directory contains a `test` directory
-  - it contains the `//> using target.scope "test"` directive (Experimental)
+  - it contains the `//> using target.scope test` directive (Experimental)
 
 Specific test configurations can be specified with both command line options and using directives defined in sources.
 Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
@@ -3939,7 +4054,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -3987,7 +4102,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.17.0 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -4031,19 +4146,19 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.6 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -4052,6 +4167,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -4069,7 +4192,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -4091,7 +4214,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -4153,6 +4276,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -4165,9 +4294,12 @@ Run the application in the background, automatically kill the process and restar
 
 Aliases: `--revolver`
 
-**--test-framework**
+**--test-frameworks**
 
-Name of the test framework's runner class to use while running tests
+Names of the test frameworks' runner classes to use while running tests.
+Skips framework lookup and only runs passed frameworks.
+
+Aliases: `--test-framework`
 
 **--require-tests**
 
@@ -4214,6 +4346,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -4271,7 +4409,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.17.0.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -4481,7 +4619,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -4572,6 +4710,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 **--cli-version**
 
 Show plain Scala CLI version only
@@ -4637,7 +4781,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -4679,7 +4823,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.17.0 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -4723,19 +4867,19 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.6 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -4744,6 +4888,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -4761,7 +4913,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -4783,7 +4935,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -4845,6 +4997,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 <details><summary>
 
 ### Implementantation specific options
@@ -4882,6 +5040,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -4939,7 +5103,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.17.0.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -5149,7 +5313,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -5244,6 +5408,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 **--bsp-directory**
 
 Custom BSP configuration location
@@ -5329,6 +5499,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 </details>
 
 ---
@@ -5401,6 +5577,12 @@ Use progress bars
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--format**
 
@@ -5499,6 +5681,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 **--scala-cli-binary-path**
 
 
@@ -5570,7 +5758,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -5612,7 +5800,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.17.0 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -5656,19 +5844,19 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.6 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -5677,6 +5865,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -5694,7 +5890,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -5716,7 +5912,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -5778,6 +5974,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 <details><summary>
 
 ### Implementantation specific options
@@ -5815,6 +6017,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -5872,7 +6080,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.17.0.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -6082,7 +6290,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -6176,6 +6384,12 @@ Use progress bars
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--bloop-bsp-protocol**
 
@@ -6364,6 +6578,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 </details>
 
 ---
@@ -6436,6 +6656,12 @@ Use progress bars
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--binary-name**
 

@@ -43,7 +43,7 @@ class PgpTests extends ScalaCliSuite {
   def pgpKeyIdTest(useSigningJvmLauncher: Boolean) =
     pubKeyInputs.fromRoot { root =>
       val signingCliArgs = if (useSigningJvmLauncher) Seq("--force-jvm-signing-cli") else Seq.empty
-      val res =
+      val res            =
         os.proc(TestUtil.cli, "--power", "pgp", "key-id", signingCliArgs, "key.pub").call(cwd =
           root
         )
@@ -65,9 +65,9 @@ class PgpTests extends ScalaCliSuite {
     // random key that I pushed to the default ker server at some point
     val res = os.proc(TestUtil.cli, "--power", "pgp", "pull", "0x914d298df8fa4d20")
       .call()
-    val output = res.out.trim()
-    val start  = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
-    val end    = "-----END PGP PUBLIC KEY BLOCK-----"
+    val output        = res.out.trim()
+    val start         = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
+    val end           = "-----END PGP PUBLIC KEY BLOCK-----"
     val expectedLines = Seq(
       "xsBNBGKDqDYDCACw/2akQ1h6NHmtcEKQThq7OMdExyJ4WUKWdr+iV3BFx/AZICRd",
       "t1QH/06YazNGeuLzc62Mamnr8kA0AakGJxPZ83rGXcdahBRd9Enga32pcEks6YPI",

@@ -1,12 +1,12 @@
 package scala.build.bsp
 
-import ch.epfl.scala.bsp4j.{BuildClient, LogMessageParams, MessageType}
 import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.{BuildClient, LogMessageParams, MessageType}
 
 import java.io.{File, PrintWriter, StringWriter}
 import java.net.URI
-import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util as ju
+import java.util.concurrent.{CompletableFuture, TimeUnit}
 
 import scala.build.Logger
 import scala.build.internal.Constants
@@ -26,19 +26,19 @@ class BspServer(
     with JavaBuildServerForwardStubs
     with JvmBuildServerForwardStubs
     with HasGeneratedSourcesImpl {
-  private var client: Option[BuildClient] = None
+  private val client: Option[BuildClient] = None
 
   @volatile private var intelliJ: Boolean = presetIntelliJ
   def isIntelliJ: Boolean                 = intelliJ
 
   def clientOpt: Option[BuildClient] = client
 
-  @volatile private var extraDependencySources: Seq[os.Path] = Nil
+  @volatile private var extraDependencySources: Seq[os.Path]    = Nil
   def setExtraDependencySources(sourceJars: Seq[os.Path]): Unit = {
     extraDependencySources = sourceJars
   }
 
-  @volatile private var extraTestDependencySources: Seq[os.Path] = Nil
+  @volatile private var extraTestDependencySources: Seq[os.Path]    = Nil
   def setExtraTestDependencySources(sourceJars: Seq[os.Path]): Unit = {
     extraTestDependencySources = sourceJars
   }
@@ -173,6 +173,7 @@ class BspServer(
     capabilities.setJvmTestEnvironmentProvider(true)
     capabilities.setCanReload(true)
     capabilities.setDependencyModulesProvider(true)
+    capabilities.setOutputPathsProvider(true)
     capabilities
   }
 
@@ -207,7 +208,7 @@ class BspServer(
     super.buildTargetDependencySources(check(params)).thenApply { res =>
       val updatedItems = res.getItems.asScala.map {
         case item if validTarget(item.getTarget) =>
-          val isTestTarget = item.getTarget.getUri.endsWith("-test")
+          val isTestTarget                = item.getTarget.getUri.endsWith("-test")
           val validExtraDependencySources =
             if isTestTarget then (extraDependencySources ++ extraTestDependencySources).distinct
             else extraDependencySources
@@ -253,7 +254,7 @@ class BspServer(
   override def buildTargetOutputPaths(params: b.OutputPathsParams)
     : CompletableFuture[b.OutputPathsResult] = {
     check(params)
-    val targets = params.getTargets.asScala.filter(validTarget)
+    val targets         = params.getTargets.asScala.filter(validTarget)
     val outputPathsItem =
       targets
         .map(buildTargetId => (buildTargetId, targetWorkspaceDirOpt(buildTargetId)))
@@ -279,7 +280,8 @@ class BspServer(
         capabilities.setCanDebug(true)
         val baseDirectory = new File(new URI(target.getBaseDirectory))
         if (
-          isIntelliJ && baseDirectory.getName == Constants.workspaceDirName && baseDirectory
+          isIntelliJ && baseDirectory.getName == Constants.workspaceDirName &&
+          baseDirectory
             .getParentFile != null
         ) {
           val newBaseDirectory = baseDirectory.getParentFile.toPath.toUri.toASCIIString
@@ -316,7 +318,7 @@ class BspServer(
     CompletableFuture.completedFuture(res)
   }
 
-  private val shutdownPromise = Promise[Unit]()
+  private val shutdownPromise                             = Promise[Unit]()
   override def buildShutdown(): CompletableFuture[Object] = {
     if (!shutdownPromise.isCompleted)
       shutdownPromise.success(())

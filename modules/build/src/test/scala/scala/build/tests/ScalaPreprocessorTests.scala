@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.input.{ScalaCliInvokeData, Script, SourceScalaFile}
 import scala.build.options.SuppressWarningOptions
-import scala.build.preprocessing.{PreprocessedSource, ScalaPreprocessor, ScriptPreprocessor}
+import scala.build.preprocessing.{ScalaPreprocessor, ScriptPreprocessor}
 
 class ScalaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
 
@@ -22,14 +22,14 @@ class ScalaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
          |  }
          |}""".stripMargin).fromRoot { root =>
       val scalaFile = SourceScalaFile(root, os.sub / "Main.scala")
-      val Some(Right(result)) = ScalaPreprocessor.preprocess(
+      val result    = ScalaPreprocessor.preprocess(
         scalaFile,
         logger = TestLogger(),
         allowRestrictedFeatures = true,
         suppressWarningOptions = SuppressWarningOptions()
-      )(using ScalaCliInvokeData.dummy)
+      )(using ScalaCliInvokeData.dummy).get.getOrElse(sys.error("preprocessing failed"))
       expect(result.nonEmpty)
-      val Some(directivesPositions) = result.head.directivesPositions
+      val directivesPositions = result.head.directivesPositions.get
       expect(directivesPositions.startPos == 0 -> 0)
       expect(directivesPositions.endPos == 3   -> lastUsingLine.length)
     }
@@ -44,24 +44,24 @@ class ScalaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
          |println(os.pwd)
          |""".stripMargin).fromRoot { root =>
       val scalaFile = Script(root, os.sub / "sample.sc", None)
-      val Some(Right(result)) = ScriptPreprocessor.preprocess(
+      val result    = ScriptPreprocessor.preprocess(
         scalaFile,
         logger = TestLogger(),
         allowRestrictedFeatures = false,
         suppressWarningOptions = SuppressWarningOptions()
-      )(using ScalaCliInvokeData.dummy)
+      )(using ScalaCliInvokeData.dummy).get.getOrElse(sys.error("preprocessing failed"))
       expect(result.nonEmpty)
-      val Some(directivesPositions) = result.head.directivesPositions
+      val directivesPositions = result.head.directivesPositions.get
       expect(directivesPositions.startPos == 0 -> 0)
       expect(directivesPositions.endPos == 2   -> depLine.length)
     }
   }
 
-  val lastUsingLines = Seq(
-    "//> using dep \"com.lihaoyi::os-lib::0.8.1\" \"com.lihaoyi::os-lib::0.8.1\"" -> "string literal",
-    "//> using scala 2.13.7"       -> "numerical string",
-    "//> using objectWrapper true" -> "boolean literal",
-    "//> using objectWrapper"      -> "empty value literal"
+  val lastUsingLines: Seq[(String, String)] = Seq(
+    "//> using dep com.lihaoyi::os-lib::0.8.1 com.lihaoyi::os-lib::0.8.1" -> "string literal",
+    "//> using scala 2.13.7"                                              -> "numerical string",
+    "//> using objectWrapper true"                                        -> "boolean literal",
+    "//> using objectWrapper"                                             -> "empty value literal"
   )
 
   for ((lastUsingLine, typeName) <- lastUsingLines) do
@@ -77,14 +77,14 @@ class ScalaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
            |  }
            |}""".stripMargin).fromRoot { root =>
         val scalaFile = SourceScalaFile(root, os.sub / "Main.scala")
-        val Some(Right(result)) = ScalaPreprocessor.preprocess(
+        val result    = ScalaPreprocessor.preprocess(
           scalaFile,
           logger = TestLogger(),
           allowRestrictedFeatures = true,
           suppressWarningOptions = SuppressWarningOptions()
-        )(using ScalaCliInvokeData.dummy)
+        )(using ScalaCliInvokeData.dummy).get.getOrElse(sys.error("preprocessing failed"))
         expect(result.nonEmpty)
-        val Some(directivesPositions) = result.head.directivesPositions
+        val directivesPositions = result.head.directivesPositions.get
         expect(directivesPositions.startPos == 0 -> 0)
         expect(directivesPositions.endPos == 3   -> lastUsingLine.length)
       }

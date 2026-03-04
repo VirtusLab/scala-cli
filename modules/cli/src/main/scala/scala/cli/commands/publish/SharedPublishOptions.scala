@@ -2,6 +2,7 @@ package scala.cli.commands.publish
 
 import caseapp.*
 
+import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.tags
 
@@ -30,9 +31,13 @@ final case class SharedPublishOptions(
 
   @Group(HelpGroup.Publishing.toString)
   @HelpMessage("Whether to build and publish source JARs")
+  @Name("sourcesJar")
+  @Name("jarSources")
+  @Name("sources")
+  @Tag(tags.deprecated("sources"))
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
-    sources: Option[Boolean] = None,
+    withSources: Option[Boolean] = None,
 
   @Group(HelpGroup.Publishing.toString)
   @HelpMessage("Whether to build and publish doc JARs")
@@ -81,8 +86,15 @@ final case class SharedPublishOptions(
   @HelpMessage("Proceed as if publishing, but do not upload / write artifacts to the remote repository")
   @Tag(tags.implementation)
     dummy: Boolean = false
-)
-// format: on
+){
+  // format: on
+
+  def docCompilerMakerOpt: Option[ScalaCompilerMaker] =
+    if (doc.contains(false)) // true by default
+      None
+    else
+      Some(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
+}
 
 object SharedPublishOptions {
   implicit lazy val parser: Parser[SharedPublishOptions] = Parser.derive

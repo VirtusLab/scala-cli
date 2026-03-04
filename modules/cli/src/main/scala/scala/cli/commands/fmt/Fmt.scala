@@ -4,10 +4,10 @@ import caseapp.*
 import caseapp.core.help.HelpFormat
 import dependency.*
 
-import scala.build.input.{Inputs, Script, SourceScalaFile}
+import scala.build.Logger
+import scala.build.input.{ProjectScalaFile, Script, SourceScalaFile}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
-import scala.build.options.BuildOptions
-import scala.build.{Logger, Sources}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.fmt.FmtUtil.*
@@ -42,16 +42,19 @@ object Fmt extends ScalaCommand[FmtOptions] {
   override def runCommand(options: FmtOptions, args: RemainingArgs, logger: Logger): Unit = {
     val buildOptions = buildOptionsOrExit(options)
 
+    if options.shared.scope.test.nonEmpty then
+      logger.message(
+        s"""$warnPrefix Including the test scope does not change the behaviour of this command. 
+           |$warnPrefix Test scope inputs are formatted, regardless.""".stripMargin
+      )
+
     // TODO If no input is given, just pass '.' to scalafmt?
     val (sourceFiles, workspace, _) =
-      if (args.all.isEmpty)
-        (Seq(os.pwd), os.pwd, None)
+      if args.all.isEmpty then (Seq(os.pwd), os.pwd, None)
       else {
         val i = options.shared.inputs(args.all).orExit(logger)
-        val s = i.sourceFiles().collect {
-          case sc: Script          => sc.path
-          case sc: SourceScalaFile => sc.path
-        }
+        type FormattableSourceFile = Script | SourceScalaFile | ProjectScalaFile
+        val s = i.sourceFiles().collect { case sc: FormattableSourceFile => sc.path }
         (s, i.workspace, Some(i))
       }
     CurrentParams.workspaceOpt = Some(workspace)
@@ -80,7 +83,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       }
       val scalaFmtConfPath = {
         val confFileName = ".scalafmt.conf"
-        val path =
+        val path         =
           if (options.saveScalafmtConf) pathMaybe.getOrElse(workspace / confFileName)
           else workspace / Constants.workspaceDirName / confFileName
         os.write.over(path, entry, createFolders = true)
@@ -92,7 +95,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
           Seq(launcher)
         case None =>
           val (url, changing) = options.binaryUrl(version)
-          val params = ExternalBinaryParams(
+          val params          = ExternalBinaryParams(
             url,
             changing,
             "scalafmt",

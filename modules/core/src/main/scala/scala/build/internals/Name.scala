@@ -88,7 +88,7 @@ object Name {
     if (s.isEmpty) "``"
     else if (s(0) == '`' && s.last == '`') s
     else {
-      val chunks = s.split("_", -1)
+      val chunks                 = s.split("_", -1)
       def validOperator(c: Char) =
         c.getType == Character.MATH_SYMBOL ||
         c.getType == Character.OTHER_SYMBOL ||

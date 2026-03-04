@@ -1,24 +1,12 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import os.SubProcess
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.{Duration, DurationInt}
+import scala.cli.integration.TestUtil.ProcOps
+import scala.concurrent.duration.DurationInt
 import scala.util.{Properties, Try}
 
-trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
-  implicit class ProcOps(proc: SubProcess) {
-    def printStderrUntilRerun(timeout: Duration)(implicit ec: ExecutionContext): Unit = {
-      def rerunWasTriggered(): Boolean = {
-        val stderrOutput = TestUtil.readLine(proc.stderr, ec, timeout)
-        println(stderrOutput)
-        stderrOutput.contains("re-run")
-      }
-      while (!rerunWasTriggered()) Thread.sleep(100L)
-    }
-  }
-
+trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
   // TODO make this pass reliably on Mac CI
   if (!Properties.isMac || !TestUtil.isCI) {
     val expectedMessage1 = "Hello"
@@ -43,7 +31,7 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
               code(expectedMessage2)
             )
           }, {
-            val inputPath = os.rel / "Main.java"
+            val inputPath             = os.rel / "Main.java"
             def code(message: String) = s"""public class Main {
                                            |  public static void main(String[] args) {
                                            |    System.out.println("$message");
@@ -55,7 +43,7 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
               code(expectedMessage2)
             )
           }, {
-            val inputPath = os.rel / "markdown.md"
+            val inputPath             = os.rel / "markdown.md"
             def code(message: String) =
               s"""# Some random docs with a Scala snippet
                  |```scala
@@ -88,6 +76,52 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
         }
       }
   }
+
+  for {
+    (platformDescription, platformOpts) <- Seq(
+      "JVM"    -> Nil,
+      "JS"     -> Seq("--js"),
+      "Native" -> Seq("--native")
+    )
+    // TODO make this pass reliably on Mac CI https://github.com/VirtusLab/scala-cli/issues/2517
+    if !Properties.isMac || !TestUtil.isCI
+  }
+    test(s"--watch --test ($platformDescription)") {
+      TestUtil.retryOnCi() {
+        val expectedMessage1 = "Hello from the test scope 1"
+        val expectedMessage2 = "Hello from the test scope 2"
+        val inputPath        = os.rel / "example.test.scala"
+
+        def code(expectedMessage: String) =
+          s"""object Main extends App { println("$expectedMessage") }"""
+
+        TestInputs(
+          inputPath -> code(expectedMessage1)
+        ).fromRoot { root =>
+          TestUtil.withProcessWatching(
+            proc =
+              os.proc(
+                TestUtil.cli,
+                "run",
+                inputPath.toString(),
+                "--watch",
+                "--test",
+                extraOptions,
+                platformOpts
+              )
+                .spawn(cwd = root, stderr = os.Pipe),
+            timeout = 300.seconds
+          ) { (proc, timeout, ec) =>
+            val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
+            expect(output1 == expectedMessage1)
+            proc.printStderrUntilRerun(timeout)(ec)
+            os.write.over(root / inputPath, code(expectedMessage2))
+            val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
+            expect(output2 == expectedMessage2)
+          }
+        }
+      }
+    }
 
   test("watch with interactive, with multiple main classes") {
     val fileName = "watch.scala"
@@ -173,11 +207,11 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
   if (!Properties.isMac || !TestUtil.isNativeCli || !TestUtil.isCI)
     // TODO make this pass reliably on Mac CI
     test("watch artifacts") {
-      val libSourcePath = os.rel / "lib" / "Messages.scala"
+      val libSourcePath            = os.rel / "lib" / "Messages.scala"
       def libSource(hello: String) =
-        s"""//> using publish.organization "test-org"
-           |//> using publish.name "messages"
-           |//> using publish.version "0.1.0"
+        s"""//> using publish.organization test-org
+           |//> using publish.name messages
+           |//> using publish.version 0.1.0
            |
            |package messages
            |
@@ -186,9 +220,9 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
            |}
            |""".stripMargin
       TestInputs(
-        libSourcePath -> libSource("Hello"),
+        libSourcePath                    -> libSource("Hello"),
         os.rel / "app" / "TestApp.scala" ->
-          """//> using lib "test-org::messages:0.1.0"
+          """//> using lib test-org::messages:0.1.0
             |
             |package testapp
             |
@@ -243,7 +277,7 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
     val fileName = "watch.scala"
     TestInputs(
       os.rel / fileName ->
-        """//> using lib "org.scalameta::munit::0.7.29"
+        """//> using dep org.scalameta::munit::0.7.29
           |
           |class MyTests extends munit.FunSuite {
           |    test("is true true") { assert(true) }
@@ -285,7 +319,9 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
       def code(includeDirective: Boolean) = {
         val directive = if (includeDirective) "//> using toolkit default" else ""
         s"""$directive
-           |object Smth extends App { println(os.pwd) }
+           |object Smth {
+           |  def main(args: Array[String]) = println(os.pwd)
+           |}
            |""".stripMargin
       }
 
@@ -311,31 +347,87 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
 
   for {
     useDirective <- Seq(false, true)
+    testScope    <- if (useDirective) Seq(false, true) else Seq(false)
+    scopeString = if (testScope) "test" else "main"
     // TODO make this pass reliably on Mac CI
     if !Properties.isMac || !TestUtil.isCI
-    directive       = if (useDirective) "//> using resourceDirs ./resources" else ""
+    directive =
+      useDirective -> testScope match {
+        case (true, true)  => "//> using test.resourceDirs ./resources"
+        case (true, false) => "//> using resourceDirs ./resources"
+        case _             => ""
+      }
     resourceOptions = if (useDirective) Nil else Seq("--resource-dirs", "./src/proj/resources")
+    scopeOptions    = if (testScope) Seq("--test") else Nil
     title           = if (useDirective) "directive" else "command line"
-  } test(s"resources via $title with --watch") {
+  } test(s"resources via $title with --watch ($scopeString)") {
     val expectedMessage1 = "Hello"
     val expectedMessage2 = "world"
     resourcesInputs(directive = directive, resourceContent = expectedMessage1)
       .fromRoot { root =>
         TestUtil.withProcessWatching(
-          os.proc(TestUtil.cli, "run", "src", "--watch", resourceOptions, extraOptions)
+          os.proc(
+            TestUtil.cli,
+            "run",
+            "src",
+            "--watch",
+            resourceOptions,
+            scopeOptions,
+            extraOptions
+          )
             .spawn(cwd = root, stderr = os.Pipe)
         ) { (proc, timeout, ec) =>
           val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output1 == expectedMessage1)
           proc.printStderrUntilRerun(timeout)(ec)
-          val Some((resourcePath, newResourceContent)) =
+          val (resourcePath, newResourceContent) =
             resourcesInputs(directive = directive, resourceContent = expectedMessage2)
               .files
               .find(_._1.toString.contains("resources"))
+              .get
           os.write.over(root / resourcePath, newResourceContent)
           val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output2 == expectedMessage2)
         }
       }
   }
+
+  def testRepeatedRerunsWithWatch(): Unit = {
+    def expectedMessage(number: Int) = s"Hello $number"
+
+    def content(number: Int) =
+      s"@main def main(): Unit = println(\"${expectedMessage(number)}\")"
+
+    TestUtil.retryOnCi() {
+      val inputPath = os.rel / "example.scala"
+      TestInputs(inputPath -> content(0)).fromRoot { root =>
+        os.proc(TestUtil.cli, "--power", "bloop", "exit").call(cwd = root)
+        TestUtil.withProcessWatching(
+          proc = os.proc(TestUtil.cli, ".", "--watch", extraOptions)
+            .spawn(cwd = root, stderr = os.Pipe)
+        ) { (proc, timeout, ec) =>
+          for (num <- 1 to 10) {
+            val output = TestUtil.readLine(proc.stdout, ec, timeout)
+            expect(output == expectedMessage(num - 1))
+            proc.printStderrUntilRerun(timeout)(ec)
+            Thread.sleep(200L)
+            if (num < 10) {
+              val newContent = content(num)
+              os.write.over(root / inputPath, newContent)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (actualScalaVersion.startsWith("3") && Properties.isMac && TestUtil.isCI)
+    // TODO make this pass reliably on Mac CI (seems to work fine locally)
+    test("watch mode doesnt hang on Bloop when rebuilding repeatedly".flaky) {
+      testRepeatedRerunsWithWatch()
+    }
+  else if (actualScalaVersion.startsWith("3"))
+    test("watch mode doesnt hang on Bloop when rebuilding repeatedly") {
+      testRepeatedRerunsWithWatch()
+    }
 }

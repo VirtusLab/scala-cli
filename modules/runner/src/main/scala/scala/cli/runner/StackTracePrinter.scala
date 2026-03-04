@@ -17,7 +17,7 @@ final case class StackTracePrinter(
 
   private def truncateStackTrace(ex: Throwable): Unit = {
     val noCallerStackTrace = callerClass match {
-      case None => ex.getStackTrace
+      case None         => ex.getStackTrace
       case Some(caller) =>
         ex.getStackTrace
           .takeWhile(_.getClassName.stripSuffix("$") != caller.stripSuffix("$"))
@@ -97,10 +97,8 @@ final case class StackTracePrinter(
 }
 
 object StackTracePrinter {
-
   lazy val coloredStackTraces: Boolean =
     sys.props.get("scala.colored-stack-traces")
       .map(_.toLowerCase(Locale.ROOT))
       .forall(_ == "true")
-
 }

@@ -1,6 +1,6 @@
 package scala.build.bsp
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 
 import java.util.concurrent.CompletableFuture
 
@@ -63,10 +63,12 @@ class BuildServerProxy(
   override def buildTargetScalacOptions(params: b.ScalacOptionsParams)
     : CompletableFuture[b.ScalacOptionsResult] = bspServer().buildTargetScalacOptions(params)
 
+  @deprecated
   override def buildTargetScalaTestClasses(params: b.ScalaTestClassesParams)
     : CompletableFuture[b.ScalaTestClassesResult] =
     bspServer().buildTargetScalaTestClasses(params)
 
+  @deprecated
   override def buildTargetScalaMainClasses(params: b.ScalaMainClassesParams)
     : CompletableFuture[b.ScalaMainClassesResult] =
     bspServer().buildTargetScalaMainClasses(params)
@@ -98,7 +100,7 @@ class BuildServerProxy(
     : CompletableFuture[b.JvmTestEnvironmentResult] =
     bspServer().buildTargetJvmTestEnvironment(params)
 
-  def targetIds: List[b.BuildTargetIdentifier] = bspServer().targetIds
+  def targetIds: List[b.BuildTargetIdentifier]                        = bspServer().targetIds
   def targetScopeIdOpt(scope: Scope): Option[b.BuildTargetIdentifier] =
     bspServer().targetScopeIdOpt(scope)
   def setGeneratedSources(scope: Scope, sources: Seq[GeneratedSource]): Unit =

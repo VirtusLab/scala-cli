@@ -2,11 +2,8 @@ package scala.cli.commands.publish
 
 // from coursier.internal.SharedRepositoryParser
 // delete when coursier.internal.SharedRepositoryParser.repositoryOpt is available for us
-
-import coursier.core.Repository
-import coursier.ivy.IvyRepository
+import coursier.Repositories
 import coursier.maven.MavenRepository
-import coursier.{LocalRepositories, Repositories}
 
 object RepositoryParser {
 

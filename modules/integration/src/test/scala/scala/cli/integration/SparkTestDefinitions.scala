@@ -11,8 +11,8 @@ object SparkTestDefinitions {
   def lightweightSparkDistribVersionOpt: Option[String] = Option("0.0.5")
 
   final class Spark(val sparkVersion: String, val scalaVersion: String) {
-    private def sbv         = scalaVersion.split('.').take(2).mkString(".")
-    private var toDeleteOpt = Option.empty[os.Path]
+    private def sbv             = scalaVersion.split('.').take(2).mkString(".")
+    private var toDeleteOpt     = Option.empty[os.Path]
     lazy val sparkHome: os.Path = {
       val url = lightweightSparkDistribVersionOpt match {
         case Some(lightweightSparkDistribVersion) =>
@@ -32,7 +32,7 @@ object SparkTestDefinitions {
         toDeleteOpt = Some(copy)
         System.err.println(s"Copying $home over to $copy")
         os.copy(home, copy)
-        val fetchJarsScript0 = copy / "fetch-jars.sh"
+        val fetchJarsScript0       = copy / "fetch-jars.sh"
         val cmd: Seq[os.Shellable] =
           if (Properties.isWin) Seq("""C:\Program Files\Git\bin\bash.EXE""", fetchJarsScript0)
           else Seq(fetchJarsScript0)
@@ -52,17 +52,17 @@ object SparkTestDefinitions {
 }
 
 abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
+  this: TestScalaVersion =>
   import SparkTestDefinitions.*
 
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
-  protected def defaultMaster = "local[4]"
-  protected def simpleJobInputs(spark: Spark) = TestInputs(
-    os.rel / "SparkJob.scala" ->
-      s"""//> using dep "org.apache.spark::spark-sql:${spark.sparkVersion}"
-         |//> using dep "com.chuusai::shapeless:2.3.10"
-         |//> using dep "com.lihaoyi::pprint:0.7.3"
+  protected def defaultMaster                                                     = "local[4]"
+  protected def simpleJobInputs(spark: Spark, withTestScope: Boolean): TestInputs = TestInputs(
+    os.rel / (if (withTestScope) "SparkJob.test.scala" else "SparkJob.scala") ->
+      s"""//> using dep org.apache.spark::spark-sql:${spark.sparkVersion}
+         |//> using dep com.chuusai::shapeless:2.3.10
+         |//> using dep com.lihaoyi::pprint:0.7.3
          |
          |import org.apache.spark._
          |import org.apache.spark.sql._
@@ -98,7 +98,7 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
         "https://github.com/steveloughran/winutils/releases/download/tag_2017-08-29-hadoop-2.8.1-native/hadoop-2.8.1.zip"
       )
         .call(cwd = hadoopHome)
-      val dataDir = os.Path(res.out.trim())
+      val dataDir     = os.Path(res.out.trim())
       val binStuffDir = os.list(dataDir)
         .filter(os.isDir(_))
         .filter(_.last.startsWith("hadoop-"))
@@ -128,62 +128,22 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
   def simpleRunStandaloneSparkJobTest(
     scalaVersion: String,
     sparkVersion: String,
-    needsWinUtils: Boolean = false
+    needsWinUtils: Boolean = false,
+    withTestScope: Boolean
   ): Unit =
-    simpleJobInputs(new Spark(sparkVersion, scalaVersion)).fromRoot { root =>
+    simpleJobInputs(new Spark(sparkVersion, scalaVersion), withTestScope).fromRoot { root =>
       val extraEnv =
         if (needsWinUtils) maybeHadoopHomeForWinutils(root / "hadoop-home")
         else Map.empty[String, String]
-      val res = os.proc(TestUtil.cli, "--power", "run", extraOptions, "--spark-standalone", ".")
-        .call(cwd = root, env = extraEnv)
-
-      val expectedOutput = "Result: 55"
-
-      val output = res.out.trim().linesIterator.toVector
-
-      expect(output.contains(expectedOutput))
-    }
-
-  test("run spark 3.3 standalone") {
-    simpleRunStandaloneSparkJobTest(actualScalaVersion, "3.3.0", needsWinUtils = true)
-  }
-
-  test("run spark spark-submit args") {
-    val jobName = "the test spark job"
-    val inputs = TestInputs(
-      os.rel / "SparkJob.scala" ->
-        s"""//> using dep "org.apache.spark::spark-sql:3.3.0"
-           |
-           |import org.apache.spark._
-           |import org.apache.spark.sql._
-           |
-           |object SparkJob {
-           |  def main(args: Array[String]): Unit = {
-           |    val spark = SparkSession.builder().getOrCreate()
-           |    val name = spark.conf.get("spark.app.name")
-           |    assert(name == "$jobName")
-           |    import spark.implicits._
-           |    def sc    = spark.sparkContext
-           |    val accum = sc.longAccumulator
-           |    sc.parallelize(1 to 10).foreach(x => accum.add(x))
-           |    println("Result: " + accum.value)
-           |  }
-           |}
-           |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val extraEnv = maybeHadoopHomeForWinutils(root / "hadoop-home")
-      val res = os.proc(
+      val scopeOptions = if (withTestScope) Seq("--test") else Nil
+      val res          = os.proc(
         TestUtil.cli,
         "--power",
         "run",
         extraOptions,
         "--spark-standalone",
         ".",
-        "--submit-arg",
-        "--name",
-        "--submit-arg",
-        jobName
+        scopeOptions
       )
         .call(cwd = root, env = extraEnv)
 
@@ -193,6 +153,66 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
 
       expect(output.contains(expectedOutput))
     }
+
+  for {
+    withTestScope <- Seq(true, false)
+    scopeDescription = if (withTestScope) "test scope" else "main scope"
+    if !Properties.isMac // TODO: https://github.com/VirtusLab/scala-cli/issues/3841
+  } test(s"run spark 3.3 standalone ($scopeDescription)") {
+    simpleRunStandaloneSparkJobTest(
+      actualScalaVersion,
+      "3.3.0",
+      needsWinUtils = true,
+      withTestScope = withTestScope
+    )
   }
+
+  if (!Properties.isMac) // TODO: https://github.com/VirtusLab/scala-cli/issues/3841
+    test("run spark spark-submit args") {
+      val jobName = "the test spark job"
+      val inputs  = TestInputs(
+        os.rel / "SparkJob.scala" ->
+          s"""//> using dep org.apache.spark::spark-sql:3.3.0
+             |
+             |import org.apache.spark._
+             |import org.apache.spark.sql._
+             |
+             |object SparkJob {
+             |  def main(args: Array[String]): Unit = {
+             |    val spark = SparkSession.builder().getOrCreate()
+             |    val name = spark.conf.get("spark.app.name")
+             |    assert(name == "$jobName")
+             |    import spark.implicits._
+             |    def sc    = spark.sparkContext
+             |    val accum = sc.longAccumulator
+             |    sc.parallelize(1 to 10).foreach(x => accum.add(x))
+             |    println("Result: " + accum.value)
+             |  }
+             |}
+             |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val extraEnv = maybeHadoopHomeForWinutils(root / "hadoop-home")
+        val res      = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          extraOptions,
+          "--spark-standalone",
+          ".",
+          "--submit-arg",
+          "--name",
+          "--submit-arg",
+          jobName
+        )
+          .call(cwd = root, env = extraEnv)
+
+        val expectedOutput = "Result: 55"
+
+        val output = res.out.trim().linesIterator.toVector
+
+        expect(output.contains(expectedOutput))
+      }
+    }
 
 }

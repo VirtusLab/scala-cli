@@ -5,8 +5,6 @@ import caseapp.core.help.HelpFormat
 
 import scala.build.Logger
 import scala.build.input.{ScalaCliInvokeData, SubCommand}
-import scala.build.options.BuildOptions
-import scala.cli.CurrentParams
 import scala.cli.commands.run.Run
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}

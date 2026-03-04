@@ -1,3 +1,0 @@
-package scala.cli.integration
-
-class ExportMillTests3NextRc extends ExportMillTestDefinitions with Test3NextRc

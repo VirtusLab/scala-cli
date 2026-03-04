@@ -5,7 +5,6 @@ import coursier.util.Task
 
 import java.nio.charset.StandardCharsets
 
-import scala.build.info.BuildInfo
 import scala.build.input.Inputs
 import scala.build.internal.{CodeWrapper, WrapperParams}
 import scala.build.options.{BuildOptions, Scope}
@@ -19,9 +18,16 @@ final case class Sources(
   buildOptions: BuildOptions
 ) {
 
+  def withExtraSources(other: Sources): Sources =
+    copy(
+      paths = paths ++ other.paths,
+      inMemory = inMemory ++ other.inMemory,
+      resourceDirs = resourceDirs ++ other.resourceDirs
+    )
+
   def withVirtualDir(inputs: Inputs, scope: Scope, options: BuildOptions): Sources = {
 
-    val srcRootPath = inputs.generatedSrcRoot(scope)
+    val srcRootPath   = inputs.generatedSrcRoot(scope)
     val resourceDirs0 = options.classPathOptions.resourcesVirtualDir.map { path =>
       srcRootPath / path
     }

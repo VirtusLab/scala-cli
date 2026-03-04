@@ -3,12 +3,12 @@ package scala.cli.commands.publish
 import org.eclipse.jgit.api.Git
 
 import scala.build.Logger
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
 object GitRepo {
 
-  private lazy val user = os.owner(os.home)
+  private lazy val user                       = os.owner(os.home)
   private def trusted(path: os.Path): Boolean =
     if (Properties.isWin)
       path.toIO.canWrite()

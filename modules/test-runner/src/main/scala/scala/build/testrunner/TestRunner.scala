@@ -1,6 +1,6 @@
 package scala.build.testrunner
 
-import sbt.testing._
+import sbt.testing.{Logger as SbtTestLogger, *}
 
 import java.io.{File, PrintStream}
 import java.nio.file.{Path, Paths}
@@ -9,15 +9,20 @@ import scala.collection.mutable
 
 object TestRunner {
 
-  def commonTestFrameworks = Seq(
+  def commonTestFrameworks: Seq[String] = Seq(
     "munit.Framework",
     "utest.runner.Framework",
-    "org.scalacheck.ScalaCheckFramework"
+    "org.scalacheck.ScalaCheckFramework",
+    "zio.test.sbt.ZTestFramework",
+    "org.scalatest.tools.Framework",
+    "com.novocode.junit.JUnitFramework",
+    "org.scalajs.junit.JUnitFramework",
+    "weaver.framework.CatsEffect"
   )
 
   def classPath(loader: ClassLoader): Seq[Path] = {
-    def helper(loader: ClassLoader): Stream[Path] =
-      if (loader == null) Stream.empty
+    def helper(loader: ClassLoader): LazyList[Path] =
+      if (loader == null) LazyList.empty
       else {
         val paths = loader match {
           case u: java.net.URLClassLoader =>
@@ -27,14 +32,14 @@ object TestRunner {
                   Seq(Paths.get(url.toURI).toAbsolutePath)
                 case _ => Nil // FIXME Warn about this
               }
-              .toStream
+              .to(LazyList)
           case cl if cl.getClass.getName == "jdk.internal.loader.ClassLoaders$AppClassLoader" =>
             // Required with JDK-11
             sys.props.getOrElse("java.class.path", "")
               .split(File.pathSeparator)
-              .toStream
+              .to(LazyList)
               .map(Paths.get(_))
-          case _ => Stream.empty // FIXME Warn about this
+          case _ => LazyList.empty // FIXME Warn about this
         }
         paths #::: helper(loader.getParent)
       }
@@ -49,21 +54,17 @@ object TestRunner {
 
     val events = mutable.Buffer.empty[Event]
 
-    val logger: Logger =
-      new Logger {
-        def error(msg: String)   = out.println(msg)
-        def warn(msg: String)    = out.println(msg)
-        def info(msg: String)    = out.println(msg)
-        def debug(msg: String)   = out.println(msg)
-        def trace(t: Throwable)  = t.printStackTrace(out)
-        def ansiCodesSupported() = true
+    val logger: SbtTestLogger =
+      new SbtTestLogger {
+        def error(msg: String): Unit      = out.println(msg)
+        def warn(msg: String): Unit       = out.println(msg)
+        def info(msg: String): Unit       = out.println(msg)
+        def debug(msg: String): Unit      = out.println(msg)
+        def trace(t: Throwable): Unit     = t.printStackTrace(out)
+        def ansiCodesSupported(): Boolean = true
       }
 
-    val eventHandler: EventHandler =
-      new EventHandler {
-        def handle(event: Event) =
-          events.append(event)
-      }
+    val eventHandler: EventHandler = (event: Event) => events.append(event)
 
     while (tasks.nonEmpty) {
       val task     = tasks.dequeue()

@@ -3,7 +3,7 @@ package scala.build.tests
 import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.Build
+import scala.build.input.ElementsUtils.*
 import scala.build.input.{
   Inputs,
   ScalaCliInvokeData,
@@ -11,18 +11,17 @@ import scala.build.input.{
   VirtualScalaFile,
   VirtualScript
 }
-import scala.build.input.ElementsUtils.*
-import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion}
-import scala.build.tests.util.BloopServer
-import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.build.internal.Constants
+import scala.build.options.{BuildOptions, InternalOptions}
+import scala.build.tests.util.BloopServer
+import scala.build.{Build, BuildThreads, Directories, LocalRepo}
 
 class InputsTests extends TestUtil.ScalaCliBuildSuite {
   val buildThreads: BuildThreads               = BuildThreads.create()
   val extraRepoTmpDir: os.Path                 = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories: Directories                 = Directories.under(extraRepoTmpDir)
   def bloopConfigOpt: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
-  val buildOptions: BuildOptions = BuildOptions(
+  val buildOptions: BuildOptions               = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger()),
       keepDiagnostics = true
@@ -49,11 +48,11 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
 
   test("project file") {
     val projectFileName = Constants.projectFileName
-    val testInputs = TestInputs(
+    val testInputs      = TestInputs(
       files = Seq(
         os.rel / "custom-dir" / projectFileName -> "",
         os.rel / projectFileName                -> s"//> using javaProp \"foo=bar\"".stripMargin,
-        os.rel / "foo.scala" ->
+        os.rel / "foo.scala"                    ->
           s"""object Foo {
              |  def main(args: Array[String]): Unit =
              |    println("Foo")
@@ -105,7 +104,7 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
 
   test("passing project file and its parent directory") {
     val projectFileName = Constants.projectFileName
-    val testInputs = TestInputs(
+    val testInputs      = TestInputs(
       files = Seq(
         os.rel / "foo.scala" ->
           s"""object Foo {
@@ -145,7 +144,7 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
       val elements = Inputs.validateArgs(
         urls,
         root,
-        download = url => Right(Array.emptyByteArray),
+        download = _ => Right(Array.emptyByteArray),
         stdinOpt = None,
         acceptFds = true,
         enableMarkdown = true
@@ -167,7 +166,8 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
               case (el: VirtualScript, url) =>
                 expect(el.source == url)
                 expect(el.content.isEmpty)
-                expect(el.wrapperPath.endsWith(os.rel / "test.sc"))
+                val path = os.rel / "test.sc"
+                expect(el.wrapperPath.endsWith(path))
               case (el: VirtualScalaFile, url) =>
                 expect(el.source == url)
                 expect(el.content.isEmpty)

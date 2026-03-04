@@ -26,7 +26,7 @@ final case class DocOptions(
   @HelpMessage(s"Control if $fullRunnerName should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.")
   @Tag(tags.should)
   @ExtraName("defaultScaladocOpts")
-    defaultScaladocOptions: Option[Boolean] = None,
+    defaultScaladocOptions: Option[Boolean] = None
 ) extends HasSharedOptions
 // format: on
 
@@ -36,7 +36,7 @@ object DocOptions {
   val cmdName                                  = "doc"
   private val helpHeader                       = "Generate Scaladoc documentation."
   val helpMessage: String                      = HelpMessages.shortHelpMessage(cmdName, helpHeader)
-  val detailedHelpMessage: String =
+  val detailedHelpMessage: String              =
     s"""Generate Scaladoc documentation.
        |
        |${HelpMessages.acceptedInputs}

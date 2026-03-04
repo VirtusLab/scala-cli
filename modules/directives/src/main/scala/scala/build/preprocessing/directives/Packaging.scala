@@ -4,25 +4,36 @@ import dependency.parser.ModuleParser
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
+import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   MalformedInputError,
-  ModuleFormatError
+  ModuleFormatError,
+  WrongDirectoryPathError
 }
-import scala.build.options._
+import scala.build.options.*
 import scala.build.options.packaging.{DockerOptions, NativeImageOptions}
-import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
+import scala.util.Try
 
 @DirectiveGroupName("Packaging")
 @DirectivePrefix("packaging.")
 @DirectiveExamples("//> using packaging.packageType assembly")
 @DirectiveExamples("//> using packaging.output foo")
 @DirectiveExamples("//> using packaging.provided org.apache.spark::spark-sql")
-@DirectiveExamples("//> using packaging.dockerFrom openjdk:11")
 @DirectiveExamples("//> using packaging.graalvmArgs --no-fallback")
+@DirectiveExamples("//> using packaging.dockerFrom openjdk:11")
+@DirectiveExamples("//> using packaging.dockerImageTag 1.0.0")
+@DirectiveExamples("//> using packaging.dockerImageRegistry virtuslab")
+@DirectiveExamples("//> using packaging.dockerImageRepository scala-cli")
+@DirectiveExamples("//> using packaging.dockerCmd sh")
+@DirectiveExamples("//> using packaging.dockerCmd node")
+@DirectiveExamples(
+  "//> using packaging.dockerExtraDirectories path/to/directory1 path/to/directory2"
+)
+@DirectiveExamples("//> using packaging.dockerExtraDirectory path/to/directory")
 @DirectiveUsage(
   """using packaging.packageType [package type]
     |using packaging.output [destination path]
@@ -32,16 +43,34 @@ import scala.cli.commands.SpecificationLevel
     |using packaging.dockerImageTag [image tag]
     |using packaging.dockerImageRegistry [image registry]
     |using packaging.dockerImageRepository [image repository]
+    |using packaging.dockerCmd [docker command]
+    |using packaging.dockerExtraDirectories [directories]
     |""".stripMargin,
   """`//> using packaging.packageType` _package-type_
     |
     |`//> using packaging.output` _destination-path_
     |
+    |`//> using packaging.provided` _module_
+    |
+    |`//> using packaging.graalvmArgs` _args_
+    |
+    |`//> using packaging.dockerFrom` _base-docker-image_
+    |
+    |`//> using packaging.dockerImageTag` _image-tag_
+    |
+    |`//> using packaging.dockerImageRegistry` _image-registry_
+    |
+    |`//> using packaging.dockerImageRepository` _image-repository_
+    |
+    |`//> using packaging.dockerCmd` _docker-command_
+    |
+    |`//> using packaging.dockerExtraDirectories` _directories_
+    |`//> using packaging.dockerExtraDirectory` _directory_
+    |
     |""".stripMargin
 )
 @DirectiveDescription("Set parameters for packaging")
 @DirectiveLevel(SpecificationLevel.RESTRICTED)
-// format: off
 final case class Packaging(
   packageType: Option[Positioned[String]] = None,
   output: Option[String] = None,
@@ -51,9 +80,11 @@ final case class Packaging(
   dockerImageTag: Option[String] = None,
   dockerImageRegistry: Option[String] = None,
   dockerImageRepository: Option[String] = None,
-  dockerCmd: Option[String] = None
+  dockerCmd: Option[String] = None,
+  @DirectiveName("dockerExtraDirectory")
+  dockerExtraDirectories: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
+    DirectiveValueParser.WithScopePath.empty(Nil)
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] = either {
     val maybePackageTypeOpt = packageType
       .map { input =>
@@ -71,7 +102,7 @@ final case class Packaging(
       .map { path =>
         try Right(os.Path(path, os.pwd)) // !!!
         catch {
-          case e: IllegalArgumentException =>
+          case _: IllegalArgumentException =>
             Left(???)
         }
       }
@@ -92,6 +123,23 @@ final case class Packaging(
         .left.map(CompositeBuildException(_))
     }
 
+    val cwd              = dockerExtraDirectories.scopePath
+    val extraDirectories = value {
+      dockerExtraDirectories
+        .value
+        .map { posPathStr =>
+          val eitherRootPathOrBuildException =
+            Directive.osRoot(cwd, posPathStr.positions.headOption)
+          eitherRootPathOrBuildException.flatMap { root =>
+            Try(os.Path(posPathStr.value, root))
+              .toEither
+              .left.map(new WrongDirectoryPathError(_))
+          }
+        }
+        .sequence
+        .left.map(CompositeBuildException(_))
+    }
+
     BuildOptions(
       internal = InternalOptions(
         keepResolution = provided0.nonEmpty || packageTypeOpt.contains(PackageType.Spark)
@@ -106,7 +154,8 @@ final case class Packaging(
             imageRegistry = dockerImageRegistry,
             imageRepository = dockerImageRepository,
             imageTag = dockerImageTag,
-            cmd = dockerCmd
+            cmd = dockerCmd,
+            extraDirectories = extraDirectories
           ),
           nativeImageOptions = NativeImageOptions(
             graalvmArgs = graalvmArgs

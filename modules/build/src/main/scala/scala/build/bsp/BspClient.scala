@@ -1,17 +1,16 @@
 package scala.build.bsp
 
-import ch.epfl.scala.bsp4j.{ScalaAction, ScalaDiagnostic, ScalaTextEdit, ScalaWorkspaceEdit}
 import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.{ScalaAction, ScalaDiagnostic, ScalaTextEdit, ScalaWorkspaceEdit}
 import com.google.gson.{Gson, JsonElement}
 
 import java.lang.Boolean as JBoolean
 import java.net.URI
 import java.nio.file.Paths
-import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.build.Position.File
-import scala.build.bsp.protocol.TextEdit
-import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
+import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic}
 import scala.build.internal.util.WarningMessages
 import scala.build.postprocessing.LineConversion.scalaLineToScLine
 import scala.build.{BloopBuildClient, GeneratedSource, Logger}
@@ -80,7 +79,7 @@ class BspClient(
           .asJava
 
     val updatedTextDoc = new b.TextDocumentIdentifier(updatedUri)
-    val updatedParams = new b.PublishDiagnosticsParams(
+    val updatedParams  = new b.PublishDiagnosticsParams(
       updatedTextDoc,
       params.getBuildTarget,
       updatedDiagnostics,
@@ -123,7 +122,7 @@ class BspClient(
     new ConcurrentHashMap[(os.Path, b.BuildTargetIdentifier), JBoolean]
 
   def resetDiagnostics(path: os.Path, targetId: b.BuildTargetIdentifier): Unit = {
-    val id = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
+    val id     = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
     val params = new b.PublishDiagnosticsParams(
       id,
       targetId,
@@ -140,7 +139,7 @@ class BspClient(
     } {
       val removedValue = buildExceptionDiagnosticsDocs.remove(key)
       if (removedValue != null) {
-        val id = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
+        val id     = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
         val params = new b.PublishDiagnosticsParams(
           id,
           targetId,
@@ -174,7 +173,7 @@ class BspClient(
         } {
           val removedValue = buildExceptionDiagnosticsDocs.remove(key)
           if (removedValue != null) {
-            val id = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
+            val id     = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
             val params = new b.PublishDiagnosticsParams(
               id,
               targetId,
@@ -199,8 +198,7 @@ class BspClient(
       }
         .groupBy(_.positions.headOption match
           case Some(File(Right(path), _, _, _)) => Some(path)
-          case _                                => None
-        )
+          case _                                => None)
         .filter(_._1.isDefined)
         .values
         .toSeq
@@ -223,7 +221,7 @@ class BspClient(
         val startPos = new b.Position(startLine, startC)
         val endPos   = new b.Position(endL, endC)
         val range    = new b.Range(startPos, endPos)
-        val bDiag =
+        val bDiag    =
           new b.Diagnostic(range, diag.message)
 
         diag.textEdit.foreach { textEdit =>

@@ -54,7 +54,7 @@ class SharedRunTests extends ScalaCliSuite {
     val confSv = "2.13.13"
     val inputs = TestInputs(
       os.rel / "test.sc" ->
-        s"""//> using scala "$confSv"
+        s"""//> using scala $confSv
            |println(scala.util.Properties.versionNumberString)
            |""".stripMargin
     )

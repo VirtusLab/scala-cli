@@ -66,7 +66,7 @@ const featuresList = [
       image="gifs/learning_curve.gif" title="No learning curve" 
       key="curve" education="true">
         <p>
-          Scala CLI does not use complex configuration language, its options are simple and self-explanatory
+          Scala CLI does not use a complex configuration language, its options are simple and self-explanatory.
         </p>
         <p>
         There are no big differences in running repl or .scala files so expanding the results of repl session into a small project does not require learning new concepts from Scala CLI perspective
@@ -75,16 +75,16 @@ const featuresList = [
     <ImageBox 
       image="gifs/powerful_scripts.gif" title="Scripts are as powerful as other programs" key="scripts-as-apps" scripting="true">
         <p>
-          Scripts in Scala CLI can use dependencies and other features as standard Scala programs. Scala CLI is command-line first giving access to all its features without need for any configuration file or specific project structure.
+          Scripts in Scala CLI can use dependencies and other features as standard Scala programs. Scala CLI is command-line first, giving access to all its features without the need for any configuration files or specific project structure.
         </p>
     </ImageBox>,
     <ImageBox 
       image="gifs/embeddable_scripts.gif" title="Embeddable Scripts" key="embed-scripts" scripting="true">
         <p>
-         Scala CLI can be set up in shebang lines, making your *.scala or *.sc files runnable
+         Scala CLI can be set up in shebang lines, making your *.scala or *.sc (or even .java or .md!) files runnable.
         </p>
         <p>
-         Scala CLI supports piping inputs and is designed to be embeddable in other scripts, turning Scala into proper scripting language
+         Scala CLI supports piping inputs and is designed to be embeddable in other scripts, turning Scala into proper scripting language.
         </p>
     </ImageBox>,
 //    <ImageBox 
@@ -106,7 +106,7 @@ const featuresList = [
         With Scala CLI, configuration can be included in source code so complex examples can be self-contained and shipped as e.g. gist. Moreover, Scala CLI can compile, run and test gists without any manual work!
       </p>
       <p>
-        Scala CLI is a perfect tool to submit and reproduce bugs
+        Scala CLI is the perfect tool to submit and reproduce bugs.
       </p>
     </ImageBox>
     

@@ -2,7 +2,7 @@ package scala.cli.commands.publish
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HelpGroup, SharedVersionOptions}
+import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.tags
 
 // format: off

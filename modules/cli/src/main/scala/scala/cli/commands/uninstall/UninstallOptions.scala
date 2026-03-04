@@ -2,8 +2,6 @@ package scala.cli.commands.uninstall
 
 import caseapp.*
 
-import java.nio.file.Path
-
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
 import scala.cli.commands.bloop.BloopExitOptions
 import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup, HelpMessages}

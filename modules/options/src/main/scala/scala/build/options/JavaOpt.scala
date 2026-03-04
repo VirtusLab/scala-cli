@@ -19,7 +19,8 @@ object JavaOpt {
     "--add-modules",
     "--add-opens",
     "--add-reads",
-    "--patch-module"
+    "--patch-module",
+    "-XX"
   )
 
   /* Hardcoded prefixes for java options */

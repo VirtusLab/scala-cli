@@ -1,5 +1,6 @@
 package cli.tests
 
+import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.nio.file.FileSystems
@@ -10,17 +11,14 @@ import scala.build.tests.util.BloopServer
 import scala.build.tests.{TestInputs, TestLogger}
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.cli.commands.package0.Package
-import scala.cli.internal.CachedBinary
 import scala.cli.packaging.Library
-import scala.util.{Properties, Random}
 
-class PackageTests extends munit.FunSuite {
+class PackageTests extends TestUtil.ScalaCliSuite {
+  val buildThreads: BuildThreads    = BuildThreads.create()
+  def bloopConfig: BloopRifleConfig = BloopServer.bloopConfig
 
-  val buildThreads = BuildThreads.create()
-  def bloopConfig  = BloopServer.bloopConfig
-
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
 
   val defaultOptions = BuildOptions(
     internal = InternalOptions(
@@ -44,7 +42,7 @@ class PackageTests extends munit.FunSuite {
       inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig)) {
         (_, _, maybeFirstBuild) =>
           val firstBuild      = maybeFirstBuild.orThrow.successfulOpt.get
-          val firstLibraryJar = Library.libraryJar(firstBuild)
+          val firstLibraryJar = Library.libraryJar(Seq(firstBuild))
           expect(os.exists(firstLibraryJar)) // should create library jar
 
           // change Hello.scala and recompile
@@ -66,7 +64,7 @@ class PackageTests extends munit.FunSuite {
           ) {
             (_, _, maybeSecondBuild) =>
               val secondBuild = maybeSecondBuild.orThrow.successfulOpt.get
-              val libraryJar  = Library.libraryJar(secondBuild)
+              val libraryJar  = Library.libraryJar(Seq(secondBuild))
               val fs = // should not throw "invalid CEN header (bad signature)" ZipException
                 FileSystems.newFileSystem(libraryJar.toNIO, null: ClassLoader)
               expect(fs.isOpen)
@@ -91,9 +89,8 @@ class PackageTests extends munit.FunSuite {
       (_, _, maybeFirstBuild) =>
         val build = maybeFirstBuild.orThrow.successfulOpt.get
 
-        val packageType = Package.resolvePackageType(build, None).orThrow
+        val packageType = Package.resolvePackageType(Seq(build), None).orThrow
         expect(packageType == PackageType.Native.Application)
     }
   }
-
 }

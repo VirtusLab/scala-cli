@@ -14,19 +14,18 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
-import scala.build.input.VirtualScript.VirtualScriptNameRegex
 import scala.build.input.*
 import scala.build.internal.resource.ResourceMapper
 import scala.build.internal.{Constants, MainClass, Name, Util}
-import scala.build.options.ScalaVersionUtil.asVersion
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
-import scala.build.postprocessing.LineConversion.scalaLineToScLineShift
 import scala.build.postprocessing.*
+import scala.build.postprocessing.LineConversion.scalaLineToScLineShift
 import scala.collection.mutable.ListBuffer
+import scala.compiletime.uninitialized
 import scala.concurrent.duration.DurationInt
+import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.util.{Properties, Try}
 
 trait Build {
   def inputs: Inputs
@@ -34,6 +33,7 @@ trait Build {
   def scope: Scope
   def outputOpt: Option[os.Path]
   def success: Boolean
+  def cancelled: Boolean
   def diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
 
   def successfulOpt: Option[Build.Successful]
@@ -52,16 +52,21 @@ object Build {
     output: os.Path,
     diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]],
     generatedSources: Seq[GeneratedSource],
-    isPartial: Boolean
+    isPartial: Boolean,
+    logger: Logger
   ) extends Build {
-    def success: Boolean                  = true
-    def successfulOpt: Some[this.type]    = Some(this)
-    def outputOpt: Some[os.Path]          = Some(output)
-    def dependencyClassPath: Seq[os.Path] = sources.resourceDirs ++ artifacts.classPath
-    def fullClassPath: Seq[os.Path]       = Seq(output) ++ dependencyClassPath
-    private lazy val mainClassesFoundInProject: Seq[String] = MainClass.find(output).sorted
+    def success: Boolean                         = true
+    def cancelled: Boolean                       = false
+    def successfulOpt: Some[this.type]           = Some(this)
+    def outputOpt: Some[os.Path]                 = Some(output)
+    def dependencyClassPath: Seq[os.Path]        = sources.resourceDirs ++ artifacts.classPath
+    def dependencyCompileClassPath: Seq[os.Path] =
+      sources.resourceDirs ++ artifacts.compileClassPath
+    def fullClassPath: Seq[os.Path]        = Seq(output) ++ dependencyClassPath
+    def fullCompileClassPath: Seq[os.Path] = fullClassPath ++ dependencyCompileClassPath
+    private lazy val mainClassesFoundInProject: Seq[String] = MainClass.find(output, logger).sorted
     private lazy val mainClassesFoundOnExtraClasspath: Seq[String] =
-      options.classPathOptions.extraClassPath.flatMap(MainClass.find).sorted
+      options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger)).sorted
     private lazy val mainClassesFoundInUserExtraDependencies: Seq[String] =
       artifacts.jarsForUserExtraDependencies.flatMap(MainClass.findInDependency).sorted
     def foundMainClasses(): Seq[String] = {
@@ -79,7 +84,7 @@ object Build {
         mainClasses match {
           case Seq()          => Left(new NoMainClassFoundError)
           case Seq(mainClass) => Right(mainClass)
-          case _ =>
+          case _              =>
             inferredMainClass(mainClasses, logger)
               .left.flatMap { mainClasses =>
                 // decode the names to present them to the user,
@@ -216,9 +221,11 @@ object Build {
     project: Project,
     diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
   ) extends Build {
-    def success: Boolean         = false
-    def successfulOpt: None.type = None
-    def outputOpt: None.type     = None
+    def success: Boolean = false
+
+    override def cancelled: Boolean = false
+    def successfulOpt: None.type    = None
+    def outputOpt: None.type        = None
   }
 
   final case class Cancelled(
@@ -228,6 +235,7 @@ object Build {
     reason: String
   ) extends Build {
     def success: Boolean         = false
+    def cancelled: Boolean       = true
     def successfulOpt: None.type = None
     def outputOpt: None.type     = None
     def diagnostics: None.type   = None
@@ -263,7 +271,8 @@ object Build {
       ),
       logger,
       options.suppressWarningOptions,
-      options.internal.exclude
+      options.internal.exclude,
+      download = options.downloader
     )
 
   private def build(
@@ -314,13 +323,13 @@ object Build {
 
       val baseOptions = overrideOptions.orElse(sharedOptions)
 
-      val scopedSources = value(crossSources.scopedSources(baseOptions))
+      val scopedSources: ScopedSources = value(crossSources.scopedSources(baseOptions))
 
-      val mainSources =
+      val mainSources: Sources =
         value(scopedSources.sources(Scope.Main, baseOptions, inputs.workspace, logger))
       val mainOptions = mainSources.buildOptions
 
-      val testSources =
+      val testSources: Sources =
         value(scopedSources.sources(Scope.Test, baseOptions, inputs.workspace, logger))
       val testOptions = testSources.buildOptions
 
@@ -352,9 +361,9 @@ object Build {
           value(res)
         }
 
-      val mainBuild = value(doBuildScope(mainOptions, mainSources, Scope.Main))
+      val mainBuild       = value(doBuildScope(mainOptions, mainSources, Scope.Main))
       val mainDocBuildOpt = docCompilerOpt match {
-        case None => None
+        case None              => None
         case Some(docCompiler) =>
           Some(value(doBuildScope(
             mainOptions,
@@ -366,11 +375,9 @@ object Build {
 
       def testBuildOpt(doc: Boolean = false): Either[BuildException, Option[Build]] = either {
         if (buildTests) {
-          val actualCompilerOpt =
-            if (doc) docCompilerOpt
-            else Some(compiler)
+          val actualCompilerOpt = if doc then docCompilerOpt else Some(compiler)
           actualCompilerOpt match {
-            case None => None
+            case None                 => None
             case Some(actualCompiler) =>
               val testBuild = value {
                 mainBuild match {
@@ -380,10 +387,22 @@ object Build {
                         extraClassPath = Seq(s.output)
                       )
                     )
-                    val testOptions0 = extraTestOptions.orElse(testOptions)
+                    val testOptions0 = {
+                      val testOrExtra = extraTestOptions.orElse(testOptions)
+                      testOrExtra
+                        .copy(scalaOptions =
+                          // Scala options between scopes need to be compatible
+                          mainOptions.scalaOptions.orElse(testOrExtra.scalaOptions)
+                        )
+                    }
+                    val isScala2 =
+                      value(testOptions0.scalaParams).exists(_.scalaVersion.startsWith("2."))
+                    val finalSources = if doc && isScala2 then
+                      testSources.withExtraSources(mainSources)
+                    else testSources
                     doBuildScope(
                       testOptions0,
-                      testSources,
+                      finalSources,
                       Scope.Test,
                       actualCompiler = actualCompiler
                     )
@@ -534,7 +553,7 @@ object Build {
       scalaParamsOpt.flatMap { scalaParams =>
         val scalaVersion       = scalaParams.scalaVersion
         val nativeVersionMaybe = options.scalaNativeOptions.numeralVersion
-        def snCompatError =
+        def snCompatError      =
           Left(
             new ScalaNativeCompatibilityError(
               scalaVersion,
@@ -575,7 +594,7 @@ object Build {
           }
 
         numeralOrError match {
-          case Left(compatError) => Some(compatError)
+          case Left(compatError)       => Some(compatError)
           case Right(snNumeralVersion) =>
             warnIncompatibleNativeOptions(snNumeralVersion)
             None
@@ -598,9 +617,19 @@ object Build {
       logger,
       keepDiagnostics = options.internal.keepDiagnostics
     )
-    val classesDir0             = classesRootDir(inputs.workspace, inputs.projectName)
-    val (crossSources, inputs0) = value(allInputs(inputs, options, logger))
-    val buildOptions            = crossSources.sharedOptions(options)
+    val classesDir0                           = classesRootDir(inputs.workspace, inputs.projectName)
+    val (crossSources: CrossSources, inputs0) = value(allInputs(inputs, options, logger))
+    val buildOptions                          = crossSources.sharedOptions(options)
+    if !buildOptions.suppressWarningOptions.suppressDeprecatedFeatureWarning.getOrElse(false) &&
+      buildOptions.scalaParams.exists(_.exists(_.scalaVersion == "2.12.4") &&
+      !buildOptions.useBuildServer.contains(false))
+    then
+      logger.message(
+        s"""[${Console.YELLOW}warn${Console.RESET}] Scala 2.12.4 has been deprecated for use with Bloop.
+           |[${Console.YELLOW}warn${Console.RESET}] It may lead to infinite compilation.
+           |[${Console.YELLOW}warn${Console.RESET}] To disable the build server, pass ${Console.BOLD}--server=false${Console.RESET}.
+           |[${Console.YELLOW}warn${Console.RESET}] Refer to https://github.com/VirtusLab/scala-cli/issues/1382 and https://github.com/sbt/zinc/issues/1010""".stripMargin
+      )
     value {
       compilerMaker.withCompiler(
         inputs0.workspace / Constants.workspaceDirName,
@@ -657,10 +686,8 @@ object Build {
   ): Either[BuildException, Unit] = {
     val (errors, otherDiagnostics) = options.validate.partition(_.severity == Severity.Error)
     logger.log(otherDiagnostics)
-    if (errors.nonEmpty)
-      Left(CompositeBuildException(errors.map(new ValidationException(_))))
-    else
-      Right(())
+    if errors.nonEmpty then Left(CompositeBuildException(errors.map(new ValidationException(_))))
+    else Right(())
   }
 
   def watch(
@@ -683,12 +710,12 @@ object Build {
     val threads     = BuildThreads.create()
     val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
 
-    def info: Either[BuildException, (ScalaCompiler, Option[ScalaCompiler], CrossSources, Inputs)] =
+    lazy val compilers: Either[BuildException, (ScalaCompiler, Option[ScalaCompiler])] =
       either {
         val (crossSources: CrossSources, inputs0: Inputs) =
           value(allInputs(inputs, options, logger))
         val sharedOptions = crossSources.sharedOptions(options)
-        val compiler: ScalaCompiler = value {
+        val compiler      = value {
           compilerMaker.create(
             inputs0.workspace / Constants.workspaceDirName,
             classesDir0,
@@ -697,13 +724,21 @@ object Build {
             sharedOptions
           )
         }
-        val docCompilerOpt: Option[ScalaCompiler] = docCompilerMakerOpt.map(_.create(
+        val docCompilerOpt = docCompilerMakerOpt.map(_.create(
           inputs0.workspace / Constants.workspaceDirName,
           classesDir0,
           buildClient,
           logger,
           sharedOptions
         )).map(value)
+        compiler -> docCompilerOpt
+      }
+
+    def info: Either[BuildException, (ScalaCompiler, Option[ScalaCompiler], CrossSources, Inputs)] =
+      either {
+        val (crossSources: CrossSources, inputs0: Inputs) =
+          value(allInputs(inputs, options, logger))
+        val (compiler, docCompilerOpt) = value(compilers)
         (compiler, docCompilerOpt, crossSources, inputs0)
       }
 
@@ -747,15 +782,19 @@ object Build {
     val watcher =
       new Watcher(ListBuffer(), threads.fileWatcher, run(), info.foreach(_._1.shutdown()))
 
-    def doWatch(): Unit = {
+    def doWatch(): Unit = either {
+      val (crossSources: CrossSources, inputs0: Inputs) =
+        value(allInputs(inputs, options, logger))
       val elements: Seq[Element] =
-        if res == null then inputs.elements
+        if res == null then inputs0.elements
         else
           res
             .map { builds =>
+              val allResourceDirectories =
+                crossSources.resourceDirs.map(rd => ResourceDirectory(rd.value))
               val mainElems = builds.main.inputs.elements
               val testElems = builds.get(Scope.Test).map(_.inputs.elements).getOrElse(Nil)
-              (mainElems ++ testElems).distinct
+              (mainElems ++ testElems ++ allResourceDirectories).distinct
             }
             .getOrElse(inputs.elements)
       for (elem <- elements) {
@@ -874,7 +913,6 @@ object Build {
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
-    compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
     logger: Logger,
     artifacts: Artifacts,
@@ -894,7 +932,13 @@ object Build {
 
     val scalaCompilerParamsOpt = artifacts.scalaOpt match {
       case Some(scalaArtifacts) =>
-        val params = value(options.scalaParams).getOrElse {
+        val params = value {
+          options.scalaParams match {
+            case Left(buildException) if maybeRecoverOnError(buildException).isEmpty =>
+              Right(None) // this will effectively try to fall back to a pure Java build
+            case otherwise => otherwise
+          }
+        }.getOrElse {
           sys.error(
             "Should not happen (inconsistency between Scala parameters in BuildOptions and ScalaArtifacts)"
           )
@@ -956,7 +1000,7 @@ object Build {
           scalaBinaryVersion = params.scalaBinaryVersion,
           scalacOptions = scalacOptions.toSeq.map(_.value),
           compilerClassPath = scalaArtifacts.compilerClassPath,
-          bridgeJarsOpt = scalaArtifacts.bridgeJarsOpt
+          bridgeJarsOpt = scalaArtifacts.bridgeJarsOpt.map(_.headOption.toSeq)
         )
         Some(compilerParams)
 
@@ -1016,7 +1060,7 @@ object Build {
       scalaCompiler = scalaCompilerParamsOpt,
       scalaJsOptions =
         if (options.platform.value == Platform.JS)
-          Some(value(options.scalaJsOptions.config(logger)))
+          Some(value(options.scalaJsOptions.config(logger, maybeRecoverOnError)))
         else None,
       scalaNativeOptions =
         if (options.platform.value == Platform.Native)
@@ -1039,7 +1083,6 @@ object Build {
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
-    compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
     compiler: ScalaCompiler,
     logger: Logger,
@@ -1080,7 +1123,6 @@ object Build {
           sources,
           generatedSources,
           options0,
-          compilerJvmVersionOpt,
           scope,
           logger,
           artifacts,
@@ -1133,17 +1175,16 @@ object Build {
         case Some(error) => value(Left(error))
       }
 
-    val (classesDir0, scalaParams, artifacts, project, projectChanged) = value {
+    val (classesDir0, scalaParams, artifacts, project, _) = value {
       prepareBuild(
-        inputs,
-        sources,
-        generatedSources,
-        options,
-        compiler.jvmVersion,
-        scope,
-        compiler,
-        logger,
-        buildClient
+        inputs = inputs,
+        sources = sources,
+        generatedSources = generatedSources,
+        options = options,
+        scope = scope,
+        compiler = compiler,
+        logger = logger,
+        buildClient = buildClient
       )
     }
 
@@ -1168,7 +1209,8 @@ object Build {
         classesDir0,
         buildClient.diagnostics,
         generatedSources,
-        partial
+        partial,
+        logger
       )
     else
       Failed(
@@ -1265,9 +1307,9 @@ object Build {
     }
 
     private val lock                  = new Object
-    private var f: ScheduledFuture[?] = _
+    private var f: ScheduledFuture[?] = uninitialized
     private val waitFor               = 50.millis
-    private val runnable: Runnable = { () =>
+    private val runnable: Runnable    = { () =>
       lock.synchronized {
         f = null
       }
@@ -1333,7 +1375,7 @@ object Build {
         )
       )
       val (crossSources, inputs0) = value(allInputs(jmhInputs, updatedOptions, logger))
-      val jmhBuilds = value {
+      val jmhBuilds               = value {
         Build.build(
           inputs0,
           crossSources,

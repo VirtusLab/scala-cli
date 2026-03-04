@@ -4,17 +4,16 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.errors.BuildException
 import scala.build.input.Inputs
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.SharedOptions
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.launcher.LauncherOptions
 import scala.cli.util.ConfigDbUtils
 import scala.cli.{CurrentParams, ScalaCli}
@@ -30,7 +29,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       .filter(path => os.exists(path) && os.isFile(path))
       .map { optionsPath =>
         val content = os.read.bytes(os.Path(optionsPath, os.pwd))
-        readFromArray(content)(SharedOptions.jsonCodec)
+        readFromArray(content)(using SharedOptions.jsonCodec)
       }.getOrElse(options.shared)
 
   private def latestLauncherOptions(options: BspOptions): LauncherOptions =
@@ -39,7 +38,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       .filter(path => os.exists(path) && os.isFile(path))
       .map { optionsPath =>
         val content = os.read.bytes(os.Path(optionsPath, os.pwd))
-        readFromArray(content)(LauncherOptions.jsonCodec)
+        readFromArray(content)(using LauncherOptions.jsonCodec)
       }.getOrElse(launcherOptions)
   private def latestEnvsFromFile(options: BspOptions): Map[String, String] =
     options.envs
@@ -60,7 +59,7 @@ object Bsp extends ScalaCommand[BspOptions] {
     latestEnvs: Map[String, String]
   ): Unit = {
     val previousPowerMode = ScalaCli.allowRestrictedFeatures
-    val configPowerMode = ConfigDbUtils.getLatestConfigDbOpt(latestSharedOptions.logger)
+    val configPowerMode   = ConfigDbUtils.getLatestConfigDbOpt(latestSharedOptions.logger)
       .flatMap(_.get(Keys.power).toOption)
       .flatten
       .getOrElse(false)
@@ -109,7 +108,8 @@ object Bsp extends ScalaCommand[BspOptions] {
             ),
             persistentLogger,
             baseOptions.suppressWarningOptions,
-            baseOptions.internal.exclude
+            baseOptions.internal.exclude,
+            download = baseOptions.downloader
           )
 
           val (allInputs, finalBuildOptions) = {
@@ -121,7 +121,7 @@ object Bsp extends ScalaCommand[BspOptions] {
               sharedBuildOptions          = crossSources.sharedOptions(baseOptions)
               scopedSources <- crossSources.scopedSources(sharedBuildOptions)
               resolvedBuildOptions =
-                scopedSources.buildOptionsFor(Scope.Main).foldRight(sharedBuildOptions)(_ orElse _)
+                scopedSources.buildOptionsFor(Scope.Main).foldRight(sharedBuildOptions)(_.orElse(_))
             yield (crossInputs, resolvedBuildOptions)
           }.getOrElse(initialInputs -> baseOptions)
 
@@ -152,10 +152,9 @@ object Bsp extends ScalaCommand[BspOptions] {
     }
 
     val bspReloadableOptionsReference = BspReloadableOptions.Reference { () =>
-      val sharedOptions    = getSharedOptions()
-      val launcherOptions  = getLauncherOptions()
-      val envs             = getEnvsFromFile()
-      val bloopRifleConfig = sharedOptions.bloopRifleConfig()
+      val sharedOptions   = getSharedOptions()
+      val launcherOptions = getLauncherOptions()
+      val envs            = getEnvsFromFile()
 
       refreshPowerMode(launcherOptions, sharedOptions, envs)
 
@@ -194,9 +193,9 @@ object Bsp extends ScalaCommand[BspOptions] {
     launcherOptions: LauncherOptions,
     envs: Map[String, String]
   ): BuildOptions = {
-    val logger      = sharedOptions.logger
-    val baseOptions = sharedOptions.buildOptions().orExit(logger)
-    val withDefaults = baseOptions.copy(
+    val logger                     = sharedOptions.logger
+    val baseOptions: BuildOptions  = sharedOptions.buildOptions().orExit(logger)
+    val withDefaults: BuildOptions = baseOptions.copy(
       classPathOptions = baseOptions.classPathOptions.copy(
         fetchSources = baseOptions.classPathOptions.fetchSources.orElse(Some(true))
       ),
@@ -211,7 +210,7 @@ object Bsp extends ScalaCommand[BspOptions] {
           baseOptions.notForBloopOptions.addRunnerDependencyOpt.orElse(Some(false))
       )
     )
-    val withEnvs = envs.get(EnvVar.Java.javaHome.name)
+    val withEnvs: BuildOptions = envs.get(EnvVar.Java.javaHome.name)
       .filter(_ => withDefaults.javaOptions.javaHomeOpt.isEmpty)
       .map(javaHome =>
         withDefaults.copy(javaOptions =
@@ -227,8 +226,9 @@ object Bsp extends ScalaCommand[BspOptions] {
     val withLauncherOptions = withEnvs.copy(
       classPathOptions = withEnvs.classPathOptions.copy(
         extraRepositories =
-          (withEnvs.classPathOptions.extraRepositories ++ launcherOptions.scalaRunner
-            .cliPredefinedRepository).distinct
+          (withEnvs.classPathOptions.extraRepositories ++
+            launcherOptions.scalaRunner
+              .cliPredefinedRepository).distinct
       ),
       scalaOptions = withEnvs.scalaOptions.copy(
         defaultScalaVersion = launcherOptions.scalaRunner.cliUserScalaVersion

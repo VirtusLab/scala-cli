@@ -51,20 +51,26 @@ class GitHubTests extends ScalaCliSuite {
     }
   }
 
-  override def munitFlakyOK: Boolean = TestUtil.isCI && Properties.isMac
+  override def munitFlakyOK: Boolean = TestUtil.isCI
+
+  def createSecret(): Unit = {
+    try
+      createSecretTest()
+    catch {
+      case e: UnsatisfiedLinkError if e.getMessage.contains("libsodium") =>
+        fail("libsodium, couldn't be loaded")
+    }
+
+  }
 
   // currently having issues loading libsodium from the static launcher
   // that launcher is mainly meant to be used on CIs or from docker, missing
   // that feature shouldn't be a big deal there
-  if (TestUtil.cliKind != "native-static")
-    test("create secret".flaky) {
-      try
-        createSecretTest()
-      catch {
-        case e: UnsatisfiedLinkError if e.getMessage.contains("libsodium") =>
-          fail("libsodium, couldn't be loaded")
-      }
-    }
+  if !TestUtil.isNativeStaticCli && !Properties.isMac && !TestUtil.isAarch64 then
+    // TODO fix this for static launchers: https://github.com/VirtusLab/scala-cli/issues/4068
+    // TODO fix this for MacOS: https://github.com/VirtusLab/scala-cli/issues/4067
+    // TODO fix this for Linux arm64: https://github.com/VirtusLab/scala-cli/issues/4069
+    test("create secret")(TestUtil.retryOnCi()(createSecret()))
 
 }
 
@@ -89,7 +95,7 @@ object GitHubTests {
   implicit val encryptedSecretCodec: JsonValueCodec[EncryptedSecret] =
     JsonCodecMaker.make
 
-  private def libsodiumVersion = Constants.libsodiumVersion
+  private def condaLibsodiumVersion = Constants.condaLibsodiumVersion
 
   // Warning: somehow also in settings.sc in the build, and in FetchExternalBinary
   lazy val condaPlatform: String = {
@@ -98,12 +104,12 @@ object GitHubTests {
       else if (Properties.isMac) "osx"
       else if (Properties.isLinux) "linux"
       else sys.error(s"Unsupported mamba OS: ${sys.props("os.name")}")
-    val arch = sys.props("os.arch").toLowerCase(Locale.ROOT)
+    val arch      = sys.props("os.arch").toLowerCase(Locale.ROOT)
     val mambaArch = arch match {
       case "x86_64" | "amd64"  => "64"
       case "arm64" | "aarch64" => "arm64"
       case "ppc64le"           => "ppc64le"
-      case _ =>
+      case _                   =>
         sys.error(s"Unsupported mamba architecture: $arch")
     }
     s"$mambaOs-$mambaArch"
@@ -127,7 +133,7 @@ object GitHubTests {
       case other           => sys.error(s"Unrecognized conda platform $other")
     }
     (
-      s"https://anaconda.org/conda-forge/libsodium/$libsodiumVersion/download/$condaPlatform/libsodium-$libsodiumVersion$suffix.tar.bz2",
+      s"https://anaconda.org/conda-forge/libsodium/$condaLibsodiumVersion/download/$condaPlatform/libsodium-$condaLibsodiumVersion$suffix.tar.bz2",
       relPath
     )
   }
@@ -135,7 +141,7 @@ object GitHubTests {
   private def initSodium(): Unit = {
     val (url, relPath) = archiveUrlAndPath()
     val archiveCache   = ArchiveCache()
-    val dir = archiveCache.get(Artifact(url)).unsafeRun()(archiveCache.cache.ec)
+    val dir            = archiveCache.get(Artifact(url)).unsafeRun()(archiveCache.cache.ec)
       .fold(e => throw new Exception(e), os.Path(_, os.pwd))
     val lib = dir / relPath
     System.load(lib.toString)

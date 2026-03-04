@@ -23,7 +23,7 @@ object Main extends App {
 To use Java 11 to run this application, pass the following `--jvm` option to the Scala CLI command:
 
 ```bash ignore
-scala-cli --jvm adopt:11 Main.scala
+scala-cli --jvm temurin:11 Main.scala
 ```
 
 <!-- ignored Expected:
@@ -33,12 +33,16 @@ Hello from ScalaCli
 To attempt to compile the application with Java 8, change the value of the `--jvm` parameter:
 ```bash ignore fail
 scala-cli --jvm 8 Main.scala
-# In this case, it raises an error because the `Files.createTempFile` method is not available in java 8
+# In this case, it raises an error because the `Files.writeString` and `Files.readString` methods are not available in java 8
 #
-# Exception in thread main: java.lang.Exception: java.lang.NoSuchMethodError: java.nio.file.Files.writeString(Ljava/nio/file/Path;Ljava/lang/CharSequence;[Ljava/nio/file/OpenOption;)Ljava/nio/file/Path;
-#     at method print in modules/runner/src/main/scala-3-stable/scala/cli/runner/Stacktrace.scala:12 inside runner_3.jar
-#     at method printException in modules/runner/src/main/scala/scala/cli/runner/StackTracePrinter.scala:91 inside runner_3.jar
-#     at method main in modules/runner/src/main/scala/scala/cli/runner/Runner.scala:22 inside runner_3.jar
+# [error] ./Main.scala:6:18
+# [error] value writeString is not a member of object java.nio.file.Files
+# [error]   val filePath = Files.writeString(dest, "Hello from ScalaCli")
+# [error]                  ^^^^^^^^^^^^^^^^^
+# [error] ./Main.scala:7:29
+# [error] value readString is not a member of object java.nio.file.Files
+# [error]   val fileContent: String = Files.readString(filePath)
+# [error]                             ^^^^^^^^^^^^^^^^
 ```
 
 <!-- ignored Expected:

@@ -1,19 +1,18 @@
 package scala.build.actionable
-
-import coursier.Versions
-import coursier.core.{Latest, Version}
-import coursier.parse.RepositoryParser
+import coursier.cache.FileCache
+import coursier.core.Repository
+import coursier.util.Task
+import coursier.version.{Latest, Version}
 import dependency.*
 
-import scala.build.EitherCps.{either, value}
+import scala.build.EitherCps.*
 import scala.build.actionable.ActionableDiagnostic.*
-import scala.build.errors.{BuildException, RepositoryFormatError, Severity}
+import scala.build.errors.{BuildException, Severity}
 import scala.build.internal.Constants
 import scala.build.internal.Util.*
 import scala.build.options.BuildOptions
 import scala.build.options.ScalaVersionUtil.versions
 import scala.build.{Logger, Positioned}
-import scala.concurrent.duration.DurationInt
 
 case object ActionableDependencyHandler
     extends ActionableHandler[ActionableDependencyUpdateDiagnostic] {
@@ -39,10 +38,10 @@ case object ActionableDependencyHandler
       if Version(latestVersion) > Version(currentVersion) &&
       !isLatestSyntaxVersion(currentVersion)
       // filtering out toolkit-test to prevent double-update-diagnostic
-      if !(dependency.userParams.contains(Constants.toolkitName) &&
+      if !(dependency.userParams.exists(_._1 == Constants.toolkitName) &&
       dependency.module.name == Constants.toolkitTestName)
     } yield
-      if dependency.userParams.contains(Constants.toolkitName)
+      if dependency.userParams.exists(_._1 == Constants.toolkitName)
       then
         val toolkitSuggestion =
           if dependency.module.organization == Constants.toolkitOrganization then latestVersion
@@ -74,15 +73,15 @@ case object ActionableDependencyHandler
     setting: Positioned[AnyDependency],
     loggerOpt: Option[Logger]
   ): Either[BuildException, Option[String]] = either {
-    val dependency   = setting.value
-    val scalaParams  = value(buildOptions.scalaParams)
-    val cache        = buildOptions.finalCache
-    val csModule     = value(dependency.toCs(scalaParams)).module
-    val repositories = value(buildOptions.finalRepositories)
+    val dependency: AnyDependency            = setting.value
+    val scalaParams: Option[ScalaParameters] = value(buildOptions.scalaParams)
+    val cache: FileCache[Task]               = buildOptions.finalCache
+    val csModule: coursier.core.Module       = value(dependency.toCs(scalaParams)).module
+    val repositories: Seq[Repository]        = value(buildOptions.finalRepositories)
 
     val latestVersionOpt = cache.versions(csModule, repositories)
       .versions
-      .latest(coursier.core.Latest.Stable)
+      .latest(Latest.Stable)
 
     if (latestVersionOpt.isEmpty)
       loggerOpt.foreach(_.diagnostic(
@@ -91,6 +90,6 @@ case object ActionableDependencyHandler
         setting.positions
       ))
 
-    latestVersionOpt
+    latestVersionOpt.map(_.asString)
   }
 }

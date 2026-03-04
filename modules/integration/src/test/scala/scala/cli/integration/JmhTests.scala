@@ -5,8 +5,9 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.nio.file.Files
 
-import scala.async.Async.{async, await}
+import scala.cli.integration.TestUtil.await
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
@@ -18,7 +19,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
     useDirective <- Seq(None, Some("//> using jmh"))
     directiveString = useDirective.getOrElse("")
     jmhOptions      = if (useDirective.isEmpty) Seq("--jmh") else Nil
-    testMessage = useDirective match {
+    testMessage     = useDirective match {
       case None            => jmhOptions.mkString(" ")
       case Some(directive) => directive
     }
@@ -60,13 +61,13 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
     test(s"bsp ($testMessage)") {
       withBsp(simpleBenchmarkingInputs(directiveString), Seq(".", "--power") ++ jmhOptions) {
         (_, _, remoteServer) =>
-          async {
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
             val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
             expect(targets.length == 2)
 
             val compileResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
             expect(compileResult.getStatusCode == b.StatusCode.OK)
 
           }
@@ -94,13 +95,13 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
         )
         withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
           (_, _, remoteServer) =>
-            async {
-              val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            Future {
+              val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
               val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
               expect(targets.length == 2)
 
               val compileResult =
-                await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+                remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
               expect(compileResult.getStatusCode == b.StatusCode.OK)
             }
         }
@@ -149,7 +150,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
     useDirective <- Seq(None, Some("//> using jmh false"))
     directiveString = useDirective.getOrElse("")
     jmhOptions      = if (useDirective.isEmpty) Seq("--jmh=false") else Nil
-    testMessage = useDirective match {
+    testMessage     = useDirective match {
       case None             => jmhOptions.mkString(" ")
       case Some(directives) => directives.linesIterator.mkString("; ")
     }
@@ -173,7 +174,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
       )
     )
     directiveString = useDirective.getOrElse("")
-    jmhOptions =
+    jmhOptions      =
       if (useDirective.isEmpty) Seq("--jmh", "--jmh-version", exampleOldJmhVersion) else Nil
     testMessage = useDirective match {
       case None             => jmhOptions.mkString(" ")

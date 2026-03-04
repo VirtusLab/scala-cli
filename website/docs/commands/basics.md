@@ -317,7 +317,7 @@ To run another Scala CLI version, specify it with `--cli-version` before any oth
 
 <ChainedSnippets>
 
-```bash
+```bash ignore
 scala-cli --cli-version 0.1.17-62-g21e1cf44-SNAPSHOT version
 ```
 
@@ -327,11 +327,6 @@ Scala version (default): 3.2.1
 ```
 
 </ChainedSnippets>
-
-<!-- Expected:
-Scala CLI version: 0.1.17-62-g21e1cf44-SNAPSHOT
-Scala version (default): 3.2.1
--->
 
 To use the latest Scala CLI nightly build, pass `nightly` to `--cli-version` parameter:
 
@@ -407,4 +402,4 @@ about the start of compilation, and so on.
 
 Some particular warning logs can be suppressed, either for a particular command by passing an option or with a global
 config.
-More details can be found in the [verbosity guide](..//guides/advanced/verbosity.md)
+More details can be found in the [verbosity guide](../guides/advanced/verbosity.md)

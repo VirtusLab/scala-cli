@@ -1,6 +1,6 @@
-//> using dep "com.lihaoyi::os-lib:0.9.1"
-//> using dep "com.lihaoyi::pprint:0.8.1"
-//> using scala "2.13"
+//> using dep com.lihaoyi::os-lib:0.9.1
+//> using dep com.lihaoyi::pprint:0.9.6
+//> using scala 2.13
 
 // Usage: scala-cli gcbenchmark.scala -- <path_to_scala_cli_executable>
 
@@ -21,13 +21,14 @@ object Main {
   val projectSize =
     200 // Number of files in a generated project used in benchmark
   val numberOfBuilds = 10 // How many times run build for each setup
-  val idleWait =
+  val idleWait       =
     90 // In seconds. Wait after builds are done, to measure how much memory JVM returns to OS
 
   val setups = Seq(
     Map("BLOOP_JAVA_OPTS" -> "-XX:+UseParallelGC"),
     Map(
-      "BLOOP_JAVA_OPTS" -> "-XX:+UnlockExperimentalVMOptions -XX:+UseShenandoahGC -XX:ShenandoahUncommitDelay=30000"
+      "BLOOP_JAVA_OPTS" ->
+        "-XX:+UnlockExperimentalVMOptions -XX:+UseShenandoahGC -XX:ShenandoahUncommitDelay=30000"
     ),
     Map.empty[String, String]
   )
@@ -103,9 +104,10 @@ object Main {
       val res = Result(
         env = env,
         maxTime = buildResults.map(_._2).max.toSeconds.seconds,
-        avgTime = (buildResults
-          .map(_._2)
-          .fold(0.seconds)(_ + _) / buildResults.size).toSeconds.seconds,
+        avgTime =
+          (buildResults
+            .map(_._2)
+            .fold(0.seconds)(_ + _) / buildResults.size).toSeconds.seconds,
         maxMemoryFootprintMb = buildResults.map(_._1).max,
         idleMemoryFootprintMb = idleResults.min
       )

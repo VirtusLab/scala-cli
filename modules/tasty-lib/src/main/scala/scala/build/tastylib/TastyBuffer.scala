@@ -59,7 +59,7 @@ class TastyBuffer(initialSize: Int) {
   /** Like writeNat, but for longs. Note that the binary representation of LongNat is identical to
     * Nat if the long value is in the range Int.MIN_VALUE to Int.MAX_VALUE.
     */
-  def writeLongNat(x: Long): Unit = {
+  private def writeLongNat(x: Long): Unit = {
     def writePrefix(x: Long): Unit = {
       val y = x >>> 7
       if (y != 0L) writePrefix(y)
@@ -79,7 +79,7 @@ class TastyBuffer(initialSize: Int) {
   def getNat(at: Addr): Int = getLongNat(at).toInt
 
   /** The long natural number at address `at` */
-  def getLongNat(at: Addr): Long = {
+  private def getLongNat(at: Addr): Long = {
     var b   = 0L
     var x   = 0L
     var idx = at.index

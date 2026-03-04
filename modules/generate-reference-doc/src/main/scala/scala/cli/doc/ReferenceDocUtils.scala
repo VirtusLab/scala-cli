@@ -2,8 +2,6 @@ package scala.cli.doc
 
 import caseapp.HelpMessage
 
-import java.util.stream.IntStream
-
 import scala.annotation.tailrec
 import scala.build.internals.ConsoleUtils.*
 
@@ -17,7 +15,7 @@ object ReferenceDocUtils {
         acc: String = ""
       ): String =
         remainingLines.headOption match
-          case None => acc
+          case None       => acc
           case Some(line) =>
             val openFenceString =
               if line.contains(Console.BOLD) then
@@ -35,7 +33,7 @@ object ReferenceDocUtils {
               else ""
             val newFenceOpen = currentFenceOpen && closeFenceString.isEmpty
             val newLine      = s"$openFenceString${line.noConsoleKeys}$closeFenceString"
-            val newAcc =
+            val newAcc       =
               if acc.isEmpty then newLine
               else
                 s"""$acc
@@ -52,7 +50,7 @@ object ReferenceDocUtils {
     def consoleToMarkdown: String = s.filterOutHiddenStrings.consoleYellowToMdBullets.consoleToFence
   }
   extension (helpMessage: HelpMessage) {
-    def referenceDocMessage: String = helpMessage.message.consoleToMarkdown
+    def referenceDocMessage: String         = helpMessage.message.consoleToMarkdown
     def referenceDocDetailedMessage: String = {
       val msg =
         if helpMessage.detailedMessage.nonEmpty then helpMessage.detailedMessage

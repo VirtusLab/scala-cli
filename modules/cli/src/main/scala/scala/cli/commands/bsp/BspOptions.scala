@@ -40,7 +40,7 @@ object BspOptions {
   implicit lazy val help: Help[BspOptions]     = Help.derive
   val cmdName                                  = "bsp"
   private val helpHeader                       = "Start BSP server."
-  val helpMessage: String =
+  val helpMessage: String                      =
     s"""$helpHeader
        |
        |${HelpMessages.commandFullHelpReference(cmdName)}

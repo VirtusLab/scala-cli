@@ -3,7 +3,7 @@ title: Export ⚡️
 sidebar_position: 27
 ---
 
-In case your project outgrows the cabapilities of Scala CLI (e.g support for modules) it may be beneficial
+In case your project outgrows the capabilities of Scala CLI (e.g support for modules) it may be beneficial
 to switch to a build tool such as SBT or Mill.
 The `export` sub-command allows to do that by converting a Scala CLI project into an SBT or Mill configuration.
 Additionally the sub-command supports the JSON format for custom analysis of projects.
@@ -121,7 +121,7 @@ object project extends ScalaModule {
 
 ```
 
-The script files `mill` and `mill.bat` are mill wrappers fetched from [lefou/millw repository](https://github.com/lefou/millw/tree/166bcdf5741de8569e0630e18c3b2ef7e252cd96).
+The script files `mill` and `mill.bat` are mill wrappers fetched from [the Mill repository](https://github.com/com-lihaoyi/mill).
 To change the build tool version used override the contents of `dest_mill/.mill-version`.
 
 

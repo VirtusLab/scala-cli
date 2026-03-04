@@ -1,23 +1,26 @@
 package scala.cli.integration
 
-import ch.epfl.scala.bsp4j.JvmTestEnvironmentParams
 import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.JvmTestEnvironmentParams
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.{Gson, JsonElement}
 
 import java.net.URI
 import java.nio.file.Paths
 
-import scala.async.Async.{async, await}
+import scala.cli.integration.TestUtil.await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
-abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
-    with BspSuite with ScriptWrapperTestDefinitions {
-  _: TestScalaVersion =>
+abstract class BspTestDefinitions extends ScalaCliSuite
+    with TestScalaVersionArgs
+    with BspSuite
+    with ScriptWrapperTestDefinitions
+    with CoursierScalaInstallationTestHelper {
+  this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   test("setup-ide") {
@@ -31,7 +34,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       os.proc(TestUtil.cli, "setup-ide", ".", extraOptions).call(cwd = root, stdout = os.Inherit)
       val details = readBspConfig(root)
       expect(details.argv.length >= 2)
-      expect(details.argv(1) == "bsp")
+      expect(details.argv.dropWhile(_ != TestUtil.cliPath).drop(1).head == "bsp")
     }
   }
 
@@ -51,7 +54,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         val expectedIdeLaunchFile  = root / Constants.workspaceDirName / "ide-launcher-options.json"
         val expectedIdeInputsFile  = root / Constants.workspaceDirName / "ide-inputs.json"
         val expectedIdeEnvsFile    = root / Constants.workspaceDirName / "ide-envs.json"
-        val expectedArgv = Seq(
+        val expectedArgv           = Seq(
           TestUtil.cliPath,
           "--power",
           "bsp",
@@ -63,7 +66,11 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           expectedIdeEnvsFile.toString,
           root.toString
         )
-        expect(details.argv == expectedArgv)
+        if (TestUtil.isJvmBootstrappedCli) {
+          expect(details.argv.head.endsWith("java"))
+          expect(details.argv.drop(1).head == "-jar")
+        }
+        expect(details.argv.dropWhile(_ != TestUtil.cliPath) == expectedArgv)
         expect(os.isFile(expectedIdeOptionsFile))
         expect(os.isFile(expectedIdeInputsFile))
         expect(os.isFile(expectedIdeEnvsFile))
@@ -75,7 +82,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   )
 
   test("setup-ide should have only absolute paths even if relative ones were specified") {
-    val path = os.rel / "directory" / "simple.sc"
+    val path   = os.rel / "directory" / "simple.sc"
     val inputs =
       TestInputs(path -> s"//> using dep \"com.lihaoyi::pprint:${Constants.pprintVersion}\"")
     inputs.fromRoot { root =>
@@ -95,7 +102,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           os.proc(relativeCliCommand, "--power", "setup-ide", path, extraOptions)
       proc.call(cwd = root, stdout = os.Inherit)
 
-      val details = readBspConfig(root / "directory")
+      val details      = readBspConfig(root / "directory")
       val expectedArgv = List(
         TestUtil.cliPath,
         "--power",
@@ -108,7 +115,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         (root / "directory" / Constants.workspaceDirName / "ide-envs.json").toString,
         (root / "directory" / "simple.sc").toString
       )
-      expect(details.argv == expectedArgv)
+      expect(details.argv.dropWhile(_ != TestUtil.cliPath) == expectedArgv)
     }
   }
 
@@ -150,9 +157,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
 
     withBsp(inputs, Seq(".")) { (root, _, remoteServer) =>
-      async {
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val target = {
+      Future {
+        val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+        val target           = {
           val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
@@ -164,11 +171,11 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         val targets = List(target).asJava
 
         {
-          val resp = await {
+          val resp =
             remoteServer
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
-          }
+              .await
           val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
           val foundDepSources = resp.getItems.asScala
@@ -191,7 +198,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         }
 
         {
-          val resp = await(remoteServer.buildTargetSources(new b.SourcesParams(targets)).asScala)
+          val resp = remoteServer.buildTargetSources(new b.SourcesParams(targets)).asScala.await
           val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
           val foundSources = resp.getItems.asScala
@@ -207,11 +214,10 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         }
 
         val scalacOptionsResp = {
-          val resp = await {
-            remoteServer
-              .buildTargetScalacOptions(new b.ScalacOptionsParams(targets))
-              .asScala
-          }
+          val resp = remoteServer
+            .buildTargetScalacOptions(new b.ScalacOptionsParams(targets))
+            .asScala
+            .await
           val foundTargets = resp
             .getItems
             .asScala
@@ -229,9 +235,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         }
 
         {
-          val resp = await {
-            remoteServer.buildTargetJavacOptions(new b.JavacOptionsParams(targets)).asScala
-          }
+          val resp =
+            remoteServer.buildTargetJavacOptions(new b.JavacOptionsParams(targets))
+              .asScala.await
           val foundTargets = resp
             .getItems
             .asScala
@@ -245,20 +251,21 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         )
 
         {
-          val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+          val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
           expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         val compileProducts = os.walk(classDir).filter(os.isFile(_)).map(_.relativeTo(classDir))
 
-        if (actualScalaVersion.startsWith("3."))
-          expect(compileProducts.contains(os.rel / "simple$_.class"))
-        else
-          expect(compileProducts.contains(os.rel / "simple$.class"))
+        val classFilePath = os.rel / {
+          if actualScalaVersion.startsWith("3.")
+          then "simple$_.class"
+          else "simple$.class"
+        }
+        expect(compileProducts.contains(classFilePath))
 
-        expect(
-          compileProducts.contains(os.rel / "META-INF" / "semanticdb" / "simple.sc.semanticdb")
-        )
+        val relPath = os.rel / "META-INF" / "semanticdb" / "simple.sc.semanticdb"
+        expect(compileProducts.contains(relPath))
       }
     }
   }
@@ -275,9 +282,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
-      async {
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val target = {
+      Future {
+        val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+        val target           = {
           val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
@@ -288,9 +295,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
         val targets = List(target).asJava
 
-        val compileResp = await {
-          remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala
-        }
+        val compileResp =
+          remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
         expect(compileResp.getStatusCode == b.StatusCode.ERROR)
 
         val diagnosticsParams: b.PublishDiagnosticsParams =
@@ -327,9 +333,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
-      async {
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val target = {
+      Future {
+        val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+        val target           = {
           val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
@@ -340,21 +346,21 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
         val targets = List(target).asJava
 
-        val compileResp = await {
+        val compileResp =
           remoteServer
             .buildTargetCompile(new b.CompileParams(targets))
             .asScala
-        }
-        expect(compileResp.getStatusCode == b.StatusCode.ERROR)
+            .await
+        val actualStatusCode = compileResp.getStatusCode
+        expect(actualStatusCode == b.StatusCode.ERROR)
 
         val diagnosticsParams = {
           val diagnostics = localClient.diagnostics()
           val params      = diagnostics(2)
           expect(params.getBuildTarget.getUri == targetUri)
-          expect(
-            TestUtil.normalizeUri(params.getTextDocument.getUri) ==
-              TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
-          )
+          val actualUri   = TestUtil.normalizeUri(params.getTextDocument.getUri)
+          val expectedUri = TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
+          expect(actualUri == expectedUri)
           params
         }
 
@@ -383,15 +389,15 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("invalid diagnostics at startup") {
     val inputs = TestInputs(
       os.rel / "A.scala" ->
-        s"""//> using resource "./resources"
+        s"""//> using resource ./resources
            |
            |object A {}
            |""".stripMargin
     )
 
     withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
-      async {
-        await(remoteServer.workspaceBuildTargets().asScala)
+      Future {
+        remoteServer.workspaceBuildTargets().asScala.await
 
         val diagnosticsParams = localClient.latestDiagnostics().getOrElse {
           fail("No diagnostics found")
@@ -402,9 +408,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           expectedMessage = "Unrecognized directive: resource with values: ./resources",
           expectedSeverity = b.DiagnosticSeverity.ERROR,
           expectedStartLine = 0,
-          expectedStartCharacter = 20,
+          expectedStartCharacter = 10,
           expectedEndLine = 0,
-          expectedEndCharacter = 31,
+          expectedEndCharacter = 18,
           strictlyCheckMessage = false
         )
       }
@@ -414,7 +420,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("directive diagnostics") {
     val inputs = TestInputs(
       os.rel / "Test.scala" ->
-        s"""//> using dep "com.lihaoyi::pprint:0.0.0.0.0.1"
+        s"""//> using dep com.lihaoyi::pprint:0.0.0.0.0.1
            |
            |object Test {
            |  val msg = "Hello"
@@ -424,8 +430,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
-      async {
-        await(remoteServer.workspaceBuildTargets().asScala)
+      Future {
+        remoteServer.workspaceBuildTargets().asScala.await
         val diagnosticsParams = extractDiagnosticsParams(root / "Test.scala", localClient)
 
         val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
@@ -442,9 +448,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           expectedMessage = expectedMessage,
           expectedSeverity = b.DiagnosticSeverity.ERROR,
           expectedStartLine = 0,
-          expectedStartCharacter = 15,
+          expectedStartCharacter = 14,
           expectedEndLine = 0,
-          expectedEndCharacter = 46,
+          expectedEndCharacter = 45,
           strictlyCheckMessage = false
         )
       }
@@ -452,23 +458,24 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   }
 
   test("directives in multiple files diagnostics") {
-    val inputs = TestInputs(
+    val javaVersion = Constants.allJavaVersions.filter(_ > Constants.defaultJvmVersion).min
+    val inputs      = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using scala "3.3.0"
+        s"""//> using scala $actualScalaVersion
            |
            |object Foo extends App {
            |  println("Foo")
            |}
            |""".stripMargin,
       os.rel / "Bar.scala"  -> "",
-      os.rel / "Hello.java" -> "//> using jvm \"11\""
+      os.rel / "Hello.java" -> s"//> using jvm $javaVersion"
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
-      async {
-        await(remoteServer.workspaceBuildTargets().asScala)
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val target = {
+      Future {
+        remoteServer.workspaceBuildTargets().asScala.await
+        val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+        val target           = {
           val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
@@ -479,11 +486,11 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
         val targets = List(target).asJava
 
-        val compileResp = await {
+        val compileResp =
           remoteServer
             .buildTargetCompile(new b.CompileParams(targets))
             .asScala
-        }
+            .await
         expect(compileResp.getStatusCode == b.StatusCode.OK)
 
         def checkDirectivesInMultipleFilesWarnings(
@@ -516,8 +523,20 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           )
         }
 
-        checkDirectivesInMultipleFilesWarnings("Foo.scala", 0, 0, 0, 23)
-        checkDirectivesInMultipleFilesWarnings("Hello.java", 0, 0, 0, 18)
+        checkDirectivesInMultipleFilesWarnings(
+          fileName = "Foo.scala",
+          expectedStartLine = 0,
+          expectedStartCharacter = 0,
+          expectedEndLine = 0,
+          expectedEndCharacter = 16 + actualScalaVersion.length
+        )
+        checkDirectivesInMultipleFilesWarnings(
+          fileName = "Hello.java",
+          expectedStartLine = 0,
+          expectedStartCharacter = 0,
+          expectedEndLine = 0,
+          expectedEndCharacter = 16
+        )
       }
     }
   }
@@ -534,9 +553,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       else Nil
 
     withBsp(inputs, Seq(".") ++ extraArgs) { (root, localClient, remoteServer) =>
-      async {
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val target = {
+      Future {
+        val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+        val target           = {
           val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
@@ -548,16 +567,16 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         val targets = List(target).asJava
 
         {
-          val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+          val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
           expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         {
-          val resp = await {
+          val resp =
             remoteServer
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
-          }
+              .await
           val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
           val foundDepSources = resp.getItems.asScala
@@ -580,15 +599,15 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         }
 
         val didChangeParamsFuture = localClient.buildTargetDidChange()
-        val updatedContent =
-          """//> using dep "com.lihaoyi::pprint:0.6.6"
+        val updatedContent        =
+          """//> using dep com.lihaoyi::pprint:0.6.6
             |val msg = "Hello"
             |pprint.log(msg)
             |""".stripMargin
         os.write.over(root / "simple.sc", updatedContent)
 
         {
-          val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+          val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
           expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
@@ -596,7 +615,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           didChangeParamsFuture.map(Some(_)),
           completeIn(5.seconds).map(_ => None)
         ))
-        val didChangeParams = await(didChangeParamsOptFuture).getOrElse {
+        val didChangeParams = didChangeParamsOptFuture.await.getOrElse {
           sys.error("No buildTargetDidChange notification received")
         }
 
@@ -605,14 +624,15 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
         val change = changes.head
         expect(change.getTarget.getUri == targetUri)
-        expect(change.getKind == b.BuildTargetEventKind.CHANGED)
+        val expectedKind = b.BuildTargetEventKind.CHANGED
+        expect(change.getKind == expectedKind)
 
         {
-          val resp = await {
+          val resp =
             remoteServer
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
-          }
+              .await
           val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
           val foundDepSources = resp.getItems.asScala
@@ -643,9 +663,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
-      async {
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val target = {
+      Future {
+        val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+        val target           = {
           val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
@@ -657,16 +677,16 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         val targets = List(target).asJava
 
         {
-          val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+          val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
           expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         {
-          val resp = await {
+          val resp =
             remoteServer
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
-          }
+              .await
           val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
           val foundDepSources = resp.getItems.asScala
@@ -704,7 +724,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         os.write.over(root / "Test.scala", updatedContent)
 
         {
-          val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+          val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
           expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
@@ -712,7 +732,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           didChangeParamsFuture.map(Some(_)),
           completeIn(5.seconds).map(_ => None)
         ))
-        val didChangeParams = await(didChangeParamsOptFuture).getOrElse {
+        val didChangeParams = didChangeParamsOptFuture.await.getOrElse {
           sys.error("No buildTargetDidChange notification received")
         }
 
@@ -721,7 +741,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
         val change = changes.head
         expect(change.getTarget.getUri == targetUri)
-        expect(change.getKind == b.BuildTargetEventKind.CHANGED)
+        val expectedKind = b.BuildTargetEventKind.CHANGED
+        expect(change.getKind == expectedKind)
       }
     }
   }
@@ -729,13 +750,13 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("test workspace update after adding file to main scope") {
     val inputs = TestInputs(
       os.rel / "Messages.scala" ->
-        """//> using dep "com.lihaoyi::os-lib:0.7.8"
+        """//> using dep com.lihaoyi::os-lib:0.7.8
           |object Messages {
           |  def msg = "Hello"
           |}
           |""".stripMargin,
       os.rel / "MyTests.test.scala" ->
-        """//> using dep "com.lihaoyi::utest::0.7.10"
+        """//> using dep com.lihaoyi::utest::0.7.10
           |import utest._
           |
           |object MyTests extends TestSuite {
@@ -753,9 +774,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       .mkString(".")
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
-      async {
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val target = {
+      Future {
+        val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+        val target           = {
           val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractTestTargets(targets)
@@ -767,16 +788,16 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         val targets = List(target).asJava
 
         {
-          val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+          val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
           expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         {
-          val resp = await {
+          val resp =
             remoteServer
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
-          }
+              .await
           val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
           val foundDepSources = resp.getItems.asScala
@@ -804,18 +825,18 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         os.write.over(root / "Messages.scala", newFileContent)
 
         {
-          val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+          val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
           expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         expect(changeFuture.isCompleted)
 
         {
-          val resp = await {
+          val resp =
             remoteServer
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
-          }
+              .await
           val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
           val foundDepSources = resp.getItems.asScala
@@ -844,22 +865,24 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           |}
           |""".stripMargin
     )
-    withBsp(inputs, Seq(".")) { (root, _, remoteServer) =>
-      async {
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val target = {
+    withBspInitResults(inputs, Seq(".")) { (root, _, remoteServer, buildInitRes) =>
+      val serverCapabilities: b.BuildServerCapabilities = buildInitRes.getCapabilities
+      expect(serverCapabilities.getOutputPathsProvider)
+      Future {
+        val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+        val target           = {
           val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           extractTestTargets(targets)
         }
 
-        val resp = await(
-          remoteServer.buildTargetOutputPaths(new b.OutputPathsParams(List(target).asJava)).asScala
-        )
+        val resp =
+          remoteServer.buildTargetOutputPaths(new b.OutputPathsParams(List(target).asJava))
+            .asScala.await
         val outputPathsItems = resp.getItems.asScala
         assert(outputPathsItems.nonEmpty)
 
-        val outputPathItem        = outputPathsItems.head
-        val expectedOutputPathUri = (root / Constants.workspaceDirName).toIO.toURI.toASCIIString
+        val outputPathItem         = outputPathsItems.head
+        val expectedOutputPathUri  = (root / Constants.workspaceDirName).toIO.toURI.toASCIIString
         val expectedOutputPathItem =
           new b.OutputPathsItem(
             target,
@@ -889,12 +912,13 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val jsonOptions    = List("--json-options", ideOptionsPath.toString)
       withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
         (_, _, remoteServer) =>
-          async {
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
             val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
 
             val resp =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava))
+                .asScala.await
             expect(resp.getStatusCode == b.StatusCode.ERROR)
 
             val dependencyOptions = List("--dependency", "com.lihaoyi::os-lib::0.8.0")
@@ -905,24 +929,24 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               )
 
             val reloadResponse =
-              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+              extractWorkspaceReloadResponse(remoteServer.workspaceReload().asScala.await)
             expect(reloadResponse.isEmpty)
 
-            val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
+            val buildTargetsResp0 = remoteServer.workspaceBuildTargets().asScala.await
             val targets0          = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
 
             val resp0 =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava))
+                .asScala.await
             expect(resp0.getStatusCode == b.StatusCode.OK)
           }
       }
-
     }
   }
 
   test("workspace/reload extra dependency directive") {
     val sourceFilePath = os.rel / "ReloadTest.scala"
-    val inputs = TestInputs(
+    val inputs         = TestInputs(
       sourceFilePath ->
         s"""object ReloadTest {
            |  println(os.pwd)
@@ -939,18 +963,19 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val jsonOptions    = List("--json-options", ideOptionsPath.toString)
       withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
         (_, _, remoteServer) =>
-          async {
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
             val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
 
             val resp =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava))
+                .asScala.await
             expect(resp.getStatusCode == b.StatusCode.ERROR)
 
-            val depName    = "os-lib"
-            val depVersion = "0.8.1"
+            val depName           = "os-lib"
+            val depVersion        = "0.8.1"
             val updatedSourceFile =
-              s"""//> using dep "com.lihaoyi::$depName:$depVersion"
+              s"""//> using dep com.lihaoyi::$depName:$depVersion
                  |
                  |object ReloadTest {
                  |  println(os.pwd)
@@ -959,12 +984,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             os.write.over(root / sourceFilePath, updatedSourceFile)
 
             val reloadResponse =
-              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+              extractWorkspaceReloadResponse(remoteServer.workspaceReload().asScala.await)
             expect(reloadResponse.isEmpty)
 
-            val depSourcesParams = new b.DependencySourcesParams(targets.asJava)
+            val depSourcesParams   = new b.DependencySourcesParams(targets.asJava)
             val depSourcesResponse =
-              await(remoteServer.buildTargetDependencySources(depSourcesParams).asScala)
+              remoteServer.buildTargetDependencySources(depSourcesParams).asScala.await
             val depSources = depSourcesResponse.getItems.asScala.flatMap(_.getSources.asScala)
             expect(depSources.exists(s => s.contains(depName) && s.contains(depVersion)))
           }
@@ -974,8 +999,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   }
 
   test("workspace/reload of an extra sources directory") {
-    val dir1 = "dir1"
-    val dir2 = "dir2"
+    val dir1   = "dir1"
+    val dir2   = "dir2"
     val inputs = TestInputs(
       os.rel / dir1 / "ReloadTest.scala" ->
         s"""object ReloadTest {
@@ -995,12 +1020,13 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         )
       withBsp(inputs, Seq(dir1), reuseRoot = Some(root)) {
         (_, _, remoteServer) =>
-          async {
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
             val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
 
             val resp =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava))
+                .asScala.await
             expect(resp.getStatusCode == b.StatusCode.ERROR)
 
             os.proc(TestUtil.cli, "setup-ide", dir1, dir2, extraOptions)
@@ -1010,14 +1036,15 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               )
 
             val reloadResponse =
-              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+              extractWorkspaceReloadResponse(remoteServer.workspaceReload().asScala.await)
             expect(reloadResponse.isEmpty)
 
-            val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
+            val buildTargetsResp0 = remoteServer.workspaceBuildTargets().asScala.await
             val targets0          = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
 
             val resp0 =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava))
+                .asScala.await
             expect(resp0.getStatusCode == b.StatusCode.OK)
           }
       }
@@ -1035,15 +1062,16 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
     withBsp(inputs, Seq(".")) {
       (_, _, remoteServer) =>
-        async {
-          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+        Future {
+          val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
           val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
 
           val resp =
-            await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava))
+              .asScala.await
           expect(resp.getStatusCode == b.StatusCode.OK)
 
-          val reloadResp = await(remoteServer.workspaceReload().asScala)
+          val reloadResp    = remoteServer.workspaceReload().asScala.await
           val responseError = extractWorkspaceReloadResponse(reloadResp).getOrElse {
             sys.error(s"Unexpected workspace reload response shape $reloadResp")
           }
@@ -1056,9 +1084,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   test("workspace/reload when updated source element in using directive") {
     val utilsFileName = "Utils.scala"
-    val inputs = TestInputs(
+    val inputs        = TestInputs(
       os.rel / "Hello.scala" ->
-        s"""|//> using file "Utils.scala"
+        s"""|//> using file Utils.scala
             |
             |object Hello extends App {
             |   println("Hello World")
@@ -1069,9 +1097,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             |}""".stripMargin
     )
     withBsp(inputs, Seq("Hello.scala")) { (root, _, remoteServer) =>
-      async {
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val target = {
+      Future {
+        val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+        val target           = {
           val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
@@ -1082,23 +1110,22 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
         val targets = List(target).asJava
 
-        val compileResp = await {
-          remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala
-        }
+        val compileResp =
+          remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
         expect(compileResp.getStatusCode == b.StatusCode.OK)
 
-        // after reload compilation should fails, Utils.scala file contains invalid scala code
+        // after reload compilation should fail, Utils.scala file contains invalid scala code
         val updatedUtilsFile =
           s"""|object Utils {
               |  val hello = "Hello World
               |}""".stripMargin
         os.write.over(root / utilsFileName, updatedUtilsFile)
 
-        val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
+        val buildTargetsResp0 = remoteServer.workspaceBuildTargets().asScala.await
         val targets0          = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
 
         val resp0 =
-          await(remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava)).asScala)
+          remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava)).asScala.await
         expect(resp0.getStatusCode == b.StatusCode.ERROR)
       }
     }
@@ -1106,7 +1133,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   test("workspace/reload should restart bloop with correct JVM version from options") {
     val sourceFilePath = os.rel / "ReloadTest.java"
-    val inputs = TestInputs(
+    val inputs         = TestInputs(
       sourceFilePath ->
         s"""public class ReloadTest {
            |  public static void main(String[] args) {
@@ -1134,12 +1161,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val jsonOptions    = List("--json-options", ideOptionsPath.toString)
       withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
         (_, _, remoteServer) =>
-          async {
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
             val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
 
             val errorResponse =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
             expect(errorResponse.getStatusCode == b.StatusCode.ERROR)
 
             val javacOptions = Seq(
@@ -1158,16 +1185,15 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               )
 
             val reloadResponse =
-              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+              extractWorkspaceReloadResponse(remoteServer.workspaceReload().asScala.await)
             expect(reloadResponse.isEmpty)
 
-            val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
+            val buildTargetsResp0 = remoteServer.workspaceBuildTargets().asScala.await
             val reloadedTargets   = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
 
             val okResponse =
-              await(
-                remoteServer.buildTargetCompile(new b.CompileParams(reloadedTargets.asJava)).asScala
-              )
+              remoteServer.buildTargetCompile(new b.CompileParams(reloadedTargets.asJava))
+                .asScala.await
             expect(okResponse.getStatusCode == b.StatusCode.OK)
           }
       }
@@ -1177,7 +1203,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   test("workspace/reload should restart bloop with correct JVM version from directives") {
     val sourceFilePath = os.rel / "ReloadTest.java"
-    val inputs = TestInputs(
+    val inputs         = TestInputs(
       sourceFilePath ->
         s"""//> using jvm 11
            |
@@ -1203,12 +1229,13 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val jsonOptions    = List("--json-options", ideOptionsPath.toString)
       withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
         (_, localClient, remoteServer) =>
-          async {
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
             val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
 
             val resp =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava))
+                .asScala.await
             expect(resp.getStatusCode == b.StatusCode.OK)
 
             val updatedSourceFile =
@@ -1233,23 +1260,22 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             )))
 
             val errorResponse =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
             expect(errorResponse.getStatusCode == b.StatusCode.OK)
             expect(localClient.logMessages().exists(_.getMessage.startsWith(
               "Error reading API from class file: ReloadTest : java.lang.UnsupportedClassVersionError: ReloadTest has been compiled by a more recent version of the Java Runtime"
             )))
 
             val reloadResponse =
-              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+              extractWorkspaceReloadResponse(remoteServer.workspaceReload().asScala.await)
             expect(reloadResponse.isEmpty)
 
-            val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
+            val buildTargetsResp0 = remoteServer.workspaceBuildTargets().asScala.await
             val reloadedTargets   = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
 
             val okResponse =
-              await(
-                remoteServer.buildTargetCompile(new b.CompileParams(reloadedTargets.asJava)).asScala
-              )
+              remoteServer.buildTargetCompile(new b.CompileParams(reloadedTargets.asJava))
+                .asScala.await
             expect(okResponse.getStatusCode == b.StatusCode.OK)
           }
       }
@@ -1259,7 +1285,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   test("bsp should start bloop with correct JVM version from directives") {
     val sourceFilePath = os.rel / "ReloadTest.java"
-    val inputs = TestInputs(
+    val inputs         = TestInputs(
       sourceFilePath ->
         s"""//> using jvm 19
            |//> using javacOpt --enable-preview --release 19
@@ -1296,12 +1322,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val jsonOptions    = List("--json-options", ideOptionsPath.toString)
       withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
         (_, _, remoteServer) =>
-          async {
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
             val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
 
             val resp =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
             expect(resp.getStatusCode == b.StatusCode.OK)
           }
       }
@@ -1320,10 +1346,10 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
     withBsp(inputs, Seq(".")) {
       (root, localClient, remoteServer) =>
-        async {
+        Future {
           checkIfBloopProjectIsInitialised(
-            root,
-            await(remoteServer.workspaceBuildTargets().asScala)
+            root = root,
+            buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
           )
           val diagnosticsParams =
             extractDiagnosticsParams(root / "InvalidUsingDirective.scala", localClient)
@@ -1348,9 +1374,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     val sourceFileName = "UnrecognisedUsingDirective.scala"
     val directiveKey   = "unrecognised.directive"
     val directiveValue = "value"
-    val inputs = TestInputs(
+    val inputs         = TestInputs(
       os.rel / sourceFileName ->
-        s"""//> using $directiveKey "$directiveValue"
+        s"""//> using $directiveKey $directiveValue
            |
            |object UnrecognisedUsingDirective extends App {
            |  println("Hello")
@@ -1359,10 +1385,10 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
     withBsp(inputs, Seq(".")) {
       (root, localClient, remoteServer) =>
-        async {
+        Future {
           checkIfBloopProjectIsInitialised(
-            root,
-            await(remoteServer.workspaceBuildTargets().asScala)
+            root = root,
+            buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
           )
           val diagnosticsParams =
             extractDiagnosticsParams(root / sourceFileName, localClient)
@@ -1374,9 +1400,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               s"Unrecognized directive: $directiveKey with values: $directiveValue",
             expectedSeverity = b.DiagnosticSeverity.ERROR,
             expectedStartLine = 0,
-            expectedStartCharacter = 34,
+            expectedStartCharacter = 10,
             expectedEndLine = 0,
-            expectedEndCharacter = 39
+            expectedEndCharacter = 32
           )
         }
     }
@@ -1385,7 +1411,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("bloop projects are initialised properly for a directive for an unfetchable dependency") {
     val inputs = TestInputs(
       os.rel / "InvalidUsingDirective.scala" ->
-        s"""//> using dep "no::lib:123"
+        s"""//> using dep no::lib:123
            |
            |object InvalidUsingDirective extends App {
            |  println("Hello")
@@ -1394,10 +1420,10 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
     withBsp(inputs, Seq(".")) {
       (root, localClient, remoteServer) =>
-        async {
+        Future {
           checkIfBloopProjectIsInitialised(
-            root,
-            await(remoteServer.workspaceBuildTargets().asScala)
+            root = root,
+            buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
           )
           val diagnosticsParams =
             extractDiagnosticsParams(root / "InvalidUsingDirective.scala", localClient)
@@ -1408,9 +1434,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             expectedMessage = "Error downloading no:lib",
             expectedSeverity = b.DiagnosticSeverity.ERROR,
             expectedStartLine = 0,
-            expectedStartCharacter = 15,
+            expectedStartCharacter = 14,
             expectedEndLine = 0,
-            expectedEndCharacter = 26,
+            expectedEndCharacter = 25,
             strictlyCheckMessage = false
           )
         }
@@ -1419,7 +1445,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("bsp should support parsing cancel params") { // TODO This test only checks if the native launcher of Scala CLI is able to parse cancel params,
     // this test does not check if Bloop supports $/cancelRequest. The status of that is tracked under the https://github.com/scalacenter/bloop/issues/2030.
     val fileName = "Hello.scala"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""object Hello extends App {
            |  while(true) {
@@ -1430,35 +1456,34 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
     withBsp(inputs, Seq("."), stdErrOpt = Some(os.rel / "stderr.txt")) {
       (root, _, remoteServer) =>
-        async {
+        Future {
           // prepare build
-          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
           // build code
-          val targets = buildTargetsResp.getTargets.asScala.map(_.getId())
-          val compileResp = await {
+          val targets     = buildTargetsResp.getTargets.asScala.map(_.getId())
+          val compileResp =
             remoteServer
               .buildTargetCompile(new b.CompileParams(targets.asJava))
               .asScala
-          }
+              .await
           expect(compileResp.getStatusCode == b.StatusCode.OK)
 
-          val Some(mainTarget) = targets.find(!_.getUri.contains("-test"))
+          val mainTarget    = targets.find(!_.getUri.contains("-test")).get
           val runRespFuture =
             remoteServer
               .buildTargetRun(new b.RunParams(mainTarget))
           runRespFuture.cancel(true)
           expect(runRespFuture.isCancelled || runRespFuture.isCompletedExceptionally)
-          expect(!os.read(root / "stderr.txt").contains(
-            "Unmatched cancel notification for request id null"
-          ))
+          val stderrPath = root / "stderr.txt"
+          expect(!os.read(stderrPath).contains("Unmatched cancel notification for request id null"))
         }
     }
   }
   test("bsp should report actionable diagnostic when enabled") {
     val fileName = "Hello.scala"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.7.8"
+        s"""//> using dep com.lihaoyi::os-lib:0.7.8
            |
            |object Hello extends App {
            |  println("Hello")
@@ -1467,12 +1492,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
     withBsp(inputs, Seq(".", "--actions")) {
       (_, localClient, remoteServer) =>
-        async {
+        Future {
           // prepare build
-          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
           // build code
           val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
-          await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+          remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
 
           val visibleDiagnostics =
             localClient.diagnostics().takeWhile(!_.getReset).flatMap(_.getDiagnostics.asScala)
@@ -1486,9 +1511,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             expectedMessage = "os-lib is outdated",
             expectedSeverity = b.DiagnosticSeverity.HINT,
             expectedStartLine = 0,
-            expectedStartCharacter = 15,
+            expectedStartCharacter = 14,
             expectedEndLine = 0,
-            expectedEndCharacter = 40,
+            expectedEndCharacter = 39,
             expectedSource = Some("scala-cli"),
             strictlyCheckMessage = false
           )
@@ -1506,9 +1531,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
           expect(textEdit.getNewText.contains("com.lihaoyi::os-lib:"))
           expect(textEdit.getRange.getStart.getLine == 0)
-          expect(textEdit.getRange.getStart.getCharacter == 15)
+          expect(textEdit.getRange.getStart.getCharacter == 14)
           expect(textEdit.getRange.getEnd.getLine == 0)
-          expect(textEdit.getRange.getEnd.getCharacter == 40)
+          expect(textEdit.getRange.getEnd.getCharacter == 39)
         }
     }
   }
@@ -1517,7 +1542,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     List(".sc", ".scala").foreach { filetype =>
       test(s"bsp should report actionable diagnostic from bloop for $filetype files (Scala 3)") {
         val fileName = s"Hello$filetype"
-        val inputs = TestInputs(
+        val inputs   = TestInputs(
           os.rel / fileName ->
             s"""
                |object Hello {
@@ -1533,19 +1558,19 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         )
         withBsp(inputs, Seq(".")) {
           (_, localClient, remoteServer) =>
-            async {
+            Future {
               // prepare build
-              val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+              val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
               // build code
               val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
 
               val visibleDiagnostics =
-                localClient.diagnostics().map(_.getDiagnostics.asScala).find(
-                  _.nonEmpty
-                ).getOrElse(
-                  Nil
-                )
+                localClient
+                  .diagnostics()
+                  .map(_.getDiagnostics.asScala)
+                  .find(_.nonEmpty)
+                  .getOrElse(Nil)
 
               expect(visibleDiagnostics.size == 1)
 
@@ -1586,7 +1611,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("bsp should support jvmRunEnvironment request") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.7.8"
+        s"""//> using dep com.lihaoyi::os-lib:0.7.8
            |
            |object Hello extends App {
            |  println("Hello")
@@ -1595,24 +1620,24 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
     withBsp(inputs, Seq(".")) {
       (_, _, remoteServer) =>
-        async {
+        Future {
           // prepare build
-          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
           // build code
           val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
 
-          val jvmRunEnvironmentResult: b.JvmRunEnvironmentResult = await {
+          val jvmRunEnvironmentResult: b.JvmRunEnvironmentResult =
             remoteServer
               .buildTargetJvmRunEnvironment(new b.JvmRunEnvironmentParams(targets))
               .asScala
-          }
+              .await
           expect(jvmRunEnvironmentResult.getItems.asScala.toList.nonEmpty)
 
-          val jvmTestEnvironmentResult: b.JvmTestEnvironmentResult = await {
+          val jvmTestEnvironmentResult: b.JvmTestEnvironmentResult =
             remoteServer
               .buildTargetJvmTestEnvironment(new JvmTestEnvironmentParams(targets))
               .asScala
-          }
+              .await
           expect(jvmTestEnvironmentResult.getItems.asScala.toList.nonEmpty)
         }
     }
@@ -1627,9 +1652,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       )
 
       withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
-        async {
-          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-          val target = {
+        Future {
+          val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+          val target           = {
             val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
             expect(targets.length == 2)
             extractMainTargets(targets)
@@ -1640,21 +1665,20 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
           val targets = List(target).asJava
 
-          val compileResp = await {
+          val compileResp =
             remoteServer
               .buildTargetCompile(new b.CompileParams(targets))
               .asScala
-          }
+              .await
           expect(compileResp.getStatusCode == b.StatusCode.ERROR)
 
           val diagnosticsParams = {
             val diagnostics = localClient.diagnostics()
             val params      = diagnostics(2)
             expect(params.getBuildTarget.getUri == targetUri)
-            expect(
-              TestUtil.normalizeUri(params.getTextDocument.getUri) ==
-                TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
-            )
+            val actualUri   = TestUtil.normalizeUri(params.getTextDocument.getUri)
+            val expectedUri = TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
+            expect(actualUri == expectedUri)
             params
           }
 
@@ -1684,9 +1708,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     val mainSources   = os.rel / "src"
     val jarPath       = mainSources / "Message.jar"
     val sourceJarPath = mainSources / "Message-sources.jar"
-    val inputs = TestInputs(
+    val inputs        = TestInputs(
       jarSources / "Message.scala" -> "case class Message(value: String)",
-      mainSources / "Main.scala" ->
+      mainSources / "Main.scala"   ->
         s"""$directives
            |object Main extends App {
            |  println(Message("Hello").value)
@@ -1712,7 +1736,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         "--power",
         "package",
         jarSources,
-        "--source",
+        "--with-sources",
         "-o",
         sourceJarPath,
         extraOptions
@@ -1725,28 +1749,28 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         bspOptions = getBspOptions(sourceJarPath)
       ) {
         (_, _, remoteServer) =>
-          async {
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-            val targets = buildTargetsResp
+          Future {
+            val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+            val targets          = buildTargetsResp
               .getTargets
               .asScala
-            val Some(mainTarget) = targets.find(!_.getId.getUri.contains("-test"))
-            val Some(testTarget) = targets.find(_.getId.getUri.contains("-test"))
+            val mainTarget = targets.find(!_.getId.getUri.contains("-test")).get
+            val testTarget = targets.find(_.getId.getUri.contains("-test")).get
             // ensure that the project compiles
-            val compileRes = await(remoteServer.buildTargetCompile(
+            val compileRes = remoteServer.buildTargetCompile(
               new b.CompileParams(List(mainTarget.getId).asJava)
-            ).asScala)
+            ).asScala.await
             expect(compileRes.getStatusCode == b.StatusCode.OK)
             // ensure that the source jar is in the dependency sources
-            val dependencySourcesResp = await {
+            val dependencySourcesResp =
               remoteServer
                 .buildTargetDependencySources(
                   new b.DependencySourcesParams(List(mainTarget.getId, testTarget.getId).asJava)
                 )
                 .asScala
-            }
+                .await
             val dependencySourceItems = dependencySourcesResp.getItems.asScala
-            val sources = dependencySourceItems
+            val sources               = dependencySourceItems
               .filter(dsi =>
                 if (checkTestTarget) dsi.getTarget == testTarget.getId
                 else dsi.getTarget == mainTarget.getId
@@ -1781,7 +1805,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val inputs = TestInputs(
         os.rel / "test.sc" ->
           """//> using toolkit latest
-            |//> using test.toolkit "typelevel:latest"
+            |//> using test.toolkit typelevel:latest
             |
             |//> using lib org.typelevel::cats-core:2.6.1
             |
@@ -1792,9 +1816,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       )
 
       withBsp(inputs, Seq(".", "--actions=false")) { (root, localClient, remoteServer) =>
-        async {
-          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-          val target = {
+        Future {
+          val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+          val target           = {
             val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
             expect(targets.length == 2)
             extractMainTargets(targets)
@@ -1805,11 +1829,11 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
           val targets = List(target).asJava
 
-          val compileResp = await {
+          val compileResp =
             remoteServer
               .buildTargetCompile(new b.CompileParams(targets))
               .asScala
-          }
+              .await
           expect(compileResp.getStatusCode == b.StatusCode.OK)
 
           val diagnosticsParams = {
@@ -1818,10 +1842,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             expect(diagnostics.size == 3)
             val params = diagnostics.head
             expect(params.getBuildTarget.getUri == targetUri)
-            expect(
-              TestUtil.normalizeUri(params.getTextDocument.getUri) ==
-                TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
-            )
+            val actualUri   = TestUtil.normalizeUri(params.getTextDocument.getUri)
+            val expectedUri = TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
+            expect(actualUri == expectedUri)
             diagnostics
           }
 
@@ -1862,7 +1885,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               expectedStartLine = 1,
               expectedStartCharacter = 10,
               expectedEndLine = 1,
-              expectedEndCharacter = 41
+              expectedEndCharacter = 39
             )
 
             checkScalaAction(
@@ -1873,7 +1896,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               expectedStartLine = 1,
               expectedStartCharacter = 10,
               expectedEndLine = 1,
-              expectedEndCharacter = 41,
+              expectedEndCharacter = 39,
               expectedNewText = "test.toolkit typelevel:default"
             )
           }
@@ -1907,74 +1930,78 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     }
 
   test("BSP respects JAVA_HOME") {
-    val javaVersion = "22"
-    val inputs = TestInputs(os.rel / "check-java.sc" ->
-      s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
-         |println(System.getProperty("java.home"))""".stripMargin)
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
-      val java22Home =
-        os.Path(
-          os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
-          os.pwd
-        )
-      os.proc(TestUtil.cli, "setup-ide", "check-java.sc")
-        .call(cwd = root, env = Map("JAVA_HOME" -> java22Home.toString()))
-      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
-      expect(ideOptionsPath.toNIO.toFile.exists())
-      val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
-      expect(ideEnvsPath.toNIO.toFile.exists())
-      val jsonOptions = List("--json-options", ideOptionsPath.toString)
-      val envOptions  = List("--envs-file", ideEnvsPath.toString)
-      withBsp(inputs, Seq("."), bspOptions = jsonOptions ++ envOptions, reuseRoot = Some(root)) {
-        (_, _, remoteServer) =>
-          async {
-            val targets = await(remoteServer.workspaceBuildTargets().asScala)
-              .getTargets.asScala
-              .filter(!_.getId.getUri.contains("-test"))
-              .map(_.getId())
-            val compileResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
-            expect(compileResult.getStatusCode == b.StatusCode.OK)
-            val runResult =
-              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
-            expect(runResult.getStatusCode == b.StatusCode.OK)
-          }
+    TestUtil.retryOnCi() {
+      val javaVersion = "23"
+      val inputs      = TestInputs(os.rel / "check-java.sc" ->
+        s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
+           |println(System.getProperty("java.home"))""".stripMargin)
+      inputs.fromRoot { root =>
+        os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+        val java23Home =
+          os.Path(
+            os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
+            os.pwd
+          )
+        os.proc(TestUtil.cli, "setup-ide", "check-java.sc")
+          .call(cwd = root, env = Map("JAVA_HOME" -> java23Home.toString()))
+        val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+        expect(ideOptionsPath.toNIO.toFile.exists())
+        val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
+        expect(ideEnvsPath.toNIO.toFile.exists())
+        val jsonOptions = List("--json-options", ideOptionsPath.toString)
+        val envOptions  = List("--envs-file", ideEnvsPath.toString)
+        withBsp(inputs, Seq("."), bspOptions = jsonOptions ++ envOptions, reuseRoot = Some(root)) {
+          (_, _, remoteServer) =>
+            Future {
+              val targets = remoteServer.workspaceBuildTargets().asScala.await
+                .getTargets.asScala
+                .filter(!_.getId.getUri.contains("-test"))
+                .map(_.getId())
+              val compileResult =
+                remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
+              expect(compileResult.getStatusCode == b.StatusCode.OK)
+              val runResult =
+                remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
+              expect(runResult.getStatusCode == b.StatusCode.OK)
+            }
+        }
       }
     }
   }
 
   test("BSP respects --java-home") {
-    val javaVersion = "22"
-    val inputs = TestInputs(os.rel / "check-java.sc" ->
-      s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
-         |println(System.getProperty("java.home"))""".stripMargin)
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
-      val java22Home =
-        os.Path(
-          os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
-          os.pwd
-        )
-      os.proc(TestUtil.cli, "setup-ide", "check-java.sc", "--java-home", java22Home.toString())
-        .call(cwd = root)
-      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
-      expect(ideOptionsPath.toNIO.toFile.exists())
-      val jsonOptions = List("--json-options", ideOptionsPath.toString)
-      withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
-        (_, _, remoteServer) =>
-          async {
-            val targets = await(remoteServer.workspaceBuildTargets().asScala)
-              .getTargets.asScala
-              .filter(!_.getId.getUri.contains("-test"))
-              .map(_.getId())
-            val compileResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
-            expect(compileResult.getStatusCode == b.StatusCode.OK)
-            val runResult =
-              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
-            expect(runResult.getStatusCode == b.StatusCode.OK)
-          }
+    TestUtil.retryOnCi() {
+      val javaVersion = "23"
+      val inputs      = TestInputs(os.rel / "check-java.sc" ->
+        s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
+           |println(System.getProperty("java.home"))""".stripMargin)
+      inputs.fromRoot { root =>
+        os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+        val java22Home =
+          os.Path(
+            os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
+            os.pwd
+          )
+        os.proc(TestUtil.cli, "setup-ide", "check-java.sc", "--java-home", java22Home.toString())
+          .call(cwd = root)
+        val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+        expect(ideOptionsPath.toNIO.toFile.exists())
+        val jsonOptions = List("--json-options", ideOptionsPath.toString)
+        withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
+          (_, _, remoteServer) =>
+            Future {
+              val targets = remoteServer.workspaceBuildTargets().asScala.await
+                .getTargets.asScala
+                .filter(!_.getId.getUri.contains("-test"))
+                .map(_.getId())
+              val compileResult =
+                remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
+              expect(compileResult.getStatusCode == b.StatusCode.OK)
+              val runResult =
+                remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
+              expect(runResult.getStatusCode == b.StatusCode.OK)
+            }
+        }
       }
     }
   }
@@ -2002,12 +2029,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         "BSP fails when --power mode is not set for experimental directives (example: using python directive)"
   } test(testDescription) {
     val scriptName = "requires-power.sc"
-    val inputs = TestInputs(os.rel / scriptName ->
+    val inputs     = TestInputs(os.rel / scriptName ->
       s"""//> using python
          |println("scalapy is experimental")""".stripMargin)
     inputs.fromRoot { root =>
-      val configFile = os.rel / "config" / "config.json"
-      val configEnvs = Map("SCALA_CLI_CONFIG" -> configFile.toString())
+      val configFile                        = os.rel / "config" / "config.json"
+      val configEnvs                        = Map("SCALA_CLI_CONFIG" -> configFile.toString())
       val setupIdeEnvs: Map[String, String] =
         if (setPowerByEnv) Map("SCALA_CLI_POWER" -> "true") ++ configEnvs
         else configEnvs
@@ -2044,21 +2071,20 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         reuseRoot = Some(root)
       ) {
         (_, _, remoteServer) =>
-          async {
-            val targets = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val targets = remoteServer.workspaceBuildTargets().asScala.await
               .getTargets.asScala
               .filter(!_.getId.getUri.contains("-test"))
               .map(_.getId())
             val compileResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
-            if (powerIsSet) {
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
+            if powerIsSet then {
               expect(compileResult.getStatusCode == b.StatusCode.OK)
               val runResult =
-                await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+                remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
               expect(runResult.getStatusCode == b.StatusCode.OK)
             }
-            else
-              expect(compileResult.getStatusCode == b.StatusCode.ERROR)
+            else expect(compileResult.getStatusCode == b.StatusCode.ERROR)
           }
       }
     }
@@ -2066,7 +2092,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   test("BSP reloads --power mode after setting it via env passed to setup-ide") {
     val scriptName = "requires-power.sc"
-    val inputs = TestInputs(os.rel / scriptName ->
+    val inputs     = TestInputs(os.rel / scriptName ->
       s"""//> using python
          |println("scalapy is experimental")""".stripMargin)
     inputs.fromRoot { root =>
@@ -2076,15 +2102,15 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val jsonOptions = List("--envs-file", ideEnvsPath.toString)
       withBsp(inputs, Seq(scriptName), bspOptions = jsonOptions, reuseRoot = Some(root)) {
         (_, _, remoteServer) =>
-          async {
-            val targets = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val targets = remoteServer.workspaceBuildTargets().asScala.await
               .getTargets.asScala
               .filter(!_.getId.getUri.contains("-test"))
               .map(_.getId())
 
             // compilation should fail before reload, as --power mode is off
             val compileBeforeReloadResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
             expect(compileBeforeReloadResult.getStatusCode == b.StatusCode.ERROR)
 
             // enable --power mode via env for setup-ide
@@ -2093,15 +2119,15 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
             // compilation should now succeed
             val reloadResponse =
-              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+              extractWorkspaceReloadResponse(remoteServer.workspaceReload().asScala.await)
             expect(reloadResponse.isEmpty)
             val compileAfterReloadResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
             expect(compileAfterReloadResult.getStatusCode == b.StatusCode.OK)
 
             // code should also be runnable via BSP now
             val runResult =
-              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+              remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
             expect(runResult.getStatusCode == b.StatusCode.OK)
           }
       }
@@ -2110,7 +2136,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   test("BSP reloads --power mode after setting it via config") {
     val scriptName = "requires-power.sc"
-    val inputs = TestInputs(os.rel / scriptName ->
+    val inputs     = TestInputs(os.rel / scriptName ->
       s"""//> using python
          |println("scalapy is experimental")""".stripMargin)
     inputs.fromRoot { root =>
@@ -2131,15 +2157,15 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         reuseRoot = Some(root)
       ) {
         (_, _, remoteServer) =>
-          async {
-            val targets = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val targets = remoteServer.workspaceBuildTargets().asScala.await
               .getTargets.asScala
               .filter(!_.getId.getUri.contains("-test"))
               .map(_.getId())
 
             // compilation should fail before reload, as --power mode is off
             val compileBeforeReloadResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
             expect(compileBeforeReloadResult.getStatusCode == b.StatusCode.ERROR)
 
             // enable --power mode via config
@@ -2148,58 +2174,145 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
             // compilation should now succeed
             val reloadResponse =
-              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+              extractWorkspaceReloadResponse(remoteServer.workspaceReload().asScala.await)
             expect(reloadResponse.isEmpty)
             val compileAfterReloadResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
             expect(compileAfterReloadResult.getStatusCode == b.StatusCode.OK)
 
             // code should also be runnable via BSP now
             val runResult =
-              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+              remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
             expect(runResult.getStatusCode == b.StatusCode.OK)
           }
       }
     }
   }
 
-  for { cliVersion <- Seq("1.5.0", "1.5.0-19-g932866db6-SNAPSHOT", "1.0.0") }
+  for {
+    cliVersion <- Seq("1.8.4", "1.5.0", "1.0.0")
+  } // TODO: test for nightly, too
     test(s"setup-ide doesn't pass unrecognised arguments to old --cli-versions: $cliVersion") {
-      val scriptName = "cli-version.sc"
-      val inputs = TestInputs(
-        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion"""
-      )
-      inputs.fromRoot { root =>
-        val r =
-          os.proc(TestUtil.cli, "--cli-version", cliVersion, "setup-ide", scriptName, extraOptions)
-            .call(cwd = root, stderr = os.Pipe, check = false)
-        expect(!r.err.text().contains("Unrecognized argument"))
-        expect(r.exitCode == 0)
+      TestUtil.retryOnCi() {
+        val scriptName = "cli-version.sc"
+        val inputs     = TestInputs(
+          os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion"""
+        )
+        inputs.fromRoot { root =>
+          val r =
+            os.proc(
+              TestUtil.cli,
+              "--cli-version",
+              cliVersion,
+              "setup-ide",
+              scriptName,
+              extraOptions
+            )
+              .call(cwd = root, stderr = os.Pipe, check = false)
+          expect(!r.err.text().contains("Unrecognized argument"))
+          expect(r.exitCode == 0)
+        }
       }
     }
 
-  // TODO: test for the most recent CLI version as well when 1.5.1 is out
-  for { cliVersion <- Seq("1.5.0-34-g31a88e428-SNAPSHOT") }
+  for {
+    cliVersion <- Seq("1.8.4")
+  } // TODO: test for nightly, too
     test(
       s"setup-ide prepares a valid BSP configuration with --cli-version $cliVersion"
     ) {
-      val scriptName = "cli-version.sc"
-      val inputs = TestInputs(
-        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion")"""
-      )
-      inputs.fromRoot { root =>
-        val cliVersionArgs = List("--cli-version", cliVersion)
-        os.proc(TestUtil.cli, cliVersionArgs, "setup-ide", scriptName, extraOptions).call(cwd =
-          root
+      TestUtil.retryOnCi() {
+        val scriptName = "cli-version.sc"
+        TestInputs(os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion")""")
+          .fromRoot { root =>
+            val cliVersionArgs = List("--cli-version", cliVersion)
+            os.proc(TestUtil.cli, cliVersionArgs, "setup-ide", scriptName, extraOptions)
+              .call(cwd = root)
+            val expectedIdeLauncherFile =
+              root / Constants.workspaceDirName / "ide-launcher-options.json"
+            expect(expectedIdeLauncherFile.toNIO.toFile.exists())
+            expect(os.read(expectedIdeLauncherFile).contains(cliVersion))
+            val bspConfig = readBspConfig(root)
+            expect(bspConfig.argv.head == TestUtil.cliPath)
+            expect(bspConfig.argv.containsSlice(cliVersionArgs))
+            expect(bspConfig.argv.indexOfSlice(cliVersionArgs) < bspConfig.argv.indexOf("bsp"))
+          }
+      }
+    }
+
+  for {
+    useScalaWrapper <- Seq(false, true)
+    if actualScalaVersion.coursierVersion >= "3.5.0".coursierVersion
+    scalaVersion =
+      if actualScalaVersion == Constants.scala3NextRc then Constants.scala3NextRcAnnounced
+      else if actualScalaVersion == Constants.scala3Next then Constants.scala3NextAnnounced
+      else actualScalaVersion
+    withLauncher = (root: os.Path) =>
+      (f: Seq[os.Shellable] => Unit) =>
+        if (useScalaWrapper)
+          withScalaRunnerWrapper(
+            root = root,
+            localBin = root / "local-bin",
+            localCache = Some(root / "local-cache"),
+            scalaVersion = scalaVersion,
+            shouldCleanUp = false
+          )(launcher => f(Seq(launcher)))
+        else
+          f(Seq(TestUtil.cli))
+    launcherString         = if (useScalaWrapper) s"scala wrapper ($scalaVersion)" else "Scala CLI"
+    connectionJsonFileName = if (useScalaWrapper) "scala.json" else "scala-cli.json"
+  }
+    test(
+      s"setup-ide prepares valid BSP connection json with a valid launcher ($launcherString)"
+    ) {
+      TestUtil.retryOnCi() {
+        val scriptName = "example.sc"
+        TestInputs(
+          os.rel / scriptName -> s"""println("Hello")"""
         )
-        val expectedIdeLauncherFile =
-          root / Constants.workspaceDirName / "ide-launcher-options.json"
-        expect(expectedIdeLauncherFile.toNIO.toFile.exists())
-        expect(os.read(expectedIdeLauncherFile).contains(cliVersion))
-        val bspConfig = readBspConfig(root)
-        expect(bspConfig.argv.head == TestUtil.cliPath)
-        expect(bspConfig.argv.containsSlice(cliVersionArgs))
-        expect(bspConfig.argv.indexOfSlice(cliVersionArgs) < bspConfig.argv.indexOf("bsp"))
+          .fromRoot { root =>
+            withLauncher(root) { launcher =>
+              val jvmIndex = if (TestUtil.isJvmCli) Constants.minimumLauncherJavaVersion else 8
+              val javaHome =
+                os.Path(
+                  os.proc(TestUtil.cs, "java-home", "--jvm", jvmIndex).call().out.trim(),
+                  os.pwd
+                )
+              os.proc(launcher, "setup-ide", scriptName, extraOptions)
+                .call(cwd = root, env = Map("JAVA_HOME" -> javaHome.toString))
+              val expectedIdeLauncherFile =
+                root / Constants.workspaceDirName / "ide-launcher-options.json"
+              expect(expectedIdeLauncherFile.toNIO.toFile.exists())
+              val bspConfig          = readBspConfig(root, connectionJsonFileName)
+              val bspLauncherCommand = {
+                val launcherPrefix = bspConfig.argv.takeWhile(_ != TestUtil.cliPath)
+                launcherPrefix :+ bspConfig.argv.drop(launcherPrefix.length).head
+              }
+              expect(bspLauncherCommand.last == TestUtil.cliPath)
+              if (TestUtil.isJvmBootstrappedCli) {
+                // this launcher is not self-executable and has to be launched with `java -jar`
+                expect(bspLauncherCommand.head.endsWith("java"))
+                expect(bspLauncherCommand.drop(1) == List("-jar", TestUtil.cliPath))
+                val bspJavaVersionResult = os.proc(bspLauncherCommand.head, "-version")
+                  .call(
+                    cwd = root,
+                    env = Map("JAVA_HOME" -> javaHome.toString),
+                    mergeErrIntoOut = true
+                  )
+                val bspJavaVersion = TestUtil.parseJavaVersion(bspJavaVersionResult.out.trim()).get
+                // the bsp launcher has to know to run itself on a supported JVM
+                expect(bspJavaVersion >= math.max(
+                  Constants.minimumInternalJvmVersion,
+                  Constants.bloopMinimumJvmVersion
+                ))
+              }
+              else
+                expect(bspLauncherCommand == List(TestUtil.cliPath))
+              val r = os.proc(bspLauncherCommand, "version", "--cli-version")
+                .call(cwd = root, env = Map("JAVA_HOME" -> javaHome.toString))
+              expect(r.out.trim() == Constants.cliVersion)
+            }
+          }
       }
     }
 
@@ -2210,7 +2323,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       os.proc(TestUtil.cli, javaProps, "setup-ide", scriptName, extraOptions)
         .call(cwd = root)
       val bspConfig = readBspConfig(root)
-      expect(bspConfig.argv.head == TestUtil.cliPath)
+      if (TestUtil.isJvmBootstrappedCli) {
+        expect(bspConfig.argv.head.endsWith("java"))
+        expect(bspConfig.argv.drop(1).head == "-jar")
+        expect(bspConfig.argv.dropWhile(_ != TestUtil.cliPath).head == TestUtil.cliPath)
+      }
+      else expect(bspConfig.argv.head == TestUtil.cliPath)
       expect(bspConfig.argv.containsSlice(javaProps))
       expect(bspConfig.argv.indexOfSlice(javaProps) < bspConfig.argv.indexOf("bsp"))
     }
@@ -2218,7 +2336,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   test("BSP loads verbosity on compile") {
     val stderrFile = os.rel / "stderr.txt"
-    val inputs = TestInputs(
+    val inputs     = TestInputs(
       os.rel / "Hello.scala" ->
         s"""object Hello extends App {
            |  println("Hello World")
@@ -2227,14 +2345,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
     withBsp(inputs, Seq(".", "-v"), stdErrOpt = Some(stderrFile)) {
       (root, _, remoteServer) =>
-        async {
-          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+        Future {
+          val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
           val targets          = buildTargetsResp.getTargets.asScala.map(_.getId())
-          val compileResp = await {
+          val compileResp      =
             remoteServer
               .buildTargetCompile(new b.CompileParams(targets.asJava))
               .asScala
-          }
+              .await
           expect(compileResp.getStatusCode == b.StatusCode.OK)
           expect(os.read(root / stderrFile).contains("Scheduling compilation"))
         }
@@ -2243,7 +2361,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   test("BSP loads verbosity on compile when passed from setup-ide") {
     val stderrFile = os.rel / "stderr.txt"
-    val inputs = TestInputs(
+    val inputs     = TestInputs(
       os.rel / "Hello.scala" ->
         s"""object Hello extends App {
            |  println("Hello World")
@@ -2262,17 +2380,68 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         stdErrOpt = Some(stderrFile)
       ) {
         (_, _, remoteServer) =>
-          async {
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
             val targets          = buildTargetsResp.getTargets.asScala.map(_.getId())
-            val compileResp = await {
+            val compileResp      =
               remoteServer
                 .buildTargetCompile(new b.CompileParams(targets.asJava))
                 .asScala
-            }
+                .await
             expect(compileResp.getStatusCode == b.StatusCode.OK)
             expect(os.read(root / stderrFile).contains("Scheduling compilation"))
           }
+      }
+    }
+  }
+
+  test("buildTarget/wrappedSources") {
+    val inputs = TestInputs(
+      os.rel / "simple.sc" ->
+        s"""val msg = "Hello"
+           |println(msg)
+           |""".stripMargin
+    )
+
+    withBsp(inputs, Seq(".")) { (root, _, remoteServer) =>
+      Future {
+        val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+        val target           = {
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+          expect(targets.length == 2)
+          extractMainTargets(targets)
+        }
+
+        val targets = List(target).asJava
+
+        val compileResp =
+          remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
+        expect(compileResp.getStatusCode == b.StatusCode.OK)
+
+        val resp = remoteServer
+          .buildTargetWrappedSources(new b.SourcesParams(targets))
+          .asScala
+          .await
+
+        val items = resp.items.asScala
+        expect(items.nonEmpty)
+
+        val mainItem = items.find(_.target.getUri == target.getUri).get
+
+        val sources = mainItem.sources.asScala
+        expect(sources.size == 1)
+
+        val wrappedSource = sources.head
+        val sourceUri     = TestUtil.normalizeUri(wrappedSource.uri)
+        val expectedUri   =
+          TestUtil.normalizeUri((root / "simple.sc").toNIO.toUri.toASCIIString)
+        expect(sourceUri == expectedUri)
+
+        expect(wrappedSource.topWrapper.contains("simple"))
+        expect(wrappedSource.topWrapper.contains("scriptPath"))
+        expect(wrappedSource.bottomWrapper == "}")
+        expect(wrappedSource.generatedUri.endsWith(".scala"))
+        expect(wrappedSource.generatedUri.contains("simple"))
       }
     }
   }

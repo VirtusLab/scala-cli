@@ -1,7 +1,7 @@
 package scala.build.bsp
 
+import ch.epfl.scala.bsp4j as b
 import ch.epfl.scala.bsp4j.{DependencyModulesParams, DependencyModulesResult}
-import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
 import java.util.function.BiFunction
@@ -18,7 +18,7 @@ trait BuildServerForwardStubs extends b.BuildServer {
           maybeValue
         case error =>
           val methodContext = s"bloop bsp server, method: $methodName"
-          val context =
+          val context       =
             if (params.isEmpty) methodContext
             else
               params.mkString(s"$methodContext, with params: ", ", ", "")

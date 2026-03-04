@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 RUN curl -fsSL https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get update
@@ -6,7 +6,7 @@ RUN apt-get install ca-certificates-java openjdk-17-jdk openjdk-17-jre -y
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y pv curl clang rubygems nodejs python3-pip &&\
     rm -rf /var/lib/apt/lists/* &&\
     gem install rouge &&\
-    pip3 install asciinema==2.1.0
+    pip3 install --break-system-packages asciinema==2.1.0
 
 RUN mkdir /data
 WORKDIR /data

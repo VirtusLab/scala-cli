@@ -1,24 +1,26 @@
 package scala.build.preprocessing.directives
 
-import coursier.core.Version
+import coursier.version.Version
 import dependency.*
 
 import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
-import scala.build.options.BuildRequirements.ScopeRequirement
-import scala.build.options.WithBuildRequirements.*
 import scala.build.options.*
+import scala.build.options.WithBuildRequirements.*
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Toolkit")
-@DirectiveExamples("//> using toolkit 0.1.0")
+@DirectiveExamples(s"//> using toolkit ${Constants.toolkitDefaultVersion}")
 @DirectiveExamples("//> using toolkit default")
 @DirectiveExamples("//> using test.toolkit default")
 @DirectiveUsage(
   "//> using toolkit _version_",
-  "`//> using toolkit` _version_"
+  """`//> using toolkit` _version_
+    |
+    |`//> using test.toolkit` _version_
+    |""".stripMargin
 )
 @DirectiveDescription(
   s"Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for Scala toolkit: ${Constants.toolkitDefaultVersion}, 'default' version for typelevel toolkit: ${Constants.typelevelToolkitDefaultVersion}"
@@ -205,7 +207,7 @@ object Toolkit {
             .map(s => BuildOptions.empty.withScopeRequirement(s))
             .getOrElse(BuildOptions.empty.withEmptyRequirements)
         } { (acc, boWithReqs) =>
-          acc.map(_ orElse boWithReqs.value)
+          acc.map(_.orElse(boWithReqs.value))
         }
       }
     }

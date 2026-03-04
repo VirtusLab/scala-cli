@@ -3,7 +3,7 @@ package scala.cli.commands.clean
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared._
+import scala.cli.commands.shared.*
 
 // format: off
 @HelpMessage(CleanOptions.helpMessage, "", CleanOptions.detailedHelpMessage)
@@ -22,7 +22,7 @@ object CleanOptions {
   implicit lazy val help: Help[CleanOptions]     = Help.derive
   val cmdName                                    = "clean"
   private val helpHeader                         = "Clean the workspace."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

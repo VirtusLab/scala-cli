@@ -4,7 +4,7 @@ import caseapp.*
 import sttp.model.Uri
 
 import scala.build.Logger
-import scala.cli.commands.shared.{HelpGroup, LoggingOptions}
+import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.tags
 
 // format: off

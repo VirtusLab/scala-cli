@@ -5,12 +5,14 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.File
 
 import scala.cli.integration.util.BloopUtil
+import scala.util.Properties
 
 abstract class CompileTestDefinitions
     extends ScalaCliSuite
     with TestScalaVersionArgs
     with CompilerPluginTestDefinitions
-    with SemanticDbTestDefinitions { _: TestScalaVersion =>
+    with CompileScalacCompatTestDefinitions
+    with SemanticDbTestDefinitions { this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {
@@ -19,7 +21,7 @@ abstract class CompileTestDefinitions
 
   val simpleInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
-      """//> using dep "com.lihaoyi::os-lib::0.8.1"
+      """//> using dep com.lihaoyi::os-lib::0.8.1
         |
         |object MyTests {
         |  def main(args: Array[String]): Unit = {
@@ -32,7 +34,7 @@ abstract class CompileTestDefinitions
 
   val mainAndTestInputs: TestInputs = TestInputs(
     os.rel / "Main.scala" ->
-      """//> using dep "com.lihaoyi::utest:0.7.10"
+      """//> using dep com.lihaoyi::utest:0.7.10
         |
         |object Main {
         |  val err = utest.compileError("pprint.log(2)")
@@ -44,7 +46,7 @@ abstract class CompileTestDefinitions
         |}
         |""".stripMargin,
     os.rel / "Tests.test.scala" ->
-      """//> using dep "com.lihaoyi::pprint:0.6.6"
+      """//> using dep com.lihaoyi::pprint:0.6.6
         |
         |import utest._
         |
@@ -72,7 +74,7 @@ abstract class CompileTestDefinitions
 
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+      val output         = os.proc(TestUtil.cli, "compile", extraOptions, ".")
         .call(cwd = root, stderr = os.Pipe).err.trim()
       expect(!output.contains(warningMessage))
     }
@@ -81,14 +83,14 @@ abstract class CompileTestDefinitions
   test("with one file per scope, no warning about spread directives should be printed") {
     TestInputs(
       os.rel / "Bar.scala" ->
-        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+        """//> using dep com.lihaoyi::os-lib:0.9.1
           |
           |object Bar extends App {
           |  println(os.pwd)
           |}
           |""".stripMargin,
       os.rel / "Foo.test.scala" ->
-        """//> using dep "org.scalameta::munit:0.7.29"
+        """//> using dep org.scalameta::munit:0.7.29
           |
           |class Foo extends munit.FunSuite {
           |  test("Hello") {
@@ -98,7 +100,7 @@ abstract class CompileTestDefinitions
           |""".stripMargin
     ).fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
+      val output         = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
         .call(cwd = root, stderr = os.Pipe).err.trim()
       expect(!output.contains(warningMessage))
     }
@@ -107,19 +109,19 @@ abstract class CompileTestDefinitions
   test("with >1 file per scope, the warning about spread directives should be printed") {
     TestInputs(
       os.rel / "Bar.scala" ->
-        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+        """//> using dep com.lihaoyi::os-lib:0.9.1
           |
           |object Bar extends App {
           |  pprint.pprintln(Foo(os.pwd.toString).value)
           |}
           |""".stripMargin,
       os.rel / "Foo.scala" ->
-        """//> using dep "com.lihaoyi::pprint:0.8.1"
+        """//> using dep com.lihaoyi::pprint:0.9.6
           |
           |case class Foo(value: String)
           |""".stripMargin,
       os.rel / "Foo.test.scala" ->
-        """//> using dep "org.scalameta::munit:0.7.29"
+        """//> using dep org.scalameta::munit:0.7.29
           |
           |class FooTest extends munit.FunSuite {
           |  test("Hello") {
@@ -129,7 +131,7 @@ abstract class CompileTestDefinitions
           |""".stripMargin
     ).fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
+      val output         = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
         .call(cwd = root, stderr = os.Pipe).err.trim()
       expect(output.contains(warningMessage))
     }
@@ -140,20 +142,20 @@ abstract class CompileTestDefinitions
   ) {
     val inputs = TestInputs(
       os.rel / "Bar.java" ->
-        """//> using target.platform "jvm"
-          |//> using jvm "17"
+        """//> using target.platform jvm
+          |//> using jvm 17
           |public class Bar {}
           |""".stripMargin,
       os.rel / "Foo.test.scala" ->
-        """//> using target.scala.>= "2.13"
-          |//> using dep "com.lihaoyi::os-lib::0.8.1"
+        """//> using target.scala.>= 2.13
+          |//> using dep com.lihaoyi::os-lib::0.8.1
           |class Foo {}
           |""".stripMargin
     )
 
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
+      val output         = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
         .call(cwd = root).err.trim()
       expect(!output.contains(warningMessage))
     }
@@ -164,18 +166,18 @@ abstract class CompileTestDefinitions
   ) {
     val inputs = TestInputs(
       os.rel / "Bar.java" ->
-        """//> using jvm "17"
+        """//> using jvm 17
           |public class Bar {}
           |""".stripMargin,
       os.rel / "Foo.scala" ->
-        """//> using dep "com.lihaoyi::os-lib::0.8.1"
+        """//> using dep com.lihaoyi::os-lib::0.8.1
           |class Foo {}
           |""".stripMargin
     )
 
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
+      val output         = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
         .call(cwd = root, stderr = os.Pipe).err.trim()
       expect(output.contains(warningMessage))
     }
@@ -224,7 +226,7 @@ abstract class CompileTestDefinitions
   test("test scope") {
     mainAndTestInputs.fromRoot { root =>
       val tempOutput = root / "output"
-      val output =
+      val output     =
         os.proc(
           TestUtil.cli,
           "compile",
@@ -258,7 +260,7 @@ abstract class CompileTestDefinitions
           |}
           |""".stripMargin,
       os.rel / "Tests.test.scala" ->
-        """//> using dep "com.lihaoyi::utest:0.7.10"
+        """//> using dep com.lihaoyi::utest:0.7.10
           |
           |import utest._
           |
@@ -326,58 +328,97 @@ abstract class CompileTestDefinitions
     TestInputs(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isPresent}")
   val scalaJvm11Project: TestInputs =
     TestInputs(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isEmpty}")
+  val scalaJvm17Project: TestInputs =
+    TestInputs(os.rel / "Main.scala" -> s"object Main{java.util.HexFormat.of().toHexDigits(255)}")
+  val scalaJvm23Project: TestInputs =
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"object Main{System.out.println(javax.print.attribute.standard.OutputBin.LEFT)}"
+    )
   val javaJvm8Project: TestInputs =
     TestInputs(os.rel / "Main.java" -> """|public class Main{
                                           |  public static void main(String[] args) {
                                           |      java.util.Optional.of(1).isPresent();
                                           |  }
                                           |}""".stripMargin)
-
   val javaJvm11Project: TestInputs =
     TestInputs(os.rel / "Main.java" -> """|public class Main{
                                           |  public static void main(String[] args) {
                                           |      java.util.Optional.of(1).isEmpty();
                                           |  }
                                           |}""".stripMargin)
+  val javaJvm17Project: TestInputs =
+    TestInputs(os.rel / "Main.java" -> """|public class Main{
+                                          |  public static void main(String[] args) {
+                                          |      java.util.HexFormat.of().toHexDigits(255);
+                                          |  }
+                                          |}""".stripMargin)
+  val javaJvm23Project: TestInputs =
+    TestInputs(os.rel / "Main.java" ->
+      """|public class Main{
+         |  public static void main(String[] args) {
+         |      System.out.println(javax.print.attribute.standard.OutputBin.LEFT);
+         |  }
+         |}""".stripMargin)
 
-  val inputs: Map[(String, Int), TestInputs] = Map(
-    ("scala", 8)  -> scalaJvm8Project,
-    ("scala", 11) -> scalaJvm11Project,
-    ("java", 8)   -> javaJvm8Project,
-    ("java", 11)  -> javaJvm11Project
-  )
+  def inputs: Map[(String, Int), TestInputs] =
+    if isScala38OrNewer
+    then
+      Map(
+        ("scala", 17) -> scalaJvm17Project,
+        ("scala", 23) -> scalaJvm23Project,
+        ("java", 17)  -> javaJvm17Project,
+        ("java", 23)  -> javaJvm23Project
+      )
+    else
+      Map(
+        ("scala", 8)  -> scalaJvm8Project,
+        ("scala", 11) -> scalaJvm11Project,
+        ("scala", 17) -> scalaJvm17Project,
+        ("scala", 23) -> scalaJvm23Project,
+        ("java", 8)   -> javaJvm8Project,
+        ("java", 11)  -> javaJvm11Project,
+        ("java", 17)  -> javaJvm17Project,
+        ("java", 23)  -> javaJvm23Project
+      )
 
-  for {
-    bloopJvm                      <- List(8, 11)
-    targetJvm                     <- List(8, 11)
-    ((lang, sourcesJvm), project) <- inputs
-  } test(s"JvmCompatibilityTest: bloopJvm:$bloopJvm/targetJvm:$targetJvm/lang:$lang/sourcesJvm:$sourcesJvm"
-    .tag(jvmT)) {
-    compileToADifferentJvmThanBloops(
-      bloopJvm.toString,
-      targetJvm.toString,
-      targetJvm >= sourcesJvm,
-      project
-    )
+  {
+    val legacyJvms  = List(8, 11)
+    val currentJvms = List(17, 23)
+    val jvms        = if isScala38OrNewer then currentJvms else legacyJvms ++ currentJvms
+    for {
+      bloopJvm                      <- jvms
+      targetJvm                     <- jvms
+      ((lang, sourcesJvm), project) <- inputs
+    } test(s"JvmCompatibilityTest: bloopJvm:$bloopJvm/targetJvm:$targetJvm/lang:$lang/sourcesJvm:$sourcesJvm"
+      .tag(jvmT)) {
+      compileToADifferentJvmThanBloops(
+        bloopJvm.toString,
+        targetJvm.toString,
+        targetJvm >= sourcesJvm,
+        project
+      )
+    }
   }
 
   test("Scala CLI should not infer scalac --release if --release is passed".tag(jvmT)) {
-    scalaJvm11Project.fromRoot { root =>
+    scalaJvm23Project.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
         "compile",
         extraOptions,
         "--jvm",
-        "11",
+        "23",
         "-release",
-        "8",
+        "17",
         "."
       ).call(cwd = root, check = false, stderr = os.Pipe)
       expect(res.exitCode != 0)
       val errOutput = res.err.trim()
-      expect(errOutput.contains("isEmpty is not a member"))
+      System.err.println(errOutput)
+      expect(errOutput.contains("OutputBin is not a member"))
       expect(errOutput.contains(
-        "Warning: different target JVM (11) and scala compiler target JVM (8) were passed."
+        "Warning: different target JVM (23) and scala compiler target JVM (17) were passed."
       ))
     }
   }
@@ -424,12 +465,13 @@ abstract class CompileTestDefinitions
       )
       val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", targetJvm, ".")
         .call(cwd = root, check = false, stderr = os.Pipe)
-      expect((res.exitCode == 0) == shouldSucceed)
-      if (!shouldSucceed)
+      val succeeded = res.exitCode == 0
+      if succeeded != shouldSucceed then System.err.println(res.err.text())
+      expect(succeeded == shouldSucceed)
+      if !shouldSucceed then
         expect(
-          res.err.text().contains("value isEmpty is not a member") || res.err.text().contains(
-            "cannot find symbol"
-          )
+          res.err.text().contains("is not a member") ||
+          res.err.text().contains("cannot find symbol")
         )
     }
   if (actualScalaVersion.startsWith("2.12"))
@@ -449,9 +491,9 @@ abstract class CompileTestDefinitions
   if (actualScalaVersion.startsWith("3"))
     test("generate scoverage.coverage file") {
       val fileName = "Hello.scala"
-      val inputs = TestInputs(
+      val inputs   = TestInputs(
         os.rel / fileName ->
-          s"""//> using options "-coverage-out:."
+          s"""//> using options -coverage-out:.
              |
              |@main def main = ()
              |""".stripMargin
@@ -472,9 +514,9 @@ abstract class CompileTestDefinitions
     }
   def noDuplicatesInClassPathTest(): Unit = {
     val sparkVersion = "3.3.0"
-    val inputs = TestInputs(
+    val inputs       = TestInputs(
       os.rel / "Hello.scala" ->
-        s"""//> using dep "org.apache.spark::spark-sql:$sparkVersion"
+        s"""//> using dep org.apache.spark::spark-sql:$sparkVersion
            |object Hello {
            |  def main(args: Array[String]): Unit =
            |    println("Hello")
@@ -502,32 +544,34 @@ abstract class CompileTestDefinitions
   }
 
   test("override settings from tests") {
-    val inputs = TestInputs(
+    val olderJava = Constants.scala38MinJavaVersion.toString
+    val newerJava = Constants.allJavaVersions.max.toString
+    val inputs    = TestInputs(
       os.rel / "MainStuff.scala" ->
-        """//> using jvm "8"
-          |object MainStuff {
-          |  def javaVer = sys.props("java.version")
-          |  def main(args: Array[String]): Unit = {
-          |    println(s"Found Java $javaVer in main scope")
-          |    assert(javaVer.startsWith("1.8."))
-          |  }
-          |}
-          |""".stripMargin,
+        s"""//> using jvm $olderJava
+           |object MainStuff {
+           |  def javaVer = sys.props("java.version")
+           |  def main(args: Array[String]): Unit = {
+           |    println(s"Found Java $$javaVer in main scope")
+           |    assert(javaVer == "$olderJava" || javaVer.startsWith("$olderJava."))
+           |  }
+           |}
+           |""".stripMargin,
       os.rel / "TestStuff.test.scala" ->
-        """//> using jvm "17"
-          |//> using dep "org.scalameta::munit:0.7.29"
-          |class TestStuff extends munit.FunSuite {
-          |  test("the test") {
-          |    val javaVer = MainStuff.javaVer
-          |    println(s"Found Java $javaVer in test scope")
-          |    val javaVer0 = {
-          |      val bais = new java.io.ByteArrayInputStream(javaVer.getBytes("UTF-8"))
-          |      new String(bais.readAllBytes(), "UTF-8") // readAllBytes available only on Java 17 (not on Java 8)
-          |    }
-          |    assert(javaVer0 == "17" || javaVer0.startsWith("17."))
-          |  }
-          |}
-          |""".stripMargin
+        s"""//> using jvm $newerJava
+           |//> using dep org.scalameta::munit:0.7.29
+           |class TestStuff extends munit.FunSuite {
+           |  test("the test") {
+           |    val javaVer = MainStuff.javaVer
+           |    println(s"Found Java $$javaVer in test scope")
+           |    val javaVer0 = {
+           |      val bais = new java.io.ByteArrayInputStream(javaVer.getBytes("UTF-8"))
+           |      new String(bais.readAllBytes(), "UTF-8") // readAllBytes available only on Java 17 (not on Java 8)
+           |    }
+           |    assert(javaVer0 == "$newerJava" || javaVer0.startsWith("$newerJava."))
+           |  }
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "compile", "--test", ".")
@@ -568,13 +612,14 @@ abstract class CompileTestDefinitions
           extraOptions
         )
           .call(cwd = root)
-      val classPath = res.out.trim().split(File.pathSeparator)
-      val outputDir = os.Path(classPath.head, root)
+      val classPath  = res.out.trim().split(File.pathSeparator)
+      val outputDir  = os.Path(classPath.head, root)
       val classFiles = os.walk(outputDir)
         .filter(_.last.endsWith(".class"))
         .filter(os.isFile(_))
         .map(_.relativeTo(outputDir))
-      expect(classFiles.contains(os.rel / "Hello.class"))
+      val path = os.rel / "Hello.class"
+      expect(classFiles.contains(path))
     }
   }
 
@@ -629,7 +674,7 @@ abstract class CompileTestDefinitions
           "compile",
           "main.scala",
           "--jvm",
-          "8"
+          Constants.scala38MinJavaVersion.toString
         ).call(cwd = root, mergeErrIntoOut = true)
 
         expect(os.list(root / Constants.workspaceDirName).count(
@@ -679,7 +724,7 @@ abstract class CompileTestDefinitions
 
   test("new build targets should only be created when CLI options change") {
     val filename = "Main.scala"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / filename ->
         """object Main extends App {
           |  println("Hello")
@@ -717,6 +762,149 @@ abstract class CompileTestDefinitions
         root
       )
       expect(buildTargetDirs.size == 2)
+    }
+  }
+
+  if (!Properties.isWin)
+    // TODO: make this work on Windows: https://github.com/VirtusLab/scala-cli/issues/2973
+    test(
+      "nested wildcard path source exclusion with a directive and no special character escaping"
+    ) {
+      val excludedFileName = "Foo.scala"
+      val excludedPath     = os.rel / "dir1" / "dir2" / excludedFileName
+      val inputs           = TestInputs(
+        os.rel / "project.scala" -> s"//> using exclude */*/$excludedFileName",
+        excludedPath             -> "val foo // invalid code"
+      )
+      inputs.fromRoot { root =>
+        os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
+      }
+    }
+
+  test("no previous compilation error should be printed") {
+    val filename = "Main.scala"
+    val inputs   = TestInputs(
+      os.rel / filename ->
+        """|object Main {
+           |  val msg: String = "1"
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      val jvmVersion     = Constants.defaultGraalVMJavaVersion
+      val expectedOutput =
+        s"""|Compiling project (Scala $actualScalaVersion, JVM ($jvmVersion))
+            |Compiled project (Scala $actualScalaVersion, JVM ($jvmVersion))""".stripMargin
+      val actualOutput = TestUtil.fullStableOutput(result)
+      assertEquals(actualOutput, expectedOutput)
+
+      os.write.over(
+        root / filename,
+        """|object Main {
+           |    val msg: String = 1
+           |}
+           |""".stripMargin
+      )
+
+      val result2 = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      val expectedError =
+        if actualScalaVersion.startsWith("2") then
+          """|[error] type mismatch;
+             |[error]  found   : Int(1)
+             |[error]  required: String""".stripMargin
+        else
+          """|[error] Found:    (1 : Int)
+             |[error] Required: String""".stripMargin
+
+      val actualOutput2   = TestUtil.fullStableOutput(result2).trim
+      val expectedOutput2 =
+        s"""|Compiling project (Scala $actualScalaVersion, JVM ($jvmVersion))
+            |[error] .${File.separatorChar}Main.scala:2:23
+            |$expectedError
+            |[error]     val msg: String = 1
+            |[error]                       ^
+            |Error compiling project (Scala $actualScalaVersion, JVM ($jvmVersion))
+            |Compilation failed""".stripMargin
+      assertEquals(actualOutput2, expectedOutput2)
+
+      os.write.over(
+        root / filename,
+        """|object Main {
+           |    val msg: String = "1"
+           |}
+           |""".stripMargin
+      )
+
+      val result3 = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      val actualOutput3   = TestUtil.fullStableOutput(result3)
+      val expectedOutput3 =
+        s"""|Compiling project (Scala $actualScalaVersion, JVM ($jvmVersion))
+            |Compiled project (Scala $actualScalaVersion, JVM ($jvmVersion))""".stripMargin
+      assertEquals(actualOutput3, expectedOutput3)
+    }
+  }
+
+  test("i3389") {
+    val filename = "Main.scala"
+    val inputs   = TestInputs(
+      os.rel / filename ->
+        """//> using optionsdeprecation
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+      assertEquals(
+        TestUtil.fullStableOutput(result).trim(),
+        s"""|[error] .${File.separatorChar}Main.scala:1:11
+            |[error] Unrecognized directive: optionsdeprecation
+            |[error] //> using optionsdeprecation
+            |[error]           ^^^^^^^^^^^^^^^^^^""".stripMargin
+      )
+    }
+  }
+
+  test("i3389-2") {
+    val filename = "Main.scala"
+    val inputs   = TestInputs(
+      os.rel / filename ->
+        """//> using unrecognised.directive value1 value2
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+      assertEquals(
+        TestUtil.fullStableOutput(result).trim(),
+        s"""|[error] .${File.separatorChar}Main.scala:1:11
+            |[error] Unrecognized directive: unrecognised.directive with values: value1, value2
+            |[error] //> using unrecognised.directive value1 value2
+            |[error]           ^^^^^^^^^^^^^^^^^^^^^^""".stripMargin
+      )
     }
   }
 }

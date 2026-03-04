@@ -1,14 +1,12 @@
 package scala.cli.tests
 
+import cli.tests.TestUtil
+
 import scala.cli.ScalaCliCommands
 import scala.cli.commands.shared.HasGlobalOptions
 
-class OptionsCheck extends munit.FunSuite {
-
-  for (
-    command <-
-      new ScalaCliCommands("scala-cli", "scala-cli", "Scala CLI").commands
-  )
+class OptionsCheck extends TestUtil.ScalaCliSuite {
+  for (command <- new ScalaCliCommands("scala-cli", "scala-cli", "Scala CLI").commands)
     test(s"No duplicated options in ${command.names.head.mkString(" ")}") {
       command.ensureNoDuplicates()
     }

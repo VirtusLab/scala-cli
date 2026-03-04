@@ -4,7 +4,7 @@ import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.Constants
 import scala.build.internals.FeatureType
 import scala.build.preprocessing.directives.{DirectiveHandler, ScopedDirective}
-import scala.cli.commands.{SpecificationLevel, tags}
+import scala.cli.commands.SpecificationLevel
 import scala.cli.config.Key
 
 object WarningMessages {
@@ -16,12 +16,12 @@ object WarningMessages {
   def experimentalFeaturesUsed(namesAndFeatureTypes: Seq[(String, FeatureType)]): String = {
     val message = namesAndFeatureTypes match {
       case Seq((name, featureType)) => s"The `$name` $featureType is experimental"
-      case namesAndTypes =>
-        val nl                   = System.lineSeparator()
-        val distinctFeatureTypes = namesAndTypes.map(_._2).distinct
+      case namesAndTypes            =>
+        val nl                                    = System.lineSeparator()
+        val distinctFeatureTypes                  = namesAndTypes.map(_._2).distinct
         val (bulletPointList, featureNameToPrint) = if (distinctFeatureTypes.size == 1)
           (
-            namesAndTypes.map((name, fType) => s" - `$name`")
+            namesAndTypes.map((name, _) => s" - `$name`")
               .mkString(nl),
             s"${distinctFeatureTypes.head}s" // plural form
           )
@@ -83,12 +83,12 @@ object WarningMessages {
   ): String =
     powerFeatureUsedInSip(optionName, "option", specificationLevel)
 
-  def powerConfigKeyUsedInSip(key: Key[_])(using ScalaCliInvokeData): String =
+  def powerConfigKeyUsedInSip(key: Key[?])(using ScalaCliInvokeData): String =
     powerFeatureUsedInSip(key.fullName, "configuration key", key.specificationLevel)
 
   def powerDirectiveUsedInSip(
     directive: ScopedDirective,
-    handler: DirectiveHandler[_]
+    handler: DirectiveHandler[?]
   )(using ScalaCliInvokeData): String =
     powerFeatureUsedInSip(
       directive.directive.toString,
@@ -105,11 +105,17 @@ object WarningMessages {
   val offlineModeBloopJvmNotFound =
     "Offline mode is ON and a JVM for Bloop could not be fetched from the local cache, using scalac as fallback"
 
+  def multipleMainObjectsInScript(names: Seq[String]) =
+    s"Only a single main is allowed within scripts. Multiple main classes were found in the script: ${names.mkString(", ")}"
+
+  def mixedToplvelAndObjectInScript =
+    "Script contains objects with main methods and top-level statements, only the latter will be run."
+
   def directivesInMultipleFilesWarning(
     projectFilePath: String,
     pathsToReport: Iterable[String] = Nil
   ) = {
-    val detectedMsg = "Using directives detected in multiple files"
+    val detectedMsg    = "Using directives detected in multiple files"
     val recommendedMsg =
       s"It is recommended to keep them centralized in the $projectFilePath file."
     if pathsToReport.isEmpty then

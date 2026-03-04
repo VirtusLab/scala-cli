@@ -7,19 +7,18 @@ import scala.build.tests.TestLogger
 import scala.cli.commands.shared.CoursierOptions
 import scala.cli.launcher.LauncherCli
 
-class LauncherCliTest extends munit.FunSuite {
-  override def munitFlakyOK: Boolean = TestUtil.isCI
-
+class LauncherCliTest extends TestUtil.ScalaCliSuite {
   test("resolve nightly version".flaky) {
     val logger          = TestLogger()
     val cache           = CoursierOptions().coursierCache(logger)
     val scalaParameters = ScalaParameters(Constants.defaultScalaVersion)
 
-    val nightlyCliVersion = LauncherCli.resolveNightlyScalaCliVersion(cache, scalaParameters)
+    val nightlyCliVersion =
+      LauncherCli.resolveNightlyScalaCliVersion(cache, scalaParameters.scalaBinaryVersion)
     expect(nightlyCliVersion.endsWith("-SNAPSHOT"))
   }
 
-  val expectedScalaCliVersions = Seq(
+  val expectedScalaCliVersions: Seq[(String, String)] = Seq(
     "0.1.2"                       -> Constants.defaultScala212Version,
     "0.1.1+43-g15666b67-SNAPSHOT" -> Constants.defaultScala212Version,
     "0.1.3"                       -> Constants.defaultScala213Version,
@@ -29,8 +28,6 @@ class LauncherCliTest extends munit.FunSuite {
   for ((cliVersion, expectedScalaVersion) <- expectedScalaCliVersions)
     test(s"use expected scala version for Scala CLI launcher: $cliVersion") {
       val scalaVersion = LauncherCli.scalaCliScalaVersion(cliVersion)
-
       expect(scalaVersion == expectedScalaVersion)
     }
-
 }

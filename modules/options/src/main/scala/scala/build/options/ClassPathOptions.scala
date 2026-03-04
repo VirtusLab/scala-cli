@@ -1,6 +1,6 @@
 package scala.build.options
 
-import dependency._
+import dependency.*
 
 import scala.build.Positioned
 
@@ -13,7 +13,8 @@ final case class ClassPathOptions(
   extraDependencies: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty,
   extraCompileOnlyDependencies: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty,
   resourcesDir: Seq[os.Path] = Nil,
-  resourcesVirtualDir: Seq[os.SubPath] = Nil
+  resourcesVirtualDir: Seq[os.SubPath] = Nil,
+  scalafixDependencies: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty
 ) {
   def allExtraDependencies: ShadowingSeq[Positioned[AnyDependency]] =
     extraDependencies ++ extraCompileOnlyDependencies.toSeq

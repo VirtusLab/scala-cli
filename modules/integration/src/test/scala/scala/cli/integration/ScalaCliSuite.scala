@@ -3,14 +3,15 @@ package scala.cli.integration
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.util.Properties
 
 abstract class ScalaCliSuite extends munit.FunSuite {
   implicit class BeforeEachOpts(munitContext: BeforeEach) {
-    def locationAbsolutePath: os.Path = os.pwd / os.RelPath(munitContext.test.location.path)
+    def locationAbsolutePath: os.Path = os.Path(munitContext.test.location.path)
   }
 
   implicit class AfterEachOpts(munitContext: AfterEach) {
-    def locationAbsolutePath: os.Path = os.pwd / os.RelPath(munitContext.test.location.path)
+    def locationAbsolutePath: os.Path = os.Path(munitContext.test.location.path)
   }
   val testStartEndLogger: Fixture[Unit] = new Fixture[Unit]("files") {
     def apply(): Unit = ()
@@ -27,6 +28,13 @@ abstract class ScalaCliSuite extends munit.FunSuite {
       System.err.println(
         s"X==== ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
       )
+    }
+
+    override def afterAll(): Unit = {
+      super.afterAll()
+      // Clean up cached JDKs after all tests have run on Linux native CI runners
+      if isCI && Properties.isLinux then TestUtil.cleanCachedJdks()
+      else System.err.println("Skipping cached JDKs cleanup")
     }
   }
 
@@ -46,10 +54,10 @@ abstract class ScalaCliSuite extends munit.FunSuite {
 object ScalaCliSuite {
   sealed abstract class TestGroup(val idx: Int) extends Product with Serializable
   object TestGroup {
-    case object First  extends TestGroup(1)
-    case object Second extends TestGroup(2)
-    case object Third  extends TestGroup(3)
-    case object Fourth extends TestGroup(4)
-    case object Fifth  extends TestGroup(5)
+    case object First  extends TestGroup(1) // Scala 3 Next / default
+    case object Second extends TestGroup(2) // Scala 2.13
+    case object Third  extends TestGroup(3) // Scala 2.12
+    case object Fourth extends TestGroup(4) // Scala 3.3 LTS
+    case object Fifth  extends TestGroup(5) // Scala 3 Next RC
   }
 }

@@ -1,7 +1,7 @@
 package scala.build.options
 
-import bloop.config.{Config => BloopConfig}
-import dependency._
+import bloop.config.Config as BloopConfig
+import dependency.*
 
 import java.util.Locale
 
@@ -60,7 +60,7 @@ final case class ScalaJsOptions(
         case "commonjs" | "common" => ScalaJsLinkerConfig.ModuleKind.CommonJSModule
         case "esmodule" | "es"     => ScalaJsLinkerConfig.ModuleKind.ESModule
         case "nomodule" | "none"   => ScalaJsLinkerConfig.ModuleKind.NoModule
-        case unknown =>
+        case unknown               =>
           logger.message(
             s"Warning: unrecognized argument: $unknown for --js-module-kind parameter, using default value: nomodule"
           )
@@ -75,7 +75,7 @@ final case class ScalaJsOptions(
         case "fewestmodules"   => ScalaJsLinkerConfig.ModuleSplitStyle.FewestModules
         case "smallestmodules" => ScalaJsLinkerConfig.ModuleSplitStyle.SmallestModules
         case "smallmodulesfor" => ScalaJsLinkerConfig.ModuleSplitStyle.SmallModulesFor
-        case unknown =>
+        case unknown           =>
           logger.message(
             s"Warning: unrecognized argument: $unknown for --js-module-split-style parameter, use default value: fewestmodules"
           )
@@ -95,7 +95,7 @@ final case class ScalaJsOptions(
         case "es2019" => ScalaJsLinkerConfig.ESVersion.ES2019
         case "es2020" => ScalaJsLinkerConfig.ESVersion.ES2020
         case "es2021" => ScalaJsLinkerConfig.ESVersion.ES2021
-        case unknown =>
+        case unknown  =>
           val default = ScalaJsLinkerConfig.ESVersion.default
           logger.message(
             s"Warning: unrecognized argument: $unknown for --js-es-version parameter, use default value: $default"
@@ -106,8 +106,16 @@ final case class ScalaJsOptions(
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaJsVersion)
 
-  private def configUnsafe(logger: Logger): Either[BuildException, BloopConfig.JsConfig] = for {
-    isFullOpt <- fullOpt
+  private def configUnsafe(
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException]
+  ): Either[BuildException, BloopConfig.JsConfig] = for {
+    isFullOpt <- {
+      fullOpt match {
+        case Left(be) if maybeRecoverOnError(be).isEmpty => Right(false)
+        case otherwise                                   => otherwise
+      }
+    }
   } yield {
     val kind = moduleKind(logger) match {
       case ScalaJsLinkerConfig.ModuleKind.CommonJSModule => BloopConfig.ModuleKindJS.CommonJSModule
@@ -130,12 +138,15 @@ final case class ScalaJsOptions(
     )
   }
 
-  def config(logger: Logger): Either[BuildException, BloopConfig.JsConfig] =
-    configUnsafe(logger)
+  def config(
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+  ): Either[BuildException, BloopConfig.JsConfig] =
+    configUnsafe(logger, maybeRecoverOnError)
 
   def linkerConfig(logger: Logger): ScalaJsLinkerConfig = {
     val esFeatureDefaults = ScalaJsLinkerConfig.ESFeatures()
-    val esFeatures = ScalaJsLinkerConfig.ESFeatures(
+    val esFeatures        = ScalaJsLinkerConfig.ESFeatures(
       allowBigIntsForLongs =
         allowBigIntsForLongs.getOrElse(esFeatureDefaults.allowBigIntsForLongs),
       avoidClasses = avoidClasses.getOrElse(esFeatureDefaults.avoidClasses),

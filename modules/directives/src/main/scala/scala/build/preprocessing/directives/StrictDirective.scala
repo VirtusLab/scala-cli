@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 
-import com.virtuslab.using_directives.custom.model.{EmptyValue, StringValue, Value}
+import com.virtuslab.using_directives.custom.model.{EmptyValue, Value}
 
 import scala.build.Position
 
@@ -16,11 +16,12 @@ import scala.build.Position
 
 case class StrictDirective(
   key: String,
-  values: Seq[Value[_]],
-  startColumn: Int = 0
+  values: Seq[Value[?]],
+  startColumn: Int = 0,
+  startLine: Int = 0
 ) {
   override def toString: String = {
-    val suffix = if validValues.isEmpty then "" else s" \"${validValues.mkString("\",  \"")}\""
+    val suffix = if validValues.isEmpty then "" else s" ${validValues.mkString("  ")}"
     s"//> using $key$suffix"
   }
 
@@ -46,7 +47,10 @@ case class StrictDirective(
       Seq(usingKeyString)
     else {
       val distinctValuesStrings = validValues
-        .map(v => s"\"${v.toString}\"")
+        .map {
+          case s if s.toString.exists(_.isWhitespace) => s"\"$s\""
+          case s                                      => s.toString
+        }
         .distinct
         .sorted
 
@@ -66,7 +70,7 @@ case class StrictDirective(
       .map { v =>
         val position = DirectiveUtil.position(v, path)
         v match
-          case _: EmptyValue => position.startPos
+          case _: EmptyValue                                 => position.startPos
           case v if DirectiveUtil.isWrappedInDoubleQuotes(v) =>
             position.endPos._1 -> (position.endPos._2 + 1)
           case _ => position.endPos

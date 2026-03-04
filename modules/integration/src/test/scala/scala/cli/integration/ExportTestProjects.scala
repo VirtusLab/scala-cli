@@ -6,13 +6,12 @@ import scala.cli.integration.Constants.munitVersion
 
 object ExportTestProjects {
   def jvmTest(scalaVersion: String, mainClassName: String): TestInputs = {
-
     val mainFile =
-      if (scalaVersion.startsWith("3."))
-        s"""//> using scala "$scalaVersion"
-           |//> using resourceDir "./input"
-           |//> using dep "org.scala-lang::scala3-compiler:$scalaVersion"
-           |//> using option "-deprecation"
+      if scalaVersion.startsWith("3.") then
+        s"""//> using scala $scalaVersion
+           |//> using resourceDir ./input
+           |//> using dep org.scala-lang::scala3-compiler:$scalaVersion
+           |//> using option -deprecation
            |
            |import scala.io.Source
            |
@@ -26,10 +25,10 @@ object ExportTestProjects {
            |}
            |""".stripMargin
       else
-        s"""//> using scala "$scalaVersion"
-           |//> using resourceDir "./input"
-           |//> using option "-deprecation"
-           |//> using plugins "com.olegpy::better-monadic-for:0.3.1"
+        s"""//> using scala $scalaVersion
+           |//> using resourceDir ./input
+           |//> using option -deprecation
+           |//> using plugins com.olegpy::better-monadic-for:0.3.1
            |
            |import scala.io.Source
            |
@@ -45,9 +44,9 @@ object ExportTestProjects {
 
     TestInputs(
       os.rel / s"$mainClassName.scala" -> mainFile,
-      os.rel / "Zio.test.scala" ->
-        """|//> using dep "dev.zio::zio::1.0.8"
-           |//> using dep "dev.zio::zio-test-sbt::1.0.8"
+      os.rel / "Zio.test.scala"        ->
+        """|//> using dep dev.zio::zio::1.0.8
+           |//> using dep dev.zio::zio-test-sbt::1.0.8
            |
            |import zio._
            |import zio.test._
@@ -69,12 +68,31 @@ object ExportTestProjects {
     )
   }
 
+  def jvmTestWithCompilerPlugin(
+    scalaVersion: String,
+    mainClassName: String,
+    message: String
+  ): TestInputs =
+    TestInputs(
+      os.rel / s"$mainClassName.scala" ->
+        s"""//> using scala $scalaVersion
+           |//> using option -deprecation
+           |//> using plugin com.kubuszok::hearth-cross-quotes:0.2.0
+           |
+           |object $mainClassName {
+           |  def main(args: Array[String]): Unit = {
+           |    println("$message")
+           |  }
+           |}
+           |""".stripMargin
+    )
+
   def jsTest(scalaVersion: String): TestInputs = {
 
     val testFile =
       if (scalaVersion.startsWith("3."))
-        s"""//> using scala "$scalaVersion"
-           |//> using platform "scala-js"
+        s"""//> using scala $scalaVersion
+           |//> using platform scala-js
            |
            |import scala.scalajs.js
            |
@@ -84,8 +102,8 @@ object ExportTestProjects {
            |    console.log("Hello from " + "exported Scala CLI project")
            |""".stripMargin
       else
-        s"""//> using scala "$scalaVersion"
-           |//> using platform "scala-js"
+        s"""//> using scala $scalaVersion
+           |//> using platform scala-js
            |
            |import scala.scalajs.js
            |
@@ -99,8 +117,8 @@ object ExportTestProjects {
     TestInputs(os.rel / "Test.scala" -> testFile)
   }
 
-  def nativeTest(scalaVersion: String, useNative04Syntax: Boolean = false): TestInputs = {
-    val nl = "\\n"
+  def nativeTest(scalaVersion: String): TestInputs = {
+    val nl       = "\\n"
     val testFile =
       if (scalaVersion.startsWith("3."))
         s"""//> using scala $scalaVersion
@@ -112,7 +130,7 @@ object ExportTestProjects {
            |object Test:
            |  def main(args: Array[String]): Unit =
            |    val message = "Hello from " + "exported Scala CLI project" + "$nl"
-           |    Zone {${if (useNative04Syntax) " implicit z =>" else ""}
+           |    Zone {
            |      val io = StdioHelpers(stdio)
            |      io.printf(c"%s", toCString(message))
            |    }
@@ -127,7 +145,7 @@ object ExportTestProjects {
            |object Test {
            |  def main(args: Array[String]): Unit = {
            |    val message = "Hello from " + "exported Scala CLI project" + "$nl"
-           |    Zone${if (useNative04Syntax) "" else ".acquire"} { implicit z =>
+           |    Zone { implicit z =>
            |      val io = StdioHelpers(stdio)
            |      io.printf(c"%s", toCString(message))
            |    }
@@ -139,9 +157,9 @@ object ExportTestProjects {
 
   def repositoryScala3Test(scalaVersion: String): TestInputs = {
     val testFile =
-      s"""//> using scala "$scalaVersion"
-         |//> using dep "com.github.jupyter:jvm-repr:0.4.0"
-         |//> using repository "jitpack"
+      s"""//> using scala $scalaVersion
+         |//> using dep com.github.jupyter:jvm-repr:0.4.0
+         |//> using repository jitpack
          |import jupyter._
          |object Test:
          |  def main(args: Array[String]): Unit =
@@ -153,7 +171,7 @@ object ExportTestProjects {
 
   def mainClassScala3Test(scalaVersion: String): TestInputs = {
     val testFile =
-      s"""//> using scala "$scalaVersion"
+      s"""//> using scala $scalaVersion
          |
          |object Test:
          |  def main(args: Array[String]): Unit =
@@ -174,9 +192,9 @@ object ExportTestProjects {
 
   def scalacOptionsScala2Test(scalaVersion: String): TestInputs = {
     val testFile =
-      s"""//> using scala "$scalaVersion"
-         |//> using dep "org.scala-lang.modules::scala-async:0.10.0"
-         |//> using dep "org.scala-lang:scala-reflect:$scalaVersion"
+      s"""//> using scala $scalaVersion
+         |//> using dep org.scala-lang.modules::scala-async:0.10.0
+         |//> using dep org.scala-lang:scala-reflect:$scalaVersion
          |import scala.async.Async.{async, await}
          |import scala.concurrent.{Await, Future}
          |import scala.concurrent.duration.Duration
@@ -222,9 +240,9 @@ object ExportTestProjects {
 
   def testFrameworkTest(scalaVersion: String): TestInputs = {
     val testFile =
-      s"""//> using scala "$scalaVersion"
-         |//> using dep "com.lihaoyi::utest:0.7.10"
-         |//> using test-framework "utest.runner.Framework"
+      s"""//> using scala $scalaVersion
+         |//> using dep com.lihaoyi::utest:0.7.10
+         |//> using test-framework utest.runner.Framework
          |
          |import utest._
          |
@@ -259,7 +277,7 @@ object ExportTestProjects {
     val shapelessJarStr =
       "\"" + shapelessJar.toString.replace("\\", "\\\\") + "\""
     val testFile =
-      s"""//> using scala "$scalaVersion"
+      s"""//> using scala $scalaVersion
          |//> using jar $shapelessJarStr
          |
          |import shapeless._
@@ -277,8 +295,8 @@ object ExportTestProjects {
 
   def logbackBugCase(scalaVersion: String): TestInputs =
     TestInputs(os.rel / "script.sc" ->
-      s"""//> using scala "$scalaVersion"
-         |//> using lib "ch.qos.logback:logback-classic:1.4.5"
+      s"""//> using scala $scalaVersion
+         |//> using dep ch.qos.logback:logback-classic:1.4.5
          |println("Hello")
          |""".stripMargin)
 
@@ -288,23 +306,23 @@ object ExportTestProjects {
   ): TestInputs =
     TestInputs(
       os.rel / s"$mainClass.scala" ->
-        s"""//> using scala "$scalaVersion"
-           |//> using file "Message.scala"
+        s"""//> using scala $scalaVersion
+           |//> using file Message.scala
            |object $mainClass extends App {
            |  println(Message(value = os.pwd.toString).value)
            |}
            |""".stripMargin,
       os.rel / "Message.scala" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
            |case class Message(value: String)
            |""".stripMargin
     )
   def compileOnlySource(scalaVersion: String, userName: String): TestInputs =
     TestInputs(
       os.rel / "Hello.scala" ->
-        s"""//> using scala "$scalaVersion"
-           |//> using lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.23.2"
-           |//> using compileOnly.lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2"
+        s"""//> using scala $scalaVersion
+           |//> using dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.23.2
+           |//> using compileOnly.dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2
            |
            |import com.github.plokhotnyuk.jsoniter_scala.core._
            |import com.github.plokhotnyuk.jsoniter_scala.macros._

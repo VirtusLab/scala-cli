@@ -2,17 +2,31 @@ package scala.build.preprocessing.directives
 
 import os.Path
 
-import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
 import scala.build.directives.*
 import scala.build.errors.BuildException
+import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, ScalaJsMode, ScalaJsOptions}
-import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 import scala.util.Try
 
 @DirectiveGroupName("Scala.js options")
+@DirectiveExamples(s"//> using jsVersion ${Constants.scalaJsVersion}")
+@DirectiveExamples("//> using jsMode mode")
+@DirectiveExamples("//> using jsNoOpt")
 @DirectiveExamples("//> using jsModuleKind common")
+@DirectiveExamples("//> using jsCheckIr")
+@DirectiveExamples("//> using jsEmitSourceMaps")
+@DirectiveExamples("//> using jsEsModuleImportMap importmap.json")
+@DirectiveExamples("//> using jsSmallModuleForPackage test")
+@DirectiveExamples("//> using jsDom")
+@DirectiveExamples("//> using jsHeader \"#!/usr/bin/env node\n\"")
+@DirectiveExamples("//> using jsAllowBigIntsForLongs")
+@DirectiveExamples("//> using jsAvoidClasses")
+@DirectiveExamples("//> using jsAvoidLetsAndConsts")
+@DirectiveExamples("//> using jsModuleSplitStyleStr smallestmodules")
+@DirectiveExamples("//> using jsEsVersionStr es2017")
+@DirectiveExamples("//> using jsEmitWasm")
 @DirectiveUsage(
   "//> using jsVersion|jsMode|jsModuleKind|… _value_",
   """
@@ -22,23 +36,39 @@ import scala.util.Try
     |
     |`//> using jsNoOpt` _true|false_
     |
-    |`//> using jsModuleKind` _value_
+    |`//> using jsNoOpt`
     |
-    |`//> using jsSmallModuleForPackage` _value1_ _value2_ …
+    |`//> using jsModuleKind` _value_
     |
     |`//> using jsCheckIr` _true|false_
     |
+    |`//> using jsCheckIr`
+    |
     |`//> using jsEmitSourceMaps` _true|false_
     |
+    |`//> using jsEmitSourceMaps`
+    |
+    |`//> using jsEsModuleImportMap` _value_
+    |
+    |`//> using jsSmallModuleForPackage` _value1_ _value2_ …
+    |
     |`//> using jsDom` _true|false_
+    |
+    |`//> using jsDom`
     |
     |`//> using jsHeader` _value_
     |
     |`//> using jsAllowBigIntsForLongs` _true|false_
     |
+    |`//> using jsAllowBigIntsForLongs`
+    |
     |`//> using jsAvoidClasses` _true|false_
     |
+    |`//> using jsAvoidClasses`
+    |
     |`//> using jsAvoidLetsAndConsts` _true|false_
+    |
+    |`//> using jsAvoidLetsAndConsts`
     |
     |`//> using jsModuleSplitStyleStr` _value_
     |
@@ -46,12 +76,11 @@ import scala.util.Try
     |    
     |`//> using jsEmitWasm` _true|false_
     |
-    |`//> using jsEsModuleImportMap` _value_
+    |`//> using jsEmitWasm`
     |""".stripMargin
 )
 @DirectiveDescription("Add Scala.js options")
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
 final case class ScalaJs(
   jsVersion: Option[String] = None,
   jsMode: Option[String] = None,
@@ -70,7 +99,6 @@ final case class ScalaJs(
   jsEsVersionStr: Option[String] = None,
   jsEmitWasm: Option[Boolean] = None
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] =
     val scalaJsOptions = ScalaJsOptions(
       version = jsVersion,
@@ -108,12 +136,11 @@ final case class ScalaJs(
       )
     val jsImportMapAsPath = jsEsModuleImportMap.map(absFilePath).sequence
     jsImportMapAsPath.map(_ match
-      case None => BuildOptions(scalaJsOptions = scalaJsOptions)
+      case None            => BuildOptions(scalaJsOptions = scalaJsOptions)
       case Some(importmap) =>
         BuildOptions(
           scalaJsOptions = scalaJsOptions.copy(remapEsModuleImportMap = Some(importmap))
-        )
-    )
+        ))
 }
 
 class ImportMapNotFound(message: String, cause: Throwable)

@@ -3,7 +3,6 @@ package scala.cli.commands.publish
 import caseapp.*
 
 import scala.cli.commands.pgp.PgpScalaSigningOptions
-import scala.cli.commands.publish.PublishSetupOptions.{cmdName, docWebsiteSuffix, helpHeader}
 import scala.cli.commands.shared.*
 
 // format: off
@@ -32,7 +31,7 @@ object PublishLocalOptions {
   val cmdName                                           = "publish local"
   private val helpHeader       = "Publishes build artifacts to the local Ivy2 repository."
   private val docWebsiteSuffix = "publishing/publish-local"
-  val helpMessage: String =
+  val helpMessage: String      =
     s"""$helpHeader
        |
        |${HelpMessages.commandFullHelpReference(cmdName)}

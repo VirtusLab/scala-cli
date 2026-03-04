@@ -50,7 +50,7 @@ class PublishSetupTests extends ScalaCliSuite {
       .call(cwd = root, stdout = os.Inherit, env = envs, stderr = os.Pipe)
   }
 
-  private val projDir = os.rel / projName
+  private val projDir    = os.rel / projName
   private val testInputs = TestInputs(
     os.rel / projDir / "Foo.scala" ->
       """object Foo
@@ -529,7 +529,7 @@ class PublishSetupTests extends ScalaCliSuite {
         .filter(_.startsWith("Would have set GitHub secret "))
         .map(_.stripPrefix("Would have set GitHub secret "))
         .toSet
-      val directives2 = directives(os.read(root / projDir / "publish-conf.scala"))
+      val directives2             = directives(os.read(root / projDir / "publish-conf.scala"))
       val expectedDirectivesAdded = Map(
         "publish.secretKeyPassword" -> Seq("file:whatever_not_checked"),
         "publish.publicKey"         -> Seq("file:key.pub")

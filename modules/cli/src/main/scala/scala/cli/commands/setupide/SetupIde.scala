@@ -8,8 +8,8 @@ import com.google.gson.GsonBuilder
 
 import java.nio.charset.{Charset, StandardCharsets}
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.input.{Inputs, OnDisk, Virtual, WorkspaceOrigin}
@@ -17,7 +17,9 @@ import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
+import scala.cli.commands.CommandUtils.{hasSelfExecutablePreamble, isJar}
 import scala.cli.commands.shared.{SharedBspFileOptions, SharedOptions}
+import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.errors.FoundVirtualInputsError
 import scala.cli.launcher.LauncherOptions
@@ -43,14 +45,15 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
           ),
           logger,
           options.suppressWarningOptions,
-          options.internal.exclude
+          options.internal.exclude,
+          download = options.downloader
         )
       }
 
-      val sharedOptions = crossSources.sharedOptions(options)
+      crossSources.sharedOptions(options)
 
       val scopedSources = value(crossSources.scopedSources(options))
-      val mainSources = value(scopedSources.sources(
+      val mainSources   = value(scopedSources.sources(
         Scope.Main,
         crossSources.sharedOptions(options),
         allInputs.workspace,
@@ -60,7 +63,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       mainSources.buildOptions
     }
 
-    val joinedBuildOpts = maybeSourceBuildOptions.toOption.map(options orElse _).getOrElse(options)
+    val joinedBuildOpts = maybeSourceBuildOptions.toOption.map(options.orElse(_)).getOrElse(options)
     joinedBuildOpts.artifacts(logger, Scope.Main)
   }
 
@@ -132,7 +135,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       ))
 
     val (bspName, bspJsonDestination) = bspDetails(inputs.workspace, options.bspFile)
-    val scalaCliBspJsonDestination =
+    val scalaCliBspJsonDestination    =
       inputs.workspace / Constants.workspaceDirName / "ide-options-v2.json"
     val scalaCliBspLauncherOptsJsonDestination =
       inputs.workspace / Constants.workspaceDirName / "ide-launcher-options.json"
@@ -154,13 +157,32 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       s"-J-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:$port,suspend=y"
     )
 
-    val launcher = launcherOptions.scalaRunner.initialLauncherPath
-      .getOrElse(CommandUtils.getAbsolutePathToScalaCli(progName))
+    val launcher = os.Path {
+      launcherOptions.scalaRunner.initialLauncherPath
+        .getOrElse(CommandUtils.getAbsolutePathToScalaCli(progName))
+    }
     val finalLauncherOptions = launcherOptions.copy(cliVersion =
       launcherOptions.cliVersion.orElse(launcherOptions.scalaRunner.predefinedCliVersion)
     )
+
+    val launcherCommand =
+      if launcher.isJar && !launcher.hasSelfExecutablePreamble
+      then
+        List(
+          value {
+            JvmUtils.getJavaCmdVersionOrHigher(
+              javaVersion =
+                math.max(Constants.minimumInternalJavaVersion, Constants.minimumBloopJavaVersion),
+              options = buildOptions
+            )
+          }.javaCommand,
+          "-jar",
+          launcher.toString
+        )
+      else List(launcher.toString)
+
     val bspArgs =
-      List(launcher) ++
+      launcherCommand ++
         finalLauncherOptions.toCliArgs ++
         launcherJavaPropArgs ++
         List("bsp") ++
@@ -189,11 +211,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     implicit val mapCodec: JsonValueCodec[Map[String, String]] = JsonCodecMaker.make
 
     val json                         = gson.toJson(details)
-    val scalaCliOptionsForBspJson    = writeToArray(options.shared)(SharedOptions.jsonCodec)
-    val scalaCliLaunchOptsForBspJson = writeToArray(finalLauncherOptions)(LauncherOptions.jsonCodec)
-    val scalaCliBspInputsJson        = writeToArray(ideInputs)
-    val envsForBsp          = sys.env.filter((key, _) => EnvVar.allBsp.map(_.name).contains(key))
-    val scalaCliBspEnvsJson = writeToArray(envsForBsp)
+    val scalaCliOptionsForBspJson    = writeToArray(options.shared)(using SharedOptions.jsonCodec)
+    val scalaCliLaunchOptsForBspJson =
+      writeToArray(finalLauncherOptions)(using LauncherOptions.jsonCodec)
+    val scalaCliBspInputsJson = writeToArray(ideInputs)
+    val envsForBsp            = sys.env.filter((key, _) => EnvVar.allBsp.map(_.name).contains(key))
+    val scalaCliBspEnvsJson   = writeToArray(envsForBsp)
 
     if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
       value(Left(new WorkspaceError(

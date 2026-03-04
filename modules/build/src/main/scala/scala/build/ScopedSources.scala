@@ -62,14 +62,14 @@ final case class ScopedSources(
   ): Either[BuildException, Sources] = either {
     val combinedOptions = combinedBuildOptions(scope, baseOptions)
 
-    val codeWrapper = ScriptPreprocessor.getScriptWrapper(combinedOptions)
+    val codeWrapper = ScriptPreprocessor.getScriptWrapper(combinedOptions, logger)
 
     val wrappedScripts = unwrappedScripts
       .flatMap(_.valueFor(scope).toSeq)
       .map(_.wrap(codeWrapper))
 
     codeWrapper match {
-      case _: AppCodeWrapper.type if wrappedScripts.size > 1 =>
+      case _: AppCodeWrapper if wrappedScripts.size > 1 =>
         wrappedScripts.find(_.originalPath.exists(_._1.toString == "main.sc"))
           .foreach(_ => logger.diagnostic(WarningMessages.mainScriptNameClashesWithAppWrapper))
       case _ => ()
@@ -121,14 +121,14 @@ final case class ScopedSources(
     */
   def combinedBuildOptions(scope: Scope, baseOptions: BuildOptions): BuildOptions =
     buildOptionsFor(scope)
-      .foldRight(baseOptions)(_ orElse _)
+      .foldRight(baseOptions)(_.orElse(_))
 
   def buildInfo(baseOptions: BuildOptions, workspace: os.Path): Either[BuildException, BuildInfo] =
     either {
       def getScopedBuildInfo(scope: Scope): ScopedBuildInfo =
         val combinedOptions = combinedBuildOptions(scope, baseOptions)
         val sourcePaths     = paths.flatMap(_.valueFor(scope).toSeq).map(_._1.toString)
-        val inMemoryPaths =
+        val inMemoryPaths   =
           (inMemory.flatMap(_.valueFor(scope).toSeq).flatMap(_.originalPath.toOption) ++
             unwrappedScripts.flatMap(_.valueFor(scope).toSeq).flatMap(_.originalPath.toOption))
             .map(_._2.toString)

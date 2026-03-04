@@ -1,13 +1,13 @@
 package scala.build.options
 
-import _root_.bloop.config.{Config => BloopConfig}
-import dependency._
+import _root_.bloop.config.Config as BloopConfig
+import dependency.*
 
 import java.nio.file.Paths
 
 import scala.build.internal.Constants
+import scala.scalanative.build as sn
 import scala.scalanative.build.LTO
-import scala.scalanative.{build => sn}
 
 enum ScalaNativeTarget:
   case Application, LibraryDynamic, LibraryStatic
@@ -16,10 +16,9 @@ enum ScalaNativeTarget:
     this match
       case Application    => sn.BuildTarget.application
       case LibraryDynamic => sn.BuildTarget.libraryDynamic
-      case libraryStatic  => sn.BuildTarget.libraryStatic
+      case _              => sn.BuildTarget.libraryStatic
 
 object ScalaNativeTarget:
-  import ScalaNativeTarget.*
   def fromString(str: String): Option[ScalaNativeTarget] =
     str match
       case "application" | "app"                    => Some(Application)
@@ -37,6 +36,8 @@ final case class ScalaNativeOptions(
   linkingOptions: List[String] = Nil,
   linkingDefaults: Option[Boolean] = None,
   compileOptions: List[String] = Nil,
+  cCompileOptions: List[String] = Nil,
+  cppCompileOptions: List[String] = Nil,
   compileDefaults: Option[Boolean] = None,
   embedResources: Option[Boolean] = None,
   buildTargetStr: Option[String] = None,
@@ -110,6 +111,10 @@ final case class ScalaNativeOptions(
 
   private def compileCliOptions(): List[String] =
     finalCompileOptions().flatMap(option => List("--compile-option", option))
+  private def cCompileCliOptions(): List[String] =
+    cCompileOptions.flatMap(option => List("--c-compile-option", option))
+  private def cppCompileCliOptions(): List[String] =
+    cppCompileOptions.flatMap(option => List("--cpp-compile-option", option))
   private def ltoOptions(): List[String] =
     ltoStr.map(_.trim).filter(_.nonEmpty)
       .map(lto => LTO.apply(lto))
@@ -177,6 +182,8 @@ final case class ScalaNativeOptions(
       clangppCliOption() ++
       linkingCliOptions() ++
       compileCliOptions() ++
+      cCompileCliOptions() ++
+      cppCompileCliOptions() ++
       resourcesCliOptions(resourcesExist) ++
       targetCliOption() ++
       multithreadingCliOption()

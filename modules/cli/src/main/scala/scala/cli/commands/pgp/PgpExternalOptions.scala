@@ -5,9 +5,7 @@ import caseapp.*
 import scala.cli.commands.shared.{
   CoursierOptions,
   GlobalOptions,
-  GlobalSuppressWarningOptions,
   HasGlobalOptions,
-  LoggingOptions,
   SharedJvmOptions
 }
 

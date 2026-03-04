@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
+trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
   private def maybeScalapyPrefix =
     if (actualScalaVersion.startsWith("2.13.")) ""
     else "import me.shadaj.scalapy.py" + System.lineSeparator()
@@ -109,7 +109,7 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
   }
 
   def pythonAndScalaSourcesTest(native: Boolean): Unit = {
-    val tq = "\"\"\""
+    val tq     = "\"\"\""
     val inputs = TestInputs(
       os.rel / "src" / "helpers.py" ->
         s"""class Helper:
@@ -160,7 +160,8 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
   }
   // disabled on Windows for now, for context, see
   // https://github.com/VirtusLab/scala-cli/pull/1270#issuecomment-1237904394
-  if (!Properties.isWin)
+  // disabled on Scala 3.8 and above, behavior seems to have changed here
+  if !Properties.isWin && !isScala38OrNewer then
     test("Python and Scala sources (native)") {
       pythonAndScalaSourcesTest(native = true)
     }

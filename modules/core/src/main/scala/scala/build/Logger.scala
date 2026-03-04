@@ -1,13 +1,14 @@
 package scala.build
 
 import bloop.rifle.BloopRifleLogger
-import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
+import org.scalajs.logging.{Logger as ScalaJsLogger, NullLogger}
 
 import java.io.{OutputStream, PrintStream}
 
+import scala.annotation.unused
 import scala.build.errors.{BuildException, Diagnostic, Severity}
 import scala.build.internals.FeatureType
-import scala.scalanative.{build => sn}
+import scala.scalanative.build as sn
 
 trait Logger {
   def error(message: String): Unit
@@ -16,6 +17,8 @@ trait Logger {
   def log(s: => String): Unit
   def log(s: => String, debug: => String): Unit
   def debug(s: => String): Unit
+
+  def debugStackTrace(t: => Throwable): Unit = t.getStackTrace.foreach(ste => debug(ste.toString))
 
   def log(diagnostics: Seq[Diagnostic]): Unit
 
@@ -47,7 +50,7 @@ trait Logger {
 
   def cliFriendlyDiagnostic(
     message: String,
-    cliFriendlyMessage: String,
+    @unused cliFriendlyMessage: String,
     severity: Severity = Severity.Warning,
     positions: Seq[Position] = Nil
   ): Unit = diagnostic(message, severity, positions)
@@ -64,7 +67,7 @@ object Logger {
     def log(diagnostics: Seq[Diagnostic]): Unit = ()
     def log(ex: BuildException): Unit           = ()
     def debug(ex: BuildException): Unit         = ()
-    def exit(ex: BuildException): Nothing =
+    def exit(ex: BuildException): Nothing       =
       throw new Exception(ex)
 
     def coursierLogger(printBefore: String): coursier.cache.CacheLogger =

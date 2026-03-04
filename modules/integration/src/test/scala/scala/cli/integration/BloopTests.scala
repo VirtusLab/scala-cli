@@ -15,7 +15,7 @@ class BloopTests extends ScalaCliSuite {
 
   val dummyInputs: TestInputs = TestInputs(
     os.rel / "Test.scala" ->
-      """//> using scala "2.13"
+      """//> using scala 2.13
         |object Test {
         |  def main(args: Array[String]): Unit =
         |    println("Hello " + "from test")
@@ -148,7 +148,7 @@ class BloopTests extends ScalaCliSuite {
              |}
              |""".stripMargin
         val sourcePath = os.rel / "Hello.scala"
-        val inputs = TestInputs(
+        val inputs     = TestInputs(
           sourcePath -> content("Hello")
         )
         inputs.fromRoot { root =>
@@ -170,7 +170,7 @@ class BloopTests extends ScalaCliSuite {
     }
 
   test("run bloop with jvm version if > 17") {
-    val hello = "Hello from Java 21"
+    val hello  = "Hello from Java 21"
     val inputs = TestInputs(
       os.rel / "Simple.java" ->
         s"""|//> using jvm 21
@@ -196,49 +196,53 @@ class BloopTests extends ScalaCliSuite {
     lang         <- List("scala", "java")
     useDirective <- List(true, false)
     option       <- List("java-home", "jvm")
+    jvm = Constants.allJavaVersions.filter(_ < 23).max
   }
-    test(s"compiles $lang file with correct jdk version for $option ${
-        if (useDirective) "use directive" else "option"
+    test(s"compiles $lang file with correct jdk version ($jvm) for $option ${
+        if useDirective then "use directive" else "option"
       }") {
-      def isScala = lang == "scala"
+      def isScala     = lang == "scala"
       val optionValue =
-        if (option == "java-home")
-          os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim()).toString()
-        else "8"
+        if option == "java-home" then
+          os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", jvm).call().out.trim()).toString()
+        else jvm.toString
       val directive =
-        if (useDirective) s"//> using ${option.replace("-h", "H")} $optionValue\n" else ""
-      val options = if (useDirective) Nil else List(s"--$option", optionValue)
+        if useDirective then s"//> using ${option.replace("-h", "H")} $optionValue\n" else ""
+      val options = if useDirective then Nil else List(s"--$option", optionValue)
       val content =
-        if (isScala)
-          """|package a
-             |
-             |
-             |trait Simple {
-             |  val str = "".repeat(2)
-             |}
-             |""".stripMargin
-        else """|package a;
-               |
-               |class Simple {
-               |  void hello(){
-               |     String str = "".repeat(2);
-               |  }
-               |}
-               |""".stripMargin
+        if isScala then
+          "object Simple { System.out.println(javax.print.attribute.standard.OutputBin.LEFT) }"
+        else """public class Simple {
+              |  public static void main(String[] args) {
+              |      System.out.println(javax.print.attribute.standard.OutputBin.LEFT);
+              |  }
+              |}""".stripMargin
       val inputs = TestInputs(os.rel / s"Simple.$lang" -> s"$directive$content")
 
       inputs.fromRoot { root =>
         val res =
-          runScalaCli(("compile" :: "." :: options)*).call(root, check = false, stderr = os.Pipe)
+          runScalaCli("compile" :: "." :: options*).call(root, check = false, stderr = os.Pipe)
         assert(res.exitCode == 1)
 
         val compilationError = res.err.text()
-        val message =
-          if (isScala) "value repeat is not a member of String"
-          else "error: cannot find symbol"
+        val message          =
+          if isScala
+          then "value OutputBin is not a member of javax.print.attribute.standard"
+          else "cannot find symbol"
 
         assert(compilationError.contains("Compilation failed"))
         assert(compilationError.contains(message))
       }
     }
+
+  {
+    val bloopSnapshotVersion = "2.0.6-51-38c118d4-SNAPSHOT"
+    test(s"compilation works with a Bloop snapshot version: $bloopSnapshotVersion".flaky) {
+      val input = "script.sc"
+      TestInputs(os.rel / input -> """println("Hello")""").fromRoot { root =>
+        os.proc(TestUtil.cli, "compile", input, "--bloop-version", bloopSnapshotVersion)
+          .call(cwd = root)
+      }
+    }
+  }
 }

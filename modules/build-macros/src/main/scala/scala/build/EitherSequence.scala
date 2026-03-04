@@ -7,7 +7,7 @@ object EitherSequence {
     val errors = new ListBuffer[E]
     val values = new ListBuffer[T]
     eithers.foreach {
-      case Left(e) => errors += e
+      case Left(e)  => errors += e
       case Right(t) =>
         if (errors.isEmpty)
           values += t

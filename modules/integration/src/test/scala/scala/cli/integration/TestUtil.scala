@@ -1,6 +1,7 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import coursier.paths.CoursierPaths
 
 import java.io.File
 import java.net.ServerSocket
@@ -12,20 +13,26 @@ import scala.Console.*
 import scala.annotation.tailrec
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.Properties
+import scala.jdk.CollectionConverters.*
+import scala.util.{Properties, Try}
 
 object TestUtil {
 
-  val cliKind: String              = sys.props("test.scala-cli.kind")
-  val isNativeCli: Boolean         = cliKind.startsWith("native")
-  val isJvmCli: Boolean            = cliKind.startsWith("jvm")
-  val isCI: Boolean                = System.getenv("CI") != null
-  val isM1: Boolean                = sys.props.get("os.arch").contains("aarch64")
-  val cliPath: String              = sys.props("test.scala-cli.path")
-  val debugPortOpt: Option[String] = sys.props.get("test.scala-cli.debug.port")
-  val detectCliPath: String        = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
-  val cli: Seq[String]             = cliCommand(cliPath)
-  val ltsEqualsNext: Boolean       = Constants.scala3Lts equals Constants.scala3Next
+  val cliKind: String               = sys.props("test.scala-cli.kind")
+  val isNativeCli: Boolean          = cliKind.startsWith("native")
+  val isNativeStaticCli: Boolean    = cliKind.startsWith("native-static")
+  val isJvmCli: Boolean             = cliKind.startsWith("jvm")
+  val isJvmBootstrappedCli: Boolean = cliKind.startsWith("jvmBootstrapped")
+  val isCI: Boolean                 = System.getenv("CI") != null
+  val isAarch64: Boolean            = sys.props.get("os.arch").contains("aarch64")
+  val cliPath: String               = sys.props("test.scala-cli.path")
+  val debugPortOpt: Option[String]  = sys.props.get("test.scala-cli.debug.port")
+  val detectCliPath: String         = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
+  val cli: Seq[String]              = cliCommand(cliPath)
+  val ltsEqualsNext: Boolean        = Constants.scala3Lts equals Constants.scala3Next
+
+  lazy val legacyScalaVersionsOnePerMinor: Seq[String] =
+    Constants.legacyScala3Versions.sorted.reverse.distinctBy(_.split('.').take(2).mkString("."))
 
   def cliCommand(cliPath: String): Seq[String] =
     if (isNativeCli)
@@ -99,8 +106,8 @@ object TestUtil {
 
   private def daemonThreadFactory(prefix: String): ThreadFactory =
     new ThreadFactory {
-      val counter             = new AtomicInteger
-      def threadNumber(): Int = counter.incrementAndGet()
+      val counter                        = new AtomicInteger
+      def threadNumber(): Int            = counter.incrementAndGet()
       def newThread(r: Runnable): Thread =
         new Thread(r, s"$prefix-thread-${threadNumber()}") {
           setDaemon(true)
@@ -112,7 +119,26 @@ object TestUtil {
     if (uri.startsWith("file:///")) "file:/" + uri.stripPrefix("file:///")
     else uri
 
-  def removeAnsiColors(str: String) = str.replaceAll("\\e\\[[0-9]+m", "")
+  def removeAnsiColors(str: String): String = str.replaceAll("\\e\\[[0-9]+m", "")
+
+  def fullStableOutput(result: os.CommandResult): String =
+    removeAnsiColors(result.toString).trim().linesIterator.filterNot { str =>
+      // these lines are not stable and can easily change
+      val shouldNotContain =
+        Set(
+          "Starting compilation server",
+          "hint",
+          "Download",
+          "Result of",
+          "Checking",
+          "Checked",
+          "Failed to download"
+        )
+      shouldNotContain.exists(str.contains)
+    }.mkString(System.lineSeparator())
+
+  def fullStableOutputLines(result: os.CommandResult): Vector[String] =
+    fullStableOutput(result).lines().toList.asScala.toVector
 
   def retry[T](
     maxAttempts: Int = 3,
@@ -125,11 +151,17 @@ object TestUtil {
       try run
       catch {
         case t: Throwable =>
-          if (count >= maxAttempts)
+          if (count >= maxAttempts) {
+            System.err.println(s"$maxAttempts attempts failed, caught $t. Giving up.")
             throw new Exception(t)
+          }
           else {
-            System.err.println(s"Caught $t, trying again in $waitDuration…")
+            val remainingAttempts = maxAttempts - count
+            System.err.println(
+              s"Caught $t, $remainingAttempts attempts remaining, trying again in $waitDuration…"
+            )
             Thread.sleep(waitDuration.toMillis)
+            System.err.println(s"Trying attempt $count out of $maxAttempts...")
             helper(count + 1)
           }
       }
@@ -234,7 +266,7 @@ object TestUtil {
       Thread.sleep(100L)
       if (proc.isAlive()) {
         Thread.sleep(1000L)
-        proc.destroyForcibly()
+        proc.destroy(shutdownGracePeriod = 0)
       }
     }
   }
@@ -292,7 +324,7 @@ object TestUtil {
     timeout: Duration
   ): String = {
     implicit val ec0 = ec
-    val readLineF = Future {
+    val readLineF    = Future {
       stream.readLine()
     }
     Await.result(readLineF, timeout)
@@ -351,6 +383,155 @@ object TestUtil {
     finally if (proc.isAlive()) {
         proc.destroy()
         Thread.sleep(200L)
-        if (proc.isAlive()) proc.destroyForcibly()
+        if (proc.isAlive()) proc.destroy(shutdownGracePeriod = 0)
       }
+
+  implicit class StringOps(a: String) {
+    def countOccurrences(b: String): Int =
+      if (b.isEmpty) 0 // Avoid infinite splitting
+      else a.sliding(b.length).count(_ == b)
+  }
+
+  def printStderrUntilCondition(
+    proc: os.SubProcess,
+    timeout: Duration = 90.seconds
+  )(condition: String => Boolean)(
+    f: String => Unit = _ => ()
+  )(implicit ec: ExecutionContext): Unit = {
+    def revertTriggered(): Boolean = {
+      val stderrOutput = TestUtil.readLine(proc.stderr, ec, timeout)
+      println(stderrOutput)
+      f(stderrOutput)
+      condition(stderrOutput)
+    }
+
+    while (!revertTriggered()) Thread.sleep(100L)
+  }
+
+  implicit class ProcOps(proc: os.SubProcess) {
+    def printStderrUntilJlineRevertsToDumbTerminal(proc: os.SubProcess)(
+      f: String => Unit
+    )(implicit ec: ExecutionContext): Unit =
+      TestUtil.printStderrUntilCondition(proc)(_.contains("creating a dumb terminal"))(f)
+
+    def printStderrUntilRerun(timeout: Duration)(implicit ec: ExecutionContext): Unit =
+      TestUtil.printStderrUntilCondition(proc, timeout)(_.contains("re-run"))()
+  }
+
+  // based on the implementation from bloop-rifle:
+  // https://github.com/scalacenter/bloop/blob/65b0b290fddd6d4256665014a7d16531e29ded4f/bloop-rifle/src/main/scala/bloop/rifle/VersionUtil.scala#L13-L30
+  def parseJavaVersion(input: String): Option[Int] = {
+    val jvmReleaseRegex                             = "(1[.])?(\\d+)"
+    def jvmRelease(jvmVersion: String): Option[Int] = for {
+      regexMatch    <- jvmReleaseRegex.r.findFirstMatchIn(jvmVersion)
+      versionString <- Option(regexMatch.group(2))
+      versionInt    <- Try(versionString.toInt).toOption
+    } yield versionInt
+    for {
+      firstMatch         <- s""".*version .($jvmReleaseRegex).*""".r.findFirstMatchIn(input)
+      versionNumberGroup <- Option(firstMatch.group(1))
+      versionInt         <- jvmRelease(versionNumberGroup)
+    } yield versionInt
+  }
+
+  extension [T](f: scala.concurrent.Future[T]) {
+    def await: T                         = Await.result(f, Duration.Inf)
+    def awaitWithTimeout(d: Duration): T = Await.result(f, d)
+  }
+
+  extension (args: Seq[String]) {
+    def normalizeArgsForWindows: Seq[String] =
+      if Properties.isWin then
+        args.map(a => if a.contains(" ") then "\"" + a.replace("\"", "\\\"") + "\"" else a)
+      else args
+  }
+
+  def cleanCoursierCache(pathToCleanContainsAnyKeyword: Seq[String] = Seq.empty): Unit = {
+    val csCache = os.Path(CoursierPaths.cacheDirectoryPath())
+    if pathToCleanContainsAnyKeyword.isEmpty && os.exists(csCache) && os.isDir(csCache) then
+      System.err.println(s"Cleaning Coursier cache at $csCache")
+      os.remove.all(csCache)
+    else if pathToCleanContainsAnyKeyword.nonEmpty then
+      os.walk(csCache)
+        .filter(d => !os.isDir(d)) // skip containing dirs
+        .filter(p => pathToCleanContainsAnyKeyword.exists(p.toString.contains))
+        .foreach { p =>
+          System.err.println(s"Cleaning from Coursier cache: $p")
+          os.remove(p)
+        }
+    else System.err.println("Nothing to clean")
+  }
+
+  def cleanCachedJdks(): Unit = {
+    System.err.println("Cleaning cached JDKs in Coursier cache…")
+    cleanCoursierCache(Seq("zulu", "temurin", "adoptium", "corretto", "liberica", "graalvm"))
+  }
+
+  def substedDrives: Set[Char] =
+    if Properties.isWin then
+      os.proc("cmd", "/c", "subst").call().out.text()
+        .linesIterator
+        .flatMap { line =>
+          // lines look like: "I:\: => C:\path"
+          if (line.length >= 2 && line(1) == ':') Some(line(0))
+          else None
+        }
+        .toSet
+    else Set.empty[Char]
+
+  def availableDriveLetter(): Char = {
+    import scala.annotation.tailrec
+    @tailrec
+    def helper(from: Char): Char =
+      if (from > 'Z') sys.error("Cannot find free drive letter")
+      // neither physical drives nor SUBSTed drives are free
+      else if (mountedDrives.contains(from) || substedDrives.contains(from))
+        helper((from + 1).toChar)
+      else
+        from
+
+    helper('D')
+  }
+
+  lazy val mountedDrives: String = {
+    val str         = "HKEY_LOCAL_MACHINE/SYSTEM/MountedDevices".replace('/', '\\')
+    val queryDrives = s"reg query $str"
+    val lines       = os.proc("cmd", "/c", queryDrives).call().out.lines()
+    val dosDevices  = lines.filter { s =>
+      s.contains("DosDevices")
+    }.map { s =>
+      s.replaceAll(".DosDevices.", "").replaceAll(":.*", "")
+    }
+    dosDevices.mkString
+  }
+
+  def aliasDriveLetter(driveLetter: Char, from: String): Unit = {
+    val setupCommand = s"""subst $driveLetter: "$from""""
+    os.proc("cmd", "/c", setupCommand).call(stdin = os.Inherit, stdout = os.Inherit)
+  }
+
+  def unaliasDriveLetter(driveLetter: Char): Int = {
+    val (exit, _) = execWindowsCmd("cmd.exe", "/c", s"subst $driveLetter: /d")
+    exit
+  }
+
+  def setCodePage(cp: String): Int =
+    val (exit, _) = execWindowsCmd("cmd", "/c", s"chcp $cp")
+    exit
+
+  def getCodePage: String = {
+    val (_, output) = execWindowsCmd("cmd", "/c", "chcp")
+    output
+  }
+
+  private def execWindowsCmd(cmd: String*): (Int, String) =
+    val pb = new ProcessBuilder(cmd*)
+    pb.redirectInput(ProcessBuilder.Redirect.INHERIT)
+    pb.redirectError(ProcessBuilder.Redirect.INHERIT)
+    pb.redirectOutput(ProcessBuilder.Redirect.PIPE)
+    val p = pb.start()
+    // read stdout fully
+    val output   = scala.io.Source.fromInputStream(p.getInputStream, "UTF-8").mkString
+    val exitCode = p.waitFor()
+    (exitCode, output)
 }

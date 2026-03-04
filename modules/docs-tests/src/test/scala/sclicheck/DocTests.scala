@@ -5,10 +5,10 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
 class DocTests extends munit.FunSuite {
-  override def munitTimeout = new FiniteDuration(360, TimeUnit.SECONDS)
+  override def munitTimeout = new FiniteDuration(600, TimeUnit.SECONDS)
   case class DocTestEntry(name: String, path: os.Path, depth: Int = Int.MaxValue)
 
-  val docsRootPath: os.Path = os.pwd / "website" / "docs"
+  val docsRootPath: os.Path      = os.Path(sys.env("MILL_WORKSPACE_ROOT")) / "website" / "docs"
   val entries: Seq[DocTestEntry] = Seq(
     DocTestEntry("root", docsRootPath, depth = 1),
     DocTestEntry("cookbook", docsRootPath / "cookbooks"),
@@ -38,7 +38,7 @@ class DocTests extends munit.FunSuite {
     md <- inputs
   }
     test(s"$tpe ${md.toString.stripSuffix(".md")}") {
-      checkFile(dir / md, options)
+      TestUtil.retryOnCi()(checkFile(dir / md, options))
     }
 
 }

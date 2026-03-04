@@ -46,13 +46,13 @@ object ConfigMonoid:
   inline def zeroTuple[C <: Tuple]: Tuple =
     inline erasedValue[C] match
       case _: EmptyTuple => EmptyTuple
-      case _: (t *: ts) =>
+      case _: (t *: ts)  =>
         summonInline[ConfigMonoid[t]].zero *: zeroTuple[ts]
 
   inline def valueTuple[C <: Tuple, T](index: Int, main: T, defaults: T): Tuple =
     inline erasedValue[C] match
       case _: EmptyTuple => EmptyTuple
-      case _: (t *: ts) =>
+      case _: (t *: ts)  =>
         def get(v: T) = v.asInstanceOf[Product].productElement(index).asInstanceOf[t]
         summonInline[ConfigMonoid[t]].orElse(get(main), get(defaults)) *: valueTuple[ts, T](
           index + 1,

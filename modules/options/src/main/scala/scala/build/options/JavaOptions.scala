@@ -2,11 +2,11 @@ package scala.build.options
 
 import bloop.rifle.VersionUtil.jvmRelease
 import coursier.cache.{ArchiveCache, FileCache}
-import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
+import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.util.Task
 import dependency.AnyDependency
 
-import scala.build.internal.CsLoggerUtil._
+import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.OsLibc
 import scala.build.options.BuildOptions.JavaHomeInfo
 import scala.build.{Os, Position, Positioned}
@@ -38,7 +38,7 @@ final case class JavaOptions(
     cache: FileCache[Task],
     verbosity: Int
   ): JavaHome = {
-    val indexUrl = jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
+    val indexUrl  = jvmIndexOpt.getOrElse(JvmChannel.gitHubIndexUrl)
     val indexTask = {
       val msg    = if (verbosity > 0) "Downloading JVM index" else ""
       val cache0 = cache.withMessage(msg)
@@ -54,7 +54,7 @@ final case class JavaOptions(
         )
       )
       .withOs(finalJvmIndexOs)
-      .withArchitecture(jvmIndexArch.getOrElse(JvmIndex.defaultArchitecture()))
+      .withArchitecture(jvmIndexArch.getOrElse(JvmChannel.defaultArchitecture()))
     JavaHome().withCache(jvmCache)
   }
 
@@ -124,7 +124,7 @@ final case class JavaOptions(
     verbosity: Int
   ): Positioned[os.Path] =
     javaHomeLocationOpt(archiveCache, cache, verbosity).getOrElse {
-      val jvmId = OsLibc.defaultJvm(finalJvmIndexOs)
+      val jvmId            = OsLibc.defaultJvm(finalJvmIndexOs)
       val javaHomeManager0 = javaHomeManager(archiveCache, cache, verbosity)
         .withMessage(s"Downloading JVM $jvmId")
       implicit val ec: ExecutionContextExecutorService = cache.ec

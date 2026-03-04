@@ -1,13 +1,10 @@
 package scala.cli.commands.publish.checks
-
-import java.net.URI
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.options.{PublishOptions => BPublishOptions}
-import scala.cli.commands.publish.ConfigUtil._
-import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, RepoParams, SetSecret}
+import scala.build.options.PublishOptions as BPublishOptions
+import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, SetSecret}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError
 
@@ -28,7 +25,7 @@ final case class PasswordCheck(
       workspace,
       logger
     ) match {
-      case None => Right(None)
+      case None       => Right(None)
       case Some(host) =>
         configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
           credListOpt.flatMap { credList =>
@@ -44,16 +41,16 @@ final case class PasswordCheck(
     }
 
   def check(pubOpt: BPublishOptions): Boolean =
-    pubOpt.retained(options.publishParams.setupCi).repoPassword.nonEmpty || {
-      !options.publishParams.setupCi && (passwordOpt(pubOpt) match {
-        case Left(ex) =>
-          logger.debug("Ignoring error while trying to get password from config")
-          logger.debug(ex)
-          true
-        case Right(valueOpt) =>
-          valueOpt.isDefined
-      })
-    }
+    pubOpt.retained(options.publishParams.setupCi).repoPassword.nonEmpty ||
+    !options.publishParams.setupCi &&
+    (passwordOpt(pubOpt) match {
+      case Left(ex) =>
+        logger.debug("Ignoring error while trying to get password from config")
+        logger.debug(ex)
+        true
+      case Right(valueOpt) =>
+        valueOpt.isDefined
+    })
 
   def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] =
     either {
@@ -61,7 +58,7 @@ final case class PasswordCheck(
       if (options.publishParams.setupCi) {
         val password = options.publishRepo.password match {
           case Some(password0) => password0.toConfig
-          case None =>
+          case None            =>
             value(passwordOpt(pubOpt)) match {
               case Some(password0) =>
                 logger.message("publish.credentials:")

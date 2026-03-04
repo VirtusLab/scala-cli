@@ -16,14 +16,14 @@ package scala.build.tastylib
 
 import scala.build.tastylib.TastyBuffer.NameRef
 import scala.build.tastylib.TastyFormat.NameTags
-import scala.build.tastylib.TastyName._
+import scala.build.tastylib.TastyName.*
 import scala.build.tastylib.TastyReader.Bytes
 import scala.collection.mutable
 
 object TastyUnpickler {
 
   final class NameTable {
-    private[this] val names = new mutable.ArrayBuffer[(Option[TastyName], Bytes)]
+    private val names = new mutable.ArrayBuffer[(Option[TastyName], Bytes)]
     def add(
       name: Option[TastyName],
       bytes: Bytes
@@ -39,7 +39,7 @@ import TastyUnpickler._
 
 private class TastyUnpickler(reader: TastyReader) { self =>
 
-  private[this] val nameTable = new NameTable
+  private val nameTable = new NameTable
 
   def nameAtRef: NameTable = nameTable
 
@@ -49,7 +49,7 @@ private class TastyUnpickler(reader: TastyReader) { self =>
     val length     = reader.readNat()
     val start      = reader.currentAddr
     val end        = start + length
-    val result = tag match {
+    val result     = tag match {
       case NameTags.UTF8 =>
         Some(SimpleName(new String(reader.bytes.slice(start.index, start.index + length), "UTF-8")))
       case _ =>

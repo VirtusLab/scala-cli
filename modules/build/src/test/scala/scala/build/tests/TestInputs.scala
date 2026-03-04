@@ -3,14 +3,14 @@ package scala.build.tests
 import bloop.rifle.BloopRifleConfig
 
 import java.nio.charset.StandardCharsets
-import scala.build.{Build, BuildThreads, Builds, Directories}
+
 import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
-import scala.build.internal.Util
+import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.options.{BuildOptions, Scope}
-import scala.util.control.NonFatal
+import scala.build.{Build, BuildThreads, Builds}
 import scala.util.Try
+import scala.util.control.NonFatal
 
 final case class TestInputs(
   files: Seq[(os.RelPath, String)],
@@ -66,9 +66,22 @@ final case class TestInputs(
     buildThreads: BuildThreads, // actually only used when bloopConfigOpt is non-empty
     bloopConfigOpt: Option[BloopRifleConfig],
     fromDirectory: Boolean = false
-  )(f: (os.Path, Inputs, Build) => T) =
+  )(f: (os.Path, Inputs, Build) => T): T =
     withBuild(options, buildThreads, bloopConfigOpt, fromDirectory)((p, i, maybeBuild) =>
       maybeBuild match {
+        case Left(e)  => throw e
+        case Right(b) => f(p, i, b)
+      }
+    )
+
+  def withLoadedBuilds[T](
+    options: BuildOptions,
+    buildThreads: BuildThreads, // actually only used when bloopConfigOpt is non-empty
+    bloopConfigOpt: Option[BloopRifleConfig],
+    fromDirectory: Boolean = false
+  )(f: (os.Path, Inputs, Builds) => T): T =
+    withBuilds(options, buildThreads, bloopConfigOpt, fromDirectory)((p, i, builds) =>
+      builds match {
         case Left(e)  => throw e
         case Right(b) => f(p, i, b)
       }
@@ -146,7 +159,7 @@ object TestInputs {
   def withTmpDir[T](prefix: String, forceCwd: Option[os.Path] = None)(f: os.Path => T): T =
     forceCwd match {
       case Some(path) => f(path)
-      case None =>
+      case None       =>
         val tmpDir = os.temp.dir(prefix = prefix)
         try f(tmpDir)
         finally tryRemoveAll(tmpDir)
@@ -161,7 +174,7 @@ object TestInputs {
         Runtime.getRuntime.addShutdownHook(
           new Thread("remove-dir-windows") {
             setDaemon(true)
-            override def run() =
+            override def run(): Unit =
               try os.remove.all(f)
               catch {
                 case NonFatal(e) =>

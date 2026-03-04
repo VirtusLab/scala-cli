@@ -1,18 +1,17 @@
 package scala.build.preprocessing.directives
 
-import scala.build.EitherCps.{either, value}
+import scala.build.EitherCps.either
 import scala.build.Ops.*
+import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, InternalOptions}
-import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
-import scala.util.Try
 
 @DirectiveGroupName("Exclude sources")
 @DirectiveExamples("//> using exclude utils.scala")
-@DirectiveExamples("//> using exclude \"examples/*\" \"*/resources/*\"")
-@DirectiveExamples("//> using exclude \"*.sc\"")
+@DirectiveExamples("//> using exclude examples/* */resources/*")
+@DirectiveExamples("//> using exclude *.sc")
 @DirectiveUsage(
   "`//> using exclude `_pattern_ | `//> using exclude `_pattern_ _pattern_ …",
   """`//> using exclude` _pattern_
@@ -22,11 +21,7 @@ import scala.util.Try
 )
 @DirectiveDescription("Exclude sources from the project")
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
-final case class Exclude(
-  exclude: List[Positioned[String]] = Nil
-) extends HasBuildOptions {
-// format: on
+final case class Exclude(exclude: List[Positioned[String]] = Nil) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = either {
     BuildOptions(
       internal = InternalOptions(

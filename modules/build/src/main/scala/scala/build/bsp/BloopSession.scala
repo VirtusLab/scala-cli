@@ -63,7 +63,7 @@ object BloopSession {
   ): BloopSession = new BloopSession(inputs, inputs.sourceHash(), remoteServer, bspServer, watcher)
 
   final class Reference {
-    private val ref = new AtomicReference[BloopSession](null)
+    private val ref         = new AtomicReference[BloopSession](null)
     def get(): BloopSession = {
       val session = ref.get()
       if (session == null)

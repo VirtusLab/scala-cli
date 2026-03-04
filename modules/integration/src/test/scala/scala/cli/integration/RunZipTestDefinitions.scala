@@ -6,7 +6,7 @@ import java.nio.charset.{Charset, StandardCharsets}
 
 import scala.cli.integration.TestInputs.compress
 
-trait RunZipTestDefinitions { _: RunTestDefinitions =>
+trait RunZipTestDefinitions { this: RunTestDefinitions =>
   test("Zip with multiple Scala files") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
@@ -22,7 +22,7 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.asZip { (root, zipPath) =>
       val message = "Hello"
-      val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
+      val output  = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
         .call(cwd = root)
         .out.trim()
       expect(output == message)
@@ -32,7 +32,7 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
     val zipInputs: Seq[(os.RelPath, String, Charset)] = Seq(
       (
         os.rel / "Hello.scala",
-        s"""//> using resourceDir "./"
+        s"""//> using resourceDir ./
            |import scala.io.Source
            |import java.nio.charset.StandardCharsets
            |import java.io.{BufferedReader, InputStreamReader}
@@ -73,7 +73,7 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
   test("Zip with Scala containing resource directive") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
-        s"""//> using resourceDir "./"
+        s"""//> using resourceDir ./
            |import scala.io.Source
            |
            |object Hello extends App {
@@ -99,7 +99,7 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
   test("Zip with Scala Script containing resource directive") {
     val inputs = TestInputs(
       os.rel / "hello.sc" ->
-        s"""//> using resourceDir "./"
+        s"""//> using resourceDir ./
            |import scala.io.Source
            |
            |val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
@@ -123,12 +123,12 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
   test("Zip with Markdown containing resource directive") {
     val (inputA, inputB) = "1" -> "2"
     val expectedMessage  = s"$inputA,$inputB"
-    val inputs = TestInputs(
+    val inputs           = TestInputs(
       os.rel / "Hello.md" ->
         s"""# Example Markdown file
            |A snippet for printing inputs from resources
            |```scala raw
-           |//> using resourceDir "./"
+           |//> using resourceDir ./
            |import scala.io.Source
            |object Hello extends App {
            |  val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq

@@ -20,9 +20,9 @@ object RunOptions {
   implicit lazy val parser: Parser[RunOptions] = Parser.derive
   implicit lazy val help: Help[RunOptions]     = Help.derive
 
-  val cmdName             = "run"
-  private val helpHeader  = "Compile and run Scala code."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val cmdName                     = "run"
+  private val helpHeader          = "Compile and run Scala code."
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

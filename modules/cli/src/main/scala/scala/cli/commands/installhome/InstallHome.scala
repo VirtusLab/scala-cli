@@ -5,7 +5,6 @@ import caseapp.core.help.HelpFormat
 import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
 import scala.build.Logger
-import scala.cli.CurrentParams
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{
   CommandUtils,

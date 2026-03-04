@@ -1,20 +1,17 @@
 package scala.build
 
-import java.io.File
-
-import scala.build.CollectionOps.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.Positioned
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   ExcludeDefinitionError,
   MalformedDirectiveError,
-  Severity
+  Severity,
+  UsingFileFromUriError
 }
-import scala.build.input.ElementsUtils.*
 import scala.build.input.*
+import scala.build.input.ElementsUtils.*
 import scala.build.internal.Constants
 import scala.build.internal.util.{RegexUtils, WarningMessages}
 import scala.build.options.{
@@ -26,7 +23,6 @@ import scala.build.options.{
   WithBuildRequirements
 }
 import scala.build.preprocessing.*
-import scala.build.testrunner.DynamicTestRunner.globPattern
 import scala.util.Try
 import scala.util.chaining.*
 
@@ -56,7 +52,7 @@ final case class CrossSources(
     buildOptions
       .filter(_.requirements.isEmpty)
       .map(_.value)
-      .foldLeft(baseOptions)(_ orElse _)
+      .foldLeft(baseOptions)(_.orElse(_))
 
   private def needsScalaVersion =
     paths.exists(_.needsScalaVersion) ||
@@ -84,7 +80,7 @@ final case class CrossSources(
           .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
           .filter(_.requirements.isEmpty)
           .map(_.value)
-          .foldLeft(sharedOptions0)(_ orElse _)
+          .foldLeft(sharedOptions0)(_.orElse(_))
 
         val platform = buildOptionsWithScalaVersion.platform
 
@@ -161,7 +157,8 @@ object CrossSources {
     logger: Logger,
     suppressWarningOptions: SuppressWarningOptions,
     exclude: Seq[Positioned[String]] = Nil,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    download: BuildOptions.Download = BuildOptions.Download.notSupported
   )(using ScalaCliInvokeData): Either[BuildException, (CrossSources, Inputs)] = either {
 
     def preprocessSources(elems: Seq[SingleElement])
@@ -209,8 +206,9 @@ object CrossSources {
         .flatMap(_.options)
         .flatMap(_.internal.extraSourceFiles)
         .distinct
-    val inputsElemFromDirectives: Seq[SingleFile] =
-      value(resolveInputsFromSources(sourcesFromDirectives, inputs.enableMarkdown))
+
+    val inputsElemFromDirectives: Seq[SingleElement] =
+      value(resolveInputsFromSources(sourcesFromDirectives, inputs.enableMarkdown, download))
     val preprocessedSourcesFromDirectives: Seq[PreprocessedSource] =
       value(preprocessSources(inputsElemFromDirectives.pipe(elements =>
         value(excludeSources(elements, inputs.workspace, allExclude))
@@ -248,7 +246,7 @@ object CrossSources {
         scopedRequirementsByRoot
           .getOrElse(path.root, Nil)
           .flatMap(_.valueFor(path).toSeq)
-          .foldLeft(BuildRequirements())(_ orElse _)
+          .foldLeft(BuildRequirements())(_.orElse(_))
 
       // Scala CLI treats all `.test.scala` files tests as well as
       // files from within `test` subdirectory from provided input directories
@@ -268,24 +266,13 @@ object CrossSources {
     } yield {
       val baseReqs0 = baseReqs(preprocessedSource.scopePath)
       preprocessedSource.optionsWithTargetRequirements :+ WithBuildRequirements(
-        preprocessedSource.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+        preprocessedSource.requirements.fold(baseReqs0)(_.orElse(baseReqs0)),
         opts
       )
     }).flatten
 
-    val resourceDirectoriesFromDirectives = {
-      val resourceDirsFromCli =
-        allInputs.elements.flatMap { case rd: ResourceDirectory => Some(rd.path); case _ => None }
-      val resourceDirsFromBuildOptions: Seq[os.Path] =
-        buildOptions.flatMap(_.value.classPathOptions.resourcesDir).distinct
-      resourceDirsFromBuildOptions
-        .filter(!resourceDirsFromCli.contains(_))
-        .map(ResourceDirectory(_))
-    }
-    val finalInputs = allInputs.add(resourceDirectoriesFromDirectives)
-
     val defaultMainElemPath = for {
-      defaultMainElem <- finalInputs.defaultMainClassElement
+      defaultMainElem <- allInputs.defaultMainClassElement
     } yield defaultMainElem.path
 
     val pathsWithDirectivePositions
@@ -294,8 +281,8 @@ object CrossSources {
         case d: PreprocessedSource.OnDisk =>
           val baseReqs0 = baseReqs(d.scopePath)
           WithBuildRequirements(
-            d.requirements.fold(baseReqs0)(_ orElse baseReqs0),
-            (d.path, d.path.relativeTo(finalInputs.workspace))
+            d.requirements.fold(baseReqs0)(_.orElse(baseReqs0)),
+            (d.path, d.path.relativeTo(allInputs.workspace))
           ) -> d.directivesPositions
       }
     val inMemoryWithDirectivePositions
@@ -304,7 +291,7 @@ object CrossSources {
         case m: PreprocessedSource.InMemory =>
           val baseReqs0 = baseReqs(m.scopePath)
           WithBuildRequirements(
-            m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+            m.requirements.fold(baseReqs0)(_.orElse(baseReqs0)),
             Sources.InMemory(m.originalPath, m.relPath, m.content, m.wrapperParamsOpt)
           ) -> m.directivesPositions
       }
@@ -314,18 +301,19 @@ object CrossSources {
         case m: PreprocessedSource.UnwrappedScript =>
           val baseReqs0 = baseReqs(m.scopePath)
           WithBuildRequirements(
-            m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+            m.requirements.fold(baseReqs0)(_.orElse(baseReqs0)),
             Sources.UnwrappedScript(m.originalPath, m.relPath, m.wrapScriptFun)
           ) -> m.directivesPositions
       }
 
     val resourceDirs: Seq[WithBuildRequirements[os.Path]] =
-      resolveResourceDirs(finalInputs, preprocessedSources)
+      resolveResourceDirs(allInputs, preprocessedSources)
 
     lazy val allPathsWithDirectivesByScope: Map[Scope, Seq[(os.Path, Position.File)]] =
-      (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions ++ unwrappedScriptsWithDirectivePositions)
+      (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions ++
+        unwrappedScriptsWithDirectivePositions)
         .flatMap { (withBuildRequirements, directivesPositions) =>
-          val scope = withBuildRequirements.scopedValue(Scope.Main).scope
+          val scope         = withBuildRequirements.scopedValue(Scope.Main).scope
           val path: os.Path = withBuildRequirements.value match
             case im: Sources.InMemory =>
               im.originalPath match
@@ -373,7 +361,7 @@ object CrossSources {
     val paths            = pathsWithDirectivePositions.map(_._1)
     val inMemory         = inMemoryWithDirectivePositions.map(_._1)
     val unwrappedScripts = unwrappedScriptsWithDirectivePositions.map(_._1)
-    val crossSources = CrossSources(
+    val crossSources     = CrossSources(
       paths,
       inMemory,
       defaultMainElemPath,
@@ -381,8 +369,18 @@ object CrossSources {
       buildOptions,
       unwrappedScripts
     )
-    crossSources -> finalInputs
+    crossSources -> allInputs
   }
+
+  extension (uri: java.net.URI)
+    def asString: String =
+      java.net.URI(
+        uri.getScheme,
+        uri.getAuthority,
+        uri.getPath,
+        null,
+        uri.getFragment
+      ).toString
 
   /** @return
     *   the resource directories that should be added to the classpath
@@ -403,7 +401,32 @@ object CrossSources {
     fromInputs ++ fromSources ++ fromSourcesWithRequirements
   }
 
-  private def resolveInputsFromSources(sources: Seq[Positioned[os.Path]], enableMarkdown: Boolean) =
+  private def downloadFile(download: BuildOptions.Download)(pUri: Positioned[java.net.URI]) =
+    download(pUri.value.toString).left.map(
+      new UsingFileFromUriError(pUri.value, pUri.positions, _)
+    ).map(content =>
+      Seq(Virtual(pUri.value.asString, content))
+    )
+
+  type CodeFile = os.Path | java.net.URI
+
+  private def resolveInputsFromSources(
+    sources: Seq[Positioned[CodeFile]],
+    enableMarkdown: Boolean,
+    download: BuildOptions.Download
+  ) =
+    val links = sources.collect {
+      case Positioned(pos, value: java.net.URI) => Positioned(pos, value)
+    }
+    val paths = sources.collect {
+      case Positioned(pos, value: os.Path) => Positioned(pos, value)
+    }
+
+    (resolveInputsFromPath(paths, enableMarkdown) ++ links.map(downloadFile(download))).sequence
+      .left.map(CompositeBuildException(_))
+      .map(_.flatten)
+
+  private def resolveInputsFromPath(sources: Seq[Positioned[os.Path]], enableMarkdown: Boolean) =
     sources.map { source =>
       val sourcePath   = source.value
       lazy val dir     = sourcePath / os.up
@@ -413,7 +436,7 @@ object CrossSources {
       else if (sourcePath == os.sub / Constants.projectFileName)
         Right(Seq(ProjectScalaFile(dir, subPath)))
       else if (sourcePath.ext == "scala") Right(Seq(SourceScalaFile(dir, subPath)))
-      else if (sourcePath.ext == "sc") Right(Seq(Script(dir, subPath, None)))
+      else if (sourcePath.isScript) Right(Seq(Script(dir, subPath, None)))
       else if (sourcePath.ext == "java") Right(Seq(JavaFile(dir, subPath)))
       else if (sourcePath.ext == "jar") Right(Seq(JarFile(dir, subPath)))
       else if (sourcePath.ext == "md") Right(Seq(MarkdownFile(dir, subPath)))
@@ -424,9 +447,7 @@ object CrossSources {
           else s"$sourcePath: not found path defined in using directive."
         Left(new MalformedDirectiveError(msg, source.positions))
       }
-    }.sequence
-      .left.map(CompositeBuildException(_))
-      .map(_.flatten)
+    }
 
   /** Filters out the sources from the input sequence based on the provided 'exclude' patterns. The
     * exclude patterns can be absolute paths, relative paths, or glob patterns.
@@ -467,18 +488,22 @@ object CrossSources {
     sources: Seq[PreprocessedSource],
     workspaceDir: os.Path
   ): Either[BuildException, Seq[PreprocessedSource]] = {
-    val excludeDirectives = sources.flatMap(_.options).map(_.internal.exclude).toList.flatten
 
-    excludeDirectives match {
-      case Nil | Seq(_) =>
-        Right(sources)
-      case _ =>
-        val expectedProjectFilePath = workspaceDir / Constants.projectFileName
-        Left(new ExcludeDefinitionError(
-          excludeDirectives.flatMap(_.positions),
-          expectedProjectFilePath
-        ))
+    val excludePositions = for {
+      source   <- sources.flatMap(_.options)
+      exclude  <- source.internal.exclude
+      position <- exclude.positions
+    } yield position
+
+    val expectedProjectFilePath = workspaceDir / Constants.projectFileName
+
+    val singleSourceAtProject = excludePositions.forall {
+      case Position.File(Left(s), _, _, _)  => workspaceDir / s == expectedProjectFilePath
+      case Position.File(Right(p), _, _, _) => p == expectedProjectFilePath
+      case _                                => false
     }
+    if (singleSourceAtProject) Right(sources)
+    else Left(new ExcludeDefinitionError(excludePositions, expectedProjectFilePath))
   }
 
   /** When a source file added by a `using file` directive, itself, contains `using file` directives

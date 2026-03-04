@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.File
 import java.util.Locale
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 class SparkTests212 extends SparkTestDefinitions with Test212 {
@@ -29,7 +29,7 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
   }
 
   def simplePackageSparkJobTest(spark: Spark): Unit =
-    simpleJobInputs(spark).fromRoot { root =>
+    simpleJobInputs(spark, withTestScope = false).fromRoot { root =>
       val dest = os.rel / "SparkJob.jar"
       os.proc(
         TestUtil.cli,
@@ -70,7 +70,7 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
 
   private def addToPath(dir: os.Path): Map[String, String] = {
     // On Windows, trying to preserve the case of the PATH entry
-    def default = "PATH" -> Option(System.getenv("PATH")).getOrElse("")
+    def default             = "PATH" -> Option(System.getenv("PATH")).getOrElse("")
     val (key, currentValue) =
       if (Properties.isWin)
         System.getenv().asScala.find(_._1.toLowerCase(Locale.ROOT) == "path").getOrElse(default)
@@ -80,12 +80,27 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
     Map(key -> s"$dir${File.pathSeparator}$currentValue")
   }
 
-  def simpleRunSparkJobTest(spark: Spark, usePath: Boolean = false): Unit =
-    simpleJobInputs(spark).fromRoot { root =>
+  def simpleRunSparkJobTest(
+    spark: Spark,
+    usePath: Boolean = false,
+    withTestScope: Boolean = false
+  ): Unit =
+    simpleJobInputs(spark, withTestScope).fromRoot { root =>
       val env =
         if (usePath) addToPath(spark.sparkHome / "bin")
         else Map("SPARK_HOME" -> spark.sparkHome.toString)
-      val res = os.proc(TestUtil.cli, "--power", "run", extraOptions, "--spark", "--jvm", "8", ".")
+      val scopeOptions = if (withTestScope) Seq("--test") else Nil
+      val res          = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        "--spark",
+        "--jvm",
+        "8",
+        ".",
+        scopeOptions
+      )
         .call(cwd = root, env = env)
 
       val expectedOutput = "Result: 55"
@@ -95,32 +110,48 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
       expect(output.contains(expectedOutput))
     }
 
-  test("package spark 2.4") {
-    simplePackageSparkJobTest(spark24)
+  if (!Properties.isMac) { // TODO: https://github.com/VirtusLab/scala-cli/issues/3841
+    test("package spark 2.4") {
+      simplePackageSparkJobTest(spark24)
+    }
+
+    test("package spark 3.0") {
+      simplePackageSparkJobTest(spark30)
+    }
   }
 
-  test("package spark 3.0") {
-    simplePackageSparkJobTest(spark30)
-  }
+  for {
+    withTestScope <- Seq(true, false)
+    scopeDescription = if (withTestScope) "test scope" else "main scope"
+    if !Properties.isMac // TODO: https://github.com/VirtusLab/scala-cli/issues/3841
+  } {
+    test(s"run spark 2.4 ($scopeDescription)") {
+      simpleRunSparkJobTest(spark24, withTestScope = withTestScope)
+    }
 
-  test("run spark 2.4") {
-    simpleRunSparkJobTest(spark24)
-  }
+    test(s"run spark 2.4 standalone ($scopeDescription)") {
+      simpleRunStandaloneSparkJobTest(
+        spark24.scalaVersion,
+        spark24.sparkVersion,
+        withTestScope = withTestScope
+      )
+    }
 
-  test("run spark 3.0") {
-    simpleRunSparkJobTest(spark30)
-  }
+    test(s"run spark 3.0 standalone ($scopeDescription)") {
+      simpleRunStandaloneSparkJobTest(
+        spark30.scalaVersion,
+        spark30.sparkVersion,
+        withTestScope = withTestScope
+      )
+    }
 
-  test("run spark 3.0 via PATH") {
-    simpleRunSparkJobTest(spark30, usePath = true)
-  }
-
-  test("run spark 2.4 standalone") {
-    simpleRunStandaloneSparkJobTest(spark24.scalaVersion, spark24.sparkVersion)
-  }
-
-  test("run spark 3.0 standalone") {
-    simpleRunStandaloneSparkJobTest(spark30.scalaVersion, spark30.sparkVersion)
+    for {
+      usePath <- Seq(false, true)
+      pathDescription = if (usePath) "via PATH " else ""
+    }
+      test(s"run spark 3.0 $pathDescription($scopeDescription)") {
+        simpleRunSparkJobTest(spark30, usePath = usePath, withTestScope = withTestScope)
+      }
   }
 
 }

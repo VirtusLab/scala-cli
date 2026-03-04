@@ -4,11 +4,10 @@ import bloop.rifle.internal.Operations
 import bloop.rifle.{BloopRifle, BloopRifleConfig, BloopThreads}
 import caseapp.core.RemainingArgs
 
-import scala.build.internal.{Constants, OsLibc}
+import scala.build.internal.Constants
 import scala.build.{Directories, Logger}
-import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.shared.{LoggingOptions, SharedOptions}
+import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.JvmUtils
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration

@@ -2,22 +2,11 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.IOException
 import scala.Console.println
 import scala.build.Ops.EitherThrowOps
-import scala.build.errors.ToolkitDirectiveMissingVersionError
-import scala.build.options.{
-  BuildOptions,
-  InternalOptions,
-  MaybeScalaVersion,
-  Platform,
-  ScalaOptions,
-  ScalacOpt,
-  Scope,
-  ScriptOptions
-}
+import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
-import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
+import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position}
 
 class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
 
@@ -49,7 +38,13 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
       .replaceAll(
         "ivy:file:[^\"]*\\.ivy2/local[^\"]*",
         "ivy:file:.../.ivy2/local/"
-      ).linesWithSeparators
+      )
+      .replaceAll(
+        "val scalaCliVersion = Some\\(\"[^\"]*\"\\)",
+        "val scalaCliVersion = Some\\(\"1.1.1-SNAPSHOT\"\\)"
+      )
+      .replaceAll("\\\\", "\\")
+      .linesWithSeparators
       .filterNot(_.stripLeading().startsWith("/**"))
       .mkString
 
@@ -126,6 +121,7 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
                  |  val scalaNativeVersion = None
                  |  val mainClass = Some("Main")
                  |  val projectVersion = Some("1.0.0")
+                 |  val scalaCliVersion = Some("1.1.1-SNAPSHOT")
                  |
                  |  object Main {
                  |    val sources = Seq("${root / "main.scala"}")
@@ -157,12 +153,12 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
   test("BuildInfo for native") {
     val inputs = TestInputs(
       os.rel / "main.scala" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
-           |//> using option "-Xasync"
-           |//> using plugin "org.wartremover:::wartremover:3.0.9"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
+           |//> using option -Xasync
+           |//> using plugin org.wartremover:::wartremover:3.0.9
            |//> using scala 3.2.2
            |//> using jvm 11
-           |//> using mainClass "Main"
+           |//> using mainClass Main
            |//> using resourceDir ./resources
            |//> using jar TEST1.jar TEST2.jar
            |//> using platform scala-native
@@ -204,6 +200,7 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
              |  val scalaNativeVersion = Some("0.4.6")
              |  val mainClass = Some("Main")
              |  val projectVersion = None
+             |  val scalaCliVersion = Some("1.1.1-SNAPSHOT")
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
@@ -233,12 +230,12 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
   test("BuildInfo for js") {
     val inputs = TestInputs(
       os.rel / "main.scala" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
-           |//> using option "-Xasync"
-           |//> using plugin "org.wartremover:::wartremover:3.0.9"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
+           |//> using option -Xasync
+           |//> using plugin org.wartremover:::wartremover:3.0.9
            |//> using scala 3.2.2
            |//> using jvm 11
-           |//> using mainClass "Main"
+           |//> using mainClass Main
            |//> using resourceDir ./resources
            |//> using jar TEST1.jar TEST2.jar
            |//> using platform scala-js
@@ -281,6 +278,7 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
              |  val scalaNativeVersion = None
              |  val mainClass = Some("Main")
              |  val projectVersion = None
+             |  val scalaCliVersion = Some("1.1.1-SNAPSHOT")
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
@@ -310,12 +308,12 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
   test("BuildInfo for Scala 2") {
     val inputs = TestInputs(
       os.rel / "main.scala" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
-           |//> using option "-Xasync"
-           |//> using plugin "org.wartremover:::wartremover:3.0.9"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
+           |//> using option -Xasync
+           |//> using plugin org.wartremover:::wartremover:3.0.9
            |//> using scala 2.13.6
            |//> using jvm 11
-           |//> using mainClass "Main"
+           |//> using mainClass Main
            |//> using resourceDir ./resources
            |//> using jar TEST1.jar TEST2.jar
            |
@@ -355,6 +353,7 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
              |  val scalaNativeVersion = None
              |  val mainClass = Some("Main")
              |  val projectVersion = None
+             |  val scalaCliVersion = Some("1.1.1-SNAPSHOT")
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")

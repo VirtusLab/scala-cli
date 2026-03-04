@@ -15,7 +15,7 @@ final case class DependencyUpdateOptions(
   @HelpMessage("Update all dependencies if a newer version was released")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
-    all: Boolean = false,
+    all: Boolean = false
 ) extends HasSharedOptions
   // format: on
 

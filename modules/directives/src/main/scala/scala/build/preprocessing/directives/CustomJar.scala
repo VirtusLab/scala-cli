@@ -5,11 +5,10 @@ import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException, WrongJarPathError}
 import scala.build.options.WithBuildRequirements.*
 import scala.build.options.{BuildOptions, ClassPathOptions, Scope, WithBuildRequirements}
-import scala.build.preprocessing.ScopePath
 import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.CustomJar.JarType
 import scala.cli.commands.SpecificationLevel
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 @DirectiveGroupName("Custom JAR")
 @DirectiveExamples(
@@ -28,6 +27,18 @@ import scala.util.{Failure, Success, Try}
   """`//> using jar` _path_
     |
     |`//> using jars` _path1_ _path2_ …
+    |
+    |`//> using test.jar` _path_
+    |
+    |`//> using test.jars` _path1_ _path2_ …
+    |
+    |`//> using source.jar` _path_
+    |
+    |`//> using source.jars` _path1_ _path2_ …
+    |
+    |`//> using test.source.jar` _path_
+    |
+    |`//> using test.source.jars` _path1_ _path2_ …
     |""".stripMargin
 )
 @DirectiveDescription("Manually add JAR(s) to the class path")

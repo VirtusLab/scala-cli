@@ -11,7 +11,7 @@ import scala.build.errors.{BuildException, InputsException, WorkspaceError}
 import scala.build.input.ElementsUtils.*
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
-import scala.build.options.Scope
+import scala.build.options.{BuildOptions, Scope}
 import scala.build.preprocessing.SheBang.isShebangScript
 import scala.util.matching.Regex
 import scala.util.{Properties, Try}
@@ -51,11 +51,12 @@ final case class Inputs(
     }
 
   private lazy val inputsHash: String = elements.inputsHash
-  lazy val projectName: String = {
-    val needsSuffix = mayAppendHash && (elements match {
-      case Seq(d: Directory) => d.path != workspace
-      case _                 => true
-    })
+  lazy val projectName: String        = {
+    val needsSuffix = mayAppendHash &&
+      (elements match {
+        case Seq(d: Directory) => d.path != workspace
+        case _                 => true
+      })
     if needsSuffix then s"$baseProjectName-$inputsHash" else baseProjectName
   }
 
@@ -96,7 +97,7 @@ final case class Inputs(
   }
   def sourceHash(): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
-    val it = elements.iterator.flatMap {
+    val it                            = elements.iterator.flatMap {
       case elem: OnDisk =>
         val content = elem match {
           case dirInput: Directory =>
@@ -138,7 +139,7 @@ object Inputs {
     extraClasspathWasPassed: Boolean
   ): Inputs = {
     assert(extraClasspathWasPassed || validElems.nonEmpty)
-    val allDirs = validElems.collect { case d: Directory => d.path }
+    val allDirs      = validElems.collect { case d: Directory => d.path }
     val updatedElems = validElems.filter {
       case f: SourceFile =>
         val isInDir = allDirs.exists(f.path.relativeTo(_).ups == 0)
@@ -225,18 +226,18 @@ object Inputs {
   def validateArgs(
     args: Seq[String],
     cwd: os.Path,
-    download: String => Either[String, Array[Byte]],
+    download: BuildOptions.Download,
     stdinOpt: => Option[Array[Byte]],
     acceptFds: Boolean,
     enableMarkdown: Boolean
   )(using programInvokeData: ScalaCliInvokeData): Seq[Either[String, Seq[Element]]] =
     args.zipWithIndex.map {
       case (arg, idx) =>
-        lazy val path      = os.Path(arg, cwd)
-        lazy val dir       = path / os.up
-        lazy val subPath   = path.subRelativeTo(dir)
-        lazy val stdinOpt0 = stdinOpt
-        lazy val content   = os.read.bytes(path)
+        lazy val path            = os.Path(arg, cwd)
+        lazy val dir             = path / os.up
+        lazy val subPath         = path.subRelativeTo(dir)
+        lazy val stdinOpt0       = stdinOpt
+        lazy val content         = os.read.bytes(path)
         lazy val fullProgramCall = programInvokeData.progName +
           s"${
               if programInvokeData.subCommand == SubCommand.Default then ""
@@ -275,15 +276,17 @@ object Inputs {
         }
         else if path.last == Constants.projectFileName then
           Right(Seq(ProjectScalaFile(dir, subPath)))
+        else if os.isDir(path) then Right(Seq(Directory(path)))
         else if arg.endsWith(".sc") then Right(Seq(Script(dir, subPath, Some(arg))))
         else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
         else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))
         else if arg.endsWith(".jar") then Right(Seq(JarFile(dir, subPath)))
         else if arg.endsWith(".c") || arg.endsWith(".h") then Right(Seq(CFile(dir, subPath)))
         else if arg.endsWith(".md") then Right(Seq(MarkdownFile(dir, subPath)))
-        else if os.isDir(path) then Right(Seq(Directory(path)))
         else if acceptFds && arg.startsWith("/dev/fd/") then
           Right(Seq(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc")))
+        else if path.ext.isEmpty && os.exists(path) && path.isScript then
+          Right(Seq(Script(dir, subPath, Some(arg))))
         else if programInvokeData.subCommand == SubCommand.Shebang && os.exists(path) then
           if isShebangScript(String(content)) then Right(Seq(Script(dir, subPath, Some(arg))))
           else
@@ -343,7 +346,7 @@ object Inputs {
     val validatedSnippets: Seq[Either[String, Seq[Element]]] =
       validateSnippets(scriptSnippetList, scalaSnippetList, javaSnippetList, markdownSnippetList)
     val validatedArgsAndSnippets = validatedArgs ++ validatedSnippets
-    val invalid = validatedArgsAndSnippets.collect {
+    val invalid                  = validatedArgsAndSnippets.collect {
       case Left(msg) => msg
     }
     if (invalid.isEmpty) {
@@ -353,7 +356,7 @@ object Inputs {
       assert(extraClasspathWasPassed || validElems.nonEmpty)
       val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
         val settingsFiles = validElems.projectSettingsFiles
-        val dirsAndFiles = validElems.collect {
+        val dirsAndFiles  = validElems.collect {
           case d: Directory  => d
           case f: SourceFile => f
         }
@@ -386,7 +389,7 @@ object Inputs {
         }.getOrElse((os.pwd, true, WorkspaceOrigin.Forced))
       }
       val (workspace, needsHash, workspaceOrigin0) = forcedWorkspace match {
-        case None => (inferredWorkspace, inferredNeedsHash, workspaceOrigin)
+        case None                   => (inferredWorkspace, inferredNeedsHash, workspaceOrigin)
         case Some(forcedWorkspace0) =>
           val needsHash0 = forcedWorkspace0 != inferredWorkspace || inferredNeedsHash
           (forcedWorkspace0, needsHash0, WorkspaceOrigin.Forced)
@@ -423,7 +426,7 @@ object Inputs {
     args: Seq[String],
     cwd: os.Path,
     defaultInputs: () => Option[Inputs] = () => None,
-    download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
+    download: BuildOptions.Download = BuildOptions.Download.notSupported,
     stdinOpt: => Option[Array[Byte]] = None,
     scriptSnippetList: List[String] = List.empty,
     scalaSnippetList: List[String] = List.empty,
@@ -436,7 +439,8 @@ object Inputs {
     extraClasspathWasPassed: Boolean
   )(using ScalaCliInvokeData): Either[BuildException, Inputs] =
     if (
-      args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty &&
+      args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty &&
+      javaSnippetList.isEmpty &&
       markdownSnippetList.isEmpty && !extraClasspathWasPassed
     )
       defaultInputs().toRight(new InputsException(

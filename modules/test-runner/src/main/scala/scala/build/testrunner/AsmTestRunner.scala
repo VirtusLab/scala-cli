@@ -1,14 +1,14 @@
 package scala.build.testrunner
 
 import org.objectweb.asm
-import sbt.testing._
+import sbt.testing.*
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import java.util.concurrent.ConcurrentHashMap
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object AsmTestRunner {
 
@@ -19,10 +19,14 @@ object AsmTestRunner {
     private def parents(className: String): Seq[String] =
       Option(cache.get(className)) match {
         case Some(value) => value
-        case None =>
-          val byteCodeOpt = findInClassPath(classPath, className + ".class")
+        case None        =>
+          val byteCodeOpt =
+            findInClassPath(classPath, className + ".class")
+              .take(1)
+              .toList
+              .headOption
           val parents = byteCodeOpt match {
-            case None => Nil
+            case None    => Nil
             case Some(b) =>
               val reader  = new asm.ClassReader(new ByteArrayInputStream(b))
               val checker = new TestClassChecker
@@ -34,11 +38,11 @@ object AsmTestRunner {
           parents
       }
 
-    def allParents(className: String): Stream[String] = {
+    def allParents(className: String): LazyList[String] = {
 
-      def helper(done: Set[String], todo: List[String]): Stream[String] =
+      def helper(done: Set[String], todo: List[String]): LazyList[String] =
         todo match {
-          case Nil => Stream.empty
+          case Nil    => LazyList.empty
           case h :: t =>
             if (done(h)) helper(done, t)
             else h #:: helper(done + h, parents(h).toList ::: t)
@@ -68,7 +72,7 @@ object AsmTestRunner {
 
     val isModule              = className.endsWith("$")
     val hasPublicConstructors = checker.publicConstructorCount > 0
-    val definitelyNoTests = checker.isAbstract ||
+    val definitelyNoTests     = checker.isAbstract ||
       checker.isInterface ||
       checker.publicConstructorCount > 1 ||
       isModule == hasPublicConstructors
@@ -89,11 +93,11 @@ object AsmTestRunner {
           //   cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
           //   cls.getMethods.exists(m => m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers()))
           // )
-          ???
+          ??? // TODO: this is necessary to support JUnit, check https://github.com/VirtusLab/scala-cli/issues/3627
       }
   }
 
-  def listClassesByteCode(
+  private def listClassesByteCode(
     classPathEntry: Path,
     keepJars: Boolean
   ): Iterator[(String, () => InputStream)] =
@@ -109,7 +113,7 @@ object AsmTestRunner {
           .map { p =>
             val clsName      = classPathEntry.relativize(p).toString.stripSuffix(".class")
             def openStream() = Files.newInputStream(p)
-            (clsName, openStream _)
+            (clsName, () => openStream())
           }
           .toVector // fully consume stream before closing it
           .iterator
@@ -138,7 +142,7 @@ object AsmTestRunner {
               }) baos.write(buf, 0, read)
               val clsName      = ent.getName.stripSuffix(".class")
               def openStream() = new ByteArrayInputStream(baos.toByteArray)
-              (clsName, openStream _)
+              (clsName, () => openStream())
             }
             finally if (is != null) is.close()
           }
@@ -149,13 +153,13 @@ object AsmTestRunner {
     }
     else Iterator.empty
 
-  def listClassesByteCode(
+  private def listClassesByteCode(
     classPath: Seq[Path],
     keepJars: Boolean
   ): Iterator[(String, () => InputStream)] =
     classPath.iterator.flatMap(listClassesByteCode(_, keepJars))
 
-  def findInClassPath(classPathEntry: Path, name: String): Option[Array[Byte]] =
+  private def findInClassPath(classPathEntry: Path, name: String): Option[Array[Byte]] =
     if (Files.isDirectory(classPathEntry)) {
       val p = classPathEntry.resolve(name)
       if (Files.isRegularFile(p)) Some(Files.readAllBytes(p))
@@ -186,47 +190,34 @@ object AsmTestRunner {
     }
     else None
 
-  def findInClassPath(classPath: Seq[Path], name: String): Option[Array[Byte]] =
+  private def findInClassPath(classPath: Seq[Path], name: String): Iterator[Array[Byte]] =
     classPath
       .iterator
       .flatMap(findInClassPath(_, name).iterator)
-      .take(1)
-      .toList
-      .headOption
 
-  def findFrameworkService(classPath: Seq[Path]): Option[String] =
-    findInClassPath(classPath, "META-INF/services/sbt.testing.Framework").map { b =>
-      new String(b, StandardCharsets.UTF_8)
-    }
+  def findFrameworkServices(classPath: Seq[Path]): Seq[String] =
+    findInClassPath(classPath, "META-INF/services/sbt.testing.Framework")
+      .map(b => new String(b, StandardCharsets.UTF_8))
+      .toSeq
 
-  def findFramework(
-    classPath: Seq[Path],
-    preferredClasses: Seq[String]
-  ): Option[String] = {
-    val parentInspector = new ParentInspector(classPath)
-    findFramework(classPath, preferredClasses, parentInspector)
-  }
-
-  def findFramework(
+  def findFrameworks(
     classPath: Seq[Path],
     preferredClasses: Seq[String],
     parentInspector: ParentInspector
-  ): Option[String] = {
+  ): List[String] = {
     val preferredClassesByteCode = preferredClasses
-      .iterator
       .map(_.replace('.', '/'))
       .flatMap { name =>
         findInClassPath(classPath, name + ".class")
-          .iterator
           .map { b =>
             def openStream() = new ByteArrayInputStream(b)
-            (name, openStream _)
+            (name, () => openStream())
           }
       }
-    (preferredClassesByteCode ++ listClassesByteCode(classPath, true))
+    (preferredClassesByteCode.iterator ++ listClassesByteCode(classPath, true))
       .flatMap {
         case (moduleInfo, _) if moduleInfo.contains("module-info") => Iterator.empty
-        case (name, is) =>
+        case (name, is)                                            =>
           val checker          = new TestClassChecker
           var is0: InputStream = null
           try {
@@ -241,9 +232,8 @@ object AsmTestRunner {
           else
             Iterator.empty
       }
-      .take(1)
+      .take(math.max(preferredClassesByteCode.length, 1))
       .toList
-      .headOption
   }
 
   private class TestClassChecker extends asm.ClassVisitor(asm.Opcodes.ASM9) {
@@ -252,18 +242,11 @@ object AsmTestRunner {
     private var isInterfaceOpt          = Option.empty[Boolean]
     private var isAbstractOpt           = Option.empty[Boolean]
     private var implements0             = List.empty[String]
-    def canBeTestSuite: Boolean = {
-      val isModule = nameOpt.exists(_.endsWith("$"))
-      !isAbstractOpt.contains(true) &&
-      !isInterfaceOpt.contains(true) &&
-      publicConstructorCount0 <= 1 &&
-      isModule != (publicConstructorCount0 == 1)
-    }
-    def name                   = nameOpt.getOrElse(sys.error("Class not visited"))
-    def publicConstructorCount = publicConstructorCount0
-    def implements             = implements0
-    def isAbstract             = isAbstractOpt.getOrElse(sys.error("Class not visited"))
-    def isInterface            = isInterfaceOpt.getOrElse(sys.error("Class not visited"))
+    def name: String                    = nameOpt.getOrElse(sys.error("Class not visited"))
+    def publicConstructorCount: Int     = publicConstructorCount0
+    def implements: Seq[String]         = implements0
+    def isAbstract: Boolean             = isAbstractOpt.getOrElse(sys.error("Class not visited"))
+    def isInterface: Boolean            = isInterfaceOpt.getOrElse(sys.error("Class not visited"))
     override def visit(
       version: Int,
       access: Int,
@@ -323,8 +306,8 @@ object AsmTestRunner {
 
     val parentCache = new ParentInspector(classPath)
 
-    val frameworkClassName = findFrameworkService(classPath)
-      .orElse(findFramework(classPath, TestRunner.commonTestFrameworks, parentCache))
+    val frameworkClassName = findFrameworkServices(classPath).headOption // TODO handle multiple
+      .orElse(findFrameworks(classPath, TestRunner.commonTestFrameworks, parentCache).headOption)
       .getOrElse(sys.error("No test framework found"))
       .replace('/', '.')
       .replace('\\', '.')
@@ -346,7 +329,7 @@ object AsmTestRunner {
       ).toArray
 
     val runner       = framework.runner(Array(), Array(), classLoader)
-    val initialTasks = runner.tasks(taskDefs0)
+    val initialTasks = runner.tasks(taskDefs0).toSeq
     val events       = TestRunner.runTasks(initialTasks, out)
 
     val doneMsg = runner.done()

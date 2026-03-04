@@ -1,7 +1,7 @@
 package scala.cli.commands.pgp
 
 import caseapp.core.RemainingArgs
-import coursier.cache.{Cache, FileCache}
+import coursier.cache.FileCache
 import coursier.util.Task
 
 import java.nio.charset.StandardCharsets

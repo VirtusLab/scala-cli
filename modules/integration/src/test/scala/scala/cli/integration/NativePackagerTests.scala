@@ -10,7 +10,7 @@ class NativePackagerTests extends ScalaCliSuite {
   val helloWorldFileName                      = "HelloWorldScalaCli.scala"
   val message                                 = "Hello, world!"
   val licencePath                             = "DummyLICENSE"
-  val testInputs: TestInputs = TestInputs(
+  val testInputs: TestInputs                  = TestInputs(
     os.rel / helloWorldFileName ->
       s"""
          |object HelloWorld {
@@ -30,7 +30,7 @@ class NativePackagerTests extends ScalaCliSuite {
 
         val appName    = helloWorldFileName.stripSuffix(".scala").toLowerCase
         val pkgAppFile = s"$appName.pkg"
-        val cmd = Seq[os.Shellable](
+        val cmd        = Seq[os.Shellable](
           TestUtil.cli,
           "--power",
           "package",
@@ -60,7 +60,7 @@ class NativePackagerTests extends ScalaCliSuite {
             stdout = os.Inherit
           )
 
-          val home = sys.props("user.home")
+          val home   = sys.props("user.home")
           val output = os.proc(s"$home/Applications/$appName.app/Contents/MacOS/$appName")
             .call(cwd = os.root)
             .out.trim()
@@ -119,7 +119,7 @@ class NativePackagerTests extends ScalaCliSuite {
 
     // FIXME: building dmg package sometimes fails with:
     // 'hdiutil: couldn't eject "disk2" - Resource busy'
-    if (TestUtil.isM1 || !TestUtil.isCI)
+    if (TestUtil.isAarch64 || !TestUtil.isCI)
       test("building dmg package") {
         testBuildingDmgPackage()
       }
@@ -186,7 +186,7 @@ class NativePackagerTests extends ScalaCliSuite {
           os.perms.set(root / destDir / "run.sh", "rwxr-xr-x")
           val termOpt = if (System.console() == null) Nil else Seq("-t")
           val ciOpt   = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
-          val res = os.proc(
+          val res     = os.proc(
             "docker",
             "run",
             termOpt,
@@ -196,7 +196,7 @@ class NativePackagerTests extends ScalaCliSuite {
             "/workdir",
             "-v",
             s"${root / destDir}:/workdir",
-            "openjdk:17-slim",
+            "eclipse-temurin:17-jdk",
             "./run.sh"
           ).call(
             cwd = root,
@@ -409,7 +409,8 @@ class NativePackagerTests extends ScalaCliSuite {
     ((Properties.isMac || Properties.isWin) && !TestUtil.isCI)
 
   if (hasDocker) {
-    test("building docker image") {
+    // TODO: restore this test when `registry-1.docker.io` is stable again
+    test("building docker image".flaky) {
       TestUtil.retryOnCi() {
         runTest()
       }
@@ -430,7 +431,7 @@ class NativePackagerTests extends ScalaCliSuite {
   }
 
   if (Properties.isLinux)
-    // FIXME make this test pass consistently on the CI again
+    // FIXME this got flaky on the CI again
     test("building docker image with scala native app".flaky) {
       TestUtil.retryOnCi() {
         runNativeTest()

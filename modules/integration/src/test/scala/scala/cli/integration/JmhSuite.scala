@@ -1,6 +1,6 @@
 package scala.cli.integration
 
-trait JmhSuite { _: ScalaCliSuite =>
+trait JmhSuite { this: ScalaCliSuite =>
   protected def simpleBenchmarkingInputs(directivesString: String = ""): TestInputs = TestInputs(
     os.rel / "benchmark.scala" ->
       s"""$directivesString

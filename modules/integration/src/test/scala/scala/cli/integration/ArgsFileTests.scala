@@ -11,7 +11,7 @@ class ArgsFileTests extends ScalaCliSuite {
   ) {
     val fileName   = "Simple.sc"
     val serverArgs = if (useServer) Nil else List("--server=false")
-    val inputs = TestInputs(
+    val inputs     = TestInputs(
       os.rel / "args.txt" -> """|-release
                                 |8""".stripMargin,
       os.rel / fileName ->
@@ -36,7 +36,7 @@ class ArgsFileTests extends ScalaCliSuite {
   if (!Properties.isWin)
     test("pass scalac options using arguments file in shebang script") {
       val inputs = TestInputs(
-        os.rel / "args.txt" -> """|-release 8""".stripMargin,
+        os.rel / "args.txt"            -> """|-release 8""".stripMargin,
         os.rel / "script-with-shebang" ->
           s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang @args.txt
               |
@@ -67,11 +67,13 @@ class ArgsFileTests extends ScalaCliSuite {
 
     TestInputs(
       os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
-      os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }""",
+      os.rel / runDir / mainInput               ->
+        s"""object Main extends App { println(Message("$expectedOutput").value) }""",
       os.rel / runDir / "args.txt" -> s"""|-d
                                           |$outputDir""".stripMargin,
-      os.rel / runDir / "args2.txt" -> s"""|-cp
-                                           |${os.rel / os.up / preCompileDir / outputDir}""".stripMargin
+      os.rel / runDir / "args2.txt" ->
+        s"""|-cp
+            |${os.rel / os.up / preCompileDir / outputDir}""".stripMargin
     ).fromRoot { (root: os.Path) =>
 
       os.proc(

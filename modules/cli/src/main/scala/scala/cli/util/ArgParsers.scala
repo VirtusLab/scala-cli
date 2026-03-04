@@ -2,9 +2,6 @@ package scala.cli.util
 
 import caseapp.core.argparser.{ArgParser, SimpleArgParser}
 
-import scala.cli.signing.shared.PasswordOption
-import scala.cli.util.MaybeConfigPasswordOption
-
 abstract class LowPriorityArgParsers {
 
   /** case-app [[ArgParser]] for [[MaybeConfigPasswordOption]]

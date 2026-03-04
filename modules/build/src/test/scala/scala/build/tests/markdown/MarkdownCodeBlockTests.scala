@@ -5,7 +5,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.build.Position
 import scala.build.errors.{BuildException, MarkdownUnclosedBackticksError}
 import scala.build.internal.markdown.MarkdownCodeBlock
-import scala.build.preprocessing.MarkdownCodeBlockProcessor
 import scala.build.tests.TestUtil
 import scala.build.tests.markdown.MarkdownTestUtil.*
 
@@ -23,11 +22,12 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
         |Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
         |Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         |""".stripMargin
-    expect(MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown) == Right(Seq.empty))
+    val path = os.sub / "Example.md"
+    expect(MarkdownCodeBlock.findCodeBlocks(path, markdown) == Right(Seq.empty))
   }
 
   test("a simple Scala code block is extracted correctly from markdown") {
-    val code = """println("Hello")"""
+    val code     = """println("Hello")"""
     val markdown =
       s"""# Some snippet
          |
@@ -42,13 +42,16 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
         startLine = 3,
         endLine = 3
       )
-    val Right(Seq(actualResult)) =
-      MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    val path         = os.sub / "Example.md"
+    val actualResult =
+      MarkdownCodeBlock.findCodeBlocks(path, markdown)
+        .getOrElse(sys.error("failed while finding code blocks"))
+        .head
     expect(actualResult == expectedResult)
   }
 
   test("shebang line is ignored in plain scala code blocks") {
-    val code = """println("Hello")""".stripMargin
+    val code     = """println("Hello")""".stripMargin
     val markdown =
       s"""# Some snippet
          |
@@ -64,8 +67,38 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
         startLine = 3,
         endLine = 4
       )
-    val Right(Seq(actualResult: MarkdownCodeBlock)) =
-      MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    val path                            = os.sub / "Example.md"
+    val actualResult: MarkdownCodeBlock =
+      MarkdownCodeBlock.findCodeBlocks(path, markdown)
+        .getOrElse(sys.error("failed while finding code blocks"))
+        .head
+    showDiffs(actualResult, expectedResult)
+    expect(actualResult == expectedResult)
+  }
+
+  test("end-of-shebang token allowed in scala code") {
+    val code     = """println("Hello !#")""".stripMargin
+    val markdown =
+      s"""# Some snippet
+         |
+         |```scala
+         |#!/usr/bin/env -S scala-cli shebang
+         |$code
+         |```
+         |""".stripMargin
+    val expectedResult =
+      MarkdownCodeBlock(
+        info = PlainScalaInfo,
+        body = "\n" + code,
+        startLine = 3,
+        endLine = 4
+      )
+    val path                            = os.sub / "Example.md"
+    val actualResult: MarkdownCodeBlock =
+      MarkdownCodeBlock.findCodeBlocks(path, markdown)
+        .getOrElse(sys.error("failed while finding code blocks"))
+        .head
+    showDiffs(actualResult, expectedResult)
     expect(actualResult == expectedResult)
   }
 
@@ -87,8 +120,11 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
         startLine = 3,
         endLine = 5
       )
-    val Right(Seq(actualResult)) =
-      MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    val path         = os.sub / "Example.md"
+    val actualResult =
+      MarkdownCodeBlock.findCodeBlocks(path, markdown)
+        .getOrElse(sys.error("failed while finding code blocks"))
+        .head
     expect(actualResult == expectedResult)
   }
 
@@ -112,14 +148,18 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
         startLine = 3,
         endLine = 6
       )
-    val Right(Seq(actualResult: MarkdownCodeBlock)) =
-      MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    val path                            = os.sub / "Example.md"
+    val actualResult: MarkdownCodeBlock =
+      MarkdownCodeBlock.findCodeBlocks(path, markdown)
+        .getOrElse(sys.error("failed while finding code blocks"))
+        .head
+    showDiffs(actualResult, expectedResult)
     expect(actualResult == expectedResult)
   }
 
   test("a test Scala snippet is extracted correctly from markdown") {
     val code =
-      """//> using dep "org.scalameta::munit:0.7.29"
+      """//> using dep org.scalameta::munit:0.7.29
         |class Test extends munit.FunSuite {
         |  assert(true)
         |}""".stripMargin
@@ -137,13 +177,16 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
         startLine = 3,
         endLine = 6
       )
-    val Right(Seq(actualResult)) =
-      MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    val path         = os.sub / "Example.md"
+    val actualResult =
+      MarkdownCodeBlock.findCodeBlocks(path, markdown)
+        .getOrElse(sys.error("failed while finding code blocks"))
+        .head
     expect(actualResult == expectedResult)
   }
 
   test("a Scala code block is skipped when it's tagged as `ignore` in markdown") {
-    val code = """println("Hello")"""
+    val code     = """println("Hello")"""
     val markdown =
       s"""# Some snippet
          |
@@ -151,11 +194,12 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
          |$code
          |```
          |""".stripMargin
-    expect(MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown) == Right(Seq.empty))
+    val path = os.sub / "Example.md"
+    expect(MarkdownCodeBlock.findCodeBlocks(path, markdown) == Right(Seq.empty))
   }
 
   test("an unclosed code block produces a build error") {
-    val code = """println("Hello")"""
+    val code     = """println("Hello")"""
     val markdown =
       s"""# Some snippet
          |
@@ -163,15 +207,18 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
          |$code
          |""".stripMargin
     val subPath          = os.sub / "Example.md"
-    val expectedPosition = Position.File(Right(os.pwd / subPath), 2 -> 0, 2 -> 3)
+    val path             = os.pwd / subPath
+    val expectedPosition = Position.File(Right(path), 2 -> 0, 2 -> 3)
     val expectedError    = MarkdownUnclosedBackticksError("```", Seq(expectedPosition))
-    val Left(result)     = MarkdownCodeBlock.findCodeBlocks(subPath, markdown)
-    expect(result.message == expectedError.message)
-    expect(result.positions == expectedError.positions)
+    val actualException  =
+      MarkdownCodeBlock.findCodeBlocks(subPath, markdown)
+        .left.getOrElse(sys.error("failed while finding code blocks"))
+    expect(actualException.message == expectedError.message)
+    expect(actualException.positions == expectedError.positions)
   }
 
   test("recovery from an unclosed code block error works correctly") {
-    val code = """println("closed snippet")"""
+    val code     = """println("closed snippet")"""
     val markdown =
       """# Some snippet
         |```scala
@@ -189,12 +236,14 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
         |""".stripMargin
     val subPath                            = os.sub / "Example.md"
     var maybeError: Option[BuildException] = None
-    val recoveryFunction = (be: BuildException) => {
+    val recoveryFunction                   = (be: BuildException) => {
       maybeError = Some(be)
       None
     }
-    val Right(Seq(actualResult)) =
+    val actualResult =
       MarkdownCodeBlock.findCodeBlocks(subPath, markdown, maybeRecoverOnError = recoveryFunction)
+        .getOrElse(sys.error("failed while finding code blocks"))
+        .head
     val expectedResult =
       MarkdownCodeBlock(
         info = PlainScalaInfo,
@@ -203,10 +252,23 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
         endLine = 2
       )
     expect(actualResult == expectedResult)
-    val expectedPosition  = Position.File(Right(os.pwd / subPath), 7 -> 0, 7 -> 4)
-    val expectedError     = MarkdownUnclosedBackticksError("````", Seq(expectedPosition))
-    val Some(actualError) = maybeError
+    val path             = os.pwd / subPath
+    val expectedPosition = Position.File(Right(path), 7 -> 0, 7 -> 4)
+    val expectedError    = MarkdownUnclosedBackticksError("````", Seq(expectedPosition))
+    val actualError      = maybeError.get
     expect(actualError.positions == expectedError.positions)
     expect(actualError.message == expectedError.message)
   }
+
+  def showDiffs(actual: MarkdownCodeBlock, expect: MarkdownCodeBlock): Unit = {
+    if actual != expect then
+      for (((a, b), i) <- (actual.body zip expect.body).zipWithIndex)
+        if (a != b) {
+          val aa = TestUtil.c2s(a)
+          val bb = TestUtil.c2s(b)
+          System.err.printf("== index %d: [%s]!=[%s]\n", i, aa, bb)
+        }
+      System.err.printf("actual[%s]\nexpect[%s]\n", actual, expect)
+  }
+
 }

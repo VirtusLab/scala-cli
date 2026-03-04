@@ -1,10 +1,10 @@
 package scala.cli.config.internal
 
-import java.lang.{Boolean => JBoolean}
+import java.lang.Boolean as JBoolean
 import java.nio.file.Path
 
 import scala.cli.commands.SpecificationLevel
-import scala.cli.config._
+import scala.cli.config.*
 
 object JavaHelper {
 
@@ -79,7 +79,7 @@ object JavaHelper {
     db.get(key0) match {
       case Left(ex)         => throw new Exception(ex)
       case Right(None)      => null
-      case Right(Some(str)) => str.getBytes().value
+      case Right(Some(str)) => str.getBytes.value
     }
   }
 }

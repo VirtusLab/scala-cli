@@ -2,27 +2,20 @@ package scala.cli.commands.export0
 
 import caseapp.*
 import caseapp.core.help.HelpFormat
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
-import com.google.gson.{Gson, GsonBuilder}
 import coursier.cache.FileCache
 import coursier.util.{Artifact, Task}
 
-import java.io.{OutputStreamWriter, PrintStream}
-import java.nio.charset.{Charset, StandardCharsets}
-
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.input.Inputs
 import scala.build.internal.Constants
-import scala.build.options.{BuildOptions, Platform, Scope}
+import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.shared.{HelpGroup, SharedOptions}
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.exportCmd.*
 import scala.cli.util.ArgHelpers.*
-import scala.util.Using
 
 object Export extends ScalaCommand[ExportOptions] {
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
@@ -40,7 +33,7 @@ object Export extends ScalaCommand[ExportOptions] {
 
     logger.log("Preparing build")
 
-    val (crossSources: CrossSources, allInputs: Inputs) = value {
+    val (crossSources: CrossSources, _) = value {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
@@ -50,12 +43,13 @@ object Export extends ScalaCommand[ExportOptions] {
         ),
         logger,
         buildOptions.suppressWarningOptions,
-        buildOptions.internal.exclude
+        buildOptions.internal.exclude,
+        download = buildOptions.downloader
       )
     }
 
     val scopedSources: ScopedSources = value(crossSources.scopedSources(buildOptions))
-    val sources: Sources =
+    val sources: Sources             =
       scopedSources.sources(
         scope,
         crossSources.sharedOptions(buildOptions),
@@ -104,17 +98,18 @@ object Export extends ScalaCommand[ExportOptions] {
   def millProjectDescriptor(
     cache: FileCache[Task],
     projectName: Option[String],
+    millVersion: String,
     logger: Logger
   ): MillProjectDescriptor = {
     val launcherArtifacts = Seq(
-      os.rel / "mill" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw",
-      os.rel / "mill.bat" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw.bat"
+      os.rel / "mill"     -> s"https://github.com/com-lihaoyi/mill/raw/$millVersion/mill",
+      os.rel / "mill.bat" -> s"https://github.com/com-lihaoyi/mill/raw/$millVersion/mill.bat"
     )
     val launcherTasks = launcherArtifacts.map {
       case (path, url) =>
         val art = Artifact(url).withChanging(true)
         cache.file(art).run.flatMap {
-          case Left(e) => Task.fail(e)
+          case Left(e)  => Task.fail(e)
           case Right(f) => Task.delay {
               val content = os.read.bytes(os.Path(f, Os.pwd))
               path -> content
@@ -122,8 +117,13 @@ object Export extends ScalaCommand[ExportOptions] {
         }
     }
     val launchersTask = cache.logger.using(Task.gather.gather(launcherTasks))
-    val launchers     = launchersTask.unsafeRun()(cache.ec)
-    MillProjectDescriptor(Constants.millVersion, projectName, launchers, logger)
+    val launchers     = launchersTask.unsafeRun()(using cache.ec)
+    MillProjectDescriptor(
+      millVersion = millVersion,
+      projectName = projectName,
+      launchers = launchers,
+      logger = logger
+    )
   }
 
   def jsonProjectDescriptor(
@@ -136,6 +136,14 @@ object Export extends ScalaCommand[ExportOptions] {
   override def sharedOptions(opts: ExportOptions): Option[SharedOptions] = Some(opts.shared)
 
   override def runCommand(options: ExportOptions, args: RemainingArgs, logger: Logger): Unit = {
+    if options.shared.scope.test.nonEmpty then {
+      logger.error(
+        s"""Including the test scope sources together with the main scope is currently not supported.
+           |Note that test scope sources will still be exported as per the output build tool tests definition demands.""".stripMargin
+      )
+      sys.exit(1)
+    }
+
     val initialBuildOptions = buildOptionsOrExit(options)
 
     val output                   = options.output.getOrElse("dest")
@@ -184,7 +192,8 @@ object Export extends ScalaCommand[ExportOptions] {
           scalaNativeOptions = initialBuildOptions.scalaNativeOptions.copy(
             maxDefaultNativeVersions =
               initialBuildOptions.scalaNativeOptions.maxDefaultNativeVersions ++
-                (if shouldExportToMill && Constants.scalaNativeVersion != Constants.maxScalaNativeForMillExport
+                (if shouldExportToMill &&
+                   Constants.scalaNativeVersion != Constants.maxScalaNativeForMillExport
                  then
                    val warningMsg =
                      s"Mill export does not support Scala Native ${Constants.scalaNativeVersion}, ${Constants.maxScalaNativeForMillExport} should be used instead."
@@ -225,7 +234,8 @@ object Export extends ScalaCommand[ExportOptions] {
     }
 
     if (
-      optionsMain0.scalaOptions.scalaVersion.isEmpty && optionsTest0.scalaOptions.scalaVersion.nonEmpty
+      optionsMain0.scalaOptions.scalaVersion.isEmpty &&
+      optionsTest0.scalaOptions.scalaVersion.nonEmpty
     ) {
       logger.error(
         s"""Detected that the Scala version is only set in test scope.
@@ -242,8 +252,8 @@ object Export extends ScalaCommand[ExportOptions] {
       project.print(System.out)
     }
     else {
-      val sbtVersion                  = options.sbtVersion.getOrElse(Constants.sbtVersion)
-      val defaultMavenCompilerVersion = options.mvnVersion.getOrElse(Constants.mavenVersion)
+      val sbtVersion                       = options.sbtVersion.getOrElse(Constants.sbtVersion)
+      val defaultMavenCompilerVersion      = options.mvnVersion.getOrElse(Constants.mavenVersion)
       val defaultScalaMavenCompilerVersion =
         options.mvnScalaVersion.getOrElse(Constants.mavenScalaCompilerPluginVersion)
       val defaultMavenExecPluginVersion =
@@ -259,21 +269,30 @@ object Export extends ScalaCommand[ExportOptions] {
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
 
       val projectDescriptor =
-        if (shouldExportToMill)
-          millProjectDescriptor(options.shared.coursierCache, options.project, logger)
-        else if (shouldExportToMaven)
-          mavenProjectDescriptor(
-            defaultMavenCompilerVersion,
-            defaultScalaMavenCompilerVersion,
-            defaultMavenExecPluginVersion,
-            Nil,
-            defaultMavenGroupId,
-            defaultMavenArtifactId,
-            defaultMavenVersion,
-            logger
+        if shouldExportToMill then
+          millProjectDescriptor(
+            cache = options.shared.coursierCache,
+            projectName = options.project,
+            millVersion = options.millVersion.getOrElse(Constants.millVersion),
+            logger = logger
           )
-        else if (shouldExportToJson)
-          jsonProjectDescriptor(options.project, inputs.workspace, logger)
+        else if shouldExportToMaven then
+          mavenProjectDescriptor(
+            mavenPluginVersion = defaultMavenCompilerVersion,
+            mavenScalaPluginVersion = defaultScalaMavenCompilerVersion,
+            mavenExecPluginVersion = defaultMavenExecPluginVersion,
+            extraSettings = Nil,
+            mavenGroupId = defaultMavenGroupId,
+            mavenArtifactId = defaultMavenArtifactId,
+            mavenVersion = defaultMavenVersion,
+            logger = logger
+          )
+        else if shouldExportToJson then
+          jsonProjectDescriptor(
+            projectName = options.project,
+            workspace = inputs.workspace,
+            logger = logger
+          )
         else // shouldExportToSbt isn't checked, as it's treated as default
           sbtProjectDescriptor0
 

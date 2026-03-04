@@ -1,11 +1,8 @@
 package scala.build.preprocessing
-
-import java.nio.charset.StandardCharsets
-
-import scala.build.EitherCps.{either, value}
+import scala.build.EitherCps.either
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, JarFile, ScalaCliInvokeData, SingleElement}
+import scala.build.input.{JarFile, ScalaCliInvokeData, SingleElement}
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,

@@ -111,7 +111,7 @@ class ConfigTests extends ScalaCliSuite {
     TestInputs().fromRoot { root =>
       val confDir  = root / "config"
       val confFile = confDir / "test-config.json"
-      val content =
+      val content  =
         // non-formatted on purpose
         s"""{
            |  "httpProxy": {  "address" :      "$proxyAddr"     } }
@@ -175,87 +175,89 @@ class ConfigTests extends ScalaCliSuite {
 
   if (TestUtil.isNativeCli)
     test(s"Create a PGP key with external JVM process, java version too low") {
-      TestInputs().fromRoot { root =>
-        val configFile = {
-          val dir = root / "config"
-          os.makeDir.all(dir, perms = if (Properties.isWin) null else "rwx------")
-          dir / "config.json"
-        }
+      TestUtil.retryOnCi() {
+        TestInputs().fromRoot { root =>
+          val configFile = {
+            val dir = root / "config"
+            os.makeDir.all(dir, perms = if (Properties.isWin) null else "rwx------")
+            dir / "config.json"
+          }
 
-        val java8Home =
-          os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+          val java8Home =
+            os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
 
-        val extraEnv = Map(
-          "JAVA_HOME" -> java8Home.toString,
-          "PATH" -> ((java8Home / "bin").toString + File.pathSeparator + System.getenv("PATH")),
-          "SCALA_CLI_CONFIG" -> configFile.toString
-        )
+          val extraEnv = Map(
+            "JAVA_HOME" -> java8Home.toString,
+            "PATH" -> ((java8Home / "bin").toString + File.pathSeparator + System.getenv("PATH")),
+            "SCALA_CLI_CONFIG" -> configFile.toString
+          )
 
-        val pgpCreated = os.proc(
-          TestUtil.cli,
-          "--power",
-          "config",
-          "--create-pgp-key",
-          "--email",
-          "alex@alex.me",
-          "--pgp-password",
-          "none",
-          "--force-jvm-signing-cli",
-          "-v",
-          "-v",
-          "-v"
-        )
-          .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
-
-        val javaCommandLine = pgpCreated.out.text()
-          .linesIterator
-          .dropWhile(!_.equals("  Running")).slice(1, 2)
-          .toSeq
-
-        expect(javaCommandLine.nonEmpty)
-        expect(javaCommandLine.head.contains("17"))
-
-        val passwordInConfig = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key-password")
-          .call(cwd = root, env = extraEnv, stderr = os.Pipe)
-        expect(passwordInConfig.out.text().isEmpty())
-
-        val secretKey = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key")
-          .call(cwd = root, env = extraEnv, stderr = os.Pipe)
-          .out.trim()
-        val rawPublicKey =
-          os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password-value")
-            .call(cwd = root, env = extraEnv, stderr = os.Pipe)
-            .out.trim()
-
-        val tmpFile    = root / "test-file"
-        val tmpFileAsc = root / "test-file.asc"
-        os.write(tmpFile, "Hello")
-
-        val q = "\""
-
-        def maybeEscape(arg: String): String =
-          if (Properties.isWin) q + arg + q
-          else arg
-
-        os.proc(
-          TestUtil.cli,
-          "--power",
-          "pgp",
-          "sign",
-          "--secret-key",
-          maybeEscape(secretKey),
-          tmpFile
-        ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
-
-        val pubKeyFile = root / "key.pub"
-        os.write(pubKeyFile, rawPublicKey)
-        val verifyResult =
-          os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", pubKeyFile, tmpFileAsc)
+          val pgpCreated = os.proc(
+            TestUtil.cli,
+            "--power",
+            "config",
+            "--create-pgp-key",
+            "--email",
+            "alex@alex.me",
+            "--pgp-password",
+            "none",
+            "--force-jvm-signing-cli",
+            "-v",
+            "-v",
+            "-v"
+          )
             .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
 
-        expect(verifyResult.out.text().contains("valid signature"))
-      }
+          val javaCommandLine = pgpCreated.out.text()
+            .linesIterator
+            .dropWhile(!_.equals("  Running")).slice(1, 2)
+            .toSeq
 
+          expect(javaCommandLine.nonEmpty)
+          expect(javaCommandLine.head.contains("17"))
+
+          val passwordInConfig =
+            os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key-password")
+              .call(cwd = root, env = extraEnv, stderr = os.Pipe)
+          expect(passwordInConfig.out.text().isEmpty())
+
+          val secretKey = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key")
+            .call(cwd = root, env = extraEnv, stderr = os.Pipe)
+            .out.trim()
+          val rawPublicKey =
+            os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password-value")
+              .call(cwd = root, env = extraEnv, stderr = os.Pipe)
+              .out.trim()
+
+          val tmpFile    = root / "test-file"
+          val tmpFileAsc = root / "test-file.asc"
+          os.write(tmpFile, "Hello")
+
+          val q = "\""
+
+          def maybeEscape(arg: String): String =
+            if (Properties.isWin) q + arg + q
+            else arg
+
+          os.proc(
+            TestUtil.cli,
+            "--power",
+            "pgp",
+            "sign",
+            "--secret-key",
+            maybeEscape(secretKey),
+            tmpFile
+          ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+          val pubKeyFile = root / "key.pub"
+          os.write(pubKeyFile, rawPublicKey)
+          val verifyResult =
+            os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", pubKeyFile, tmpFileAsc)
+              .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
+
+          expect(verifyResult.out.text().contains("valid signature"))
+        }
+      }
     }
 
   def createDefaultPgpKeyTest(pgpPasswordOption: String): Unit = {
@@ -324,7 +326,7 @@ class ConfigTests extends ScalaCliSuite {
       val tmpFileAsc = root / "test-file.asc"
       os.write(tmpFile, "Hello")
 
-      val q = "\""
+      val q                                = "\""
       def maybeEscape(arg: String): String =
         if (Properties.isWin) q + arg + q
         else arg
@@ -369,7 +371,7 @@ class ConfigTests extends ScalaCliSuite {
     val user        = "alex"
     val password    = "1234"
     val realm       = "LeTestRealm"
-    val inputs = TestInputs(
+    val inputs      = TestInputs(
       os.rel / "messages" / "Messages.scala" ->
         """package messages
           |
@@ -379,7 +381,7 @@ class ConfigTests extends ScalaCliSuite {
           |}
           |""".stripMargin,
       os.rel / "hello" / "Hello.scala" ->
-        s"""//> using dep "$testOrg::$testName:$testVersion"
+        s"""//> using dep $testOrg::$testName:$testVersion
            |import messages.Messages
            |object Hello {
            |  def main(args: Array[String]): Unit =
@@ -431,7 +433,7 @@ class ConfigTests extends ScalaCliSuite {
           "config",
           "repositories.credentials"
         ).call(cwd = root, env = extraEnv)
-        val linePrefix = "configRepo0"
+        val linePrefix                  = "configRepo0"
         val expectedCredentialsAsString =
           s"""$linePrefix.host=$host
              |$linePrefix.username=value:$user
@@ -461,7 +463,7 @@ class ConfigTests extends ScalaCliSuite {
     val userEnvVarName     = "REPO_USER"
     val password           = "1234"
     val user               = "user"
-    val envVars = Map(
+    val envVars            = Map(
       userEnvVarName     -> user,
       passwordEnvVarName -> password
     )
@@ -577,7 +579,7 @@ class ConfigTests extends ScalaCliSuite {
         .fromRoot { root =>
           val configFile    = os.rel / "config" / "config.json"
           val localRepoPath = root / "local-repo"
-          val envs = Map(
+          val envs          = Map(
             "COURSIER_CACHE"   -> localRepoPath.toString,
             "SCALA_CLI_CONFIG" -> configFile.toString
           )
@@ -594,7 +596,7 @@ class ConfigTests extends ScalaCliSuite {
             artifact = s"org.scala-lang:$artifactName:${Constants.scala3Next}"
           } os.proc(TestUtil.cs, "fetch", "--cache", localRepoPath, artifact).call(cwd = root)
           val buildExpectedToSucceed = !offlineSetting || prefillCache
-          val r = os.proc(TestUtil.cli, "run", "simple.sc", "--with-compiler")
+          val r                      = os.proc(TestUtil.cli, "run", "simple.sc", "--with-compiler")
             .call(cwd = root, env = envs, check = buildExpectedToSucceed)
           if (buildExpectedToSucceed) expect(r.out.trim() == Constants.scala3Next)
           else expect(r.exitCode == 1)

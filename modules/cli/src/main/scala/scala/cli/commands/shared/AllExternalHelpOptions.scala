@@ -1,8 +1,7 @@
 package scala.cli.commands.shared
 
-import caseapp.core.Scala3Helpers.*
-import caseapp.core.help.{Help, HelpFormat}
-import caseapp.{Help, *}
+import caseapp.*
+import caseapp.core.help.Help
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 

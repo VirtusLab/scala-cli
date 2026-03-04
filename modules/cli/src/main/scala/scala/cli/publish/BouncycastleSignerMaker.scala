@@ -7,7 +7,7 @@ import java.security.Security
 import java.util.function.Supplier
 
 import scala.build.Logger
-import scala.cli.signing.shared.{PasswordOption, Secret}
+import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.BouncycastleSigner
 
 /** Used for choosing the right BouncyCastleSigner when Scala CLI is run on JVM. <br>

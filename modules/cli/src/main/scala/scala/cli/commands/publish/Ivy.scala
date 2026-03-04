@@ -1,8 +1,7 @@
 package scala.cli.commands.publish
 
-import coursier.core.{Configuration, ModuleName, Organization, Type}
+import coursier.core.{Configuration, MinimizedExclusions, ModuleName, Organization}
 import coursier.publish.Pom
-import coursier.publish.Pom.{Developer, License, Scm}
 
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
@@ -26,15 +25,22 @@ object Ivy {
     organization: Organization,
     moduleName: ModuleName,
     version: String,
-    packaging: Option[Type] = None,
+    // TODO: packaging: Option[Type] = None,
     description: Option[String] = None,
     url: Option[String] = None,
-    name: Option[String] = None,
+    // TODO: name: Option[String] = None,
     // TODO Accept full-fledged coursier.Dependency
-    dependencies: Seq[(Organization, ModuleName, String, Option[Configuration])] = Nil,
-    license: Option[License] = None,
-    scm: Option[Scm] = None,
-    developers: Seq[Developer] = Nil,
+    dependencies: Seq[(
+      Organization,
+      ModuleName,
+      String,
+      Option[Configuration],
+      MinimizedExclusions
+    )] = Nil,
+    // https://github.com/VirtusLab/scala-cli/issues/3914
+    // TODO: license: Option[License] = None,
+    // TODO: scm: Option[Scm] = None,
+    // TODO: developers: Seq[Developer] = Nil,
     time: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
     hasPom: Boolean = true,
     hasDoc: Boolean = true,
@@ -110,10 +116,16 @@ object Ivy {
 
     nodes += {
       val depNodes = dependencies.map {
-        case (org, name, ver, confOpt) =>
-          val conf     = confOpt.map(_.value).getOrElse("compile")
-          val confSpec = s"$conf->default(compile)"
-          <dependency org={org.value} name={name.value} rev={ver} conf={confSpec}></dependency>
+        case (org, name, ver, confOpt, exclusions) =>
+          val conf           = confOpt.map(_.value).getOrElse("compile")
+          val confSpec       = s"$conf->default(compile)"
+          val exclusionNodes =
+            exclusions.data.toSet().map { case (org, module) =>
+              <exclude org={org.value} module={module.value}/>
+            }
+          <dependency org={org.value} name={name.value} rev={ver} conf={confSpec}>
+            {exclusionNodes}
+          </dependency>
       }
       <dependencies>
         {depNodes}

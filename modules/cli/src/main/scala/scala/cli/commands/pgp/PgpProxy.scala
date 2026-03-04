@@ -1,11 +1,10 @@
 package scala.cli.commands.pgp
 
-import coursier.cache.{Cache, FileCache}
+import coursier.cache.FileCache
 import coursier.util.Task
 
 import scala.build.errors.BuildException
 import scala.build.{Logger, options as bo}
-import scala.cli.commands.pgp.{PgpCreateExternal, PgpKeyIdExternal}
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
 import scala.util.Properties
@@ -38,7 +37,7 @@ class PgpProxy {
           Map("SCALA_CLI_RANDOM_KEY_PASSWORD" -> value)
         )
       case None => (Nil, Map.empty)
-    val quietOptions = Nil
+    val quietOptions = if quiet then Seq("--quiet") else Nil
     (new PgpCreateExternal).tryRun(
       cache,
       Seq(

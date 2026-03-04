@@ -3,7 +3,7 @@ package scala.cli.commands.compile
 import caseapp.*
 import caseapp.core.help.Help
 
-import scala.cli.commands.shared._
+import scala.cli.commands.shared.*
 import scala.cli.commands.tags
 
 @HelpMessage(CompileOptions.helpMessage, "", CompileOptions.detailedHelpMessage)
@@ -22,10 +22,7 @@ final case class CompileOptions(
   @HelpMessage("Print the resulting class path")
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
-    printClassPath: Boolean = false,
-
-  @Recurse
-    scope: ScopeOptions = ScopeOptions()
+    printClassPath: Boolean = false
 ) extends HasSharedOptions
   // format: on
 
@@ -34,7 +31,7 @@ object CompileOptions {
   implicit lazy val help: Help[CompileOptions]     = Help.derive
   val cmdName                                      = "compile"
   private val helpHeader                           = "Compile Scala code."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

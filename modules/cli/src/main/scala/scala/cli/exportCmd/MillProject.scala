@@ -3,7 +3,7 @@ package scala.cli.exportCmd
 import java.nio.charset.StandardCharsets
 
 import scala.build.options.ConfigMonoid
-import scala.cli.util.SeqHelpers._
+import scala.cli.util.SeqHelpers.*
 import scala.reflect.NameTransformer
 import scala.util.Properties
 
@@ -27,6 +27,7 @@ final case class MillProject(
   extraTestDecls: Seq[String] = Nil,
   mainClass: Option[String] = None
 ) extends Project {
+  private lazy val isMill1OrNewer: Boolean = !millVersion.exists(_.startsWith("0."))
 
   def +(other: MillProject): MillProject =
     MillProject.monoid.orElse(this, other)
@@ -82,24 +83,37 @@ final case class MillProject(
         Some(s"""def scalacOptions = super.scalacOptions() ++ Seq($optsString)""")
       }
     def maybeDeps(deps: Seq[String], isCompileOnly: Boolean = false) = {
-      val depsDefinition = if (isCompileOnly)
-        Seq("def compileIvyDeps = super.compileIvyDeps() ++ Seq(")
-      else Seq("def ivyDeps = super.ivyDeps() ++ Seq(")
-      if (deps.isEmpty) Seq.empty[String]
+      val depsDefinition = isCompileOnly -> isMill1OrNewer match {
+        case (true, true)   => Seq("def compileMvnDeps = super.compileMvnDeps() ++ Seq(")
+        case (true, false)  => Seq("def compileIvyDeps = super.compileIvyDeps() ++ Seq(")
+        case (false, true)  => Seq("def mvnDeps = super.mvnDeps() ++ Seq(")
+        case (false, false) => Seq("def ivyDeps = super.ivyDeps() ++ Seq(")
+      }
+      if deps.isEmpty then Seq.empty[String]
       else
         depsDefinition ++
           deps
-            .map(dep => """  ivy"""" + dep + "\"")
+            .map {
+              case dep if isMill1OrNewer => s"""  mvn"$dep""""
+              case dep                   => s"""  ivy"$dep""""
+            }
             .appendOnInit(",") ++
           Seq(")")
     }
 
     val maybeScalaCompilerPlugins =
-      if (scalaCompilerPlugins.isEmpty) Seq.empty
+      if scalaCompilerPlugins.isEmpty then Seq.empty
       else
-        Seq("def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Seq(") ++
+        Seq(
+          if isMill1OrNewer
+          then "def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++ Seq("
+          else "def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Seq("
+        ) ++
           scalaCompilerPlugins
-            .map(dep => s"  ivy\"$dep\"")
+            .map {
+              case dep if isMill1OrNewer => s"  mvn\"$dep\""
+              case dep                   => s"  ivy\"$dep\""
+            }
             .appendOnInit(",")
           ++ Seq(")")
 
@@ -110,7 +124,11 @@ final case class MillProject(
       if (resourcesDirs.isEmpty) Nil
       else {
         val resources =
-          resourcesDirs.map(p => s"""T.workspace / os.RelPath("${p.relativeTo(dir)}")""")
+          resourcesDirs.map {
+            case p if isMill1OrNewer =>
+              s"""mill.api.BuildCtx.workspaceRoot / os.RelPath("${p.relativeTo(dir)}")"""
+            case p => s"""T.workspace / os.RelPath("${p.relativeTo(dir)}")"""
+          }
         Seq("def runClasspath = super.runClasspath() ++ Seq(") ++
           resources.map(resource => s"  $resource").appendOnInit(",") ++
           Seq(").map(PathRef(_))")
@@ -128,13 +146,14 @@ final case class MillProject(
         extraTestDecls.map(s => s"    $s") ++ Seq("  }")
     else Seq.empty
 
-    val buildSc: String = {
+    val buildFileContent: String = {
       val parts: Seq[String] = Seq(
         "import mill._",
         "import mill.scalalib._"
-      ) ++ maybeExtraImport ++ Seq(
-        s"object $escapedName extends $parentModule {"
-      ) ++
+      ) ++ maybeExtraImport ++
+        Seq(
+          s"object $escapedName extends $parentModule {"
+        ) ++
         maybeScalaVer.map(s => s"  $s") ++
         maybePlatformVer.map(s => s"  $s") ++
         maybeScalacOptions.map(s => s"  $s") ++
@@ -149,16 +168,17 @@ final case class MillProject(
       parts.mkString(nl)
     }
 
-    for ((path, language, content) <- mainSources) {
+    for ((path, _, content) <- mainSources) {
       val path0 = dir / name / "src" / path
       os.write(path0, content, createFolders = true)
     }
-    for ((path, language, content) <- testSources) {
+    for ((path, _, content) <- testSources) {
       val path0 = dir / name / "test" / "src" / path
       os.write(path0, content, createFolders = true)
     }
 
-    os.write(dir / "build.sc", buildSc.getBytes(charSet))
+    val outputBuildFile = if isMill1OrNewer then dir / "build.mill" else dir / "build.sc"
+    os.write(outputBuildFile, buildFileContent.getBytes(charSet))
   }
 }
 

@@ -11,19 +11,17 @@ import scala.cli.commands.SpecificationLevel
 @DirectivePrefix("target.")
 @DirectiveDescription("Require a Scala platform for the current file")
 @DirectiveExamples("//> using target.platform scala-js")
-@DirectiveExamples("//> using target.platform scala-js, scala-native")
+@DirectiveExamples("//> using target.platform scala-js scala-native")
 @DirectiveExamples("//> using target.platform jvm")
 @DirectiveUsage(
   "//> using target.platform _platform_",
   "`//> using target.platform` _platform_"
 )
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
-// format: off
 final case class RequirePlatform(
   @DirectiveName("platform")
-    platforms: List[Positioned[String]] = Nil
+  platforms: List[Positioned[String]] = Nil
 ) extends HasBuildRequirements {
-  // format: on
   def buildRequirements: Either[BuildException, BuildRequirements] = either {
     val platformSet = value {
       Platform.parseSpec(platforms.map(_.value).map(options.Platform.normalize)).toRight {

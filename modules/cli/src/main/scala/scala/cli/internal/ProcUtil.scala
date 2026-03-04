@@ -1,13 +1,11 @@
 package scala.cli.internal
-
-import java.net.{HttpURLConnection, URL, URLConnection}
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.{CancellationException, CompletableFuture, CompletionException}
 
 import scala.build.Logger
 import scala.build.internals.EnvVar
+import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.util.{Properties, Try}
 
 object ProcUtil {
 
@@ -20,7 +18,7 @@ object ProcUtil {
     val usesSh = hasBinEnvShHeader || hasBinShHeader
 
     if (usesSh) {
-      val content = os.read.bytes(file)
+      val content        = os.read.bytes(file)
       val updatedContent =
         if (hasBinEnvShHeader)
           "#!/usr/bin/env bash".getBytes(StandardCharsets.UTF_8) ++
@@ -63,7 +61,7 @@ object ProcUtil {
     }
   }
 
-  def waitForProcess(process: Process, onExit: CompletableFuture[_]): Unit = {
+  def waitForProcess(process: Process, onExit: CompletableFuture[?]): Unit = {
     process.waitFor()
     try onExit.join()
     catch {

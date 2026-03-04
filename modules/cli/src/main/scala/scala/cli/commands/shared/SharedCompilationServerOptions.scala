@@ -17,7 +17,6 @@ import scala.build.internal.Util
 import scala.build.{Bloop, Logger, Os}
 import scala.cli.commands.Constants
 import scala.cli.commands.bloop.BloopJson
-import scala.cli.commands.shared.*
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.Properties
@@ -137,7 +136,7 @@ final case class SharedCompilationServerOptions(
       case Some(path) =>
         (os.Path(path, Os.pwd), false)
       case None =>
-        val dir = socketDirectory(directories)
+        val dir      = socketDirectory(directories)
         val fileName = pidOrRandom
           .map("proc-" + _)
           .left.map("conn-" + _)
@@ -168,7 +167,7 @@ final case class SharedCompilationServerOptions(
       case None          => default
       case Some("tcp")   => None
       case Some("local") => namedSocket
-      case Some(other) =>
+      case Some(other)   =>
         sys.error(
           s"Invalid bloop BSP protocol value: '$other' (expected 'tcp', 'local', or 'default')"
         )
@@ -203,7 +202,7 @@ final case class SharedCompilationServerOptions(
         if (os.exists(filePath) && os.isFile(filePath))
           try {
             val content   = os.read.bytes(filePath)
-            val bloopJson = readFromArray(content)(BloopJson.codec)
+            val bloopJson = readFromArray(content)(using BloopJson.codec)
             bloopJson.javaOptions
           }
           catch {

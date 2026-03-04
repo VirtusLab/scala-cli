@@ -19,9 +19,9 @@ object ShebangOptions {
   implicit lazy val parser: Parser[ShebangOptions] = Parser.derive
   implicit lazy val help: Help[ShebangOptions]     = Help.derive
 
-  val cmdName             = "shebang"
-  private val helpHeader  = "Like `run`, but handier for shebang scripts."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val cmdName                     = "shebang"
+  private val helpHeader          = "Like `run`, but handier for shebang scripts."
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

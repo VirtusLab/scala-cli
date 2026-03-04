@@ -1,7 +1,4 @@
 package scala.build.compiler
-
-import ch.epfl.scala.bsp4j
-
 import scala.annotation.tailrec
 import scala.build.{Bloop, Logger, Position, Positioned, Project}
 import scala.concurrent.duration.FiniteDuration
@@ -38,7 +35,7 @@ final class BloopCompiler(
     def helper(remainingAttempts: Int): Boolean =
       Bloop.compile(project.projectName, bloopServer.server, logger, buildTargetsTimeout) match {
         case Right(res) => res
-        case Left(ex) =>
+        case Left(ex)   =>
           if (remainingAttempts > 1) {
             logger.debug(s"Seems Bloop server exited (got $ex), trying to restart one")
             currentBloopServer = createServer()

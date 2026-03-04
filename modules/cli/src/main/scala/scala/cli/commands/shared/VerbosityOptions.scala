@@ -34,11 +34,11 @@ final case class VerbosityOptions(
 }
 
 object VerbosityOptions {
-  implicit lazy val parser: Parser[VerbosityOptions] = Parser.derive
-  implicit lazy val help: Help[VerbosityOptions]     = Help.derive
+  implicit lazy val parser: Parser[VerbosityOptions]     = Parser.derive
+  implicit lazy val help: Help[VerbosityOptions]         = Help.derive
   implicit val rwCounter: JsonValueCodec[Int @@ Counter] =
     new JsonValueCodec[Int @@ Counter] {
-      private val intCodec: JsonValueCodec[Int] = JsonCodecMaker.make
+      private val intCodec: JsonValueCodec[Int]                = JsonCodecMaker.make
       def decodeValue(in: JsonReader, default: Int @@ Counter) =
         Tag.of(intCodec.decodeValue(in, Tag.unwrap(default)))
       def encodeValue(x: Int @@ Counter, out: JsonWriter): Unit =

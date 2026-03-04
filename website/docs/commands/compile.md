@@ -31,7 +31,7 @@ For a full list of options, run `scala-cli compile --help`, or check the options
 `--test` makes Scala CLI compile main and test scopes:
 
 ```scala title=Sample.test.scala
-//> using dep org.scalameta::munit:0.7.29
+//> using dep org.scalameta::munit:1.0.2
 class Test extends munit.FunSuite {
   test("sample") {
     assert(2 + 2 == 4)
@@ -67,11 +67,11 @@ Watching sources, press Ctrl+C to exit.
 ## Scala version
 
 Scala CLI uses the latest stable version of Scala which was tested in Scala CLI (see our list
-of [Supported Scala Versions](../reference/scala-versions)). You can specify the Scala version you'd like to use
+of [Supported Scala Versions](../reference/scala-versions.md)). You can specify the Scala version you'd like to use
 with `--scala`:
 
 ```bash
-scala-cli compile --scala 2.13.6 Hello.scala
+scala-cli compile --scala 2.13.15 Hello.scala
 ```
 
 Scala CLI works with all major `2.12.x`, `2.13.x`, and `3.x` Scala versions.
@@ -196,9 +196,11 @@ A single option can be passed like this:
 It's also possible to pass a value to the option with the same directive:
 
 ```scala compile
-//> using option -release 11
+//> using option -release 17
 
-import java.net.http.HttpRequest
+object Main {
+  java.util.HexFormat.of().toHexDigits(255)
+}
 ```
 
 There's a separate directive for passing multiple options at one time:
@@ -406,7 +408,7 @@ Deprecated settings:
 Use `--compiler-plugin` to add compiler plugin dependencies:
 
 ```bash
-scala-cli compile Hello.scala --compiler-plugin org.typelevel:::kind-projector:0.13.2 --scala 2.12.14
+scala-cli compile Hello.scala --compiler-plugin org.typelevel:::kind-projector:0.13.3 --scala 2.13.13
 ```
 
 ## Printing a class path
@@ -480,14 +482,14 @@ line parameter `--exclude` along with a pattern:
 :::note
 The `exclude` directive should be placed in your `project.scala` file, which Scala CLI uses to determine the project
 root directory.
-For more details on `project.file`, see [the `Project root directory` reference](../reference/root-dir).
+For more details on `project.file`, see [the `Project root directory` reference](../reference/root-dir.md).
 :::
 
 For example, to exclude all files in the `example/scala` directory, add the following directive to your
  `project.file` file:
 
 ```scala title=project.scala
-//> using exclude "example/scala"
+//> using exclude example/scala
 ```
 
 ## Compile-Only Dependencies
@@ -499,7 +501,7 @@ To declare a compile-only dependency, you should use the `compileOnly.dep` direc
 option. For instance, to include the `jsoniter-scala-macros` library at compile-time, you would use:
 
 ```scala title=CompileOnly.scala
-//> using compileOnly.dep "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2"
+//> using compileOnly.dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2
 ```
 
 or by using the `--compile-lib` command line option:

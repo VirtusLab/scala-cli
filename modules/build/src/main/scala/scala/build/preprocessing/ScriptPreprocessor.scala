@@ -5,11 +5,10 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, ScalaCliInvokeData, Script, SingleElement, VirtualScript}
+import scala.build.input.{ScalaCliInvokeData, Script, SingleElement, VirtualScript}
 import scala.build.internal.*
 import scala.build.internal.util.WarningMessages
-import scala.build.options.{BuildOptions, BuildRequirements, Platform, SuppressWarningOptions}
-import scala.build.preprocessing.PreprocessedSource
+import scala.build.options.{BuildOptions, Platform, SuppressWarningOptions}
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
 
 case object ScriptPreprocessor extends Preprocessor {
@@ -23,7 +22,7 @@ case object ScriptPreprocessor extends Preprocessor {
     input match {
       case script: Script =>
         val res = either {
-          val content = value(PreprocessingUtil.maybeRead(script.path))
+          val content      = value(PreprocessingUtil.maybeRead(script.path))
           val preprocessed = value {
             ScriptPreprocessor.preprocess(
               Right(script.path),
@@ -106,8 +105,8 @@ case object ScriptPreprocessor extends Preprocessor {
         inputArgPath.getOrElse(subPath.toString)
       )
 
-      val className = (pkg :+ wrapper).map(_.raw).mkString(".")
-      val relPath   = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
+      (pkg :+ wrapper).map(_.raw).mkString(".")
+      val relPath = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
 
       val file = PreprocessedSource.UnwrappedScript(
         originalPath = reportingPath.map((subPath, _)),
@@ -134,7 +133,7 @@ case object ScriptPreprocessor extends Preprocessor {
     (codeWrapper: CodeWrapper) =>
       if (containsMainAnnot) logger.diagnostic(
         codeWrapper match {
-          case _: AppCodeWrapper.type =>
+          case _: AppCodeWrapper =>
             WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ true)
           case _ => WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
         }
@@ -157,24 +156,27 @@ case object ScriptPreprocessor extends Preprocessor {
     * @return
     *   code wrapper compatible with provided BuildOptions
     */
-  def getScriptWrapper(buildOptions: BuildOptions): CodeWrapper = {
+  def getScriptWrapper(buildOptions: BuildOptions, logger: Logger): CodeWrapper = {
     val effectiveScalaVersion =
       buildOptions.scalaOptions.scalaVersion.flatMap(_.versionOpt)
         .orElse(buildOptions.scalaOptions.defaultScalaVersion)
         .getOrElse(Constants.defaultScalaVersion)
+    def logWarning(msg: String) = logger.diagnostic(msg)
 
     def objectCodeWrapperForScalaVersion =
       // AppObjectWrapper only introduces the 'main.sc' restriction when used in Scala 3, there's no gain in using it with Scala 3
-      if effectiveScalaVersion.startsWith("2") then AppCodeWrapper
-      else ObjectCodeWrapper
+      if effectiveScalaVersion.startsWith("2") then
+        AppCodeWrapper(effectiveScalaVersion, logWarning)
+      else ObjectCodeWrapper(effectiveScalaVersion, logWarning)
 
     buildOptions.scriptOptions.forceObjectWrapper match {
       case Some(true) => objectCodeWrapperForScalaVersion
-      case _ =>
+      case _          =>
         buildOptions.scalaOptions.platform.map(_.value) match {
           case Some(_: Platform.JS.type)                  => objectCodeWrapperForScalaVersion
-          case _ if effectiveScalaVersion.startsWith("2") => AppCodeWrapper
-          case _                                          => ClassCodeWrapper
+          case _ if effectiveScalaVersion.startsWith("2") =>
+            AppCodeWrapper(effectiveScalaVersion, logWarning)
+          case _ => ClassCodeWrapper(effectiveScalaVersion, logWarning)
         }
     }
   }

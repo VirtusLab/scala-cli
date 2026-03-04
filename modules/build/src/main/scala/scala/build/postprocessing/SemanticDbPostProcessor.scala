@@ -21,7 +21,7 @@ case object SemanticDbPostProcessor extends PostProcessor {
     logger.debug("Moving semantic DBs around")
     val semanticDbOptions = buildOptions.scalaOptions.semanticDbOptions
     val semDbSourceRoot   = semanticDbOptions.semanticDbSourceRoot.getOrElse(workspace)
-    val semDbTargetRoot =
+    val semDbTargetRoot   =
       semanticDbOptions.semanticDbTargetRoot.getOrElse(output) / "META-INF" / "semanticdb"
     for (source <- generatedSources; originalSource <- source.reportingPath) {
       val actual = originalSource.relativeTo(semDbSourceRoot)

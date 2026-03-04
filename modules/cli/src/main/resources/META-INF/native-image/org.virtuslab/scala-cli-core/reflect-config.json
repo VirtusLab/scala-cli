@@ -150,6 +150,9 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.DebugProvider",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
     "allDeclaredFields": true
   },
   {
@@ -175,13 +178,6 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.DependencyModule",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "ch.epfl.scala.bsp4j.DependencyModulesDataKind",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -252,13 +248,6 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.DidChangeBuildTarget",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "ch.epfl.scala.bsp4j.FileChangeType",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -688,13 +677,6 @@
     "allDeclaredFields": true
   },
   {
-    "name": "ch.epfl.scala.bsp4j.TaskDataKind",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
     "name": "ch.epfl.scala.bsp4j.TaskFinishParams",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
@@ -813,6 +795,12 @@
     "allDeclaredFields": true
   },
   {
+    "name": "com.google.cloud.tools.jib.api.DockerInfoDetails",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
     "name": "com.google.cloud.tools.jib.cache.LayerEntriesSelector$LayerEntryTemplate",
     "allDeclaredFields": true,
     "allDeclaredMethods": true,
@@ -897,6 +885,30 @@
   {
     "name": "com.google.cloud.tools.jib.image.json.ManifestTemplate",
     "allDeclaredMethods": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.OciIndexTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.OciIndexTemplate$ManifestDescriptorTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.OciIndexTemplate$ManifestDescriptorTemplate$Platform",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.OciManifestTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
   },
   {
     "name": "com.google.cloud.tools.jib.image.json.V22ManifestListTemplate",
@@ -1007,6 +1019,15 @@
   },
   {
     "name": "org.eclipse.jgit.lib.CoreConfig$TrustPackedRefsStat",
+    "methods": [
+      {
+        "name": "values",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "org.eclipse.jgit.lib.CoreConfig$TrustStat",
     "methods": [
       {
         "name": "values",
@@ -1194,13 +1215,6 @@
     "allDeclaredFields": true
   },
   {
-    "name": "scala.build.bsp.LoggingBuildServerAll",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
     "name": "scala.build.bsp.LoggingJavaBuildServer",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
@@ -1230,6 +1244,7 @@
   },
   {
     "name": "scala.build.bsp.ScalaScriptBuildServer",
+    "queryAllDeclaredMethods": true,
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,

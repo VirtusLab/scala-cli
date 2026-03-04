@@ -1,26 +1,27 @@
 package scala.build.tests
 
-import scala.build.{Build, Positioned}
-import scala.build.options.{BuildOptions, Platform}
+import munit.AnyFixture
 import munit.Assertions.assertEquals
 
 import java.util.concurrent.TimeUnit
+
+import scala.build.options.{BuildOptions, Platform}
+import scala.build.{Build, Positioned}
 import scala.concurrent.duration.FiniteDuration
 
 object TestUtil {
-
   abstract class ScalaCliBuildSuite extends munit.FunSuite {
     extension (munitContext: BeforeEach | AfterEach) {
       def locationAbsolutePath: os.Path =
-        os.pwd / os.RelPath {
+        os.Path {
           (munitContext match {
             case beforeEach: BeforeEach => beforeEach.test
             case afterEach: AfterEach   => afterEach.test
           }).location.path
         }
     }
-    override def munitTimeout = new FiniteDuration(120, TimeUnit.SECONDS)
-    val testStartEndLogger = new Fixture[Unit]("files") {
+    override def munitTimeout             = new FiniteDuration(120, TimeUnit.SECONDS)
+    val testStartEndLogger: Fixture[Unit] = new Fixture[Unit]("files") {
       def apply(): Unit = ()
 
       override def beforeEach(context: BeforeEach): Unit = {
@@ -37,10 +38,10 @@ object TestUtil {
         )
       }
     }
-    override def munitFixtures = List(testStartEndLogger)
+    override def munitFixtures: Seq[AnyFixture[?]] = List(testStartEndLogger)
   }
 
-  val isCI = System.getenv("CI") != null
+  val isCI: Boolean = System.getenv("CI") != null
 
   implicit class TestBuildOps(private val build: Build) extends AnyVal {
     private def successfulBuild: Build.Successful =
@@ -62,18 +63,18 @@ object TestUtil {
       )
     }
 
-    def assertNoDiagnostics = assertEquals(build.diagnostics.toSeq.flatten, Nil)
+    def assertNoDiagnostics(): Unit = assertEquals(build.diagnostics.toSeq.flatten, Nil)
 
   }
 
   implicit class TestBuildOptionsOps(private val options: BuildOptions) extends AnyVal {
-    def enableJs =
+    def enableJs: BuildOptions =
       options.copy(
         scalaOptions = options.scalaOptions.copy(
           platform = Some(Positioned.none(Platform.JS))
         )
       )
-    def enableNative =
+    def enableNative: BuildOptions =
       options.copy(
         scalaOptions = options.scalaOptions.copy(
           platform = Some(Positioned.none(Platform.Native))
@@ -92,5 +93,11 @@ object TestUtil {
       )
   }
 
-  lazy val cs = Constants.cs
+  def c2s(c: Char): String = c match {
+    case '\r' => "\\r"
+    case '\n' => "\\n"
+    case s    => s"$s"
+  }
+
+  lazy val cs: String = Constants.cs
 }

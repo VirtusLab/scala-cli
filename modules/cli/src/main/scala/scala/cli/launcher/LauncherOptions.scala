@@ -4,8 +4,8 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
-import scala.cli.commands.shared.{HelpGroup, SharedOptions}
-import scala.cli.commands.{Constants, tags}
+import scala.cli.commands.shared.HelpGroup
+import scala.cli.commands.tags
 
 @HelpMessage("Run another Scala CLI version")
 final case class LauncherOptions(

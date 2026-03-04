@@ -1,7 +1,7 @@
 package scala.build
 
-import ch.epfl.scala.bsp4j.SourcesItem
 import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.SourcesItem
 
 import java.util.concurrent.CompletableFuture
 
@@ -26,7 +26,7 @@ package object bsp {
     }
 
     def withVerbosity(verbose: Boolean): b.CompileParams = {
-      val verboseArg = "--verbose"
+      val verboseArg                 = "--verbose"
       val argumentsContainVerboseArg =
         Option(compileParams.getArguments).exists(_.contains(verboseArg))
       if verbose && !argumentsContainVerboseArg then compileParams.withExtraArgs(List(verboseArg))

@@ -5,7 +5,6 @@ import com.typesafe.config.{ConfigParseOptions, ConfigSyntax}
 
 import scala.build.Logger
 import scala.build.internal.Constants
-import scala.cli.commands.fmt.FmtOptions
 import scala.util.control.NonFatal
 
 object FmtUtil {
@@ -41,7 +40,7 @@ object FmtUtil {
   ): (Option[String], Option[String], Option[os.Path]) = {
     case class RunnerMetaconfig(dialect: String = "")
     object RunnerMetaconfig {
-      lazy val default: RunnerMetaconfig = RunnerMetaconfig("")
+      lazy val default: RunnerMetaconfig                                      = RunnerMetaconfig("")
       implicit lazy val surface: metaconfig.generic.Surface[RunnerMetaconfig] =
         metaconfig.generic.deriveSurface[RunnerMetaconfig]
       implicit lazy val decoder: metaconfig.ConfDecoder[RunnerMetaconfig] =
@@ -58,7 +57,7 @@ object FmtUtil {
       implicit lazy val decoder: metaconfig.ConfDecoder[ScalafmtMetaconfig] =
         metaconfig.generic.deriveDecoder[ScalafmtMetaconfig](default)
     }
-    val confName = ".scalafmt.conf"
+    val confName  = ".scalafmt.conf"
     val pathMaybe =
       options.scalafmtConfStr.flatMap { s =>
         val tmpConfPath = workspace / Constants.workspaceDirName / ".scalafmt.conf"
@@ -159,7 +158,7 @@ object FmtUtil {
     def withUpdatedVersion(content: String, v: String): String = {
       val doc = docFrom(content)
       if (doc.hasPath("version"))
-        doc.withValueText("version", '"' + v + '"').render
+        doc.withValueText("version", s"\"$v\"").render
       else {
         // prepend to the beggining of file
         val sb = new StringBuilder
@@ -193,7 +192,7 @@ object FmtUtil {
     ): String =
       if (overrides.isEmpty) content
       else {
-        val sep = System.lineSeparator
+        val sep    = System.lineSeparator
         val values = overrides
           .map { case (key, dialect) =>
             s"""|  "$key" {
@@ -206,8 +205,8 @@ object FmtUtil {
         content + addSep + values
       }
 
-    val doNothing = identity[String] _
-    val combined = List(
+    val doNothing = identity[String]
+    val combined  = List(
       version.fold(doNothing)(v => withUpdatedVersion(_, v)),
       runnerDialect.fold(doNothing)(v => withUpdatedDialect(_, v)),
       withFileOverride(_, fileOverride)

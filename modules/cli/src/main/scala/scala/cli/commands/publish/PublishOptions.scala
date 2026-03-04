@@ -45,8 +45,8 @@ object PublishOptions {
   implicit lazy val parser: Parser[PublishOptions] = Parser.derive
   implicit lazy val help: Help[PublishOptions]     = Help.derive
 
-  val cmdName            = "publish"
-  private val helpHeader = "Publishes build artifacts to Maven repositories."
+  val cmdName             = "publish"
+  private val helpHeader  = "Publishes build artifacts to Maven repositories."
   val helpMessage: String =
     s"""$helpHeader
        |

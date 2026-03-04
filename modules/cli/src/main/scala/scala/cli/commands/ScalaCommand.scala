@@ -7,11 +7,9 @@ import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error, RemainingArgs}
 import caseapp.{HelpMessage, Name}
-import coursier.core.{Repository, Version}
 import dependency.*
-import org.codehaus.plexus.classworlds.launcher.Launcher
 
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
+import java.util.concurrent.atomic.AtomicReference
 
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
@@ -21,21 +19,21 @@ import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, Runner}
 import scala.build.internals.{EnvVar, FeatureType}
-import scala.build.options.{BuildOptions, ScalacOpt, Scope}
-import scala.build.{Artifacts, Directories, Logger, Positioned, ReplArtifacts}
+import scala.build.options.ScalacOpt.noDashPrefixes
+import scala.build.options.{BuildOptions, Scope}
+import scala.build.{Artifacts, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
 import scala.cli.commands.shared.*
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.internal.ProcUtil
 import scala.cli.launcher.LauncherOptions
 import scala.cli.util.ConfigDbUtils.*
 import scala.cli.{CurrentParams, ScalaCli}
-import scala.util.{Properties, Try}
 
 abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T], inHelp: Help[T])
-    extends Command()(myParser, inHelp)
+    extends Command()(using myParser, inHelp)
     with NeedsArgvCommand with CommandHelpers with RestrictableCommand[T] {
 
   private val globalOptionsAtomic: AtomicReference[GlobalOptions] =
@@ -48,9 +46,9 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
 
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
-  override def hasFullHelp     = true
-  override def hidden: Boolean = shouldExcludeInSip
-  protected var argvOpt        = Option.empty[Array[String]]
+  override def hasFullHelp                       = true
+  override def hidden: Boolean                   = shouldExcludeInSip
+  protected var argvOpt                          = Option.empty[Array[String]]
   protected def allowRestrictedFeatures: Boolean =
     ScalaCli.allowRestrictedFeatures || globalOptions.powerOptions.power
   private def shouldExcludeInSip = (isRestricted || isExperimental) && !allowRestrictedFeatures
@@ -134,7 +132,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
             state.flatMap(sharedOptions).toList.flatMap { sharedOptions =>
               val logger = sharedOptions.logger
               val cache  = sharedOptions.coursierCache
-              val sv = sharedOptions.buildOptions().orExit(logger)
+              val sv     = sharedOptions.buildOptions().orExit(logger)
                 .scalaParams
                 .toOption
                 .flatten
@@ -145,7 +143,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
                   .withInput(prefix)
                   .withScalaVersion(sv)
                   .complete()
-                  .unsafeRun()(cache.ec)
+                  .unsafeRun()(using cache.ec)
               }
               if (completions.isEmpty) Nil
               else {
@@ -175,9 +173,11 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
     val logger = options.global.logging.logger
     sharedOptions(options).foreach { so =>
       val scalacOpts = so.scalacOptions.toScalacOptShadowingSeq
-      if scalacOpts.keys.contains(ScalacOpt(YScriptRunnerOption)) then
-        logger.message(
-          LegacyScalaOptions.yScriptRunnerWarning(scalacOpts.getOption(YScriptRunnerOption))
+      scalacOpts.keys
+        .find(_.value.noDashPrefixes == YScriptRunnerOption)
+        .map(_.value)
+        .foreach(k =>
+          logger.message(LegacyScalaOptions.yScriptRunnerWarning(k, scalacOpts.getOption(k)))
         )
     }
   }
@@ -192,8 +192,8 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       shared <- sharedOptions(options)
       scalacOptions        = shared.scalacOptions
       updatedScalacOptions = scalacOptions.withScalacExtraOptions(shared.scalacExtra)
-      if updatedScalacOptions.exists(ScalacOptions.ScalacPrintOptions)
-      logger = shared.logger
+      if updatedScalacOptions.map(_.noDashPrefixes).exists(ScalacOptions.ScalacPrintOptions)
+      logger            = shared.logger
       fixedBuildOptions = buildOptions.copy(scalaOptions =
         buildOptions.scalaOptions.copy(defaultScalaVersion = Some(ScalaCli.getDefaultScalaVersion))
       )
@@ -221,7 +221,8 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   def maybePrintToolsHelp(options: T, buildOptions: BuildOptions): Unit =
     for {
       shared <- sharedOptions(options)
-      if shared.helpGroups.helpScaladoc || shared.helpGroups.helpRepl || shared.helpGroups.helpScalafmt
+      if shared.helpGroups.helpScaladoc || shared.helpGroups.helpRepl ||
+      shared.helpGroups.helpScalafmt
       logger = shared.logger
       artifacts      <- buildOptions.artifacts(logger, Scope.Main).toOption
       scalaArtifacts <- artifacts.scalaOpt
@@ -244,16 +245,18 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
           }
           else if (shared.helpGroups.helpRepl) {
             val initialBuildOptions = buildOptionsOrExit(options)
-            val artifacts = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
-            val replArtifacts = value {
+            val artifacts        = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
+            val javaVersion: Int = initialBuildOptions.javaHome().value.version
+            val replArtifacts    = value {
               ReplArtifacts.default(
-                scalaParams,
-                artifacts.userDependencies,
-                Nil,
-                logger,
-                buildOptions.finalCache,
-                Nil,
-                None
+                scalaParams = scalaParams,
+                dependencies = artifacts.userDependencies,
+                extraClassPath = Nil,
+                logger = logger,
+                cache = buildOptions.finalCache,
+                repositories = Nil,
+                addScalapy = None,
+                javaVersion = javaVersion
               )
             }
             replArtifacts.replClassPath -> replArtifacts.replMainClass
@@ -346,6 +349,14 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       .orElse {
         configDb.toOption
           .flatMap(_.getOpt(Keys.suppressExperimentalFeatureWarning))
+      }
+      .getOrElse(false)
+
+  override def shouldSuppressDeprecatedFeatureWarnings: Boolean =
+    globalOptions.globalSuppress.suppressDeprecatedFeatureWarning
+      .orElse {
+        configDb.toOption
+          .flatMap(_.getOpt(Keys.suppressDeprecatedFeatureWarning))
       }
       .getOrElse(false)
 

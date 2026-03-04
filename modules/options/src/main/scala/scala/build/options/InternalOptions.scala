@@ -6,7 +6,8 @@ import coursier.util.Task
 import scala.build.Positioned
 import scala.build.errors.BuildException
 import scala.build.interactive.Interactive
-import scala.build.interactive.Interactive.InteractiveNop
+
+type CodeFile = os.Path | java.net.URI
 
 final case class InternalOptions(
   keepDiagnostics: Boolean = false,
@@ -24,11 +25,11 @@ final case class InternalOptions(
     * really needed.
     */
   keepResolution: Boolean = false,
-  extraSourceFiles: Seq[Positioned[os.Path]] = Nil,
+  extraSourceFiles: Seq[Positioned[CodeFile]] = Nil,
   exclude: Seq[Positioned[String]] = Nil,
   offline: Option[Boolean] = None
 ) {
-  def verbosityOrDefault: Int = verbosity.getOrElse(0)
+  def verbosityOrDefault: Int                = verbosity.getOrElse(0)
   def strictBloopJsonCheckOrDefault: Boolean =
     strictBloopJsonCheck.getOrElse(InternalOptions.defaultStrictBloopJsonCheck)
 }

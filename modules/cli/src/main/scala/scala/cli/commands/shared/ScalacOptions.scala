@@ -1,13 +1,13 @@
 package scala.cli.commands.shared
 
 import caseapp.*
-import caseapp.core.Scala3Helpers.*
-import caseapp.core.parser.{Argument, ConsParser, NilParser, StandardArgument}
+import caseapp.core.parser.{Argument, NilParser, StandardArgument}
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
+import scala.build.options.ScalacOpt.noDashPrefixes
 import scala.cli.commands.tags
 
 // format: off
@@ -26,6 +26,13 @@ final case class ScalacOptions(
 // format: on
 
 object ScalacOptions {
+  extension (opt: String) {
+    private def hasValidScalacOptionDashes: Boolean =
+      opt.startsWith("-") && opt.length > 1 && (
+        if opt.length > 2 then opt.charAt(2) != '-'
+        else opt.charAt(1) != '-'
+      )
+  }
 
   private val scalacOptionsArg = Arg("scalacOption").copy(
     extraNames = Seq(Name("scala-opt"), Name("O"), Name("scala-option")),
@@ -37,46 +44,90 @@ object ScalacOptions {
     origin = Some("ScalacOptions")
   )
   // .withIsFlag(true) // The scalac options we handle accept no value after the -… argument
-  val YScriptRunnerOption = "-Yscriptrunner"
-  private val scalacOptionsPurePrefixes =
-    Set("-V", "-W", "-X", "-Y")
-  private val scalacOptionsPrefixes =
-    Set("-g", "-language", "-opt", "-P", "-target", "-source") ++ scalacOptionsPurePrefixes
+  val YScriptRunnerOption               = "Yscriptrunner"
+  private val scalacOptionsPurePrefixes = Set("V", "W", "X", "Y")
+  private val scalacOptionsPrefixes     = Set("P") ++ scalacOptionsPurePrefixes
+  val replExecuteScriptOptions @ Seq(replInitScript, replQuitAfterInit) =
+    Seq("repl-init-script", "repl-quit-after-init")
+  private val replAliasedOptions      = Set(replInitScript)
+  private val replNoArgAliasedOptions = Set(replQuitAfterInit)
   private val scalacAliasedOptions = // these options don't require being passed after -O and accept an arg
-    Set("-encoding", "-release", "-color", YScriptRunnerOption)
+    Set(
+      "bootclasspath",
+      "boot-class-path",
+      "coverage-exclude-classlikes",
+      "coverage-exclude-files",
+      "encoding",
+      "extdirs",
+      "extension-directories",
+      "javabootclasspath",
+      "java-boot-class-path",
+      "javaextdirs",
+      "java-extension-directories",
+      "java-output-version",
+      "release",
+      "color",
+      "g",
+      "language",
+      "opt",
+      "pagewidth",
+      "page-width",
+      "target",
+      "scalajs-mapSourceURI",
+      "scalajs-genStaticForwardersForNonTopLevelObjects",
+      "source",
+      "sourcepath",
+      "source-path",
+      "sourceroot",
+      YScriptRunnerOption
+    ) ++ replAliasedOptions
   private val scalacNoArgAliasedOptions = // these options don't require being passed after -O and don't accept an arg
     Set(
-      "-unchecked",
-      "-nowarn",
-      "-feature",
-      "-deprecation",
-      "-rewrite",
-      "-old-syntax",
-      "-new-syntax",
-      "-indent",
-      "-no-indent"
-    )
+      "experimental",
+      "explain",
+      "explaintypes",
+      "explain-types",
+      "explain-cyclic",
+      "from-tasty",
+      "unchecked",
+      "nowarn",
+      "no-warnings",
+      "feature",
+      "deprecation",
+      "rewrite",
+      "scalajs",
+      "old-syntax",
+      "print-tasty",
+      "print-lines",
+      "new-syntax",
+      "indent",
+      "no-indent",
+      "preview",
+      "uniqid",
+      "unique-id"
+    ) ++ replNoArgAliasedOptions
 
   /** This includes all the scalac options which disregard inputs and print a help and/or context
     * message instead.
     */
   val ScalacPrintOptions: Set[String] =
     scalacOptionsPurePrefixes ++ Set(
-      "-help",
-      "-opt:help",
-      "-Xshow-phases",
-      "-Xsource:help",
-      "-Xplugin-list",
-      "-Xmixin-force-forwarders:help",
-      "-Xlint:help",
-      "-Vphases"
+      "help",
+      "opt:help",
+      "Xshow-phases",
+      "Xsource:help",
+      "Xplugin-list",
+      "Xmixin-force-forwarders:help",
+      "Xlint:help",
+      "Vphases"
     )
 
   /** This includes all the scalac options which are redirected to native Scala CLI options. */
-  val ScalaCliRedirectedOptions = Set(
-    "-classpath",
-    "-cp", // redirected to --extra-jars
-    "-d"   // redirected to --compilation-output
+  val ScalaCliRedirectedOptions: Set[String] = Set(
+    "classpath",
+    "cp",         // redirected to --extra-jars
+    "class-path", // redirected to --extra-jars
+    "d"           // redirected to --compilation-output
   )
   val ScalacDeprecatedOptions: Set[String] = Set(
     YScriptRunnerOption // old 'scala' runner specific, no longer supported
@@ -99,12 +150,20 @@ object ScalacOptions {
       ): Either[(Error, List[String]), Option[(Option[List[String]], List[String])]] =
         args match {
           case h :: t
-              if scalacOptionsPrefixes.exists(h.startsWith) &&
-              !ScalacDeprecatedOptions.contains(h) =>
+              if h.hasValidScalacOptionDashes &&
+              scalacOptionsPrefixes.exists(h.noDashPrefixes.startsWith) &&
+              !ScalacDeprecatedOptions.contains(h.noDashPrefixes) =>
             Right(Some((Some(acc.getOrElse(Nil) :+ h), t)))
-          case h :: t if scalacNoArgAliasedOptions.contains(h) =>
+          case h :: t
+              if h.hasValidScalacOptionDashes &&
+              scalacNoArgAliasedOptions.contains(h.noDashPrefixes) =>
             Right(Some((Some(acc.getOrElse(Nil) :+ h), t)))
-          case h :: t if scalacAliasedOptions.contains(h) =>
+          case h :: t
+              if h.hasValidScalacOptionDashes &&
+              scalacAliasedOptions.exists(o => h.noDashPrefixes.startsWith(o + ":")) &&
+              h.count(_ == ':') == 1 => Right(Some((Some(acc.getOrElse(Nil) :+ h), t)))
+          case h :: t
+              if h.hasValidScalacOptionDashes && scalacAliasedOptions.contains(h.noDashPrefixes) =>
             // check if the next scalac arg is a different option or a param to the current option
             val maybeOptionArg = t.headOption.filter(!_.startsWith("-"))
             // if it's a param, it'll be treated as such and considered already parsed
@@ -118,8 +177,8 @@ object ScalacOptions {
     }
 
   implicit lazy val parser: Parser[ScalacOptions] = {
-    val baseParser = scalacOptionsArgument :: NilParser
-    implicit val p = ArgFileOption.parser
+    val baseParser                              = scalacOptionsArgument :: NilParser
+    implicit val p: Parser[List[ArgFileOption]] = ArgFileOption.parser
     baseParser.addAll[List[ArgFileOption]].to[ScalacOptions]
   }
 
@@ -130,7 +189,7 @@ object ScalacOptions {
 case class ArgFileOption(file: String) extends AnyVal
 
 object ArgFileOption {
-  val arg = Arg(
+  val arg: Arg = Arg(
     name = Name("args-file"),
     valueDescription = Some(ValueDescription("@arguments-file")),
     helpMessage = Some(HelpMessage("File with scalac options.")),

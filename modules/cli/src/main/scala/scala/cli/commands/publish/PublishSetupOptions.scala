@@ -84,7 +84,7 @@ object PublishSetupOptions {
   val cmdName                                           = "publish setup"
   private val helpHeader                                = "Configures the project for publishing."
   private val docWebsiteSuffix                          = "publishing/publish-setup"
-  val helpMessage: String =
+  val helpMessage: String                               =
     s"""$helpHeader
        |
        |${HelpMessages.commandFullHelpReference(cmdName)}

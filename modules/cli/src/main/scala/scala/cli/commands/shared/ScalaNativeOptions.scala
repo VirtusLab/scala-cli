@@ -19,15 +19,15 @@ final case class ScalaNativeOptions(
   @HelpMessage(s"Set the Scala Native version (${Constants.scalaNativeVersion} by default).")
     nativeVersion: Option[String] = None,
   @Group(HelpGroup.ScalaNative.toString)
-  @HelpMessage("Set Scala Native compilation mode")
+  @HelpMessage("Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full")
   @Tag(tags.should)
     nativeMode: Option[String] = None,
   @Group(HelpGroup.ScalaNative.toString)
-  @HelpMessage("Link-time optimisation mode")
+  @HelpMessage("Link-time optimisation mode (none by default): none, full, thin")
   @Tag(tags.should)
     nativeLto: Option[String] = None,
   @Group(HelpGroup.ScalaNative.toString)
-  @HelpMessage("Set the Scala Native garbage collector")
+  @HelpMessage("Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none")
   @Tag(tags.should)
     nativeGc: Option[String] = None,
 
@@ -54,6 +54,16 @@ final case class ScalaNativeOptions(
   @HelpMessage("List of compile options")
    @Tag(tags.should)
     nativeCompile: List[String] = Nil,
+
+  @Group(HelpGroup.ScalaNative.toString)
+  @HelpMessage("List of compile options (C files only)")
+  @Tag(tags.should)
+    nativeCCompile: List[String] = Nil,
+
+  @Group(HelpGroup.ScalaNative.toString)
+  @HelpMessage("List of compile options (C++ files only)")
+  @Tag(tags.should)
+    nativeCppCompile: List[String] = Nil,
 
   @Group(HelpGroup.ScalaNative.toString)
   @Hidden

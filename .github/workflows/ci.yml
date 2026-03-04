@@ -15,50 +15,109 @@ concurrency:
 jobs:
   unit-tests:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Copy launcher
-      run: ./mill -i copyJvmLauncher artifacts/
+      run: ./mill -i copyJvmLauncher --directory artifacts/
       if: runner.os == 'Linux'
     - name: Copy bootstrapped launcher
-      run: ./mill -i copyJvmBootstrappedLauncher artifacts/
+      run: ./mill -i copyJvmBootstrappedLauncher --directory artifacts/
       if: runner.os == 'Linux'
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v7
       if: runner.os == 'Linux'
       with:
-        name: launchers
+        name: jvm-launchers
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
-    - name: Compile everything
-      run: ./mill -i __.compile
+    - name: Cross compile everything
+      run: ./mill -i '__[_].compile'
+    - name: Build macros negative compilation tests
+      run: ./mill -i build-macros[_].test.testNegativeCompilation
     - name: Unit tests
       run: ./mill -i unitTests
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc unit-tests 'Scala CLI Unit Tests' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
         name: test-results-unit-tests
         path: test-report.xml
 
-  jvm-tests-1:
+  test-fish-shell:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      with:
+        jvm: "temurin:17"
+    - name: Install fish
+      run: |
+        sudo apt-add-repository ppa:fish-shell/release-3
+        sudo apt update
+        sudo apt install fish
+    - name: Test mill script in fish shell
+      run: |
+        fish -c './mill __.compile'
+
+  jvm-bootstrapped-tests-default:
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - name: JVM integration tests
+        run: ./mill -i integration.test.jvmBootstrapped
+        env:
+          SCALA_CLI_IT_GROUP: 1
+      - name: Convert Mill test reports to JUnit XML format
+        if: success() || failure()
+        run: .github/scripts/generate-junit-reports.sc jvm-bootstrapped-tests-default 'Scala CLI JVM Bootstrapped Tests' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: success() || failure()
+        with:
+          name: test-results-jvm-bootstrapped-tests-default
+          path: test-report.xml
+
+  jvm-tests-default:
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -66,27 +125,27 @@ jobs:
       run: ./mill -i integration.test.jvm
       env:
         SCALA_CLI_IT_GROUP: 1
-    - name: Fat jar integration test
-      if: success() || failure()
-      run: ./mill integration.test.jvmBootstrapped 'scala.cli.integration.StandaloneLauncherTests.*'
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc jvm-tests-1 'Scala CLI JVM Tests (1)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc jvm-tests-default 'Scala CLI JVM Tests (default)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
-        name: test-results-jvm-tests-1
+        name: test-results-jvm-tests-default
         path: test-report.xml
 
-  jvm-tests-2:
-    timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+  jvm-tests-scala-2-13:
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -96,22 +155,25 @@ jobs:
         SCALA_CLI_IT_GROUP: 2
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc jvm-tests-2 'Scala CLI JVM Tests (2)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc jvm-tests-scala-2-13 'Scala CLI JVM Tests (Scala 2.13)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
-        name: test-results-jvm-tests-2
+        name: test-results-jvm-tests-scala-2-13
         path: test-report.xml
 
-  jvm-tests-3:
-    timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+  jvm-tests-scala-2-12:
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -121,22 +183,25 @@ jobs:
         SCALA_CLI_IT_GROUP: 3
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc jvm-tests-3 'Scala CLI JVM Tests (3)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc jvm-tests-scala-2-12 'Scala CLI JVM Tests (Scala 2.12)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
-        name: test-results-jvm-tests-3
+        name: test-results-jvm-tests-scala-2-12
         path: test-report.xml
 
-  jvm-tests-4:
-    timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+  jvm-tests-lts:
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -146,22 +211,25 @@ jobs:
           SCALA_CLI_IT_GROUP: 4
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc jvm-tests-4 'Scala CLI JVM Tests (4)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc jvm-tests-lts 'Scala CLI JVM Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-jvm-tests-4
+          name: test-results-jvm-tests-lts
           path: test-report.xml
 
-  jvm-tests-5:
-    timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+  jvm-tests-rc:
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
@@ -171,22 +239,25 @@ jobs:
           SCALA_CLI_IT_GROUP: 5
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc jvm-tests-5 'Scala CLI JVM Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc jvm-tests-rc 'Scala CLI JVM Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-jvm-tests-5
+          name: test-results-jvm-tests-rc
           path: test-report.xml
 
   generate-linux-launcher:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -197,27 +268,32 @@ jobs:
       if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
-    - uses: actions/upload-artifact@v3
+      run: ./mill -i copyDefaultLauncher --directory artifacts/
+    - name: Verify native launcher CPU compatibility
+      run: .github/scripts/verify_old_cpus.sh artifacts/scala-cli-x86_64-pc-linux.gz
+    - uses: actions/upload-artifact@v7
       with:
         name: linux-launchers
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
 
-  native-linux-tests-1:
+  native-linux-tests-default:
     needs: generate-linux-launcher
-    timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       with:
         name: linux-launchers
         path: artifacts/
@@ -230,27 +306,30 @@ jobs:
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc linux-tests-1 'Scala CLI Linux Tests (1)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc linux-tests-default 'Scala CLI Linux Tests (default)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
-        name: test-results-linux-tests-1
+        name: test-results-linux-tests-default
         path: test-report.xml
 
-  native-linux-tests-2:
+  native-linux-tests-scala-2-13:
     needs: generate-linux-launcher
-    timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       with:
         name: linux-launchers
         path: artifacts/
@@ -263,27 +342,30 @@ jobs:
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc linux-tests-2 'Scala CLI Linux Tests (2)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc linux-tests-scala-2-13 'Scala CLI Linux Tests (Scala 2.13)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
-        name: test-results-linux-tests-2
+        name: test-results-linux-tests-scala-2-13
         path: test-report.xml
 
-  native-linux-tests-3:
+  native-linux-tests-scala-2-12:
     needs: generate-linux-launcher
-    timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       with:
         name: linux-launchers
         path: artifacts/
@@ -296,27 +378,30 @@ jobs:
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc linux-tests-3 'Scala CLI Linux Tests (3)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc linux-tests-scala-2-12 'Scala CLI Linux Tests (Scala 2.12)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
-        name: test-results-linux-tests-3
+        name: test-results-linux-tests-scala-2-12
         path: test-report.xml
 
-  native-linux-tests-4:
+  native-linux-tests-lts:
     needs: generate-linux-launcher
-    timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: linux-launchers
           path: artifacts/
@@ -329,27 +414,30 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc linux-tests-4 'Scala CLI Linux Tests (4)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc linux-tests-lts 'Scala CLI Linux Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-linux-tests-4
+          name: test-results-linux-tests-lts
           path: test-report.xml
 
-  native-linux-tests-5:
+  native-linux-tests-rc:
     needs: generate-linux-launcher
-    timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: linux-launchers
           path: artifacts/
@@ -362,45 +450,130 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc linux-tests-5 'Scala CLI Linux Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc linux-tests-rc 'Scala CLI Linux Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-linux-tests-5
+          name: test-results-linux-tests-rc
           path: test-report.xml
 
   generate-linux-arm64-native-launcher:
-    runs-on: "macOS-m1"
-    if: github.event_name == 'push'
+    timeout-minutes: 120
+    runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          apps: ""
-      - name: Generate native launcher and generate os packages
-        run: .github/scripts/build-linux-aarch64.sh
-        env:
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      - uses: actions/upload-artifact@v3
+          jvm: "temurin:17"
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -q -y
+          sudo apt-get install -q -y build-essential libz-dev zlib1g-dev python3-pip
+      - name: Generate native launcher
+        run: .github/scripts/generate-native-image.sh
+      - run: ./mill -i ci.setShouldPublish
+      - name: Build OS packages
+        if: env.SHOULD_PUBLISH == 'true'
+        run: .github/scripts/generate-os-packages.sh
+      - name: Copy artifacts
+        run: ./mill -i copyDefaultLauncher --directory artifacts/
+      - uses: actions/upload-artifact@v7
         with:
           name: linux-aarch64-launchers
           path: artifacts/
           if-no-files-found: error
           retention-days: 2
 
+  native-linux-arm64-tests-default:
+    needs: generate-linux-arm64-native-launcher
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - uses: actions/download-artifact@v8
+        with:
+          name: linux-aarch64-launchers
+          path: artifacts/
+      - name: Native integration tests
+        run: ./mill -i nativeIntegrationTests
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_IT_GROUP: 1
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+      - name: Convert Mill test reports to JUnit XML format
+        if: success() || failure()
+        run: .github/scripts/generate-junit-reports.sc linux-tests-default 'Scala CLI Linux ARM 64 Tests (default)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: success() || failure()
+        with:
+          name: test-results-linux-arm64-tests-default
+          path: test-report.xml
+
+  native-linux-arm64-tests-rc:
+    needs: generate-linux-arm64-native-launcher
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - uses: actions/download-artifact@v8
+        with:
+          name: linux-aarch64-launchers
+          path: artifacts/
+      - name: Native integration tests
+        run: ./mill -i nativeIntegrationTests
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_IT_GROUP: 5
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+      - name: Convert Mill test reports to JUnit XML format
+        if: success() || failure()
+        run: .github/scripts/generate-junit-reports.sc linux-tests-rc 'Scala CLI Linux ARM64 Tests (5)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: success() || failure()
+        with:
+          name: test-results-linux-arm64-tests-rc
+          path: test-report.xml
+
   generate-macos-launcher:
     timeout-minutes: 120
-    runs-on: "macOS-13"
+    runs-on: "macOS-15-intel"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -413,29 +586,32 @@ jobs:
       if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
-    - uses: actions/upload-artifact@v3
+      run: ./mill -i copyDefaultLauncher --directory artifacts/
+    - uses: actions/upload-artifact@v7
       with:
         name: macos-launchers
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
 
-  native-macos-tests-1:
+  native-macos-tests-default:
     needs: generate-macos-launcher
-    timeout-minutes: 120
-    runs-on: "macOS-13"
+    timeout-minutes: 150
+    runs-on: "macOS-15-intel"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Ensure it's not running on aarch64
       run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       with:
         name: macos-launchers
         path: artifacts/
@@ -448,134 +624,32 @@ jobs:
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc macos-tests-1 'Scala CLI MacOS Tests (1)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc macos-tests-default 'Scala CLI MacOS Tests (default)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
-        name: test-results-macos-tests-1
+        name: test-results-macos-tests-default
         path: test-report.xml
 
-  native-macos-tests-2:
+  native-macos-tests-rc:
     needs: generate-macos-launcher
-    timeout-minutes: 120
-    runs-on: "macOS-13"
+    timeout-minutes: 150
+    runs-on: "macOS-15-intel"
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: VirtusLab/scala-cli-setup@v1
-      with:
-        jvm: "temurin:17"
-    - name: Ensure it's not running on aarch64
-      run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
-    - uses: actions/download-artifact@v3
-      with:
-        name: macos-launchers
-        path: artifacts/
-    - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
-      env:
-        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-        SCALA_CLI_IT_GROUP: 2
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
-    - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc macos-tests-2 'Scala CLI MacOS Tests (2)' test-report.xml out/
-    - name: Upload test report
-      uses: actions/upload-artifact@v3
-      if: success() || failure()
-      with:
-        name: test-results-macos-tests-2
-        path: test-report.xml
-
-  native-macos-tests-3:
-    needs: generate-macos-launcher
-    timeout-minutes: 120
-    runs-on: "macOS-13"
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: VirtusLab/scala-cli-setup@v1
-      with:
-        jvm: "temurin:17"
-    - name: Ensure it's not running on aarch64
-      run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
-    - uses: actions/download-artifact@v3
-      with:
-        name: macos-launchers
-        path: artifacts/
-    - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
-      env:
-        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-        SCALA_CLI_IT_GROUP: 3
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
-    - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc macos-tests-3 'Scala CLI MacOS Tests (3)' test-report.xml out/
-    - name: Upload test report
-      uses: actions/upload-artifact@v3
-      if: success() || failure()
-      with:
-        name: test-results-macos-tests-3
-        path: test-report.xml
-
-  native-macos-tests-4:
-    needs: generate-macos-launcher
-    timeout-minutes: 120
-    runs-on: "macOS-13"
-    steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - name: Ensure it's not running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
-      - uses: actions/download-artifact@v3
-        with:
-          name: macos-launchers
-          path: artifacts/
-      - name: Native integration tests
-        run: ./mill -i nativeIntegrationTests
-        env:
-          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-          SCALA_CLI_IT_GROUP: 4
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
-      - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc macos-tests-4 'Scala CLI MacOS Tests (4)' test-report.xml out/
-      - name: Upload test report
-        uses: actions/upload-artifact@v3
-        if: success() || failure()
-        with:
-          name: test-results-macos-tests-4
-          path: test-report.xml
-
-  native-macos-tests-5:
-    needs: generate-macos-launcher
-    timeout-minutes: 120
-    runs-on: "macOS-13"
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: true
-      - uses: VirtusLab/scala-cli-setup@v1
-        with:
-          jvm: "temurin:17"
-      - name: Ensure it's not running on aarch64
-        run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: macos-launchers
           path: artifacts/
@@ -588,22 +662,25 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc macos-tests-5 'Scala CLI MacOS Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc macos-tests-rc 'Scala CLI MacOS Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-macos-tests-5
+          name: test-results-macos-tests-rc
           path: test-report.xml
 
-  generate-macos-m1-launcher:
+  generate-macos-arm64-launcher:
     timeout-minutes: 120
-    runs-on: "macOS-14"
+    runs-on: "macOS-15"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
@@ -616,31 +693,34 @@ jobs:
         if: env.SHOULD_PUBLISH == 'true'
         run: .github/scripts/generate-os-packages.sh
       - name: Copy artifacts
-        run: ./mill -i copyDefaultLauncher artifacts/
-      - uses: actions/upload-artifact@v3
+        run: ./mill -i copyDefaultLauncher --directory artifacts/
+      - uses: actions/upload-artifact@v7
         with:
-          name: macos-m1-launchers
+          name: macos-arm64-launchers
           path: artifacts/
           if-no-files-found: error
           retention-days: 2
 
-  native-macos-m1-tests-1:
-    needs: generate-macos-m1-launcher
-    timeout-minutes: 120
-    runs-on: "macOS-14"
+  native-macos-arm64-tests-default:
+    needs: generate-macos-arm64-launcher
+    timeout-minutes: 150
+    runs-on: "macOS-15"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
-          name: macos-m1-launchers
+          name: macos-arm64-launchers
           path: artifacts/
       - name: Native integration tests
         run: ./mill -i nativeIntegrationTests
@@ -651,101 +731,34 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc macos-m1-tests-1 'Scala CLI MacOS M1 Tests (1)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-default 'Scala CLI MacOS ARM64 Tests (default)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-macos-m1-tests-1
+          name: test-results-macos-arm64-tests-default
           path: test-report.xml
 
-  native-macos-m1-tests-2:
-    needs: generate-macos-m1-launcher
-    timeout-minutes: 120
-    runs-on: "macOS-14"
+  native-macos-arm64-tests-lts:
+    needs: generate-macos-arm64-launcher
+    timeout-minutes: 150
+    runs-on: "macOS-15"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
-          name: macos-m1-launchers
-          path: artifacts/
-      - name: Native integration tests
-        run: ./mill -i nativeIntegrationTests
-        env:
-          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-          SCALA_CLI_IT_GROUP: 2
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
-      - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc macos-m1-tests-2 'Scala CLI MacOS M1 Tests (2)' test-report.xml out/
-      - name: Upload test report
-        uses: actions/upload-artifact@v3
-        if: success() || failure()
-        with:
-          name: test-results-macos-m1-tests-2
-          path: test-report.xml
-
-  native-macos-m1-tests-3:
-    needs: generate-macos-m1-launcher
-    timeout-minutes: 120
-    runs-on: "macOS-14"
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: true
-      - uses: VirtusLab/scala-cli-setup@v1
-        with:
-          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Ensure it's running on aarch64
-        run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
-      - uses: actions/download-artifact@v3
-        with:
-          name: macos-m1-launchers
-          path: artifacts/
-      - name: Native integration tests
-        run: ./mill -i nativeIntegrationTests
-        env:
-          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-          SCALA_CLI_IT_GROUP: 3
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
-      - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc macos-m1-tests-3 'Scala CLI MacOS M1 Tests (3)' test-report.xml out/
-      - name: Upload test report
-        uses: actions/upload-artifact@v3
-        if: success() || failure()
-        with:
-          name: test-results-macos-m1-tests-3
-          path: test-report.xml
-
-  native-macos-m1-tests-4:
-    needs: generate-macos-m1-launcher
-    timeout-minutes: 120
-    runs-on: "macOS-14"
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: true
-      - uses: VirtusLab/scala-cli-setup@v1
-        with:
-          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Ensure it's running on aarch64
-        run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
-      - uses: actions/download-artifact@v3
-        with:
-          name: macos-m1-launchers
+          name: macos-arm64-launchers
           path: artifacts/
       - name: Native integration tests
         run: ./mill -i nativeIntegrationTests
@@ -756,31 +769,34 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc macos-m1-tests-4 'Scala CLI MacOS M1 Tests (4)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-lts 'Scala CLI MacOS ARM64 Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-macos-m1-tests-4
+          name: test-results-macos-arm64-tests-lts
           path: test-report.xml
 
-  native-macos-m1-tests-5:
-    needs: generate-macos-m1-launcher
-    timeout-minutes: 120
-    runs-on: "macOS-14"
+  native-macos-arm64-tests-rc:
+    needs: generate-macos-arm64-launcher
+    timeout-minutes: 150
+    runs-on: "macOS-15"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
-          name: macos-m1-launchers
+          name: macos-arm64-launchers
           path: artifacts/
       - name: Native integration tests
         run: ./mill -i nativeIntegrationTests
@@ -791,22 +807,29 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc macos-m1-tests-5 'Scala CLI MacOS M1 Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-rc 'Scala CLI MacOS ARM64 Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-macos-m1-tests-5
+          name: test-results-macos-arm64-tests-rc
           path: test-report.xml
 
   generate-windows-launcher:
     timeout-minutes: 120
-    runs-on: "windows-2019"
+    runs-on: "windows-2025"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - name: Import custom registry and verify
+      uses: ./.github/actions/windows-reg-import
+      with:
+        reg-file: .github/ci/windows/custom.reg
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -822,34 +845,41 @@ jobs:
       run: .github/scripts/generate-os-packages.sh
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
-    - uses: actions/upload-artifact@v3
+      run: ./mill -i copyDefaultLauncher --directory artifacts/
+    - uses: actions/upload-artifact@v7
       with:
         name: windows-launchers
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
 
-  native-windows-tests-1:
+  native-windows-tests-default:
     needs: generate-windows-launcher
-    timeout-minutes: 120
-    runs-on: "windows-2019"
+    timeout-minutes: 150
+    runs-on: "windows-2025"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - name: Import custom registry and verify
+      uses: ./.github/actions/windows-reg-import
+      with:
+        reg-file: .github/ci/windows/custom.reg
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: "3.10"
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
       run: .github/scripts/get-latest-cs.sh
       shell: bash
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       with:
         name: windows-launchers
         path: artifacts/
@@ -863,116 +893,41 @@ jobs:
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-1 'Scala CLI Windows Tests (1)' test-report.xml out/
+      run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-default 'Scala CLI Windows Tests (default)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
-        name: test-results-windows-tests-1
+        name: test-results-windows-tests-default
         path: test-report.xml
 
-  native-windows-tests-2:
+  native-windows-tests-lts:
     needs: generate-windows-launcher
-    timeout-minutes: 120
-    runs-on: "windows-2019"
+    timeout-minutes: 150
+    runs-on: "windows-2025"
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        submodules: true
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
-    - uses: VirtusLab/scala-cli-setup@v1
-      with:
-        jvm: "temurin:17"
-    - name: Get latest coursier launcher
-      run: .github/scripts/get-latest-cs.sh
-      shell: bash
-    - uses: actions/download-artifact@v3
-      with:
-        name: windows-launchers
-        path: artifacts/
-    - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
-      env:
-        COURSIER_JNI: force
-        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-        SCALA_CLI_IT_GROUP: 2
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
-    - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
-      run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-2 'Scala CLI Windows Tests (2)' test-report.xml out/
-    - name: Upload test report
-      uses: actions/upload-artifact@v3
-      if: success() || failure()
-      with:
-        name: test-results-windows-tests-2
-        path: test-report.xml
-
-  native-windows-tests-3:
-    needs: generate-windows-launcher
-    timeout-minutes: 120
-    runs-on: "windows-2019"
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        submodules: true
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
-    - uses: VirtusLab/scala-cli-setup@v1
-      with:
-        jvm: "temurin:17"
-    - name: Get latest coursier launcher
-      run: .github/scripts/get-latest-cs.sh
-      shell: bash
-    - uses: actions/download-artifact@v3
-      with:
-        name: windows-launchers
-        path: artifacts/
-    - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
-      env:
-        COURSIER_JNI: force
-        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-        SCALA_CLI_IT_GROUP: 3
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
-    - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
-      run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-3 'Scala CLI Windows Tests (3)' test-report.xml out/
-    - name: Upload test report
-      uses: actions/upload-artifact@v3
-      if: success() || failure()
-      with:
-        name: test-results-windows-tests-3
-        path: test-report.xml
-
-  native-windows-tests-4:
-    needs: generate-windows-launcher
-    timeout-minutes: 120
-    runs-on: "windows-2019"
-    steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - name: Import custom registry and verify
+        uses: ./.github/actions/windows-reg-import
+        with:
+          reg-file: .github/ci/windows/custom.reg
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - name: Get latest coursier launcher
         run: .github/scripts/get-latest-cs.sh
         shell: bash
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: windows-launchers
           path: artifacts/
@@ -986,34 +941,41 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-4 'Scala CLI Windows Tests (4)' test-report.xml out/
+        run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-lts 'Scala CLI Windows Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-windows-tests-4
+          name: test-results-windows-tests-lts
           path: test-report.xml
 
-  native-windows-tests-5:
+  native-windows-tests-rc:
     needs: generate-windows-launcher
-    timeout-minutes: 120
-    runs-on: "windows-2019"
+    timeout-minutes: 150
+    runs-on: "windows-2025"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - name: Import custom registry and verify
+        uses: ./.github/actions/windows-reg-import
+        with:
+          reg-file: .github/ci/windows/custom.reg
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - name: Get latest coursier launcher
         run: .github/scripts/get-latest-cs.sh
         shell: bash
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: windows-launchers
           path: artifacts/
@@ -1027,22 +989,25 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-5 'Scala CLI Windows Tests (5)' test-report.xml out/
+        run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-rc 'Scala CLI Windows Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-windows-tests-5
+          name: test-results-windows-tests-rc
           path: test-report.xml
 
   generate-mostly-static-launcher:
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1050,27 +1015,30 @@ jobs:
       run: .github/scripts/generate-native-image.sh mostly-static
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyMostlyStaticLauncher artifacts/
-    - uses: actions/upload-artifact@v3
+      run: ./mill -i copyMostlyStaticLauncher --directory artifacts/
+    - uses: actions/upload-artifact@v7
       with:
         name: mostly-static-launchers
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
 
-  native-mostly-static-tests-1:
+  native-mostly-static-tests-default:
     needs: generate-mostly-static-launcher
-    timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       with:
         name: mostly-static-launchers
         path: artifacts/
@@ -1088,12 +1056,12 @@ jobs:
       run: ./mill integration.docker-slim.test
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-1 'Scala CLI Native Mostly Static Tests (1)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-default 'Scala CLI Native Mostly Static Tests (default)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
-        name: test-results-native-mostly-static-tests-1
+        name: test-results-native-mostly-static-tests-default
         path: test-report.xml
     - name: Login to GitHub Container Registry
       if: startsWith(github.ref, 'refs/tags/v')
@@ -1105,118 +1073,22 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       run: .github/scripts/publish-slim-docker-images.sh
 
-  native-mostly-static-tests-2:
+  native-mostly-static-tests-rc:
     needs: generate-mostly-static-launcher
-    timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: VirtusLab/scala-cli-setup@v1
-      with:
-        jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
-      with:
-        name: mostly-static-launchers
-        path: artifacts/
-    - name: Native integration tests
-      run: ./mill -i integration.test.nativeMostlyStatic
-      env:
-        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-        SCALA_CLI_IT_GROUP: 2
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
-    - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-2 'Scala CLI Native Mostly Static Tests (2)' test-report.xml out/
-    - name: Upload test report
-      uses: actions/upload-artifact@v3
-      if: success() || failure()
-      with:
-        name: test-results-native-mostly-static-tests-2
-        path: test-report.xml
-
-  native-mostly-static-tests-3:
-    needs: generate-mostly-static-launcher
-    timeout-minutes: 120
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: VirtusLab/scala-cli-setup@v1
-      with:
-        jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
-      with:
-        name: mostly-static-launchers
-        path: artifacts/
-    - name: Native integration tests
-      run: ./mill -i integration.test.nativeMostlyStatic
-      env:
-        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-        SCALA_CLI_IT_GROUP: 3
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
-    - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-3 'Scala CLI Native Mostly Static Tests (3)' test-report.xml out/
-    - name: Upload test report
-      uses: actions/upload-artifact@v3
-      if: success() || failure()
-      with:
-        name: test-results-native-mostly-static-tests-3
-        path: test-report.xml
-
-  native-mostly-static-tests-4:
-    needs: generate-mostly-static-launcher
-    timeout-minutes: 120
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v3
-        with:
-          name: mostly-static-launchers
-          path: artifacts/
-      - name: Native integration tests
-        run: ./mill -i integration.test.nativeMostlyStatic
-        env:
-          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-          SCALA_CLI_IT_GROUP: 4
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
-      - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-4 'Scala CLI Native Mostly Static Tests (4)' test-report.xml out/
-      - name: Upload test report
-        uses: actions/upload-artifact@v3
-        if: success() || failure()
-        with:
-          name: test-results-native-mostly-static-tests-4
-          path: test-report.xml
-
-  native-mostly-static-tests-5:
-    needs: generate-mostly-static-launcher
-    timeout-minutes: 120
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: true
-      - uses: VirtusLab/scala-cli-setup@v1
-        with:
-          jvm: "temurin:17"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: mostly-static-launchers
           path: artifacts/
@@ -1229,23 +1101,26 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-5 'Scala CLI Native Mostly Static Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-rc 'Scala CLI Native Mostly Static Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-native-mostly-static-tests-5
+          name: test-results-native-mostly-static-tests-rc
           path: test-report.xml
 
 
   generate-static-launcher:
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1253,27 +1128,30 @@ jobs:
       run: .github/scripts/generate-native-image.sh static
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyStaticLauncher artifacts/
-    - uses: actions/upload-artifact@v3
+      run: ./mill -i copyStaticLauncher --directory artifacts/
+    - uses: actions/upload-artifact@v7
       with:
         name: static-launchers
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
 
-  native-static-tests-1:
+  native-static-tests-default:
     needs: generate-static-launcher
-    timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       with:
         name: static-launchers
         path: artifacts/
@@ -1291,12 +1169,12 @@ jobs:
       run: ./mill integration.docker.test
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc native-static-tests-1 'Scala CLI Native Static Tests (1)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc native-static-tests-default 'Scala CLI Native Static Tests (default)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
-        name: test-results-native-static-tests-1
+        name: test-results-native-static-tests-default
         path: test-report.xml
     - name: Login to GitHub Container Registry
       if: startsWith(github.ref, 'refs/tags/v')
@@ -1308,124 +1186,22 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       run: .github/scripts/publish-docker-images.sh
 
-  native-static-tests-2:
+  native-static-tests-rc:
     needs: generate-static-launcher
-    timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: VirtusLab/scala-cli-setup@v1
-      with:
-        jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
-      with:
-        name: static-launchers
-        path: artifacts/
-    - name: Build docker image
-      run: .github/scripts/generate-docker-image.sh
-    - name: Native integration tests
-      run: ./mill -i integration.test.nativeStatic
-      env:
-        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-        SCALA_CLI_IT_GROUP: 2
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
-    - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc native-static-tests-2 'Scala CLI Native Static Tests (2)' test-report.xml out/
-    - name: Upload test report
-      uses: actions/upload-artifact@v3
-      if: success() || failure()
-      with:
-        name: test-results-native-static-tests-2
-        path: test-report.xml
-
-  native-static-tests-3:
-    needs: generate-static-launcher
-    timeout-minutes: 120
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: VirtusLab/scala-cli-setup@v1
-      with:
-        jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
-      with:
-        name: static-launchers
-        path: artifacts/
-    - name: Build docker image
-      run: .github/scripts/generate-docker-image.sh
-    - name: Native integration tests
-      run: ./mill -i integration.test.nativeStatic
-      env:
-        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-        SCALA_CLI_IT_GROUP: 3
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
-    - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
-      run: .github/scripts/generate-junit-reports.sc native-static-tests-3 'Scala CLI Native Static Tests (3)' test-report.xml out/
-    - name: Upload test report
-      uses: actions/upload-artifact@v3
-      if: success() || failure()
-      with:
-        name: test-results-native-static-tests-3
-        path: test-report.xml
-
-  native-static-tests-4:
-    needs: generate-static-launcher
-    timeout-minutes: 120
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v3
-        with:
-          name: static-launchers
-          path: artifacts/
-      - name: Build docker image
-        run: .github/scripts/generate-docker-image.sh
-      - name: Native integration tests
-        run: ./mill -i integration.test.nativeStatic
-        env:
-          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-          SCALA_CLI_IT_GROUP: 4
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
-      - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc native-static-tests-4 'Scala CLI Native Static Tests (4)' test-report.xml out/
-      - name: Upload test report
-        uses: actions/upload-artifact@v3
-        if: success() || failure()
-        with:
-          name: test-results-native-static-tests-4
-          path: test-report.xml
-
-  native-static-tests-5:
-    needs: generate-static-launcher
-    timeout-minutes: 120
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: true
-      - uses: VirtusLab/scala-cli-setup@v1
-        with:
-          jvm: "temurin:17"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: static-launchers
           path: artifacts/
@@ -1440,50 +1216,58 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: success() || failure()
-        run: .github/scripts/generate-junit-reports.sc native-static-tests-5 'Scala CLI Native Static Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc native-static-tests-rc 'Scala CLI Native Static Tests (5)' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-results-native-static-tests-5
+          name: test-results-native-static-tests-rc
           path: test-report.xml
 
   docs-tests:
     # for now, let's run those tests only on ubuntu
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "zulu:17"
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v6
       with:
-        node-version: 18
+        node-version: 24
     - name: Build documentation
       run: .github/scripts/build-website.sh
+    - name: Verify release notes formatting
+      run: .github/scripts/process_release_notes.sc verify website/docs/release_notes.md
     - name: Test documentation
       run: ./mill -i 'docs-tests[]'.test
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc docs-tests 'Scala CLI Docs Tests' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: success() || failure()
       with:
         name: test-results-docs-tests
         path: test-report.xml
 
   checks:
-    timeout-minutes: 30
-    runs-on: ubuntu-20.04
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1492,7 +1276,9 @@ jobs:
     - name: Check native-image config format
       run: ./mill -i __.checkNativeImageConfFormat
     - name: Check Ammonite availability
-      run: ./mill -i 'dummy.amm[_].resolvedRunIvyDeps'
+      run: ./mill -i 'dummy.amm[_].resolvedRunMvnDeps'
+    - name: Check for cross Scala version conflicts
+      run: .github/scripts/check-cross-version-deps.sc
     - name: Scalafix check
       run: |
         ./mill -i __.fix --check || (
@@ -1503,23 +1289,23 @@ jobs:
 
   format:
     timeout-minutes: 15
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@v1
+    - uses: coursier/cache-action@v8
       with:
-        jvm: "temurin:17"
-        apps: scalafmt:3.0.0
-    - run: scalafmt --check
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+    - run: scala-cli fmt . --check
 
   reference-doc:
     timeout-minutes: 15
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
@@ -1537,12 +1323,15 @@ jobs:
 
   bloop-memory-footprint:
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1551,7 +1340,7 @@ jobs:
     - name: Java Home
       run: echo "$JAVA_HOME"
     - name: Build Scala CLI
-      run: ./mill copyJvmLauncher build
+      run: ./mill copyJvmLauncher --directory build
     - name: Build Benchmark
       run: java -jar ./build/scala-cli --power package --standalone gcbenchmark/gcbenchmark.scala -o gc
     - name: Run Benchmark
@@ -1559,12 +1348,15 @@ jobs:
 
   test-hypothetical-sbt-export:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1573,20 +1365,27 @@ jobs:
 
   vc-redist:
     timeout-minutes: 15
-    runs-on: "windows-2019"
+    runs-on: "windows-2025"
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'Virtuslab/scala-cli'
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - name: Import custom registry and verify
+      uses: ./.github/actions/windows-reg-import
+      with:
+        reg-file: .github/ci/windows/custom.reg
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.copyVcRedist
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v7
       with:
-        name: launchers
+        name: vc-redist-launchers
         path: artifacts/
         if-no-files-found: warn
         retention-days: 2
@@ -1594,54 +1393,50 @@ jobs:
   publish:
     needs:
       - unit-tests
-      - jvm-tests-1
-      - jvm-tests-2
-      - jvm-tests-3
-      - jvm-tests-4
-      - jvm-tests-5
-      - native-linux-tests-1
-      - native-linux-tests-2
-      - native-linux-tests-3
-      - native-linux-tests-4
-      - native-linux-tests-5
-      - native-macos-tests-1
-      - native-macos-tests-2
-      - native-macos-tests-3
-      - native-macos-tests-4
-      - native-macos-tests-5
-      - native-macos-m1-tests-1
-      - native-macos-m1-tests-2
-      - native-macos-m1-tests-3
-      - native-macos-m1-tests-4
-      - native-macos-m1-tests-5
-      - native-windows-tests-1
-      - native-windows-tests-2
-      - native-windows-tests-3
-      - native-windows-tests-4
-      - native-windows-tests-5
-      - native-mostly-static-tests-1
-      - native-mostly-static-tests-2
-      - native-mostly-static-tests-3
-      - native-mostly-static-tests-4
-      - native-mostly-static-tests-5
-      - native-static-tests-1
-      - native-static-tests-2
-      - native-static-tests-3
-      - native-static-tests-4
-      - native-static-tests-5
+      - jvm-bootstrapped-tests-default
+      - jvm-tests-default
+      - jvm-tests-scala-2-13
+      - jvm-tests-scala-2-12
+      - jvm-tests-lts
+      - jvm-tests-rc
+      - native-linux-tests-default
+      - native-linux-tests-scala-2-13
+      - native-linux-tests-scala-2-12
+      - native-linux-tests-lts
+      - native-linux-tests-rc
+      - native-linux-arm64-tests-default
+      - native-linux-arm64-tests-rc
+      - native-macos-tests-default
+      - native-macos-tests-rc
+      - native-macos-arm64-tests-default
+      - native-macos-arm64-tests-lts
+      - native-macos-arm64-tests-rc
+      - native-windows-tests-default
+      - native-windows-tests-lts
+      - native-windows-tests-rc
+      - native-mostly-static-tests-default
+      - native-mostly-static-tests-rc
+      - native-static-tests-default
+      - native-static-tests-rc
       - vc-redist
       - format
       - checks
+      - test-fish-shell
+      - test-hypothetical-sbt-export
+      - bloop-memory-footprint
       - reference-doc
       - docs-tests
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
         ssh-key: ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1649,14 +1444,19 @@ jobs:
       run: .github/scripts/gpg-setup.sh
       env:
         PGP_SECRET: ${{ secrets.PGP_SECRET }}
-    - run: ./mill -i ci.setShouldPublish
-    - run: ./mill -i publishSonatype '{__[],_,test-runner[2.13.15],test-runner[2.12.20],runner[2.13.15],runner[2.12.20]}.publishArtifacts'
+    - name: Set publish flag
+      run: ./mill -i ci.setShouldPublish
+    - name: Print version
+      run: ./mill -i show project.publish.finalPublishVersion
+    - name: Publish to Sonatype Central
+      run: ./mill mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts '{__[],_}.publishArtifacts'
       if: env.SHOULD_PUBLISH == 'true'
       env:
-        PGP_PASSWORD: ${{ secrets.PGP_PASSPHRASE }}
-        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-    - uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387
+        MILL_PGP_SECRET_BASE64: ${{ secrets.PGP_SECRET }}
+        MILL_PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+    - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd
       with:
         ssh-private-key: |
           ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
@@ -1673,99 +1473,100 @@ jobs:
     timeout-minutes: 20
     needs:
       - unit-tests
-      - jvm-tests-1
-      - jvm-tests-2
-      - jvm-tests-3
-      - jvm-tests-4
-      - jvm-tests-5
-      - native-linux-tests-1
-      - native-linux-tests-2
-      - native-linux-tests-3
-      - native-linux-tests-4
-      - native-linux-tests-5
-      - native-macos-tests-1
-      - native-macos-tests-2
-      - native-macos-tests-3
-      - native-macos-tests-4
-      - native-macos-tests-5
-      - native-macos-m1-tests-1
-      - native-macos-m1-tests-2
-      - native-macos-m1-tests-3
-      - native-macos-m1-tests-4
-      - native-macos-m1-tests-5
-      - native-windows-tests-1
-      - native-windows-tests-2
-      - native-windows-tests-3
-      - native-windows-tests-4
-      - native-windows-tests-5
-      - native-mostly-static-tests-1
-      - native-mostly-static-tests-2
-      - native-mostly-static-tests-3
-      - native-mostly-static-tests-4
-      - native-mostly-static-tests-5
-      - native-static-tests-1
-      - native-static-tests-2
-      - native-static-tests-3
-      - native-static-tests-4
-      - native-static-tests-5
+      - jvm-bootstrapped-tests-default
+      - jvm-tests-default
+      - jvm-tests-scala-2-13
+      - jvm-tests-scala-2-12
+      - jvm-tests-lts
+      - jvm-tests-rc
+      - native-linux-tests-default
+      - native-linux-tests-scala-2-13
+      - native-linux-tests-scala-2-12
+      - native-linux-tests-lts
+      - native-linux-tests-rc
+      - native-linux-arm64-tests-default
+      - native-linux-arm64-tests-rc
+      - native-macos-tests-default
+      - native-macos-tests-rc
+      - native-macos-arm64-tests-default
+      - native-macos-arm64-tests-lts
+      - native-macos-arm64-tests-rc
+      - native-windows-tests-default
+      - native-windows-tests-lts
+      - native-windows-tests-rc
+      - native-mostly-static-tests-default
+      - native-mostly-static-tests-rc
+      - native-static-tests-default
+      - native-static-tests-rc
       - vc-redist
       - format
       - checks
+      - test-fish-shell
+      - test-hypothetical-sbt-export
+      - bloop-memory-footprint
       - reference-doc
       - generate-linux-arm64-native-launcher
       - publish
     if: github.event_name == 'push'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.setShouldPublish
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: linux-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: linux-aarch64-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: macos-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
-        name: macos-m1-launchers
+        name: macos-arm64-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: windows-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: mostly-static-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: static-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
-        name: launchers
+        name: jvm-launchers
         path: artifacts/
-    - run: ./mill -i uploadLaunchers artifacts/
+    - uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: vc-redist-launchers
+        path: artifacts/
+    - run: ./mill -i uploadLaunchers --directory artifacts/
       if: env.SHOULD_PUBLISH == 'true'
       env:
         UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1775,52 +1576,55 @@ jobs:
     needs:
       - launchers
       - publish
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: linux-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: linux-aarch64-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: macos-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
-          name: macos-m1-launchers
+          name: macos-arm64-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: windows-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: mostly-static-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
           name: static-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v8
         with:
-          name: launchers
+          name: jvm-launchers
           path: artifacts/
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: artifacts/
-      - uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387
+      - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd
         with:
           ssh-private-key: |
             ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
@@ -1867,17 +1671,24 @@ jobs:
     needs:
       - launchers
       - publish
-    runs-on: "windows-2019"
+    runs-on: "windows-2025"
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
+    - name: Import custom registry and verify
+      uses: ./.github/actions/windows-reg-import
+      with:
+        reg-file: .github/ci/windows/custom.reg
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v8
       with:
         name: windows-launchers
         path: artifacts/

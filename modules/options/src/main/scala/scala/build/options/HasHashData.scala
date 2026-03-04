@@ -18,7 +18,7 @@ object HasHashData:
   ): Unit =
     inline erasedValue[C] match
       case _: EmptyTuple => ()
-      case _: (t *: ts) =>
+      case _: (t *: ts)  =>
         val hasher     = summonInline[HasHashData[t]]
         val newPrefix  = prefix + "." + indexes(index) // in 2.x we were not adding '.'
         val childValue = main.asInstanceOf[Product].productElement(index).asInstanceOf[t]
@@ -29,11 +29,10 @@ object HasHashData:
   inline given derive[T](using m: Mirror.ProductOf[T]): HasHashData[T] =
     inline m match
       case p: Mirror.ProductOf[T] =>
-        new HasHashData[T]:
-          def add(prefix: String, main: T, update: String => Unit): Unit =
-            val labels =
-              constValueTuple[p.MirroredElemLabels].productIterator.toList.map(_.toString)
-            doAdd[m.MirroredElemTypes, T](0, main, prefix, labels, update)
+        (prefix: String, main: T, update: String => Unit) =>
+          val labels =
+            constValueTuple[p.MirroredElemLabels].productIterator.toList.map(_.toString)
+          doAdd[m.MirroredElemTypes, T](0, main, prefix, labels, update)
 
   given asIs[T](using hasher: HashedType[T]): HasHashData[T] =
     (prefix, t, update) => update(s"$prefix=${hasher.hashedValue(t)}")
@@ -57,7 +56,7 @@ object HasHashData:
 
   given set[T](using hasher: HashedType[T], ordering: Ordering[T]): HasHashData[Set[T]] =
     (name, opt, update) =>
-      opt.toVector.sorted(ordering)
+      opt.toVector.sorted(using ordering)
         .foreach(t => update(s"$name=${hasher.hashedValue(t)}"))
 
   given map[K, V](using
@@ -66,7 +65,7 @@ object HasHashData:
     ordering: Ordering[K]
   ): HasHashData[Map[K, V]] =
     (name, map0, update) =>
-      for ((k, v) <- map0.toVector.sortBy(_._1)(ordering))
+      for ((k, v) <- map0.toVector.sortBy(_._1)(using ordering))
         update(
           s"$name+=${hasherK.hashedValue(k)}${hasherV.hashedValue(v)}"
         ) // should't we seperate key and value here?

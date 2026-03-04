@@ -25,7 +25,7 @@ object CsLoggerUtil {
             case _                                  => false
           }
           if (shouldUpdateLogger) {
-            var displayed = false
+            var displayed     = false
             val updatedLogger = RefreshLogger.create(
               CustomProgressBarRefreshDisplay.create(
                 keepOnScreen = false,
@@ -36,6 +36,7 @@ object CsLoggerUtil {
                 ()
               )
             )
+            updatedLogger.init()
             cache.withLogger(updatedLogger)
           }
           else cache

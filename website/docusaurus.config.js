@@ -9,7 +9,12 @@ module.exports = {
   url: 'https://scala-cli.virtuslab.org/',
   baseUrl: '/',
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenAnchors: 'throw',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'throw'
+    }
+  },
   favicon: 'img/favicon.ico',
   organizationName: 'Virtuslab',
   projectName: 'scala-cli',
@@ -35,7 +40,7 @@ module.exports = {
         {
          // type: 'doc',
           label: "Use cases",
-          to: '/#use_cases',
+          to: '/',
           items: [
             {
               to: '/education',

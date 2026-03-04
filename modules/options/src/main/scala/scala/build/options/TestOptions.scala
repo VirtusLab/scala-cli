@@ -1,7 +1,9 @@
 package scala.build.options
 
+import scala.build.Positioned
+
 final case class TestOptions(
-  frameworkOpt: Option[String] = None,
+  frameworks: Seq[Positioned[String]] = Nil,
   testOnly: Option[String] = None
 )
 

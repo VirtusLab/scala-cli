@@ -16,15 +16,13 @@ import scala.util.Try
 )
 @DirectiveDescription("Sets Java home used to run your application or tests")
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
 final case class JavaHome(
   javaHome: DirectiveValueParser.WithScopePath[Option[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(None)
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] = either {
     javaHome.value match {
-      case None => BuildOptions()
+      case None             => BuildOptions()
       case Some(homePosStr) =>
         val root = value(Directive.osRoot(javaHome.scopePath, homePosStr.positions.headOption))
         val home = value {

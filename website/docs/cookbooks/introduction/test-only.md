@@ -26,7 +26,7 @@ The `--test-only` option is supported for every test framework running with Scal
 For example, passing `tests.only*` to the `--test-only` option runs only the test suites which start with `tests.only`:
 
 ```scala title=BarTests.scala
-//> using dep org.scalameta::munit::0.7.29
+//> using dep org.scalameta::munit::1.0.2
 package tests.only
 
 class BarTests extends munit.FunSuite {
@@ -70,7 +70,7 @@ To run a specific test case inside a test suite pass `*test-name*` as an argumen
 <!-- clear -->
 
 ```scala title=MunitTests.scala
-//> using dep org.scalameta::munit::0.7.29
+//> using dep org.scalameta::munit::1.0.2
 package tests.only
 
 class Tests extends munit.FunSuite {
@@ -109,9 +109,9 @@ order to run a specific test case you will need to specify the exact name of the
 <!-- clear -->
 
 ```scala title=MyTests.scala
-//> using dep com.lihaoyi::utest::0.7.10
+//> using dep com.lihaoyi::utest::0.8.4
 
-import utest._
+import utest.*
 
 object MyTests extends TestSuite {
   val tests = Tests {

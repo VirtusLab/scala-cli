@@ -1,19 +1,12 @@
 package scala.cli.exportCmd
 
 import com.github.plokhotnyuk.jsoniter_scala.core.{JsonValueCodec, WriterConfig, writeToStream}
-import com.github.plokhotnyuk.jsoniter_scala.macros.{CodecMakerConfig, JsonCodecMaker}
-import coursier.Dependency
-import coursier.util.Artifact
-import dependency.AnyDependency
+import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
 import java.io.PrintStream
-import java.nio.charset.StandardCharsets
 
 import scala.build.info.{BuildInfo, ExportDependencyFormat, ScopedBuildInfo}
-import scala.build.options.ConfigMonoid
-import scala.cli.util.SeqHelpers.*
-import scala.reflect.NameTransformer
-import scala.util.{Properties, Using}
+import scala.util.Using
 
 final case class JsonProject(buildInfo: BuildInfo) extends Project {
   def sorted = this.copy(

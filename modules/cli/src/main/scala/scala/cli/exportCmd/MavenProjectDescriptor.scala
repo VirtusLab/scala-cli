@@ -1,23 +1,14 @@
 package scala.cli.exportCmd
-
-import coursier.ivy.IvyRepository
-import coursier.maven.MavenRepository
-import coursier.parse.RepositoryParser
 import dependency.{AnyDependency, NoAttributes, ScalaNameAttributes}
 
-import java.nio.charset.StandardCharsets
-import java.nio.file.Path
-
+import scala.annotation.unused
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
-import scala.build.internal.Runner.frameworkName
-import scala.build.options.{BuildOptions, Platform, Scope, ShadowingSeq}
-import scala.build.testrunner.AsmTestRunner
+import scala.build.options.{BuildOptions, Scope, ShadowingSeq}
 import scala.build.{Logger, Positioned, Sources}
 import scala.cli.ScalaCli
-import scala.cli.commands.export0.ExportOptions
 import scala.cli.exportCmd.POMBuilderHelper.*
-import scala.xml.{Elem, XML}
+import scala.xml.Elem
 
 object POMBuilderHelper {
   def buildNode(name: String, value: String): Elem =
@@ -41,8 +32,6 @@ final case class MavenProjectDescriptor(
   mavenAppVersion: String,
   logger: Logger
 ) extends ProjectDescriptor {
-  private val q  = "\""
-  private val nl = System.lineSeparator()
 
   private def sources(sourcesMain: Sources, sourcesTest: Sources): MavenProject = {
     val mainSources = ProjectDescriptor.sources(sourcesMain)
@@ -54,7 +43,7 @@ final case class MavenProjectDescriptor(
   }
 
   // todo: fill this - to be done in separate issue to reduce scope for maven export
-  private def javaOptionsSettings(options: BuildOptions): MavenProject =
+  private def javaOptionsSettings(@unused options: BuildOptions): MavenProject =
     MavenProject(
       settings = Nil
     )
@@ -94,7 +83,7 @@ final case class MavenProjectDescriptor(
     sources: Sources
   ): MavenProject = {
 
-    val scalaV = getScalaVersion(options)
+    val scalaV         = getScalaVersion(options)
     def getScalaPrefix =
       if scalaV.startsWith("3") then "3"
       else if scalaV.startsWith("2.13") then "2.13"
@@ -113,7 +102,7 @@ final case class MavenProjectDescriptor(
         // TODO dep.attributes
         val artNameWithPrefix = dep.nameAttributes match {
           case NoAttributes           => name
-          case s: ScalaNameAttributes => s"${name}_$getScalaPrefix"
+          case _: ScalaNameAttributes => s"${name}_$getScalaPrefix"
         }
         val scope0 =
           if (scope == Scope.Test) MavenScopes.Test
@@ -134,10 +123,9 @@ final case class MavenProjectDescriptor(
         testDeps: ShadowingSeq[Positioned[AnyDependency]],
         isCompileOnly: Boolean
       ): Seq[MavenLibraryDependency] = {
-        val scopePriorities       = List()
         val mainDependenciesMaven = buildMavenDepModels(mainDeps, isCompileOnly)
         val testDependenciesMaven = buildMavenDepModels(testDeps, isCompileOnly)
-        val resolvedDeps = (mainDependenciesMaven ++ testDependenciesMaven).groupBy(k =>
+        val resolvedDeps          = (mainDependenciesMaven ++ testDependenciesMaven).groupBy(k =>
           k.groupId + k.artifactId + k.version
         ).map { (_, list) =>
           val highestScope = MavenScopes.getHighestPriorityScope(list.map(_.scope))
@@ -177,7 +165,6 @@ final case class MavenProjectDescriptor(
 
   private def plugins(
     options: BuildOptions,
-    scope: Scope,
     jdkVersion: String,
     sourcesMain: Sources
   ): MavenProject = {
@@ -186,11 +173,9 @@ final case class MavenProjectDescriptor(
 
     val javacOptions = javacOptionsSettings(options)
 
-    val javaOptions = javaOptionsSettings(options)
-
     val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
-    val mavenExecPlugin = buildJavaExecPlugin(javacOptions, jdkVersion)
-    val scalaPlugin     = buildScalaPlugin(javacOptions, jdkVersion, getScalaVersion(options))
+    val mavenExecPlugin = buildJavaExecPlugin(jdkVersion)
+    val scalaPlugin     = buildScalaPlugin(jdkVersion)
 
     val reqdPlugins =
       if (pureJava) Seq(mavenJavaPlugin, mavenExecPlugin) else Seq(mavenJavaPlugin, scalaPlugin)
@@ -200,22 +185,7 @@ final case class MavenProjectDescriptor(
     )
   }
 
-  private def buildScalaPlugin(
-    javacOptions: Seq[String],
-    jdkVersion: String,
-    scalaVersion: String
-  ): MavenPlugin = {
-
-    val scalaVersionNode = buildNode("scalaVersion", scalaVersion)
-    val javacOptionsElem = {
-      val opts = javacOptions.map { opt =>
-        buildNode("javacArg", opt)
-      }
-      <javacArgs>
-        {opts}
-      </javacArgs>
-    }
-
+  private def buildScalaPlugin(jdkVersion: String): MavenPlugin = {
     val execElements =
       <executions>
         <execution>
@@ -248,8 +218,8 @@ final case class MavenProjectDescriptor(
       </compilerArgs>
     }
 
-    val sourceArg = buildNode("source", jdkVersion)
-    val targetArg = buildNode("target", jdkVersion)
+    val sourceArg  = buildNode("source", jdkVersion)
+    val targetArg  = buildNode("target", jdkVersion)
     val configNode =
       <configuration>
         {javacOptionsElem}
@@ -266,10 +236,7 @@ final case class MavenProjectDescriptor(
     )
   }
 
-  private def buildJavaExecPlugin(
-    javacOptions: Seq[String],
-    jdkVersion: String
-  ): MavenPlugin =
+  private def buildJavaExecPlugin(jdkVersion: String): MavenPlugin =
     MavenPlugin(
       "org.codehaus.mojo",
       "exec-maven-plugin",
@@ -302,7 +269,7 @@ final case class MavenProjectDescriptor(
       javaOptionsSettings(optionsMain),
       dependencySettings(optionsMain, optionsTest, Scope.Main, sourcesMain),
       customResourcesSettings(optionsMain),
-      plugins(optionsMain, Scope.Main, jdk, sourcesMain),
+      plugins(optionsMain, jdk, sourcesMain),
       projectArtifactSettings(mavenAppGroupId, mavenAppArtifactId, mavenAppVersion)
     )
     Right(projectChunks.foldLeft(MavenProject())(_ + _))

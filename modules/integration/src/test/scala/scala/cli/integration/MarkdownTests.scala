@@ -110,7 +110,7 @@ class MarkdownTests extends ScalaCliSuite {
     val expectedOutput = msg1 + msg2 + msg3 + msg4
     TestInputs(
       os.rel / "ScalaMessage.scala" -> "case class ScalaMessage(value: String)",
-      os.rel / "JavaMessage.java" ->
+      os.rel / "JavaMessage.java"   ->
         """public class JavaMessage {
           |  public String value;
           |  public JavaMessage(String value) {
@@ -119,7 +119,7 @@ class MarkdownTests extends ScalaCliSuite {
           |}
           |""".stripMargin,
       os.rel / "scripts" / "script.sc" -> "case class ScriptMessage(value: String)",
-      os.rel / "Main.md" ->
+      os.rel / "Main.md"               ->
         s"""# Main
            |Run it all from a snippet.
            |```scala
@@ -133,7 +133,7 @@ class MarkdownTests extends ScalaCliSuite {
            |""".stripMargin
     ).fromRoot { root =>
       val snippetCode = "case class SnippetMessage(value: String)"
-      val result =
+      val result      =
         os.proc(
           TestUtil.cli,
           "--power",
@@ -154,7 +154,7 @@ class MarkdownTests extends ScalaCliSuite {
         s"""# Sample Markdown file
            |A simple scala script snippet.
            |```scala
-           |//> using dep "com.lihaoyi::os-lib:0.8.1"
+           |//> using dep com.lihaoyi::os-lib:0.8.1
            |println(os.pwd)
            |```
            |""".stripMargin
@@ -170,7 +170,7 @@ class MarkdownTests extends ScalaCliSuite {
         s"""# Sample Markdown file
            |A simple scala raw snippet.
            |```scala raw
-           |//> using dep "com.lihaoyi::os-lib:0.8.1"
+           |//> using dep com.lihaoyi::os-lib:0.8.1
            |object Hello extends App {
            |  println(os.pwd)
            |}
@@ -193,7 +193,7 @@ class MarkdownTests extends ScalaCliSuite {
            |## Circe
            |Let's depend on `circe-parser` in this one.
            |```scala
-           |//> using dep "io.circe::circe-parser:0.14.3"
+           |//> using dep io.circe::circe-parser:0.14.3
            |import io.circe._, io.circe.parser._
            |val json = \"\"\"{ "message": "$msg1"}\"\"\"
            |val parsed = parse(json).getOrElse(Json.Null)
@@ -204,7 +204,7 @@ class MarkdownTests extends ScalaCliSuite {
            |## `pprint`
            |And `pprint`, too.
            |```scala
-           |//> using dep "com.lihaoyi::pprint:0.8.0"
+           |//> using dep com.lihaoyi::pprint:0.8.0
            |pprint.PPrinter.BlackWhite.pprintln("$msg2")
            |```
            |
@@ -212,13 +212,13 @@ class MarkdownTests extends ScalaCliSuite {
            |And then on `os-lib`, just because.
            |And let's reset the scope for good measure, too.
            |```scala reset
-           |//> using dep "com.lihaoyi::os-lib:0.8.1"
+           |//> using dep com.lihaoyi::os-lib:0.8.1
            |val msg = os.pwd.toString
            |println(msg)
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      val result         = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
       val expectedOutput =
         s"""$msg1
            |"$msg2"
@@ -238,7 +238,7 @@ class MarkdownTests extends ScalaCliSuite {
            |## Circe
            |Let's depend on `circe-parser` in this one.
            |```scala raw
-           |//> using dep "io.circe::circe-parser:0.14.3"
+           |//> using dep io.circe::circe-parser:0.14.3
            |
            |object CirceSnippet {
            |  import io.circe._, io.circe.parser._
@@ -255,7 +255,7 @@ class MarkdownTests extends ScalaCliSuite {
            |## `pprint`
            |And `pprint`, too.
            |```scala raw
-           |//> using dep "com.lihaoyi::pprint:0.8.0"
+           |//> using dep com.lihaoyi::pprint:0.8.0
            |object PprintSnippet {
            |  def printStuff(): Unit =
            |    pprint.PPrinter.BlackWhite.pprintln("$msg2")
@@ -266,7 +266,7 @@ class MarkdownTests extends ScalaCliSuite {
            |And then on `os-lib`, just because.
            |And let's reset the scope for good measure, too.
            |```scala raw
-           |//> using dep "com.lihaoyi::os-lib:0.8.1"
+           |//> using dep com.lihaoyi::os-lib:0.8.1
            |
            |object OsLibSnippet extends App {
            |  CirceSnippet.printStuff()
@@ -276,7 +276,7 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      val result         = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
       val expectedOutput =
         s"""$msg1
            |"$msg2"

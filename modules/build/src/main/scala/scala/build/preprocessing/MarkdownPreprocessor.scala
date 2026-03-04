@@ -5,16 +5,9 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{
-  Inputs,
-  MarkdownFile,
-  ScalaCliInvokeData,
-  SingleElement,
-  VirtualMarkdownFile
-}
+import scala.build.input.{MarkdownFile, ScalaCliInvokeData, SingleElement, VirtualMarkdownFile}
 import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
-import scala.build.internal.{AmmUtil, Name}
-import scala.build.options.{BuildOptions, BuildRequirements, SuppressWarningOptions}
+import scala.build.options.SuppressWarningOptions
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
 
 case object MarkdownPreprocessor extends Preprocessor {
@@ -28,7 +21,7 @@ case object MarkdownPreprocessor extends Preprocessor {
     input match {
       case markdown: MarkdownFile =>
         val res = either {
-          val content = value(PreprocessingUtil.maybeRead(markdown.path))
+          val content      = value(PreprocessingUtil.maybeRead(markdown.path))
           val preprocessed = value {
             MarkdownPreprocessor.preprocess(
               Right(markdown.path),
@@ -46,7 +39,7 @@ case object MarkdownPreprocessor extends Preprocessor {
         Some(res)
       case markdown: VirtualMarkdownFile =>
         val content = new String(markdown.content, StandardCharsets.UTF_8)
-        val res = either {
+        val res     = either {
           val preprocessed = value {
             MarkdownPreprocessor.preprocess(
               Left(markdown.source),
@@ -119,7 +112,7 @@ case object MarkdownPreprocessor extends Preprocessor {
       value(MarkdownCodeBlockProcessor.process(
         codeBlocks,
         reportingPath,
-        scopePath,
+        suppressWarningOptions,
         logger,
         maybeRecoverOnError
       ))

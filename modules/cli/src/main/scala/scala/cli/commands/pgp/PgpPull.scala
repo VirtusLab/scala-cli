@@ -4,14 +4,13 @@ import caseapp.core.RemainingArgs
 
 import scala.build.Logger
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.pgp.KeyServer
 import scala.cli.commands.util.ScalaCliSttpBackend
 
 object PgpPull extends ScalaCommand[PgpPullOptions] {
 
   override def hidden                  = true
   override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
-  override def names = List(
+  override def names                   = List(
     List("pgp", "pull")
   )
 

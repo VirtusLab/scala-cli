@@ -11,7 +11,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 if [[ -z "${ASCIINEMA_REC}" ]]; then
   # Warm up scala-cli
   echo "println(1)" | scala-cli -S 2.13.6 -
-  echo "//> using dep \"com.softwaremill.sttp.client3::core:3.8.13\" " | scala-cli -S 2.13.6  -
+  echo "//> using dep com.softwaremill.sttp.client3::core:3.8.13" | scala-cli -S 2.13.6  -
   scala-cli config suppress-warning.outdated-dependencies-files true
   # or do other preparation (e.g. create code)
 else

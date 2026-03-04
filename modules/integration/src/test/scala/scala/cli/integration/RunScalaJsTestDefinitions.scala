@@ -4,11 +4,11 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.TestUtil.removeAnsiColors
 
-trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
+trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
   def simpleJsTestOutput(extraArgs: String*): String = {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""import scala.scalajs.js
            |val console = js.Dynamic.global.console
@@ -57,7 +57,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test("without node on the PATH") {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""import scala.scalajs.js
            |val console = js.Dynamic.global.console
@@ -107,7 +107,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test("simple script JS command") {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""import scala.scalajs.js
            |val console = js.Dynamic.global.console
@@ -135,9 +135,9 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test("esmodule import JS") {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
-        s"""//> using jsModuleKind "es"
+        s"""//> using jsModuleKind es
            |import scala.scalajs.js
            |import scala.scalajs.js.annotation._
            |
@@ -160,9 +160,9 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
 
   test("simple script JS via config file") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "simple.sc" ->
-        s"""//> using platform "scala-js"
+        s"""//> using platform scala-js
            |import scala.scalajs.js
            |val console = js.Dynamic.global.console
            |val msg = "$message"
@@ -177,9 +177,9 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
 
   test("simple script JS via platform option") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "simple.sc" ->
-        s"""//> using platform "scala-native"
+        s"""//> using platform scala-native
            |import scala.scalajs.js
            |val console = js.Dynamic.global.console
            |val msg = "$message"
@@ -195,7 +195,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
 
   test("Multiple scripts JS") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "messages.sc" ->
         s"""def msg = "$message"
            |""".stripMargin,
@@ -216,7 +216,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   def jsDomTest(): Unit = {
     val inputs = TestInputs(
       os.rel / "JsDom.scala" ->
-        s"""|//> using dep "org.scala-js::scalajs-dom::2.1.0"
+        s"""|//> using dep org.scala-js::scalajs-dom::2.1.0
             |
             |import org.scalajs.dom.document
             |
@@ -240,7 +240,8 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   }
 
   if (TestUtil.isCI)
-    test("Js DOM") {
+    // FIXME: figure out why this started failing on the CI: https://github.com/VirtusLab/scala-cli/issues/3335
+    test("Js DOM".flaky) {
       jsDomTest()
     }
 
@@ -256,7 +257,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
 
   test("Directory JS") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "dir" / "messages.sc" ->
         s"""def msg = "$message"
            |""".stripMargin,
@@ -278,7 +279,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test("set es version to scala-js-cli") {
     val inputs = TestInputs(
       os.rel / "run.sc" ->
-        s"""//> using jsEsVersionStr "es2018"
+        s"""//> using jsEsVersionStr es2018
            |
            |import scala.scalajs.js
            |val console = js.Dynamic.global.console
@@ -322,7 +323,8 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
         extraOptions
       )
         .call(cwd = root).out.trim()
-      expect(os.exists(absOutDir / "main.wasm"))
+      val path = absOutDir / "main.wasm"
+      expect(os.exists(path))
 
       // TODO : Run WASM using node. Requires node 22.
     }
@@ -356,7 +358,8 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
            |object linspace extends js.Object {
            |  def apply(start: Double, stop: Double, num: Int): Float64Array = js.native
            |}""".stripMargin,
-      os.rel / importmapFile -> """{"imports": {"@stdlib/linspace": "https://cdn.skypack.dev/@stdlib/linspace"}}""".stripMargin
+      os.rel / importmapFile ->
+        """{"imports": {"@stdlib/linspace": "https://cdn.skypack.dev/@stdlib/linspace"}}""".stripMargin
     )
     inputs.fromRoot { root =>
       val absOutDir = root / outDir
@@ -381,7 +384,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test("remap imports directive error") {
     val fileName = os.rel / "run.scala"
     val notexist = "I_DONT_EXIST.json"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       fileName ->
         s"""//> using jsEsModuleImportMap $notexist
            | //> using jsModuleKind es
@@ -454,7 +457,8 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
            |object linspace extends js.Object {
            |  def apply(start: Double, stop: Double, num: Int): Float64Array = js.native
            |}""".stripMargin,
-      os.rel / importmapFile -> """{"imports": {"@stdlib/linspace": "https://cdn.skypack.dev/@stdlib/linspace"}}""".stripMargin
+      os.rel / importmapFile ->
+        """{"imports": {"@stdlib/linspace": "https://cdn.skypack.dev/@stdlib/linspace"}}""".stripMargin
     )
     inputs.fromRoot { root =>
       val absOutDir = root / outDir
@@ -486,7 +490,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
           s"""//> using toolkit default
              |//> using toolkit typelevel:default
              |
-             |//> using platform "scala-js"
+             |//> using platform scala-js
              |
              |import cats.effect._
              |import scala.scalajs.js

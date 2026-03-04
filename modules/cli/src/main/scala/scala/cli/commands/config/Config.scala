@@ -2,7 +2,6 @@ package scala.cli.commands.config
 
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
-import coursier.cache.ArchiveCache
 
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
@@ -12,7 +11,7 @@ import scala.build.{Directories, Logger}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
-import scala.cli.config._
+import scala.cli.config.*
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 object Config extends ScalaCommand[ConfigOptions] {
@@ -106,7 +105,8 @@ object Config extends ScalaCommand[ConfigOptions] {
           Keys.map.get(name) match {
             case None => unrecognizedKey(name)
             case Some(powerEntry)
-                if (powerEntry.isRestricted || powerEntry.isExperimental) && !allowRestrictedFeatures =>
+                if (powerEntry.isRestricted || powerEntry.isExperimental) &&
+                !allowRestrictedFeatures =>
               logger.error(WarningMessages.powerConfigKeyUsedInSip(powerEntry))
               sys.exit(1)
             case Some(entry) =>
@@ -132,7 +132,7 @@ object Config extends ScalaCommand[ConfigOptions] {
                               System.err.println(err)
                               sys.exit(1)
                             case Right(passwordOption) =>
-                              val password = passwordOption.getBytes()
+                              val password = passwordOption.getBytes
                               System.out.write(password.value)
                           }
                         else
@@ -163,7 +163,7 @@ object Config extends ScalaCommand[ConfigOptions] {
                               s"No ${Keys.repositoryCredentials.fullName} found for host $host"
                             )
                           valueOpt match {
-                            case None => notFound()
+                            case None           => notFound()
                             case Some(credList) =>
                               val idx = credList.indexWhere(_.host == host)
                               if (idx < 0) notFound()
@@ -295,7 +295,7 @@ object Config extends ScalaCommand[ConfigOptions] {
   /** Check whether to ask for an update depending on the provided key.
     */
   private def checkIfAskForUpdate(
-    entry: Key[_],
+    entry: Key[?],
     newValues: Seq[String],
     db: ConfigDb,
     options: ConfigOptions
@@ -327,11 +327,11 @@ object Config extends ScalaCommand[ConfigOptions] {
 
     if shouldUpdate then
       val interactive = options.global.logging.verbosityOptions.interactiveInstance()
-      val msg =
+      val msg         =
         s"Do you want to change the key '$keyFullName' from '$previousValueStr' to '$newValuesStr'?"
       interactive.confirmOperation(msg) match {
         case Some(true) => Right(())
-        case _ => Left(new Exception(
+        case _          => Left(new Exception(
             s"Unable to change the value for the key: '$keyFullName' from '$previousValueStr' to '$newValuesStr' without the force flag. Please pass -f or --force to override."
           ))
       }

@@ -1,7 +1,7 @@
 package scala.cli.commands.publish
 
 import scala.build.errors.BuildException
-import scala.build.options.{PublishOptions => BPublishOptions}
+import scala.build.options.PublishOptions as BPublishOptions
 
 /** A check for missing options in [[PublishOptions]]
   */
@@ -80,7 +80,7 @@ object OptionCheck {
         case _                     => None
       }
     def parseList(input: String): Either[Seq[String], Seq[Kind]] = {
-      val results = input.split(",").map(v => (v, parse(v))).toSeq
+      val results      = input.split(",").map(v => (v, parse(v))).toSeq
       val unrecognized = results.collect {
         case (v, None) => v
       }

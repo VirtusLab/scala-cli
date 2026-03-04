@@ -1,8 +1,8 @@
 package scala.build
 
-import _root_.bloop.config.{Config => BloopConfig, ConfigCodecs => BloopCodecs}
-import _root_.coursier.{Dependency => CsDependency, core => csCore, util => csUtil}
-import com.github.plokhotnyuk.jsoniter_scala.core.{writeToArray => writeAsJsonToArray}
+import _root_.bloop.config.{Config as BloopConfig, ConfigCodecs as BloopCodecs}
+import _root_.coursier.{Dependency as CsDependency, core as csCore, util as csUtil}
+import com.github.plokhotnyuk.jsoniter_scala.core.writeToArray as writeAsJsonToArray
 import coursier.core.Classifier
 
 import java.io.ByteArrayOutputStream
@@ -39,7 +39,7 @@ final case class Project(
         val baseJvmConf = bloopJvmPlatform
         val home        = javaHomeOpt.map(_.toNIO).orElse(baseJvmConf.config.home)
         baseJvmConf.copy(config = baseJvmConf.config.copy(home = home))
-      case (Some(jsConfig), _) => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
+      case (Some(jsConfig), _)     => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
       case (_, Some(nativeConfig)) =>
         BloopConfig.Platform.Native(config = nativeConfig, mainClass = None)
     }
@@ -88,7 +88,7 @@ final case class Project(
     }.flatten.toList
 
   private def maybeUpdateInputs(logger: Logger): Boolean = {
-    val dest = directory / ".bloop" / s"$projectName.inputs.txt"
+    val dest      = directory / ".bloop" / s"$projectName.inputs.txt"
     val onDiskOpt =
       if (os.exists(dest)) Some(os.read.bytes(dest))
       else None
@@ -116,8 +116,8 @@ final case class Project(
 
   def writeBloopFile(strictCheck: Boolean, logger: Logger): Boolean = {
     lazy val bloopFileContent =
-      writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
-    val dest = directory / ".bloop" / s"$projectName.json"
+      writeAsJsonToArray(bloopFile)(using BloopCodecs.codecFile)
+    val dest    = directory / ".bloop" / s"$projectName.json"
     val doWrite =
       if (strictCheck)
         !os.isFile(dest) || {
@@ -142,9 +142,15 @@ object Project {
   def resolution(
     detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, os.Path)]
   ): BloopConfig.Resolution = {
-    val indices = detailedArtifacts.map(_._1.moduleVersion).zipWithIndex.toMap
+    val indices = detailedArtifacts
+      .map { case (dep, _, _, _) => dep.moduleVersionConstraint }
+      .map { case (m, vc) => m -> vc.asString }
+      .zipWithIndex.toMap
     val modules = detailedArtifacts
-      .groupBy(_._1.moduleVersion)
+      .groupBy(_._1.moduleVersionConstraint)
+      .map {
+        case ((m, vc), artifacts) => m -> vc.asString -> artifacts
+      }
       .toVector
       .sortBy { case (modVer, _) => indices.getOrElse(modVer, Int.MaxValue) }
       .iterator

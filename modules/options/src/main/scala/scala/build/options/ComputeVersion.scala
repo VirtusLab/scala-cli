@@ -1,15 +1,11 @@
 package scala.build.options
-
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{Constants, Ref}
 
 import scala.build.errors.{BuildException, MalformedInputError}
 import scala.build.{Position, Positioned}
-import scala.io.Codec
 import scala.jdk.CollectionConverters.*
-import scala.util.{Success, Try, Using}
+import scala.util.Using
 
 sealed abstract class ComputeVersion extends Product with Serializable {
   def get(workspace: os.Path): Either[BuildException, String]
@@ -58,7 +54,7 @@ object ComputeVersion {
               .flatMap(r => versionOf(r.getName).map((r, _)).iterator)
               .scanLeft((Option.empty[(Ref, String)], Option.empty[(Ref, String)])) {
                 case ((acc, stableAcc), v @ (_, name)) =>
-                  val acc0 = acc.orElse(Some(v))
+                  val acc0       = acc.orElse(Some(v))
                   val stableAcc0 = stableAcc.orElse {
                     if (name.forall(c => c == '.' || c.isDigit)) Some(v)
                     else None
@@ -133,9 +129,6 @@ object ComputeVersion {
         extends BuildException(message, positions)
   }
 
-  private lazy val commandCodec: JsonValueCodec[List[String]] =
-    JsonCodecMaker.make
-
   def parse(input: Positioned[String]): Either[BuildException, ComputeVersion] =
     if (input.value == "git" || input.value == "git:tag")
       Right(ComputeVersion.GitTag(os.rel, dynVer = false, positions = input.positions))
@@ -162,4 +155,8 @@ object ComputeVersion {
           input.positions
         )
       )
+
+  def defaultComputeVersion(mayDefaultToGitTag: Boolean): Option[ComputeVersion] =
+    if mayDefaultToGitTag then Some(ComputeVersion.GitTag(os.rel, dynVer = false, positions = Nil))
+    else None
 }

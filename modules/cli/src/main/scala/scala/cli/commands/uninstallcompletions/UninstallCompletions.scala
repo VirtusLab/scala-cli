@@ -7,7 +7,6 @@ import java.nio.charset.Charset
 
 import scala.build.Logger
 import scala.build.internals.EnvVar
-import scala.cli.CurrentParams
 import scala.cli.commands.installcompletions.InstallCompletions
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}

@@ -39,7 +39,7 @@ class TastyHeaderUnpickler(reader: TastyReader) {
         reader.readNat() // fileMinor
         reader.readNat() // fileExperimental
         val toolingLength = reader.readNat()
-        val toolingStart = {
+        val toolingStart  = {
           val start = reader.currentAddr
           val end   = start + toolingLength
           reader.goto(end)
@@ -51,8 +51,8 @@ class TastyHeaderUnpickler(reader: TastyReader) {
         if (validVersion)
           Right(new UUID(reader.readUncompressedLong(), reader.readUncompressedLong()))
         else {
-          val signature      = TastyHeaderUnpickler.signatureString(fileMajor)
-          val toolingVersion = new String(reader.bytes, toolingStart.index, toolingLength)
+          val signature          = TastyHeaderUnpickler.signatureString(fileMajor)
+          val toolingVersion     = new String(reader.bytes, toolingStart.index, toolingLength)
           val producedByAddendum =
             s"\nThe TASTy file was produced by $toolingVersion."
           val msg =

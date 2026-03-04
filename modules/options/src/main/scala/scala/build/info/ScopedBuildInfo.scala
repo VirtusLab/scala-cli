@@ -5,8 +5,6 @@ import coursier.maven.MavenRepository
 import coursier.{Dependency, LocalRepositories, Repositories}
 import dependency.AnyDependency
 
-import java.nio.charset.StandardCharsets
-
 import scala.build.options.{BuildOptions, ConfigMonoid}
 
 final case class ScopedBuildInfo(
@@ -24,27 +22,27 @@ final case class ScopedBuildInfo(
 
   def generateContentLines(): Seq[String] =
     Seq(
-      Seq("/** sources found for the scope */", "val sources = ")        -> sources,
-      Seq("/** scalac options for the scope */", "val scalacOptions = ") -> scalacOptions,
-      Seq(
-        "/** compiler plugins used in this scope */",
-        "val scalaCompilerPlugins = "
-      ) -> scalaCompilerPlugins.map(_.toString()),
-      Seq("/** dependencies used in this scope */", "val dependencies = ") -> dependencies.map(
-        _.toString()
-      ),
-      Seq("/** dependency resolvers used in this scope */", "val resolvers = ")    -> resolvers,
-      Seq("/** resource directories used in this scope */", "val resourceDirs = ") -> resourceDirs,
-      Seq("/** custom jars added to this scope */", "val customJarsDecls = ") -> customJarsDecls
-    ).flatMap { case (Seq(scaladoc, prefix), values) =>
-      val sb = new StringBuilder
-      sb.append(prefix)
-      if (values.isEmpty) sb.append("Nil")
-      else sb.append {
-        values.map(str => s"\"${BuildInfo.escapeBackslashes(str)}\"")
-          .mkString("Seq(", ", ", ")")
-      }
-      Seq(scaladoc, sb.toString())
+      "/** sources found for the scope */"  -> "val sources = "       -> sources,
+      "/** scalac options for the scope */" -> "val scalacOptions = " -> scalacOptions,
+      "/** compiler plugins used in this scope */" -> "val scalaCompilerPlugins = " ->
+        scalaCompilerPlugins.map(_.toString()),
+      "/** dependencies used in this scope */" -> "val dependencies = " ->
+        dependencies.map(_.toString()),
+      "/** dependency resolvers used in this scope */" -> "val resolvers = "    -> resolvers,
+      "/** resource directories used in this scope */" -> "val resourceDirs = " -> resourceDirs,
+      "/** custom jars added to this scope */" -> "val customJarsDecls = " -> customJarsDecls
+    ).flatMap {
+      case ((scaladoc, prefix), values) =>
+        val sb = new StringBuilder
+        sb.append(prefix)
+        if values.isEmpty
+        then sb.append("Nil")
+        else
+          sb.append {
+            values.map(str => s"\"${BuildInfo.escapeBackslashes(str)}\"")
+              .mkString("Seq(", ", ", ")")
+          }
+        Seq(scaladoc, sb.toString())
     }
 }
 
@@ -113,8 +111,6 @@ object ScopedBuildInfo {
     )
   }
 
-  private val charSet = StandardCharsets.UTF_8
-
   implicit val monoid: ConfigMonoid[ScopedBuildInfo] = ConfigMonoid.derive
 }
 
@@ -135,14 +131,14 @@ final case class ArtifactId(name: String, fullName: String)
 object ExportDependencyFormat {
   def apply(dep: Dependency): ExportDependencyFormat = {
     val scalaVersionStartIndex = dep.module.name.value.lastIndexOf('_')
-    val shortDepName = if (scalaVersionStartIndex == -1)
+    val shortDepName           = if (scalaVersionStartIndex == -1)
       dep.module.name.value
     else
       dep.module.name.value.take(scalaVersionStartIndex)
     new ExportDependencyFormat(
       dep.module.organization.value,
       ArtifactId(shortDepName, dep.module.name.value),
-      dep.version
+      dep.versionConstraint.asString
     )
   }
 

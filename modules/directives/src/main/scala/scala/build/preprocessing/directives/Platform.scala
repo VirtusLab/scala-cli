@@ -21,19 +21,20 @@ import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Platform")
 @DirectiveExamples("//> using platform scala-js")
-@DirectiveExamples("//> using platform jvm scala-native")
+@DirectiveExamples("//> using platforms jvm scala-native")
 @DirectiveUsage(
   "//> using platform (jvm|scala-js|js|scala-native|native)+",
-  "`//> using platform` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+"
+  """`//> using platform` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
+    |
+    |`//> using platforms` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
+    |""".stripMargin
 )
 @DirectiveDescription("Set the default platform to Scala.js or Scala Native")
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
 final case class Platform(
   @DirectiveName("platform")
-    platforms: List[Positioned[String]] = Nil
+  platforms: List[Positioned[String]] = Nil
 ) extends HasBuildOptions {
-  // format: on
 
   private def split(input: String): (String, Option[String]) = {
     val idx = input.indexOf(':')
@@ -91,9 +92,9 @@ final case class Platform(
         .left.map(CompositeBuildException(_))
     }
 
-    allBuildOptions.headOption.fold(BuildOptions()) { buildOptions =>
-      val mergedBuildOptions = allBuildOptions.foldLeft(BuildOptions())(_ orElse _)
-      val mainPlatformOpt =
+    allBuildOptions.headOption.fold(BuildOptions()) { _ =>
+      val mergedBuildOptions = allBuildOptions.foldLeft(BuildOptions())(_.orElse(_))
+      val mainPlatformOpt    =
         mergedBuildOptions.scalaOptions.platform.map(_.value) // shouldn't be empty…
       val extraPlatforms = ConfigMonoid.sum {
         allBuildOptions

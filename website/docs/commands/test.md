@@ -29,7 +29,7 @@ The second rule may sound a bit complicated, so let's explain it using following
 
 <ChainedSnippets>
 
-```bash
+```bash ignore
 tree example
 ```
 
@@ -68,7 +68,7 @@ path (`test/scala/b.scala`) contains a directory named `test`.
 Conversely, `scala-cli example/src/test` results in no test sources, since the relative path to `b.scala` does not
 contain `test` (the fact that the directory provided as input is named `test` does not make its content a test source).
 
-Directives take precedence over file or path names, so `using target main` can be used to force `test/a.scala`
+Directives take precedence over file or path names, so `using target.scope main` can be used to force `test/a.scala`
 or `a.test.scala` to not be treated as tests.
 
 As a rule of thumb, we recommend naming all of your test files with the `.test.scala` suffix.
@@ -83,7 +83,7 @@ when running your whole app, you only need it in tests. So rather than declare i
 the `test.dep` directive:
 
 ```scala compile
-//> using test.dep org.scalameta::munit::0.7.29
+//> using test.dep org.scalameta::munit::1.0.2
 ```
 
 For more details on test directives,
@@ -94,19 +94,19 @@ see [the `using` directives guide](../guides/introduction/using-directives.md#di
 In order to run tests with a test framework, add the framework dependency to your application.
 Some of the most popular test frameworks in Scala are:
 
-- [munit](https://scalameta.org/munit): `org.scalameta::munit::0.7.29`
-- [utest](https://github.com/com-lihaoyi/utest): `com.lihaoyi::utest::0.8.2`
-- [ScalaTest](https://www.scalatest.org): `org.scalatest::scalatest::3.2.17`
+- [munit](https://scalameta.org/munit): `org.scalameta::munit::1.0.2`
+- [utest](https://github.com/com-lihaoyi/utest): `com.lihaoyi::utest::0.8.4`
+- [ScalaTest](https://www.scalatest.org): `org.scalatest::scalatest::3.2.19`
 - [JUnit 4](https://junit.org/junit4), which can be used via
   a [dedicated interface](https://github.com/sbt/junit-interface): `com.github.sbt:junit-interface:0.13.3`
 - [Weaver](https://disneystreaming.github.io/weaver-test/): `com.disneystreaming::weaver-cats:0.8.3`. You may need to
-  specify weaver's test framework with `//> using testFramework "weaver.framework.CatsEffect"` if you had other test
+  specify weaver's test framework with `//> using testFramework weaver.framework.CatsEffect` if you had other test
   framework in your dependencies.
 
 The following example shows how to run an munit-based test suite:
 
 ```scala title=MyTests.test.scala
-//> using test.dep org.scalameta::munit::0.7.29
+//> using test.dep org.scalameta::munit::1.0.2
 
 class MyTests extends munit.FunSuite {
   test("foo") {
@@ -140,7 +140,7 @@ foo
 Passing the `--test-only` option to the `test` sub-command filters the test suites to be run:
 
 ```scala title=BarTests.test.scala
-//> using test.dep org.scalameta::munit::0.7.29
+//> using test.dep org.scalameta::munit::1.0.2
 package tests.only
 
 class BarTests extends munit.FunSuite {
@@ -178,7 +178,7 @@ tests.only.BarTests:
 To run a specific test case inside the unit test suite pass `*exact-test-name*` as an argument to scala-cli:
 
 ```scala title=BarTests.test.scala
-//> using test.dep org.scalameta::munit::0.7.29
+//> using test.dep org.scalameta::munit::1.0.2
 package tests.only
 
 class Tests extends munit.FunSuite {
@@ -212,7 +212,7 @@ tests.only.Tests:
 You can pass test arguments to your test framework by passing them after `--`:
 
 ```scala title=MyTests.test.scala
-//> using test.dep org.scalatest::scalatest::3.2.9
+//> using test.dep org.scalatest::scalatest::3.2.19
 
 import org.scalatest._
 import org.scalatest.flatspec._

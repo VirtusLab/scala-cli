@@ -34,9 +34,9 @@ object BloopUtil {
     currentBloopVersion.split("[-.]") match {
       case Array(majStr, minStr, patchStr, _*) =>
         import scala.math.Ordering.Implicits.*
-        val maj   = majStr.toInt
-        val min   = minStr.toInt
-        val patch = patchStr.toInt
+        val maj              = majStr.toInt
+        val min              = minStr.toInt
+        val patch            = patchStr.toInt
         val useBloopMainLine =
           Seq(maj, min, patch) < Seq(1, 4, 11) ||
           (Seq(maj, min, patch) == Seq(1, 4, 11) && !currentBloopVersion.endsWith("-SNAPSHOT"))
@@ -96,7 +96,7 @@ object BloopUtil {
   def killBloop(): Unit = {
     val javaProcesses = os.proc("jps", "-l").call().out.text().linesIterator
     val bloopPidReg   = "(\\d+).*bloop[.]Bloop".r
-    val bloopPids = javaProcesses.flatMap { l =>
+    val bloopPids     = javaProcesses.flatMap { l =>
       l match {
         case bloopPidReg(pid) => Some(pid.toInt)
         case _                => None

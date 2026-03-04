@@ -1,6 +1,6 @@
 package scala.build.bsp
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 
 import scala.build.GeneratedSource
 import scala.build.input.Inputs

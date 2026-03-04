@@ -4,13 +4,8 @@ import caseapp.core.Error
 import caseapp.core.help.{Help, HelpCompanion, RuntimeCommandsHelp}
 import caseapp.core.parser.Parser
 
-import scala.cli.commands.default.{DefaultOptions, LegacyScalaOptions}
-import scala.cli.commands.shared.{
-  AllExternalHelpOptions,
-  HasGlobalOptions,
-  HelpGroupOptions,
-  ScalaCliHelp
-}
+import scala.cli.commands.default.LegacyScalaOptions
+import scala.cli.commands.shared.{AllExternalHelpOptions, HasGlobalOptions}
 import scala.cli.commands.util.HelpUtils.*
 import scala.cli.launcher.LauncherOptions
 
@@ -27,11 +22,11 @@ abstract class ScalaCommandWithCustomHelp[T <: HasGlobalOptions](
     HelpCompanion.deriveHelp[LegacyScalaOptions]
 
   protected def customHelp(showHidden: Boolean): String = {
-    val helpString            = actualHelp.help(helpFormat, showHidden)
-    val launcherHelpString    = launcherHelp.optionsHelp(helpFormat, showHidden)
-    val legacyScalaHelpString = legacyScalaHelp.optionsHelp(helpFormat, showHidden)
-    val allExternalHelp       = HelpCompanion.deriveHelp[AllExternalHelpOptions]
-    val allExternalHelpString = allExternalHelp.optionsHelp(helpFormat, showHidden)
+    val helpString                       = actualHelp.help(helpFormat, showHidden)
+    val launcherHelpString               = launcherHelp.optionsHelp(helpFormat, showHidden)
+    val legacyScalaHelpString            = legacyScalaHelp.optionsHelp(helpFormat, showHidden)
+    val allExternalHelp                  = HelpCompanion.deriveHelp[AllExternalHelpOptions]
+    val allExternalHelpString            = allExternalHelp.optionsHelp(helpFormat, showHidden)
     val legacyScalaHelpStringWithPadding =
       if legacyScalaHelpString.nonEmpty then
         s"""

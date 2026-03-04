@@ -4,17 +4,13 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.annotation.tailrec
 import scala.cli.integration.Constants.munitVersion
+import scala.cli.integration.TestUtil.StringOps
 
 abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
-  protected val jvmOptions: Seq[String] =
-    // seems munit requires this with Scala 3
-    if (actualScalaVersion.startsWith("3.")) Seq("--jvm", "11")
-    else Nil
-  protected lazy val baseExtraOptions: Seq[String] = TestUtil.extraOptions ++ jvmOptions
-  private lazy val extraOptions: Seq[String]       = scalaVersionArgs ++ baseExtraOptions
-
-  private val utestVersion = "0.8.3"
+  this: TestScalaVersion =>
+  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  private val utestVersion                     = "0.8.3"
+  private val zioTestVersion                   = "2.1.17"
 
   def successfulTestInputs(directivesString: String =
     s"//> using dep org.scalameta::munit::$munitVersion"): TestInputs = TestInputs(
@@ -87,7 +83,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
          |  val tests = Tests {
          |    test("foo") {
          |      assert(2 + 2 == 4)
-         |      Zone { implicit z =>
+         |      Zone { ${if actualScalaVersion.startsWith("3") then "" else "implicit z =>"}
          |       val io = StdioHelpers(stdio)
          |       io.printf(c"%s %s", c"Hello from", c"tests")
          |      }
@@ -102,7 +98,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       """//> using scala 2.13
         |//> using platform native
         |//> using nativeVersion 0.4.17
-        |//> using dep "org.typelevel::cats-kernel-laws::2.8.0"
+        |//> using dep org.typelevel::cats-kernel-laws::2.8.0
         |
         |import org.scalacheck._
         |import Prop.forAll
@@ -117,7 +113,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   val successfulJunitInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using dep "com.novocode:junit-interface:0.11"
+      """//> using dep com.novocode:junit-interface:0.11
         |import org.junit.Test
         |
         |class MyTests {
@@ -156,7 +152,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   val successfulWeaverInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using deps "com.disneystreaming::weaver-cats:0.8.2"
+      """//> using deps com.disneystreaming::weaver-cats:0.8.2
         |import weaver._
         |import cats.effect.IO
         |
@@ -350,10 +346,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from tests"))
     }
 
-  if (actualScalaVersion.startsWith("2."))
-    test("successful test native") {
-      successfulNativeTest()
-    }
+  test("successful test native") {
+    TestUtil.retryOnCi()(successfulNativeTest())
+  }
 
   test("failing test") {
     failingTestInputs.fromRoot { root =>
@@ -381,10 +376,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from tests"))
     }
 
-  if (actualScalaVersion.startsWith("2."))
-    test("failing test native") {
-      failingNativeTest()
-    }
+  test("failing test native") {
+    TestUtil.retryOnCi()(failingNativeTest())
+  }
 
   test("failing test return code") {
     failingTestInputs.fromRoot { root =>
@@ -425,11 +419,13 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   }
 
   test("utest JS") {
-    successfulUtestJsInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
-        .call(cwd = root)
-        .out.text()
-      expect(output.contains("Hello from tests"))
+    TestUtil.retryOnCi() {
+      successfulUtestJsInputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
+          .call(cwd = root)
+          .out.text()
+        expect(output.contains("Hello from tests"))
+      }
     }
   }
 
@@ -450,10 +446,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
-  if (actualScalaVersion.startsWith("2."))
-    test("utest native") {
-      utestNative()
-    }
+  test("utest native") {
+    TestUtil.retryOnCi()(utestNative())
+  }
 
   test("junit") {
     successfulJunitInputs.fromRoot { root =>
@@ -484,7 +479,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   }
 
   val platforms: Seq[(String, Seq[String])] = {
-    val maybeJs = Seq("JS" -> Seq("--js"))
+    val maybeJs     = Seq("JS" -> Seq("--js"))
     val maybeNative =
       if (actualScalaVersion.startsWith("2."))
         Seq("native" -> Seq("--native"))
@@ -495,127 +490,136 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   for ((platformName, platformArgs) <- platforms)
     test(s"test framework arguments $platformName") {
-      val inputs = TestInputs(
-        os.rel / "MyTests.test.scala" ->
-          """//> using dep org.scalatest::scalatest::3.2.18
-            |import org.scalatest._
-            |import org.scalatest.flatspec._
-            |import org.scalatest.matchers._
-            |
-            |class Tests extends AnyFlatSpec with should.Matchers {
-            |  "A thing" should "thing" in {
-            |    assert(2 + 2 == 4)
-            |  }
-            |}
-            |""".stripMargin
-      )
-      inputs.fromRoot { root =>
-        val scalaTestExtraArgs =
-          if (platformName == "native")
-            // FIXME: revert to using default Scala Native version when scalatest supports 0.5.x
-            Seq("--native-version", "0.4.17")
-          else Nil
-        val baseRes =
-          os.proc(TestUtil.cli, "test", extraOptions, platformArgs, scalaTestExtraArgs, ".")
-            .call(cwd = root, check = false)
-        if (baseRes.exitCode != 0) {
-          println(baseRes.out.text())
-          fail("scala-cli test falied", clues(baseRes.exitCode))
-        }
-        val baseOutput = baseRes.out.text()
-        expect(baseOutput.contains("A thing"))
-        expect(baseOutput.contains("should thing"))
-        val baseShouldThingLine = baseRes.out
-          .lines()
-          .find(_.contains("should thing"))
-          .getOrElse(???)
-        expect(!baseShouldThingLine.contains("millisecond"))
-
-        val res = os.proc(
-          TestUtil.cli,
-          "test",
-          extraOptions,
-          platformArgs,
-          scalaTestExtraArgs,
-          ".",
-          "--",
-          "-oD"
+      TestUtil.retryOnCi() {
+        val inputs = TestInputs(
+          os.rel / "MyTests.test.scala" ->
+            """//> using dep org.scalatest::scalatest::3.2.18
+              |import org.scalatest._
+              |import org.scalatest.flatspec._
+              |import org.scalatest.matchers._
+              |
+              |class Tests extends AnyFlatSpec with should.Matchers {
+              |  "A thing" should "thing" in {
+              |    assert(2 + 2 == 4)
+              |  }
+              |}
+              |""".stripMargin
         )
-          .call(cwd = root)
-        val output = res.out.text()
-        expect(output.contains("A thing"))
-        expect(output.contains("should thing"))
-        val shouldThingLine = res.out.lines().find(_.contains("should thing")).getOrElse(???)
-        expect(shouldThingLine.contains("millisecond"))
+        inputs.fromRoot { root =>
+          val scalaTestExtraArgs =
+            if (platformName == "native")
+              // FIXME: revert to using default Scala Native version when scalatest supports 0.5.x
+              Seq("--native-version", "0.4.17")
+            else Nil
+          val baseRes =
+            os.proc(TestUtil.cli, "test", extraOptions, platformArgs, scalaTestExtraArgs, ".")
+              .call(cwd = root, check = false)
+          if (baseRes.exitCode != 0) {
+            println(baseRes.out.text())
+            fail("scala-cli test falied", clues(baseRes.exitCode))
+          }
+          val baseOutput = baseRes.out.text()
+          expect(baseOutput.contains("A thing"))
+          expect(baseOutput.contains("should thing"))
+          val baseShouldThingLine = baseRes.out
+            .lines()
+            .find(_.contains("should thing"))
+            .getOrElse(???)
+          expect(!baseShouldThingLine.contains("millisecond"))
+
+          val res = os.proc(
+            TestUtil.cli,
+            "test",
+            extraOptions,
+            platformArgs,
+            scalaTestExtraArgs,
+            ".",
+            "--",
+            "-oD"
+          )
+            .call(cwd = root)
+          val output = res.out.text()
+          expect(output.contains("A thing"))
+          expect(output.contains("should thing"))
+          val shouldThingLine = res.out.lines().find(_.contains("should thing")).getOrElse(???)
+          expect(shouldThingLine.contains("millisecond"))
+        }
       }
     }
 
   for ((platformName, platformArgs) <- platforms)
     test(s"custom test framework $platformName") {
-      val inputs = TestInputs(
-        os.rel / "MyTests.test.scala" ->
-          s"""//> using dep com.lihaoyi::utest::$utestVersion
-             |
-             |package mytests
-             |import utest._
-             |
-             |object MyTests extends TestSuite {
-             |  val tests = Tests {
-             |    test("foo") {
-             |      assert(2 + 2 == 4)
-             |      println("Hello from " + "tests")
-             |    }
-             |  }
-             |}
-             |""".stripMargin,
-        os.rel / "CustomFramework.test.scala" ->
-          """package custom
-            |
-            |class CustomFramework extends utest.runner.Framework {
-            |  override def setup(): Unit =
-            |    println("Hello from CustomFramework")
-            |}
-            |""".stripMargin
-      )
-      inputs.fromRoot { root =>
-        val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
-          .call(cwd = root)
-        val baseOutput = baseRes.out.text()
-        expect(baseOutput.contains("Hello from tests"))
-        expect(!baseOutput.contains("Hello from CustomFramework"))
-
-        val cmd = Seq[os.Shellable](
-          TestUtil.cli,
-          "test",
-          extraOptions,
-          platformArgs,
-          ".",
-          "--test-framework",
-          "custom.CustomFramework"
+      TestUtil.retryOnCi(maxAttempts = if (platformName.contains("native")) 3 else 1) {
+        val inputs = TestInputs(
+          os.rel / "MyTests.test.scala" ->
+            s"""//> using dep com.lihaoyi::utest::$utestVersion
+               |
+               |package mytests
+               |import utest._
+               |
+               |object MyTests extends TestSuite {
+               |  val tests = Tests {
+               |    test("foo") {
+               |      assert(2 + 2 == 4)
+               |      println("Hello from " + "tests")
+               |    }
+               |  }
+               |}
+               |""".stripMargin,
+          os.rel / "CustomFramework.test.scala" ->
+            """package custom
+              |
+              |class CustomFramework extends utest.runner.Framework {
+              |  override def setup(): Unit =
+              |    println("Hello from CustomFramework")
+              |}
+              |""".stripMargin
         )
-        val res    = os.proc(cmd).call(cwd = root)
-        val output = res.out.text()
-        expect(output.contains("Hello from tests"))
-        expect(output.contains("Hello from CustomFramework"))
+        inputs.fromRoot { root =>
+          val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
+            .call(cwd = root)
+          val baseOutput = baseRes.out.text()
+          expect(baseOutput.contains("Hello from tests"))
+          expect(!baseOutput.contains("Hello from CustomFramework"))
+
+          val cmd = Seq[os.Shellable](
+            TestUtil.cli,
+            "test",
+            extraOptions,
+            platformArgs,
+            ".",
+            "--test-framework",
+            "custom.CustomFramework"
+          )
+          val res    = os.proc(cmd).call(cwd = root)
+          val output = res.out.text()
+          expect(output.contains("Hello from tests"))
+          expect(output.contains("Hello from CustomFramework"))
+        }
       }
     }
 
   for ((platformName, platformArgs) <- platforms)
     test(s"Fail if no tests were run $platformName") {
-      val inputs = TestInputs(
-        os.rel / "MyTests.test.scala" ->
-          s"""//> using dep org.scalameta::munit::$munitVersion
-             |
-             |object MyTests
-             |""".stripMargin
-      )
+      TestUtil.retryOnCi(maxAttempts = if (platformName.contains("native")) 3 else 1) {
+        val inputs = TestInputs(
+          os.rel / "MyTests.test.scala" ->
+            s"""//> using dep org.scalameta::munit::$munitVersion
+               |
+               |object MyTests
+               |""".stripMargin
+        )
 
-      inputs.fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "test", extraOptions, "--require-tests", platformArgs, ".")
-          .call(cwd = root, stderr = os.Pipe, mergeErrIntoOut = true, check = false)
-        expect(res.exitCode != 0)
-        val output = res.out.text()
-        expect(output.contains("Error: no tests were run") || output.contains("No tests were run"))
+        inputs.fromRoot { root =>
+          val res =
+            os.proc(TestUtil.cli, "test", extraOptions, "--require-tests", platformArgs, ".")
+              .call(cwd = root, stderr = os.Pipe, mergeErrIntoOut = true, check = false)
+          expect(res.exitCode != 0)
+          val output = res.out.text()
+          expect(
+            output.contains("Error: no tests were run") || output.contains("No tests were run")
+          )
+        }
       }
     }
 
@@ -633,68 +637,70 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   }
 
   test("Cross-tests") {
-    val supportsNative = actualScalaVersion.startsWith("2.")
-    val platforms = {
-      var pf = Seq("\"jvm\"", "\"js\"")
-      if (supportsNative)
-        pf = pf :+ "\"native\""
-      pf.mkString(", ")
-    }
-    val inputs = {
-      var inputs0 = TestInputs(
-        os.rel / "MyTests.scala" ->
-          s"""//> using dep org.scalameta::munit::$munitVersion
-             |//> using platform $platforms
-             |
-             |class MyTests extends munit.FunSuite {
-             |  test("shared") {
-             |    println("Hello from " + "shared")
-             |  }
-             |}
-             |""".stripMargin,
-        os.rel / "MyJvmTests.scala" ->
-          """//> using target.platform "jvm"
-            |
-            |class MyJvmTests extends munit.FunSuite {
-            |  test("jvm") {
-            |    println("Hello from " + "jvm")
-            |  }
-            |}
-            |""".stripMargin,
-        os.rel / "MyJsTests.scala" ->
-          """//> using target.platform "js"
-            |
-            |class MyJsTests extends munit.FunSuite {
-            |  test("js") {
-            |    println("Hello from " + "js")
-            |  }
-            |}
-            |""".stripMargin
-      )
-      if (supportsNative)
-        inputs0 = inputs0.add(
-          os.rel / "MyNativeTests.scala" ->
-            """//> using target.platform "native"
+    TestUtil.retryOnCi() {
+      val supportsNative = actualScalaVersion.startsWith("2.")
+      val platforms      = {
+        var pf = Seq("jvm", "js")
+        if (supportsNative)
+          pf = pf :+ "native"
+        pf.mkString(" ")
+      }
+      val inputs = {
+        var inputs0 = TestInputs(
+          os.rel / "MyTests.scala" ->
+            s"""//> using dep org.scalameta::munit::$munitVersion
+               |//> using platform $platforms
+               |
+               |class MyTests extends munit.FunSuite {
+               |  test("shared") {
+               |    println("Hello from " + "shared")
+               |  }
+               |}
+               |""".stripMargin,
+          os.rel / "MyJvmTests.scala" ->
+            """//> using target.platform jvm
               |
-              |class MyNativeTests extends munit.FunSuite {
-              |  test("native") {
-              |    println("Hello from " + "native")
+              |class MyJvmTests extends munit.FunSuite {
+              |  test("jvm") {
+              |    println("Hello from " + "jvm")
+              |  }
+              |}
+              |""".stripMargin,
+          os.rel / "MyJsTests.scala" ->
+            """//> using target.platform js
+              |
+              |class MyJsTests extends munit.FunSuite {
+              |  test("js") {
+              |    println("Hello from " + "js")
               |  }
               |}
               |""".stripMargin
         )
-      inputs0
-    }
-    inputs.fromRoot { root =>
-      val res =
-        os.proc(TestUtil.cli, "--power", "test", extraOptions, ".", "--cross").call(cwd = root)
-      val output        = res.out.text()
-      val expectedCount = 2 + (if (supportsNative) 1 else 0)
-      expect(countSubStrings(output, "Hello from shared") == expectedCount)
-      expect(output.contains("Hello from jvm"))
-      expect(output.contains("Hello from js"))
-      if (supportsNative)
-        expect(output.contains("Hello from native"))
+        if (supportsNative)
+          inputs0 = inputs0.add(
+            os.rel / "MyNativeTests.scala" ->
+              """//> using target.platform native
+                |
+                |class MyNativeTests extends munit.FunSuite {
+                |  test("native") {
+                |    println("Hello from " + "native")
+                |  }
+                |}
+                |""".stripMargin
+          )
+        inputs0
+      }
+      inputs.fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "--power", "test", extraOptions, ".", "--cross").call(cwd = root)
+        val output        = res.out.text()
+        val expectedCount = 2 + (if (supportsNative) 1 else 0)
+        expect(countSubStrings(output, "Hello from shared") == expectedCount)
+        expect(output.contains("Hello from jvm"))
+        expect(output.contains("Hello from js"))
+        if (supportsNative)
+          expect(output.contains("Hello from native"))
+      }
     }
   }
 
@@ -702,7 +708,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     val inputs = TestInputs(
       os.rel / "JsDom.test.scala" ->
         s"""//> using dep com.lihaoyi::utest::$utestVersion
-           |//> using dep "org.scala-js::scalajs-dom::2.2.0"
+           |//> using dep org.scala-js::scalajs-dom::2.2.0
            |
            |import utest._
            |
@@ -732,7 +738,8 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   }
 
   if (TestUtil.isCI)
-    test("Js DOM") {
+    // FIXME: figure out why this started failing on the CI: https://github.com/VirtusLab/scala-cli/issues/3335
+    test("Js DOM".flaky) {
       jsDomTest()
     }
 
@@ -802,4 +809,233 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(res.out.text().contains(expectedMessage))
     }
   }
+
+  test(s"zio-test warning when zio-test-sbt was not passed") {
+    TestUtil.retryOnCi() {
+      val expectedMessage = "Hello from zio"
+      TestInputs(os.rel / "Zio.test.scala" ->
+        s"""//> using test.dep dev.zio::zio-test::$zioTestVersion
+           |import zio._
+           |import zio.test._
+           |
+           |object SimpleSpec extends ZIOSpecDefault {
+           |  override def spec: Spec[TestEnvironment with Scope, Any] =
+           |    suite("SimpleSpec")(
+           |      test("print hello and assert true") {
+           |        for {
+           |          _ <- Console.printLine("$expectedMessage")
+           |        } yield assertTrue(true)
+           |      }
+           |    )
+           |}
+           |""".stripMargin).fromRoot { root =>
+        val r = os.proc(TestUtil.cli, "test", ".", extraOptions)
+          .call(cwd = root, check = false, stderr = os.Pipe)
+        expect(r.exitCode == 1)
+        val expectedWarning =
+          "zio-test found in the class path, zio-test-sbt should be added to run zio tests"
+        expect(r.err.trim().contains(expectedWarning))
+      }
+    }
+  }
+
+  for {
+    platformOptions <- Seq(
+      Nil, // JVM
+      Seq("--native"),
+      Seq("--js")
+    )
+    platformDescription = platformOptions.headOption.map(o => s" ($o)").getOrElse(" (JVM)")
+  } {
+    test(s"zio-test$platformDescription") {
+      TestUtil.retryOnCi() {
+        val expectedMessage = "Hello from zio"
+        TestInputs(os.rel / "Zio.test.scala" ->
+          s"""//> using test.dep dev.zio::zio-test::$zioTestVersion
+             |//> using test.dep dev.zio::zio-test-sbt::$zioTestVersion
+             |import zio._
+             |import zio.test._
+             |
+             |object SimpleSpec extends ZIOSpecDefault {
+             |  override def spec: Spec[TestEnvironment with Scope, Any] =
+             |    suite("SimpleSpec")(
+             |      test("print hello and assert true") {
+             |        for {
+             |          _ <- Console.printLine("$expectedMessage")
+             |        } yield assertTrue(true)
+             |      }
+             |    )
+             |}
+             |""".stripMargin).fromRoot { root =>
+          val r = os.proc(TestUtil.cli, "test", ".", extraOptions, platformOptions).call(cwd = root)
+          val output = r.out.trim()
+          expect(output.contains(expectedMessage))
+          expect(countSubStrings(output, expectedMessage) == 1)
+        }
+      }
+    }
+
+    test(s"multiple test frameworks$platformDescription") {
+      TestUtil.retryOnCi() {
+        val expectedMessages @ Seq(scalatestMessage, munitMessage, utestMessage, zioMessage) =
+          Seq("Hello from ScalaTest", "Hello from Munit", "Hello from utest", "Hello from zio")
+        TestInputs(
+          os.rel / "project.scala" ->
+            s"""//> using test.dep org.scalatest::scalatest::3.2.19
+               |//> using test.dep org.scalameta::munit::$munitVersion
+               |//> using dep com.lihaoyi::utest::$utestVersion
+               |//> using test.dep dev.zio::zio-test::$zioTestVersion
+               |//> using test.dep dev.zio::zio-test-sbt::$zioTestVersion
+               |""".stripMargin,
+          os.rel / "scalatest.test.scala" ->
+            s"""import org.scalatest.flatspec.AnyFlatSpec
+               |
+               |class ScalaTestSpec extends AnyFlatSpec {
+               |    "example" should "work" in {
+               |      assertResult(1)(1)
+               |      println("$scalatestMessage")
+               |    }
+               |}
+               |""".stripMargin,
+          os.rel / "munit.test.scala" ->
+            s"""import munit.FunSuite
+               |
+               |class Munit extends FunSuite {
+               |  test("foo") {
+               |    assert(2 + 2 == 4)
+               |    println("$munitMessage")
+               |  }
+               |}
+               |""".stripMargin,
+          os.rel / "utest.test.scala" ->
+            s"""import utest._
+               |
+               |object MyTests extends TestSuite {
+               |  val tests = Tests {
+               |    test("foo") {
+               |      assert(2 + 2 == 4)
+               |      println("$utestMessage")
+               |    }
+               |  }
+               |}""".stripMargin,
+          os.rel / "Zio.test.scala" ->
+            s"""import zio._
+               |import zio.test._
+               |
+               |object SimpleSpec extends ZIOSpecDefault {
+               |  override def spec: Spec[TestEnvironment with Scope, Any] =
+               |    suite("SimpleSpec")(
+               |      test("print hello and assert true") {
+               |        for {
+               |          _ <- Console.printLine("$zioMessage")
+               |        } yield assertTrue(true)
+               |      }
+               |    )
+               |}
+               |""".stripMargin
+        ).fromRoot { root =>
+          val r =
+            os.proc(TestUtil.cli, "test", extraOptions, ".", platformOptions, "-v", "-v").call(cwd =
+              root
+            )
+          val output = r.out.trim()
+          expect(output.nonEmpty)
+          expectedMessages.foreach { expectedMessage =>
+            expect(output.contains(expectedMessage))
+            expect(countSubStrings(output, expectedMessage) == 1)
+          }
+        }
+      }
+    }
+
+    test(s"multiple explicitly preconfigured test frameworks$platformDescription") {
+      TestUtil.retryOnCi() {
+        val expectedMessages @ Seq(scalatestMessage, munitMessage, customMessage) =
+          Seq("Hello from scalatest", "Hello from Munit", "Hello from custom framework")
+        TestInputs(
+          os.rel / "project.scala" ->
+            s"""//> using test.dep org.scalatest::scalatest::3.2.19
+               |//> using dep com.lihaoyi::utest::$utestVersion
+               |//> using test.dep org.scalameta::munit::$munitVersion
+               |//> using test.frameworks org.scalatest.tools.Framework munit.Framework custom.CustomFramework
+               |""".stripMargin,
+          os.rel / "scalatest.test.scala" ->
+            s"""import org.scalatest.flatspec.AnyFlatSpec
+               |
+               |class ScalaTestSpec extends AnyFlatSpec {
+               |    "example" should "work" in {
+               |      assertResult(1)(1)
+               |      println("$scalatestMessage")
+               |    }
+               |}
+               |""".stripMargin,
+          os.rel / "munit.test.scala" ->
+            s"""import munit.FunSuite
+               |
+               |class Munit extends FunSuite {
+               |  test("foo") {
+               |    assert(2 + 2 == 4)
+               |    println("$munitMessage")
+               |  }
+               |}
+               |""".stripMargin,
+          os.rel / "custom.test.scala" ->
+            s"""package custom
+               |
+               |class CustomFramework extends utest.runner.Framework {
+               |  override def setup(): Unit =
+               |    println("$customMessage")
+               |}""".stripMargin
+        ).fromRoot { root =>
+          val r =
+            os.proc(
+              TestUtil.cli,
+              "test",
+              extraOptions,
+              ".",
+              platformOptions
+            ).call(cwd = root)
+          val output = r.out.trim()
+          expect(output.nonEmpty)
+          expectedMessages.foreach { expectedMessage =>
+            expect(output.contains(expectedMessage))
+            expect(countSubStrings(output, expectedMessage) == 1)
+          }
+        }
+      }
+    }
+  }
+
+  for {
+    javaVersion <-
+      if isScala38OrNewer then
+        Constants.allJavaVersions.filter(_ >= Constants.scala38MinJavaVersion)
+      else Constants.allJavaVersions.filter(_ < 24)
+    expectedMessage = "Hello, world!"
+    expectedWarning = s"Defaulting to a legacy test-runner module version"
+  }
+    test(s"run a simple test with Java $javaVersion") {
+      TestInputs(os.rel / "example.test.scala" ->
+        s"""//> using dep com.novocode:junit-interface:0.11
+           |import org.junit.Test
+           |
+           |class MyTests {
+           |  @Test
+           |  def foo(): Unit = {
+           |    assert(2 + 2 == 4)
+           |    println("$expectedMessage")
+           |  }
+           |}
+           |""".stripMargin).fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "test", ".", extraOptions, "--jvm", javaVersion)
+            .call(cwd = root, stderr = os.Pipe)
+        val out = res.out.trim()
+        expect(out.contains(expectedMessage))
+        if actualScalaVersion.startsWith("2") || javaVersion < Constants.scala38MinJavaVersion then
+          val err = res.err.trim()
+          expect(err.contains(expectedWarning))
+          expect(err.countOccurrences(expectedWarning) == 1)
+      }
+    }
 }

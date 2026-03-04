@@ -17,8 +17,8 @@ As an example, let’s build a script printing files from
 a directory with sizes bigger than a passed value.
 
 ```scala title=size-higher-than.scala
-//> using scala 3.1.1
-//> using dep com.lihaoyi::os-lib::0.8.1
+//> using scala 3
+//> using dep com.lihaoyi::os-lib::0.11.3
  
 @main
 def sizeHigherThan(dir: String, minSizeMB: Int) =
@@ -44,8 +44,8 @@ scala-cli size-higher-than.scala -- dir 20
 ```
 
 ```text
-Compiling project (Scala 3.4.1, JVM)
-Compiled project (Scala 3.4.1, JVM)
+Compiling project (Scala 3.5.2, JVM)
+Compiled project (Scala 3.5.2, JVM)
 /Users/user/Documents/workspace/dir/large-file.txt
 ```
 </ChainedSnippets>
@@ -80,7 +80,7 @@ We can make the runtime itself even faster, using various Scala Native optimizat
 We pass these using a `-–native-mode` scala-cli option or, like previously, by adding a using directive:
 
 ```scala compile title=size-higher-than.scala
-//> using dep com.lihaoyi::os-lib::0.10.0
+//> using dep com.lihaoyi::os-lib::0.11.3
 //> using platform scala-native
 //> using nativeMode release-full
  

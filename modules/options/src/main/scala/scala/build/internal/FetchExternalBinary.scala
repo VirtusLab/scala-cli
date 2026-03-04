@@ -2,15 +2,14 @@ package scala.build.internal
 
 import coursier.cache.{ArchiveCache, ArtifactError, CacheLogger}
 import coursier.error.FetchError
-import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
+import coursier.version.VersionConstraint
 
 import java.util.Locale
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.errors.{BuildException, FetchingDependenciesError, RepositoryFormatError}
-import scala.build.internal.OsLibc
+import scala.build.errors.{BuildException, FetchingDependenciesError}
 import scala.build.internal.Util.{DependencyOps, ModuleOps}
 import scala.util.Properties
 
@@ -47,12 +46,12 @@ object FetchExternalBinary {
           .withCache(archiveCache.cache)
           .addDependencies(params.dependencies.map(_.toCs)*)
           .mapResolutionParams { params0 =>
-            params0.addForceVersion(
-              params.forcedVersions.map { case (m, v) => m.toCs -> v }*
+            params0.addForceVersion0(
+              params.forcedVersions.map { case (m, v) => m.toCs -> VersionConstraint(v) }*
             )
           }
-          .addRepositories(params.extraRepos: _*)
-          .run()(archiveCache.cache.ec)
+          .addRepositories(params.extraRepos*)
+          .run()(using archiveCache.cache.ec)
           .map(os.Path(_, os.pwd))
         ExternalBinary.ClassPath(javaCommand(), classPath, params.mainClass)
     }
@@ -69,10 +68,10 @@ object FetchExternalBinary {
   ): Either[BuildException, Option[os.Path]] = either {
 
     val artifact = Artifact(url).withChanging(changing)
-    val res = archiveCache.cache.loggerOpt.getOrElse(CacheLogger.nop).use {
+    val res      = archiveCache.cache.loggerOpt.getOrElse(CacheLogger.nop).use {
       logger.log(s"Getting $url")
       archiveCache.get(artifact)
-        .unsafeRun()(archiveCache.cache.ec)
+        .unsafeRun()(using archiveCache.cache.ec)
     }
     val fileOpt = res match {
       case Left(nf: ArtifactError.NotFound) =>
@@ -138,12 +137,12 @@ object FetchExternalBinary {
       else if (Properties.isMac) "osx"
       else if (Properties.isLinux) "linux"
       else sys.error(s"Unsupported mamba OS: ${sys.props("os.name")}")
-    val arch = sys.props("os.arch").toLowerCase(Locale.ROOT)
+    val arch      = sys.props("os.arch").toLowerCase(Locale.ROOT)
     val mambaArch = arch match {
       case "x86_64" | "amd64"  => "64"
       case "arm64" | "aarch64" => "arm64"
       case "ppc64le"           => "ppc64le"
-      case _ =>
+      case _                   =>
         sys.error(s"Unsupported mamba architecture: $arch")
     }
     s"$mambaOs-$mambaArch"

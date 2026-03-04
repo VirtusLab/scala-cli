@@ -7,10 +7,11 @@ import java.io.File
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
+/** For the `compile` counterpart, refer to [[CompileScalacCompatTestDefinitions]] */
 trait RunScalacCompatTestDefinitions {
-  _: RunTestDefinitions =>
+  this: RunTestDefinitions =>
 
-  final val smithyVersion = "1.50.0"
+  final val smithyVersion     = "1.50.0"
   private def shutdownBloop() =
     os.proc(TestUtil.cli, "bloop", "exit", "--power").call(mergeErrIntoOut = true)
 
@@ -155,7 +156,7 @@ trait RunScalacCompatTestDefinitions {
       val printOptionsScala213OrHigher = Seq("-V", "-Vphases", "-W", "-Xsource:help")
       val printOptionsScala2 = Seq("-Xlint:help", "-opt:help", "-Xmixin-force-forwarders:help")
       actualScalaVersion match {
-        case v if v.startsWith("3") => printOptionsForAllVersions ++ printOptionsScala213OrHigher
+        case v if v.startsWith("3")    => printOptionsForAllVersions ++ printOptionsScala213OrHigher
         case v if v.startsWith("2.13") =>
           printOptionsForAllVersions ++ printOptionsScala213OrHigher ++ printOptionsScala2
         case v if v.startsWith("2.12") => printOptionsForAllVersions ++ printOptionsScala2
@@ -184,7 +185,8 @@ trait RunScalacCompatTestDefinitions {
     val expectedOutput   = "Hello"
     TestInputs(
       os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
-      os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }"""
+      os.rel / runDir / mainInput               ->
+        s"""object Main extends App { println(Message("$expectedOutput").value) }"""
     ).fromRoot { (root: os.Path) =>
       val preCompileOutputDir = os.rel / "outParentDir" / "out"
 
@@ -219,7 +221,8 @@ trait RunScalacCompatTestDefinitions {
     val expectedOutput   = "Hello"
     TestInputs(
       os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
-      os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }"""
+      os.rel / runDir / mainInput               ->
+        s"""object Main extends App { println(Message("$expectedOutput").value) }"""
     ).fromRoot { (root: os.Path) =>
       val preCompileOutputDir = os.rel / "outParentDir" / "out"
 
@@ -422,7 +425,7 @@ trait RunScalacCompatTestDefinitions {
     TestInputs(os.rel / "s.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
       root =>
         val scala212VersionString = s"2.12.$scalaPatchVersion"
-        val res =
+        val res                   =
           os.proc(TestUtil.cli, "run", ".", "-S", scala212VersionString, TestUtil.extraOptions)
             .call(cwd = root)
         expect(res.out.trim() == scala212VersionString)
@@ -478,7 +481,7 @@ trait RunScalacCompatTestDefinitions {
   if (actualScalaVersion.startsWith("3") || actualScalaVersion.startsWith("2.13")) {
     val fileName       = "Main.scala"
     val expectedOutput = "Hello"
-    val oldSyntaxCode =
+    val oldSyntaxCode  =
       s"""object Main extends App {
          |  if (true) println("$expectedOutput") else println("Error")
          |}
@@ -547,5 +550,98 @@ trait RunScalacCompatTestDefinitions {
               .call(cwd = root)
           expect(res.out.trim() == s"version $actualScalaVersion")
         }
+    }
+
+  for {
+    useDirective <- Seq(true, false)
+    if !Properties.isWin
+    optionsSource = if (useDirective) "using directive" else "command line"
+    if actualScalaVersion == Constants.scala3Next || actualScalaVersion == Constants.scala3NextRc
+  }
+    test(s"consecutive -Xmacro-settings:* flags are not ignored (passed via $optionsSource)") {
+      val sourceFileName                                                   = "example.scala"
+      val macroFileName                                                    = "macro.scala"
+      val macroSettings @ Seq(macroSetting1, macroSetting2, macroSetting3) =
+        Seq("one", "two", "three")
+      val macroSettingOptions  = macroSettings.map(s => s"-Xmacro-settings:$s")
+      val maybeDirectiveString =
+        if (useDirective) s"//> using options ${macroSettingOptions.mkString(" ")}" else ""
+      TestInputs(
+        os.rel / macroFileName ->
+          """package x
+            |import scala.quoted.*
+            |object M:
+            |  inline def settingsContains(inline x:String): Boolean = ${
+            |     settingsContainsImpl('x)
+            |  }
+            |  def settingsContainsImpl(x:Expr[String])(using Quotes): Expr[Boolean] =
+            |     import quotes.reflect.*
+            |     val v = x.valueOrAbort
+            |     val r = CompilationInfo.XmacroSettings.contains(v)
+            |     Expr(r)
+            |""".stripMargin,
+        os.rel / sourceFileName ->
+          s"""$maybeDirectiveString
+             |import x.M
+             |@main def main(): Unit = {
+             |  val output = Seq(
+             |    if M.settingsContains("$macroSetting1") then Seq("$macroSetting1") else Nil,
+             |    if M.settingsContains("$macroSetting2") then Seq("$macroSetting2") else Nil,
+             |    if M.settingsContains("$macroSetting3") then Seq("$macroSetting3") else Nil,
+             |    if M.settingsContains("dummy") then Seq("dummy") else Nil,
+             |  )
+             |  println(output.flatten.mkString(", "))
+             |}
+             |
+             |""".stripMargin
+      ).fromRoot { root =>
+        val r = os.proc(
+          TestUtil.cli,
+          "run",
+          ".",
+          if (useDirective) Nil else macroSettingOptions,
+          "-S",
+          Constants.scala3NextRcAnnounced,
+          "-experimental"
+        )
+          .call(cwd = root, stderr = os.Pipe)
+        expect(r.out.trim() == macroSettings.mkString(", "))
+      }
+    }
+
+  if (actualScalaVersion.startsWith("3"))
+    test("-Ysafe-init-global doesnt crash the CLI when a dependency produces a warning") {
+      val (org, name, version) = ("hello-world", "test-safe-init-global-works", "0.0.1-SNAPSHOT")
+      val (depDir, mainDir)    = ("dep", "main")
+      val (depPackage, depClass, depMethod) = ("hello", "DepMain", "x")
+      val expectedMessage                   = "Hello, world!"
+      TestInputs(
+        os.rel / depDir / "Main.scala" ->
+          s"""//> using publish.organization $org
+             |//> using publish.name $name
+             |//> using publish.version $version
+             |package $depPackage
+             |
+             |object $depClass {
+             |  val $depMethod: Int = y
+             |  val y: Int = $depMethod
+             |}
+             |""".stripMargin,
+        os.rel / mainDir / "Main.scala" ->
+          s"""//> using option -Ysafe-init-global
+             |//> using dep $org::$name:$version
+             |
+             |import $depPackage.$depClass
+             |
+             |object Main extends App {
+             |  val a = $depClass.$depMethod
+             |  println("$expectedMessage")
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        os.proc(TestUtil.cli, "--power", "publish", "local", depDir, extraOptions).call(cwd = root)
+        val res = os.proc(TestUtil.cli, "run", mainDir, extraOptions).call(cwd = root)
+        expect(res.out.trim() == expectedMessage)
+      }
     }
 }

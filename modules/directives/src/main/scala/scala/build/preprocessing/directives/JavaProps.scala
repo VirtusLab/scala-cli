@@ -4,18 +4,21 @@ import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.options.WithBuildRequirements.*
 import scala.build.options.{BuildOptions, JavaOpt, Scope, ShadowingSeq, WithBuildRequirements}
-import scala.build.preprocessing.directives.DirectiveUtil.*
 import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Java properties")
-@DirectiveExamples("//> using javaProp foo1=bar, foo2")
+@DirectiveExamples("//> using javaProp foo1=bar foo2")
 @DirectiveExamples("//> using test.javaProp foo3=bar foo4")
 @DirectiveUsage(
   "//> using javaProp _key=val_",
   """`//> using javaProp` _key=value_
     |
     |`//> using javaProp` _key_
+    |
+    |`//> using test.javaProp` _key=value_
+    |
+    |`//> using test.javaProp` _key_
     |""".stripMargin
 )
 @DirectiveDescription("Add Java properties")

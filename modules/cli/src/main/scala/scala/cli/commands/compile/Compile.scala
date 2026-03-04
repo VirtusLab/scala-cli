@@ -5,16 +5,16 @@ import caseapp.core.help.HelpFormat
 
 import java.io.File
 
-import scala.build.options.{BuildOptions, Scope}
-import scala.build.{Build, BuildThreads, Builds, Logger, Os}
+import scala.build.options.Scope
+import scala.build.{Build, BuildThreads, Builds, Logger}
 import scala.cli.CurrentParams
-import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.setupide.SetupIde
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.update.Update
 import scala.cli.commands.util.BuildCommandHelpers
+import scala.cli.commands.util.BuildCommandHelpers.*
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.packaging.Library.fullClassPathMaybeAsJar
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
@@ -24,7 +24,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
 
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.MUST
-  val primaryHelpGroups: Seq[HelpGroup] =
+  val primaryHelpGroups: Seq[HelpGroup]                    =
     Seq(
       HelpGroup.Compilation,
       HelpGroup.Scala,
@@ -94,13 +94,14 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
 
     val threads = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
-    val configDb      = ConfigDbUtils.configDb.orExit(logger)
+    val compilerMaker         = options.shared.compilerMaker(threads)
+    val configDb              = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
       )
 
+    val shouldBuildTestScope = options.shared.scope.test.getOrElse(false)
     if (options.watch.watchMode) {
       val watcher = Build.watch(
         inputs,
@@ -109,7 +110,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
         None,
         logger,
         crossBuilds = cross,
-        buildTests = options.scope.test,
+        buildTests = shouldBuildTestScope,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
@@ -128,7 +129,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
         None,
         logger,
         crossBuilds = cross,
-        buildTests = options.scope.test,
+        buildTests = shouldBuildTestScope,
         partial = None,
         actionableDiagnostics = actionableDiagnostics
       )

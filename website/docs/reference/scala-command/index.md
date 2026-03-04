@@ -73,13 +73,14 @@ to [the migration guide](../../guides/introduction/old-runner-migration.md).
 
 ## Using the old (deprecated) `scala` runner with Scala 3.5+
 
-You can still use the (deprecated as of Scala 3.5.0) legacy runner with Scala 3.5+ installed. It is available under
-the `scala_legacy` command.
+You can use the (deprecated as of Scala 3.5.0) legacy runner with Scala 3.5-3.7 installed. It is available under
+the `scala_legacy` command (deprecated as of Scala 3.7.4).
+`scala_legacy` has been removed since Scala 3.8.0.
 
 :::caution
 Even though this enables usage of the old runner under a new alias, it is recommended to
-migrate any existing scripts and automations to Scala CLI under either `scala` or `scala-cli`, as the `scala_legacy`
-command may be dropped at some point in the future.
+migrate any existing scripts and automations to Scala CLI under either `scala` or `scala-cli`. 
+`scala_legacy` has been deprecated in Scala 3.7.4 and removed in 3.8.0.
 :::
 
 ```bash
@@ -87,5 +88,7 @@ scala_legacy -version
 # [warning] MainGenericRunner class is deprecated since Scala 3.5.0, and Scala CLI features will not work.
 # [warning] Please be sure to update to the Scala CLI launcher to use the new features.
 # [warning] Check the Scala 3.5.0 release notes to troubleshoot your installation.
-# Scala code runner version 3.5.0 -- Copyright 2002-2024, LAMP/EPFL
+# [warning] The MainGenericRunner class and 'legacy_scala' command have been deprecated for removal in Scala 3.8.0.
+# [warning] Please be sure to migrate to the scala command (Scala CLI).
+# Scala code runner version 3.7.4 -- Copyright 2002-2025, LAMP/EPFL
 ```

@@ -20,7 +20,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-trait BspSuite { _: ScalaCliSuite =>
+trait BspSuite { this: ScalaCliSuite =>
   protected def extraOptions: Seq[String]
   def initParams(root: os.Path): b.InitializeBuildParams =
     new b.InitializeBuildParams(
@@ -79,7 +79,38 @@ trait BspSuite { _: ScalaCliSuite =>
     f: (
       os.Path,
       TestBspClient,
-      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer
+      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+        TestBspClient.WrappedSourcesBuildServer
+    ) => Future[T]
+  ): T = withBspInitResults(
+    inputs,
+    args,
+    attempts,
+    pauseDuration,
+    bspOptions,
+    bspEnvs,
+    reuseRoot,
+    stdErrOpt,
+    extraOptionsOverride
+  )((root, client, server, _: b.InitializeBuildResult) => f(root, client, server))
+
+  def withBspInitResults[T](
+    inputs: TestInputs,
+    args: Seq[String],
+    attempts: Int = if (TestUtil.isCI) 3 else 1,
+    pauseDuration: FiniteDuration = 5.seconds,
+    bspOptions: List[String] = List.empty,
+    bspEnvs: Map[String, String] = Map.empty,
+    reuseRoot: Option[os.Path] = None,
+    stdErrOpt: Option[os.RelPath] = None,
+    extraOptionsOverride: Seq[String] = extraOptions
+  )(
+    f: (
+      os.Path,
+      TestBspClient,
+      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+        TestBspClient.WrappedSourcesBuildServer,
+      b.InitializeBuildResult
     ) => Future[T]
   ): T = {
 
@@ -91,11 +122,12 @@ trait BspSuite { _: ScalaCliSuite =>
 
       val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptionsOverride, args)
         .spawn(cwd = root, stderr = stderr, env = bspEnvs)
-      var remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer =
-        null
+      var remoteServer
+        : b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+          TestBspClient.WrappedSourcesBuildServer = null
 
       val bspServerExited = Promise[Unit]()
-      val t = new Thread("bsp-server-watcher") {
+      val t               = new Thread("bsp-server-watcher") {
         setDaemon(true)
         override def run() = {
           proc.join()
@@ -118,11 +150,14 @@ trait BspSuite { _: ScalaCliSuite =>
         val (localClient, remoteServer0, _) =
           TestBspClient.connect(proc.stdout, proc.stdin, pool)
         remoteServer = remoteServer0
-        Await.result(
+        val initRes: b.InitializeBuildResult = Await.result(
           whileBspServerIsRunning(remoteServer.buildInitialize(initParams(root)).asScala),
           Duration.Inf
         )
-        Await.result(whileBspServerIsRunning(f(root, localClient, remoteServer)), Duration.Inf)
+        Await.result(
+          whileBspServerIsRunning(f(root, localClient, remoteServer, initRes)),
+          Duration.Inf
+        )
       }
       finally {
         if (remoteServer != null)
@@ -135,14 +170,14 @@ trait BspSuite { _: ScalaCliSuite =>
         proc.join(2.seconds.toMillis)
         proc.destroy()
         proc.join(2.seconds.toMillis)
-        proc.destroyForcibly()
+        proc.destroy(shutdownGracePeriod = 0)
       }
     }
 
     @tailrec
     def helper(count: Int): T =
       attempt() match {
-        case Success(t) => t
+        case Success(t)  => t
         case Failure(ex) =>
           if (count <= 1)
             throw new Exception(ex)
@@ -167,8 +202,11 @@ trait BspSuite { _: ScalaCliSuite =>
     expect(expectedPrefixes.exists(uri.startsWith))
   }
 
-  protected def readBspConfig(root: os.Path): Details = {
-    val bspFile = root / ".bsp" / "scala-cli.json"
+  protected def readBspConfig(
+    root: os.Path,
+    connectionJsonFileName: String = "scala-cli.json"
+  ): Details = {
+    val bspFile = root / ".bsp" / connectionJsonFileName
     expect(os.isFile(bspFile))
     val content = os.read.bytes(bspFile)
     // check that we can decode the connection details

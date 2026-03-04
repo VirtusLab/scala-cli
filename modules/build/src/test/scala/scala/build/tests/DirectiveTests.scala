@@ -1,9 +1,15 @@
 package scala.build.tests
 
+import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.IOException
-import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
+import scala.build.Ops.EitherThrowOps
+import scala.build.errors.{
+  CompositeBuildException,
+  DependencyFormatError,
+  FetchingDependenciesError,
+  ToolkitDirectiveMissingVersionError
+}
 import scala.build.options.{
   BuildOptions,
   InternalOptions,
@@ -13,24 +19,13 @@ import scala.build.options.{
   Scope
 }
 import scala.build.tests.util.BloopServer
-import build.Ops.EitherThrowOps
-import dependency.AnyDependency
-
-import scala.build.errors.{
-  CompositeBuildException,
-  DependencyFormatError,
-  FetchingDependenciesError,
-  ToolkitDirectiveMissingVersionError
-}
+import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
 
 class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
-
-  val buildThreads = BuildThreads.create()
-
-  def bloopConfigOpt = Some(BloopServer.bloopConfig)
-
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
+  val buildThreads: BuildThreads               = BuildThreads.create()
+  def bloopConfigOpt: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
+  val extraRepoTmpDir: os.Path                 = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories                 = Directories.under(extraRepoTmpDir)
 
   override def afterAll(): Unit = {
     TestInputs.tryRemoveAll(extraRepoTmpDir)
@@ -44,10 +39,10 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     )
   )
 
-  test("resolving position of lib directive") {
+  test("resolving position of dep directive") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """//> using dep "com.lihaoyi::utest:0.7.10"
+        """//> using dep com.lihaoyi::utest:0.7.10
           |""".stripMargin
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
@@ -64,15 +59,15 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
           case _                                     => sys.error("cannot happen")
         }
 
-        expect(startPos == (0, 15))
-        expect(endPos == (0, 40))
+        expect(startPos == (0, 14))
+        expect(endPos == (0, 39))
     }
   }
 
   test("should parse javac options") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """//> using javacOpt "source", "1.8", "target", "1.8"
+        """//> using javacOpt source 1.8 target 1.8
           |""".stripMargin
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
@@ -90,11 +85,11 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       Seq("--no-fallback", "--enable-url-protocols=http,https")
     TestInputs(
       os.rel / "simple.sc" ->
-        s"""//> using packaging.graalvmArgs "$noFallback", "$enableUrl"
+        s"""//> using packaging.graalvmArgs $noFallback $enableUrl
            |""".stripMargin
     ).withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build       = maybeBuild.orThrow
         val graalvmArgs =
           build.options.notForBloopOptions.packageOptions.nativeImageOptions.graalvmArgs
         expect(graalvmArgs.map(_.value) == expectedGraalVMArgs)
@@ -111,15 +106,15 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       (_, _, maybeBuilds) =>
         val expectedVersion = "latest.release"
         val builds          = maybeBuilds.orThrow
-        val Some(mainBuild) = builds.get(Scope.Main)
-        val Some(toolkitDep) =
-          mainBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value)
+        val mainBuild       = builds.get(Scope.Main).get
+        val toolkitDep      =
+          mainBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value).get
         expect(toolkitDep.organization == Constants.toolkitOrganization)
         expect(toolkitDep.name == Constants.toolkitName)
         expect(toolkitDep.version == expectedVersion)
-        val Some(testBuild) = builds.get(Scope.Test)
-        val Some(toolkitTestDep) =
-          testBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value)
+        val testBuild      = builds.get(Scope.Test).get
+        val toolkitTestDep =
+          testBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value).get
         expect(toolkitTestDep.organization == Constants.toolkitOrganization)
         expect(toolkitTestDep.name == Constants.toolkitTestName)
         expect(toolkitTestDep.version == expectedVersion)
@@ -138,11 +133,12 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
           maybeBuilds match
             case Left(ToolkitDirectiveMissingVersionError(_, errorKey)) =>
               expect(errorKey == toolkitDirectiveKey)
+            case _ => sys.error("should not happen")
       }
     }
   for (scope <- Scope.all) {
     def withProjectFile[T](projectFileContent: String)(f: (Build, Boolean) => T): T = TestInputs(
-      os.rel / "project.scala" -> projectFileContent,
+      os.rel / "project.scala"    -> projectFileContent,
       os.rel / "Tests.test.scala" ->
         """class Tests extends munit.FunSuite {
           |  test("foo") {
@@ -155,8 +151,8 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
 
     test(s"resolve test scope dependencies correctly when building for ${scope.name} scope") {
-      withProjectFile(projectFileContent = """//> using dep "com.lihaoyi::os-lib:0.9.1"
-                                             |//> using test.dep "org.scalameta::munit::0.7.29"
+      withProjectFile(projectFileContent = """//> using dep com.lihaoyi::os-lib:0.9.1
+                                             |//> using test.dep org.scalameta::munit::0.7.29
                                              |""".stripMargin) { (build, isTestScope) =>
         val deps = build.options.classPathOptions.extraDependencies.toSeq.map(_.value)
         expect(deps.nonEmpty)
@@ -172,9 +168,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
     test(s"resolve test scope javacOpts correctly when building for ${scope.name} scope") {
       withProjectFile(projectFileContent =
-        """//> using javacOpt "source", "1.8"
-          |//> using test.javacOpt "target", "1.8"
-          |//> using test.dep "org.scalameta::munit::0.7.29"
+        """//> using javacOpt source 1.8
+          |//> using test.javacOpt target 1.8
+          |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
         val javacOpts = build.options.javaOptions.javacOptions.map(_.value)
@@ -185,9 +181,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
     test(s"resolve test scope scalac opts correctly when building for ${scope.name} scope") {
       withProjectFile(projectFileContent =
-        """//> using option "--explain"
-          |//> using test.option "-deprecation"
-          |//> using test.dep "org.scalameta::munit::0.7.29"
+        """//> using option --explain
+          |//> using test.option -deprecation
+          |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
         val scalacOpts = build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
@@ -198,9 +194,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
     test(s"resolve test scope javaOpts correctly when building for ${scope.name} scope") {
       withProjectFile(projectFileContent =
-        """//> using javaOpt "-Xmx2g"
-          |//> using test.javaOpt "-Dsomething=a"
-          |//> using test.dep "org.scalameta::munit::0.7.29"
+        """//> using javaOpt -Xmx2g
+          |//> using test.javaOpt -Dsomething=a
+          |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
         val javaOpts = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
@@ -211,9 +207,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
     test(s"resolve test scope javaProps correctly when building for ${scope.name} scope") {
       withProjectFile(projectFileContent =
-        """//> using javaProp "foo=1"
-          |//> using test.javaProp "bar=2"
-          |//> using test.dep "org.scalameta::munit::0.7.29"
+        """//> using javaProp foo=1
+          |//> using test.javaProp bar=2
+          |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
         val javaProps = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
@@ -224,9 +220,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
     test(s"resolve test scope resourceDir correctly when building for ${scope.name} scope") {
       withProjectFile(projectFileContent =
-        """//> using resourceDir "./mainResources"
-          |//> using test.resourceDir "./testResources"
-          |//> using test.dep "org.scalameta::munit::0.7.29"
+        """//> using resourceDir ./mainResources
+          |//> using test.resourceDir ./testResources
+          |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
         val resourcesDirs = build.options.classPathOptions.resourcesDir
@@ -262,14 +258,14 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("handling special syntax for path") {
-    val filePath = os.rel / "src" / "simple.scala"
+    val filePath   = os.rel / "src" / "simple.scala"
     val testInputs = TestInputs(
       os.rel / filePath ->
-        """//> using options "-coverage-out:${.}""""
+        """//> using options -coverage-out:${.}"""
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (root, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build                                        = maybeBuild.orThrow
         val scalacOptions: Option[Positioned[ScalacOpt]] =
           build.options.scalaOptions.scalacOptions.toSeq.headOption
         assert(scalacOptions.nonEmpty)
@@ -281,14 +277,14 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("handling special syntax for path with more dollars before") {
-    val filePath = os.rel / "src" / "simple.scala"
+    val filePath   = os.rel / "src" / "simple.scala"
     val testInputs = TestInputs(
       os.rel / filePath ->
-        """//> using options "-coverage-out:$$${.}""""
+        """//> using options -coverage-out:$$${.}"""
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (root, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build                                        = maybeBuild.orThrow
         val scalacOptions: Option[Positioned[ScalacOpt]] =
           build.options.scalaOptions.scalacOptions.toSeq.headOption
         assert(scalacOptions.nonEmpty)
@@ -300,14 +296,14 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("skip handling special syntax for path when double dollar") {
-    val filePath = os.rel / "src" / "simple.scala"
+    val filePath   = os.rel / "src" / "simple.scala"
     val testInputs = TestInputs(
       os.rel / filePath ->
-        """//> using options "-coverage-out:$${.}""""
+        """//> using options -coverage-out:$${.}"""
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build                                        = maybeBuild.orThrow
         val scalacOptions: Option[Positioned[ScalacOpt]] =
           build.options.scalaOptions.scalacOptions.toSeq.headOption
         assert(scalacOptions.nonEmpty)
@@ -350,10 +346,10 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       os.rel / dummySourcesJar -> "dummy-sources"
     ).withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (root, _, maybeBuild) =>
-        val build     = maybeBuild.orThrow
-        val Some(jar) = build.options.classPathOptions.extraClassPath.headOption
+        val build = maybeBuild.orThrow
+        val jar   = build.options.classPathOptions.extraClassPath.head
         expect(jar == root / dummyJar)
-        val Some(sourceJar) = build.options.classPathOptions.extraSourceJars.headOption
+        val sourceJar = build.options.classPathOptions.extraSourceJars.head
         expect(sourceJar == root / dummySourcesJar)
     }
   }
@@ -385,7 +381,23 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
 
         expect(resourceDirs.nonEmpty)
         expect(resourceDirs.length == 1)
-        expect(resourceDirs == Seq(root / "foo"))
+        val path = root / "foo"
+        expect(resourceDirs == Seq(path))
+    }
+  }
+  test("do not include test.resourceDir into sources for main scope") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using test.resourceDir foo
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt, scope = Scope.Main) {
+      (_, _, maybeBuild) =>
+        val build =
+          maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
+        val resourceDirs = build.sources.resourceDirs
+
+        expect(resourceDirs.isEmpty)
     }
   }
   test("parse boolean for publish.doc") {
@@ -396,7 +408,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build            = maybeBuild.orThrow
         val publishOptionsCI =
           build.options.notForBloopOptions.publishOptions.contextual(isCi = true)
         val publishOptionsLocal =
@@ -424,8 +436,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
               error.message == "Error parsing dependency 'not-a-dep': malformed module: not-a-dep"
             )
             expect(error.positions.length == 1)
+            val path = root / "simple.sc"
             expect(error.positions.head == Position.File(
-              Right(root / "simple.sc"),
+              Right(path),
               (0, 14),
               (0, 23)
             ))
@@ -449,7 +462,10 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
         errors match {
           case error: CompositeBuildException =>
             expect(error.exceptions.length == 2)
-            expect(error.exceptions.forall(_.isInstanceOf[FetchingDependenciesError]))
+            expect(error.exceptions.forall {
+              case _: FetchingDependenciesError => true
+              case _                            => false
+            })
             expect(error.exceptions.forall(_.positions.length == 1))
 
             {
@@ -457,8 +473,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
               expect(xyzError.message.startsWith("Error downloading org.xyz:foo"))
               expect(!xyzError.message.contains("com.lihaoyi"))
               expect(!xyzError.message.contains("org.qwerty"))
+              val path = root / "simple.sc"
               expect(xyzError.positions.head == Position.File(
-                Right(root / "simple.sc"),
+                Right(path),
                 (0, 14),
                 (0, 32)
               ))
@@ -469,8 +486,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
               expect(qwertyError.message.contains("Error downloading org.qwerty:bar"))
               expect(!qwertyError.message.contains("com.lihaoyi"))
               expect(!qwertyError.message.contains("org.xyz"))
+              val path = root / "simple.sc"
               expect(qwertyError.positions.head == Position.File(
-                Right(root / "simple.sc"),
+                Right(path),
                 (1, 40),
                 (1, 61)
               ))
@@ -497,7 +515,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
           |""".stripMargin
     )
     testInputs.withBuild(Scala322Options, buildThreads, bloopConfigOpt, scope = Scope.Test) {
-      (root, _, maybeBuild) => expect(maybeBuild.exists(_.success))
+      (_, _, maybeBuild) => expect(maybeBuild.exists(_.success))
     }
   }
 }

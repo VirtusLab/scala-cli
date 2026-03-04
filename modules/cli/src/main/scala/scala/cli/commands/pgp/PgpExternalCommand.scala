@@ -1,8 +1,5 @@
 package scala.cli.commands.pgp
-
-import coursier.Repositories
-import coursier.cache.{ArchiveCache, Cache, FileCache}
-import coursier.core.Version
+import coursier.cache.{ArchiveCache, FileCache}
 import coursier.util.Task
 import dependency.*
 
@@ -10,19 +7,16 @@ import java.io.File
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.errors.{BuildException, ScalaJsLinkingError}
-import scala.build.internal.Util.{DependencyOps, ModuleOps}
+import scala.build.errors.BuildException
+import scala.build.internal.Util.DependencyOps
 import scala.build.internal.{
   Constants,
   ExternalBinary,
   ExternalBinaryParams,
   FetchExternalBinary,
-  Runner,
-  ScalaJsLinkerConfig
+  Runner
 }
-import scala.build.options.BuildOptions
-import scala.build.options.scalajs.ScalaJsLinkerOptions
-import scala.build.{Logger, Positioned, options as bo}
+import scala.build.{Logger, Positioned, RepositoryUtils, options as bo}
 import scala.cli.ScalaCli
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.commands.util.JvmUtils
@@ -106,7 +100,7 @@ abstract class PgpExternalCommand extends ExternalCommand {
 
     val logger = options.global.logging.logger
 
-    val cache = options.coursier.coursierCache(logger)
+    val cache   = options.coursier.coursierCache(logger)
     val retCode = tryRun(
       cache,
       remainingArgs,
@@ -183,25 +177,27 @@ object PgpExternalCommand {
         .getOrElse(Constants.scalaCliSigningVersion)
     val ver              = if (version.startsWith("latest")) "latest.release" else version
     val signingMainClass = "scala.cli.signing.ScalaCliSigning"
-    val jvmSigningDep =
+    val jvmSigningDep    =
       dep"${Constants.scalaCliSigningOrganization}:${Constants.scalaCliSigningName}_3:$ver"
 
     if (signingCliOptions.forceJvm.getOrElse(false)) {
       val extraRepos =
-        if (version.endsWith("SNAPSHOT"))
-          Seq(Repositories.sonatype("snapshots"))
-        else
-          Nil
+        if version.endsWith("SNAPSHOT") then
+          Seq(
+            RepositoryUtils.snapshotsRepository,
+            RepositoryUtils.scala3NightlyRepository
+          )
+        else Nil
 
       val (_, signingRes) = value {
         scala.build.Artifacts.fetchCsDependencies(
-          Seq(Positioned.none(jvmSigningDep.toCs)),
-          extraRepos,
-          None,
-          Nil,
-          logger,
-          cache,
-          None
+          dependencies = Seq(Positioned.none(jvmSigningDep.toCs)),
+          extraRepositories = extraRepos,
+          forceScalaVersionOpt = None,
+          forcedVersions = Nil,
+          logger = logger,
+          cache = cache,
+          classifiersOpt = None
         )
       }
       val signingClassPath = signingRes.files
@@ -217,7 +213,7 @@ object PgpExternalCommand {
       command.flatMap(_.value)
     }
     else {
-      val platformSuffix = FetchExternalBinary.platformSuffix()
+      val platformSuffix  = FetchExternalBinary.platformSuffix()
       val (tag, changing) =
         if (version == "latest") ("launchers", true)
         else ("v" + version, false)

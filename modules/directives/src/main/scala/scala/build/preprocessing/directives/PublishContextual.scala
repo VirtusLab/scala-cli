@@ -2,11 +2,11 @@ package scala.build.preprocessing.directives
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
+import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedInputError}
-import scala.build.options._
+import scala.build.options.*
 import scala.build.options.publish.ConfigPasswordOption
-import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 import scala.cli.signing.shared.PasswordOption
 

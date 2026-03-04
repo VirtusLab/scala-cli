@@ -1,12 +1,20 @@
 package scala.build.internal
-
+import coursier.core.{Dependency, MinimizedExclusions, Publication, VariantPublication}
+import coursier.util.Artifact
+import coursier.version.VersionConstraint
 import dependency.NoAttributes
 
 import java.io.{File, PrintStream}
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
-import scala.build.errors.NoScalaVersionProvidedError
+import scala.build.Ops.EitherSeqOps
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  NoScalaVersionProvidedError,
+  UnsupportedGradleModuleVariantError
+}
 import scala.build.{Os, Positioned}
 
 object Util {
@@ -28,8 +36,8 @@ object Util {
 
   def daemonThreadFactory(prefix: String): ThreadFactory =
     new ThreadFactory {
-      val counter        = new AtomicInteger
-      def threadNumber() = counter.incrementAndGet()
+      val counter                = new AtomicInteger
+      def threadNumber()         = counter.incrementAndGet()
       def newThread(r: Runnable) =
         new Thread(r, s"$prefix-thread-${threadNumber()}") {
           setDaemon(true)
@@ -52,7 +60,7 @@ object Util {
       : Either[NoScalaVersionProvidedError, coursier.Module] =
       paramsOpt match {
         case Some(params) => Right(toCs(params))
-        case None =>
+        case None         =>
           val isJavaMod = mod.nameAttributes == NoAttributes
           if (isJavaMod)
             Right(mod.asInstanceOf[dependency.Module].toCs)
@@ -64,20 +72,22 @@ object Util {
   implicit class DependencyOps(private val dep: dependency.Dependency) extends AnyVal {
     def toCs: coursier.Dependency = {
       val mod  = dep.module.toCs
-      var dep0 = coursier.Dependency(mod, dep.version)
+      var dep0 = coursier.Dependency(mod, VersionConstraint(dep.version))
       if (dep.exclude.nonEmpty)
-        dep0 = dep0.withExclusions {
-          dep.exclude.toSet[dependency.Module].map { mod =>
-            (coursier.Organization(mod.organization), coursier.ModuleName(mod.name))
+        dep0 = dep0.withMinimizedExclusions {
+          MinimizedExclusions {
+            dep.exclude.toSet[dependency.Module].map { mod =>
+              (coursier.Organization(mod.organization), coursier.ModuleName(mod.name))
+            }
           }
         }
-      for (clOpt <- dep.userParams.get("classifier"); cl <- clOpt)
+      for (clOpt <- dep.userParams.find(_._1 == "classifier").map(_._2); cl <- clOpt)
         dep0 = dep0.withPublication(dep0.publication.withClassifier(coursier.core.Classifier(cl)))
-      for (tpeOpt <- dep.userParams.get("type"); tpe <- tpeOpt)
+      for (tpeOpt <- dep.userParams.find(_._1 == "type").map(_._2); tpe <- tpeOpt)
         dep0 = dep0.withPublication(dep0.publication.withType(coursier.core.Type(tpe)))
-      for (extOpt <- dep.userParams.get("ext"); ext <- extOpt)
+      for (extOpt <- dep.userParams.find(_._1 == "ext").map(_._2); ext <- extOpt)
         dep0 = dep0.withPublication(dep0.publication.withExt(coursier.core.Extension(ext)))
-      for (_ <- dep.userParams.get("intransitive"))
+      for (_ <- dep.userParams.find(_._1 == "intransitive"))
         dep0 = dep0.withTransitive(false)
       dep0
     }
@@ -89,7 +99,7 @@ object Util {
       : Either[NoScalaVersionProvidedError, coursier.Dependency] =
       paramsOpt match {
         case Some(params) => Right(toCs(params))
-        case None =>
+        case None         =>
           val isJavaDep = dep.module.nameAttributes == NoAttributes && dep.exclude.forall(
             _.nameAttributes == NoAttributes
           )
@@ -121,5 +131,42 @@ object Util {
     else p.toString
 
   def printablePath(p: Either[String, os.Path]): String =
-    p.fold(identity, printablePath(_))
+    p.fold(identity, printablePath)
+
+  extension (fullDetailedArtifacts: Seq[(
+    Dependency,
+    Either[VariantPublication, Publication],
+    Artifact,
+    Option[File]
+  )]) {
+    def safeFullDetailedArtifacts: Either[BuildException, Seq[(
+      Dependency,
+      Publication,
+      Artifact,
+      Option[File]
+    )]] =
+      fullDetailedArtifacts
+        .map {
+          case (dependency, Right(publication), artifact, maybeFile) =>
+            Right((dependency, publication, artifact, maybeFile))
+          case (_, Left(variantPublication), _, _) =>
+            // TODO: Add support for Gradle Module variants
+            Left(UnsupportedGradleModuleVariantError(variantPublication))
+        }
+        .sequence
+        .left
+        .map(CompositeBuildException(_))
+  }
+
+  extension (artifacts: Seq[(Dependency, Either[VariantPublication, Publication], Artifact)]) {
+    def safeArtifacts: Either[BuildException, Seq[(
+      Dependency,
+      Publication,
+      Artifact
+    )]] =
+      artifacts
+        .map { case (d, p, a) => (d, p, a, None) }
+        .safeFullDetailedArtifacts
+        .map(_.map { case (d, p, a, _) => (d, p, a) })
+  }
 }

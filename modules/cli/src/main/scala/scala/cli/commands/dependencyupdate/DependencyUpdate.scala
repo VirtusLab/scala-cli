@@ -5,9 +5,9 @@ import caseapp.core.help.HelpFormat
 
 import scala.build.actionable.ActionableDependencyHandler
 import scala.build.actionable.ActionableDiagnostic.ActionableDependencyUpdateDiagnostic
-import scala.build.options.{BuildOptions, Scope}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
+import scala.build.options.Scope
 import scala.build.{CrossSources, Logger, Position, Sources}
-import scala.cli.CurrentParams
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.util.ArgHelpers.*
@@ -15,7 +15,7 @@ import scala.cli.util.ArgHelpers.*
 object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
   override def group: String                               = HelpCommandGroup.Main.toString
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
-  override def helpFormat: HelpFormat =
+  override def helpFormat: HelpFormat                      =
     super.helpFormat.withPrimaryGroup(HelpGroup.Dependency)
   override def sharedOptions(options: DependencyUpdateOptions): Option[SharedOptions] =
     Some(options.shared)
@@ -24,6 +24,11 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
     args: RemainingArgs,
     logger: Logger
   ): Unit = {
+    if options.shared.scope.test.nonEmpty then
+      logger.message(
+        s"""$warnPrefix Including the test scope does not change the behaviour of this command. 
+           |$warnPrefix Test dependencies are updated regardless.""".stripMargin
+      )
     val verbosity    = options.shared.logging.verbosity
     val buildOptions = buildOptionsOrExit(options)
 
@@ -39,7 +44,8 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
         ),
         logger,
         buildOptions.suppressWarningOptions,
-        buildOptions.internal.exclude
+        buildOptions.internal.exclude,
+        download = buildOptions.downloader
       ).orExit(logger)
 
     val sharedOptions = crossSources.sharedOptions(buildOptions)
@@ -59,7 +65,7 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
 
     val actionableMainUpdateDiagnostics = generateActionableUpdateDiagnostic(Scope.Main)
     val actionableTestUpdateDiagnostics = generateActionableUpdateDiagnostic(Scope.Test)
-    val actionableUpdateDiagnostics =
+    val actionableUpdateDiagnostics     =
       (actionableMainUpdateDiagnostics ++ actionableTestUpdateDiagnostics).distinct
 
     if (options.all)

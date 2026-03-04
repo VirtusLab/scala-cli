@@ -6,7 +6,7 @@ const Index = (props) => {
   return <UseCase
     title="Single-module projects with Scala CLI"
     description="Page describing why Scala CLI is good for maintaining single-module projects."
-    headline="Fight with your bugs, not with your buildtool"
+    headline="Fight with your bugs, not with your build tool"
     image="gifs/projects.gif"
     id="projects"
     >

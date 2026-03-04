@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
-trait CompileTests3StableDefinitions { _: CompileTestDefinitions =>
+trait CompileTests3StableDefinitions { this: CompileTestDefinitions =>
   test(s"TASTY processor does not warn about Scala $actualScalaVersion") {
     TestInputs(os.rel / "simple.sc" -> s"""println("Hello")""")
       .fromRoot { root =>
@@ -18,10 +18,10 @@ trait CompileTests3StableDefinitions { _: CompileTestDefinitions =>
 
   test("render explain message") {
     val fileName = "Hello.scala"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName -> // should be dump to 3.3.1 after release
-        s"""//> using scala "3.3.1-RC1-bin-20230203-3ef1e73-NIGHTLY"
-           |//> using options "--explain"
+        s"""//> using scala 3.3.1-RC1-bin-20230203-3ef1e73-NIGHTLY
+           |//> using options --explain
            |
            |class A
            |val i: Int = A()

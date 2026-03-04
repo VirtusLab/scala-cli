@@ -12,7 +12,7 @@ import scala.cli.commands.{SpecificationLevel, tags}
 
 object ArgHelpers {
   extension (arg: Arg) {
-    private def hasTag(tag: String): Boolean = arg.tags.exists(_.name == tag)
+    private def hasTag(tag: String): Boolean             = arg.tags.exists(_.name == tag)
     private def hasTagPrefix(tagPrefix: String): Boolean =
       arg.tags.exists(_.name.startsWith(tagPrefix))
     def isExperimental: Boolean = arg.hasTag(tags.experimental)

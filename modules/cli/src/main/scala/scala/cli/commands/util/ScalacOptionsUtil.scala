@@ -1,11 +1,6 @@
 package scala.cli.commands.util
-
-import scala.build.Logger
-import scala.build.options.ScalacOpt.filterScalacOptionKeys
+import scala.build.options.ScalacOpt.{filterScalacOptionKeys, noDashPrefixes}
 import scala.build.options.{ScalacOpt, ShadowingSeq}
-import scala.cli.commands.bloop.BloopExit
-import scala.cli.commands.default.LegacyScalaOptions
-import scala.cli.commands.shared.ScalacOptions.YScriptRunnerOption
 import scala.cli.commands.shared.{ScalacExtraOptions, ScalacOptions}
 
 object ScalacOptionsUtil {
@@ -33,9 +28,13 @@ object ScalacOptionsUtil {
 
   extension (opts: ShadowingSeq[ScalacOpt]) {
     def filterNonRedirected: ShadowingSeq[ScalacOpt] =
-      opts.filterScalacOptionKeys(!ScalacOptions.ScalaCliRedirectedOptions.contains(_))
+      opts.filterScalacOptionKeys(k =>
+        !ScalacOptions.ScalaCliRedirectedOptions.contains(k.noDashPrefixes)
+      )
     def filterNonDeprecated: ShadowingSeq[ScalacOpt] =
-      opts.filterScalacOptionKeys(!ScalacOptions.ScalacDeprecatedOptions.contains(_))
+      opts.filterScalacOptionKeys(k =>
+        !ScalacOptions.ScalacDeprecatedOptions.contains(k.noDashPrefixes)
+      )
     def getOption(key: String): Option[String] =
       opts.get(ScalacOpt(key)).headOption.map(_.value)
   }

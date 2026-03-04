@@ -1,12 +1,12 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
+trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
   test("default to the run sub-command when a script snippet is passed with -e") {
     TestInputs.empty.fromRoot { root =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
-      val res =
+      val res       =
         os.proc(TestUtil.cli, "-e", s"println($quotation$msg$quotation)", TestUtil.extraOptions)
           .call(cwd = root)
       expect(res.out.trim() == msg)
@@ -16,7 +16,7 @@ trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
   test("running scala-cli with a script snippet passed with -e shouldn't allow repl-only options") {
     TestInputs.empty.fromRoot { root =>
       val replSpecificOption = "--repl-dry-run"
-      val res =
+      val res                =
         os.proc(
           TestUtil.cli,
           "-e",
@@ -55,7 +55,7 @@ trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
     legacyOptionBackwardsCompatTest("-I") {
       (legacyOption, inputFile, root) =>
         val anotherInputFile = "smth.scala"
-        val res = os.proc(
+        val res              = os.proc(
           TestUtil.cli,
           legacyOption,
           inputFile,

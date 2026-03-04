@@ -34,17 +34,17 @@ launcher() {
     launcherName="scala"
   fi
 
-  "$mill" -i copyTo "$launcherMillCommand" "$launcherName" 1>&2
+  "$mill" -i copyTo --task "$launcherMillCommand" --dest "$launcherName" 1>&2
   echo "$launcherName"
 }
 
 version() {
-  "$mill" -i writePackageVersionTo scala-cli-version 1>&2
+  "$mill" -i writePackageVersionTo --dest scala-cli-version 1>&2
   cat scala-cli-version
 }
 
 shortVersion() {
-  "$mill" -i writeShortPackageVersionTo scala-cli-short-version 1>&2
+  "$mill" -i writeShortPackageVersionTo --dest scala-cli-short-version 1>&2
   cat scala-cli-short-version
 }
 
@@ -89,7 +89,7 @@ generate_msi() {
 
   # Having the MSI automatically install Visual C++ redistributable when needed,
   # see https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html
-  "$mill" -i ci.writeWixConfigExtra wix-visual-cpp-redist.xml
+  "$mill" -i ci.writeWixConfigExtra --dest wix-visual-cpp-redist.xml
 
   packager \
     --msi \
@@ -127,7 +127,7 @@ generate_sdk() {
       sdkDirectory="scala-cli-x86_64-apple-darwin-sdk"
     fi
     binName="scala-cli"
-  elif [[ "$OSTYPE" == "msys" ]]; then
+  elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
     sdkDirectory="scala-cli-x86_64-pc-win32-sdk"
     binName="scala-cli.exe"
   else
@@ -138,7 +138,7 @@ generate_sdk() {
   mkdir -p "$sdkDirectory"/bin
   cp "$(launcher)" "$sdkDirectory"/bin/"$binName"
 
-  if [[ "$OSTYPE" == "msys" ]]; then
+  if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
     7z a "$sdkDirectory".zip "$sdkDirectory"
   else
     zip -r "$sdkDirectory".zip "$sdkDirectory"
@@ -160,7 +160,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
     generate_pkg "x86_64"
   fi
   generate_sdk
-elif [[ "$OSTYPE" == "msys" ]]; then
+elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
   generate_msi
   generate_sdk
 else

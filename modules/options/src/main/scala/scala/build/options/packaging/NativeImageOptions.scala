@@ -2,7 +2,7 @@ package scala.build.options.packaging
 
 import scala.build.Positioned
 import scala.build.internal.Constants
-import scala.build.options.{ConfigMonoid, ShadowingSeq}
+import scala.build.options.ConfigMonoid
 
 final case class NativeImageOptions(
   graalvmJvmId: Option[String] = None,

@@ -1,9 +1,8 @@
 package scala.cli.commands.fmt
 
 import caseapp.*
-import coursier.core.Version
 
-import scala.build.EitherCps.{either, value}
+import scala.build.coursierVersion
 import scala.build.errors.BuildException
 import scala.build.internal.FetchExternalBinary
 import scala.build.options.BuildOptions
@@ -94,14 +93,20 @@ final case class FmtOptions(
   def binaryUrl(version: String): (String, Boolean) = {
     val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
       .getOrElse(FetchExternalBinary.platformSuffix())
-    val tag0 = scalafmtTag.getOrElse("v" + version)
+    val tag0           = scalafmtTag.getOrElse("v" + version)
     val gitHubOrgName0 = scalafmtGithubOrgName.getOrElse {
-      if (Version(version) < Version("3.5.9"))
-        "scala-cli/scalafmt-native-image"
-      else // from version 3.5.9 scalafmt-native-image repository was moved to VirtusLab organisation
-        "virtuslab/scalafmt-native-image"
+      version.coursierVersion match {
+        case v if v < "3.5.9".coursierVersion => "scala-cli/scalafmt-native-image"
+        // since version 3.5.9 scalafmt-native-image repository was moved to VirtusLab organisation
+        case v if v < "3.9.1".coursierVersion => "virtuslab/scalafmt-native-image"
+        // since version 3.9.1 native images for all platforms are provided by ScalaMeta
+        case _ => "scalameta/scalafmt"
+      }
     }
-    val extension0 = if (Properties.isWin) ".zip" else ".gz"
+    val extension0 = version match {
+      case v if v.coursierVersion >= "3.9.1".coursierVersion || Properties.isWin => ".zip"
+      case _                                                                     => ".gz"
+    }
     val url =
       s"https://github.com/$gitHubOrgName0/releases/download/$tag0/scalafmt-$osArchSuffix0$extension0"
     (url, !tag0.startsWith("v"))
@@ -121,9 +126,9 @@ object FmtOptions {
   implicit lazy val parser: Parser[FmtOptions] = Parser.derive
   implicit lazy val help: Help[FmtOptions]     = Help.derive
 
-  val cmdName             = "fmt"
-  private val helpHeader  = "Formats Scala code."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val cmdName                     = "fmt"
+  private val helpHeader          = "Formats Scala code."
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

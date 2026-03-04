@@ -73,7 +73,7 @@ object PreprocessedSource {
     path: os.Path
   ) extends PreprocessedSource {
     def mainClassOpt: None.type = None
-    def scopePath: ScopePath =
+    def scopePath: ScopePath    =
       ScopePath.fromPath(path)
     def directivesPositions: None.type = None
   }

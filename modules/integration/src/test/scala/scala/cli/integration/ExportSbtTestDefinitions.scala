@@ -3,7 +3,7 @@ package scala.cli.integration
 abstract class ExportSbtTestDefinitions extends ScalaCliSuite
     with TestScalaVersionArgs with ExportCommonTestDefinitions
     with ExportScalaOrientedBuildToolsTestDefinitions with SbtTestHelper {
-  _: TestScalaVersion =>
+  this: TestScalaVersion =>
   override def exportCommand(args: String*): os.proc =
     os.proc(
       TestUtil.cli,
@@ -23,6 +23,8 @@ abstract class ExportSbtTestDefinitions extends ScalaCliSuite
   override def runTestsArgs(mainClass: Option[String]): Seq[String] = Seq("test")
 
   test("Scala Native") {
-    simpleTest(ExportTestProjects.nativeTest(actualScalaVersion), mainClass = None)
+    TestUtil.retryOnCi() {
+      simpleTest(ExportTestProjects.nativeTest(actualScalaVersion), mainClass = None)
+    }
   }
 }

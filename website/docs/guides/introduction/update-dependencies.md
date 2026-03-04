@@ -24,8 +24,8 @@ scala-cli --power dependency-update Hello.scala
 
 ```text
 Updates
-   * com.lihaoyi::os-lib:0.7.8 -> 0.8.1
-   * com.lihaoyi::utest:0.7.10 -> 0.8.0
+   * com.lihaoyi::os-lib:0.7.8 -> 0.11.3
+   * com.lihaoyi::utest:0.7.10 -> 0.8.4
 To update all dependencies run: 
     scala-cli dependency-update --all
 ```
@@ -41,8 +41,8 @@ scala-cli --power dependency-update Hello.scala --all
 ```
 
 ```text
-Updated dependency to: com.lihaoyi::os-lib:0.8.1
-Updated dependency to: com.lihaoyi::utest:0.8.0
+Updated dependency to: com.lihaoyi::os-lib:0.11.3
+Updated dependency to: com.lihaoyi::utest:0.8.4
 ```
 
 </ChainedSnippets>

@@ -1,23 +1,21 @@
 package scala.cli.commands
 
 import caseapp.Name
-import caseapp.core.app.Command
 import caseapp.core.parser.Parser
-import caseapp.core.util.{CaseUtil, Formatter}
+import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}
 
 import scala.build.Logger
 import scala.build.input.ScalaCliInvokeData
-import scala.build.internal.util.WarningMessages
-import scala.build.internals.{ConsoleUtils, FeatureType}
-import scala.cli.ScalaCli
+import scala.build.internals.FeatureType
 import scala.cli.util.ArgHelpers.*
 
 object RestrictedCommandsParser {
   def apply[T](
     parser: Parser[T],
     logger: Logger,
-    shouldSuppressExperimentalWarnings: Boolean
+    shouldSuppressExperimentalWarnings: Boolean,
+    shouldSuppressDeprecatedWarnings: Boolean
   )(using ScalaCliInvokeData): Parser[T] =
     new Parser[T] {
 
@@ -37,7 +35,8 @@ object RestrictedCommandsParser {
         RestrictedCommandsParser(
           parser.withDefaultOrigin(origin),
           logger,
-          shouldSuppressExperimentalWarnings
+          shouldSuppressExperimentalWarnings,
+          shouldSuppressDeprecatedWarnings
         )
 
       override def step(
@@ -58,7 +57,7 @@ object RestrictedCommandsParser {
             logger.experimentalWarning(passedOption, FeatureType.Option)
             r
           case (r @ Right(Some(_, arg: Arg, _)), passedOption :: _)
-              if arg.isDeprecated =>
+              if arg.isDeprecated && !shouldSuppressDeprecatedWarnings =>
             // TODO implement proper deprecation logic: https://github.com/VirtusLab/scala-cli/issues/3258
             arg.deprecatedOptionAliases.find(_ == passedOption)
               .foreach { deprecatedAlias =>

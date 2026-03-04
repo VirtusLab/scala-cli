@@ -38,7 +38,7 @@ final case class SbtProject(
       os.write(dir / "project" / "plugins.sbt", pluginsSbtContent.getBytes(charset))
     }
 
-    val buildSbtImportsContent = imports.map(_ + nl).mkString
+    val buildSbtImportsContent  = imports.map(_ + nl).mkString
     val buildSbtSettingsContent = settings
       .filter(_.nonEmpty)
       .map { settings0 =>

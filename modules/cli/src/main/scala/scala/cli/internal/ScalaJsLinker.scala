@@ -1,11 +1,10 @@
 package scala.cli.internal
 
-import coursier.Repositories
+import coursier.VersionConstraint
 import coursier.cache.{ArchiveCache, FileCache}
-import coursier.core.Version
 import coursier.util.Task
-import dependency._
-import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
+import dependency.*
+import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 
 import java.io.{File, InputStream, OutputStream}
 
@@ -14,7 +13,7 @@ import scala.build.errors.{BuildException, ScalaJsLinkingError}
 import scala.build.internal.Util.{DependencyOps, ModuleOps}
 import scala.build.internal.{ExternalBinaryParams, FetchExternalBinary, Runner, ScalaJsLinkerConfig}
 import scala.build.options.scalajs.ScalaJsLinkerOptions
-import scala.build.{Logger, Positioned}
+import scala.build.{Logger, Positioned, RepositoryUtils}
 import scala.io.Source
 import scala.util.Properties
 
@@ -48,7 +47,7 @@ object ScalaJsLinker {
         Seq(path.toString)
       case None =>
         val scalaJsCliVersion = options.finalScalaJsCliVersion
-        val scalaJsCliDep = {
+        val scalaJsCliDep     = {
           val mod = mod"org.virtuslab.scala-cli:scalajscli_2.13"
           dependency.Dependency(mod, s"$scalaJsCliVersion+")
         }
@@ -58,22 +57,27 @@ object ScalaJsLinker {
         )
 
         val extraRepos =
-          if (scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT"))
-            Seq(Repositories.sonatype("snapshots"))
-          else
-            Nil
+          if scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT")
+          then
+            Seq(
+              RepositoryUtils.snapshotsRepository,
+              RepositoryUtils.scala3NightlyRepository
+            )
+          else Nil
 
         options.finalUseJvm match {
           case Right(()) =>
             val (_, linkerRes) = value {
               scala.build.Artifacts.fetchCsDependencies(
-                Seq(Positioned.none(scalaJsCliDep.toCs)),
-                extraRepos,
-                None,
-                forcedVersions.map { case (m, v) => (m.toCs, v) },
-                logger,
-                cache,
-                None
+                dependencies = Seq(Positioned.none(scalaJsCliDep.toCs)),
+                extraRepositories = extraRepos,
+                forceScalaVersionOpt = None,
+                forcedVersions = forcedVersions.map { case (m, v) =>
+                  (m.toCs, VersionConstraint(v))
+                },
+                logger = logger,
+                cache = cache,
+                classifiersOpt = None
               )
             }
             val linkerClassPath = linkerRes.files
@@ -92,7 +96,7 @@ object ScalaJsLinker {
             val useLatest = scalaJsVersion == "latest"
             val ext       = if (Properties.isWin) ".zip" else ".gz"
             val tag       = if (useLatest) "launchers" else s"v$scalaJsCliVersion"
-            val url =
+            val url       =
               s"https://github.com/virtusLab/scala-js-cli/releases/download/$tag/scala-js-ld-$osArch$ext"
             val params = ExternalBinaryParams(
               url,
@@ -131,8 +135,8 @@ object ScalaJsLinker {
     }
 
     val allArgs = {
-      val outputArgs  = Seq("--outputDir", linkingDir.toString)
-      val longRunning = if (useLongRunning) Seq("--longRunning") else Seq.empty[String]
+      val outputArgs    = Seq("--outputDir", linkingDir.toString)
+      val longRunning   = if (useLongRunning) Seq("--longRunning") else Seq.empty[String]
       val mainClassArgs =
         Option(input.mainClassOrNull).toSeq.flatMap(mainClass =>
           Seq("--mainMethod", mainClass + ".main")

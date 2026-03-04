@@ -7,11 +7,11 @@ import java.io.File
 import scala.cli.integration.TestUtil.normalizeConsoleOutput
 import scala.util.Properties
 
-trait RunScriptTestDefinitions { _: RunTestDefinitions =>
+trait RunScriptTestDefinitions { this: RunTestDefinitions =>
   def simpleScriptTest(ignoreErrors: Boolean = false, extraArgs: Seq[String] = Nil): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""val msg = "$message"
            |println(msg)
@@ -35,7 +35,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
   test("Multiple scripts") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "messages.sc" ->
         s"""def msg = "$message"
            |""".stripMargin,
@@ -56,7 +56,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
   test("main.sc is not a special case") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "main.sc" ->
         s"""println("$message")
            |""".stripMargin
@@ -69,10 +69,167 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
+  test("main.sc has an object with a main method") {
+    val message = "Hello"
+    val inputs  = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("$message")
+            |}
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
+        root
+      ).out.trim()
+      expect(output == message)
+    }
+  }
+  test("main.sc has an object that extends App") {
+    val message = "Hello"
+    val inputs  = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|
+            |object Main extends App{
+            |   println("$message")
+            |}
+            |
+            |object Other {}
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
+        root
+      ).out.trim()
+      expect(output == message)
+    }
+  }
+
+  test("main.sc has an object with a main method and an object wrapper") {
+    val message = "Hello"
+    val inputs  = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|//> using objectWrapper
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("$message")
+            |}
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc").call(cwd =
+        root
+      ).out.trim()
+      expect(output == message)
+    }
+  }
+
+  test("main.sc has multiple main methods") {
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|//> using objectWrapper
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("1")
+            |}
+            |object AnotherMain {
+            |  def main(args: Array[String]): Unit = println("2")
+            |}
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc").call(
+        cwd = root,
+        stderr = os.Pipe
+      )
+      val output = result.out.trim()
+      val err    = result.err.trim()
+      expect(output == "")
+      expect(err.contains(
+        "Only a single main is allowed within scripts. Multiple main classes were found in the script: Main, AnotherMain"
+      ))
+    }
+  }
+  test("main.sc has multiple main methods and top-level definitions") {
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|//> using objectWrapper
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("1")
+            |}
+            |object AnotherMain {
+            |  def main(args: Array[String]): Unit = println("2")
+            |}
+            |
+            |println("3")
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc").call(
+        cwd = root,
+        stderr = os.Pipe
+      )
+      val output = result.out.trim()
+      val err    = result.err.trim()
+      expect(output == "3")
+      expect(err.contains(
+        "Only a single main is allowed within scripts. Multiple main classes were found in the script: Main, AnotherMain"
+      ))
+      expect(err.contains(
+        "Script contains objects with main methods and top-level statements, only the latter will be run."
+      ))
+    }
+  }
+
+  test("main.sc has both an object with a main method as well as top-level definitions") {
+    val message1 = "Hello"
+    val message2 = "Another hello"
+    val inputs   = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|object Main {
+            |  def main(args: Array[String]): Unit = println("$message1")
+            |}
+            |println("$message2")
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, extraOptions, "main.sc").call(
+        cwd = root,
+        stderr = os.Pipe
+      )
+      val output = result.out.trim()
+      val err    = result.err.trim()
+      expect(output == message2)
+      expect(err.contains(
+        "Script contains objects with main methods and top-level statements, only the latter will be run."
+      ))
+      expect(output == message2)
+    }
+  }
+
+  test(
+    "main.sc has both an object with a main method and an object wrapper as well as top-level calls"
+  ) {
+    val message1 = "Hello"
+    val message2 = "Another hello"
+    val inputs   = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|//> using objectWrapper
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("$message1")
+            |}
+            |println("$message2")
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc")
+        .call(cwd = root).out.trim()
+      expect(output == message2)
+    }
+  }
   if (actualScalaVersion.startsWith("3"))
     test("use method from main.sc file") {
       val message = "Hello"
-      val inputs = TestInputs(
+      val inputs  = TestInputs(
         os.rel / "message.sc" ->
           s"""println(main.msg)
              |""".stripMargin,
@@ -93,7 +250,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   else
     test("warn when main.sc file is used together with other scripts") {
       val message = "Hello"
-      val inputs = TestInputs(
+      val inputs  = TestInputs(
         os.rel / "message.sc" ->
           s"""println(main.msg)
              |""".stripMargin,
@@ -115,7 +272,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
   test("Directory") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "dir" / "messages.sc" ->
         s"""def msg = "$message"
            |""".stripMargin,
@@ -135,14 +292,14 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   }
 
   test("sub-directory") {
-    val fileName = "script.sc"
+    val fileName          = "script.sc"
     val expectedClassName =
       if (actualScalaVersion.startsWith("3."))
         fileName.stripSuffix(".sc") + "$_"
       else
         fileName.stripSuffix(".sc") + "$"
     val scriptPath = os.rel / "something" / fileName
-    val inputs = TestInputs(
+    val inputs     = TestInputs(
       scriptPath ->
         s"""println(getClass.getName)
            |""".stripMargin
@@ -157,14 +314,14 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   }
 
   test("sub-directory and script") {
-    val fileName = "script.sc"
+    val fileName          = "script.sc"
     val expectedClassName =
       if (actualScalaVersion.startsWith("3."))
         fileName.stripSuffix(".sc") + "$_"
       else
         fileName.stripSuffix(".sc") + "$"
     val scriptPath = os.rel / "something" / fileName
-    val inputs = TestInputs(
+    val inputs     = TestInputs(
       os.rel / "dir" / "Messages.scala" ->
         s"""object Messages {
            |  def msg = "Hello"
@@ -214,7 +371,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       val output         = res.out.lines()
       val exceptionLines = output.dropWhile(!_.startsWith("Exception in thread "))
       val tab            = "\t"
-      val expectedLines =
+      val expectedLines  =
         if (actualScalaVersion.startsWith("2.12."))
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:6)
@@ -233,7 +390,10 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
              |${tab}at throws$$.something(throws.sc:2)
              |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:3)
              |$tab... 10 more""".stripMargin.linesIterator.toVector
-        else if (actualScalaVersion.coursierVersion >= ("2.13.13".coursierVersion))
+        else if (
+          actualScalaVersion.coursierVersion >= "2.13.13".coursierVersion &&
+          actualScalaVersion.coursierVersion < "2.13.17".coursierVersion
+        )
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:6)
              |${tab}at throws$$delayedInit$$body.apply(throws.sc:65534)
@@ -245,6 +405,28 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
              |${tab}at scala.collection.IterableOnceOps.foreach(IterableOnce.scala:619)
              |${tab}at scala.collection.IterableOnceOps.foreach$$(IterableOnce.scala:617)
              |${tab}at scala.collection.AbstractIterable.foreach(Iterable.scala:935)
+             |${tab}at scala.App.main(App.scala:98)
+             |${tab}at scala.App.main$$(App.scala:96)
+             |${tab}at throws$$.main(throws.sc:65534)
+             |${tab}at throws.main(throws.sc)
+             |Caused by: java.lang.RuntimeException: nope
+             |${tab}at scala.sys.package$$.error(package.scala:27)
+             |${tab}at throws$$.something(throws.sc:2)
+             |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:3)
+             |$tab... 13 more
+             |""".stripMargin.linesIterator.toVector
+        else if (actualScalaVersion.coursierVersion >= "2.13.17".coursierVersion)
+          s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
+             |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:6)
+             |${tab}at throws$$delayedInit$$body.apply(throws.sc:65534)
+             |${tab}at scala.Function0.apply$$mcV$$sp(Function0.scala:42)
+             |${tab}at scala.Function0.apply$$mcV$$sp$$(Function0.scala:42)
+             |${tab}at scala.runtime.AbstractFunction0.apply$$mcV$$sp(AbstractFunction0.scala:17)
+             |${tab}at scala.App.$$anonfun$$main$$1(App.scala:98)
+             |${tab}at scala.App.$$anonfun$$main$$1$$adapted(App.scala:98)
+             |${tab}at scala.collection.IterableOnceOps.foreach(IterableOnce.scala:630)
+             |${tab}at scala.collection.IterableOnceOps.foreach$$(IterableOnce.scala:628)
+             |${tab}at scala.collection.AbstractIterable.foreach(Iterable.scala:936)
              |${tab}at scala.App.main(App.scala:98)
              |${tab}at scala.App.main$$(App.scala:96)
              |${tab}at throws$$.main(throws.sc:65534)
@@ -406,7 +588,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       val inputs = TestInputs(
         os.rel / "f.sc" ->
           s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
-              |//> using scala "$actualScalaVersion"
+              |//> using scala $actualScalaVersion
               |println(args.toList)""".stripMargin
       )
       inputs.fromRoot { root =>
@@ -416,11 +598,28 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       }
     }
 
+  test("script file with shebang header and no extension run with scala-cli") {
+    val expected   = "success"
+    val scriptName = "scriptWithShebang"
+    val inputs     = TestInputs(
+      os.rel / scriptName ->
+        s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang
+            |//> using scala $actualScalaVersion
+            |println(s"$expected")""".stripMargin
+    )
+    val cmd = TestUtil.cli ++ Seq(scriptName)
+    inputs.fromRoot { root =>
+      val actual = os.proc(cmd)
+        .call(cwd = root).out.trim()
+      expect(actual == expected)
+    }
+  }
+
   test("script file with shebang header and no extension run with scala-cli shebang") {
     val inputs = TestInputs(
       os.rel / "script-with-shebang" ->
         s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
-            |//> using scala "$actualScalaVersion"
+            |//> using scala $actualScalaVersion
             |println(args.toList)""".stripMargin
     )
     inputs.fromRoot { root =>
@@ -434,11 +633,10 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       expect(output == "List(1, 2, 3, -v)")
     }
   }
-
   test("script file with NO shebang header and no extension run with scala-cli shebang") {
     val inputs = TestInputs(
       os.rel / "script-no-shebang" ->
-        s"""//> using scala "$actualScalaVersion"
+        s"""//> using scala $actualScalaVersion
            |println(args.toList)""".stripMargin
     )
     inputs.fromRoot { root =>
@@ -465,8 +663,8 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
     val inputs = TestInputs(
       os.rel / "script.sc" ->
-        s"""//> using scala "$actualScalaVersion"
-           |//> using dep "$dependencyOsLib"
+        s"""//> using scala $actualScalaVersion
+           |//> using dep $dependencyOsLib
            |
            |println(args.toList)""".stripMargin
     )
@@ -482,7 +680,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     test("no deadlock when running background threads") {
       val inputs = TestInputs(
         os.rel / "script.sc" ->
-          s"""//> using scala "$actualScalaVersion"
+          s"""//> using scala $actualScalaVersion
              |
              |import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
              |import scala.concurrent.duration._
@@ -507,7 +705,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     test("user readable error when @main is used") {
       val inputs = TestInputs(
         os.rel / "script.sc" ->
-          """//> using dep "com.lihaoyi::os-lib:0.9.1"
+          """//> using dep com.lihaoyi::os-lib:0.9.1
             |/*ignore this while regexing*/ @main def main(args: Strings*): Unit = println("Hello")
             |""".stripMargin
       )
@@ -599,8 +797,8 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       wrapperType = if (useObjectWrapper) "object" else "class"
     }
       test(s"$wrapperType script wrapper satisfies strict compiler flags") {
-        val expectedMessage = "Hello"
-        val sourceFileName  = "strictClassWrapper.sc"
+        val expectedMessage      = "Hello"
+        val sourceFileName       = "strictClassWrapper.sc"
         val versionDependentOpts =
           if (
             actualScalaVersion.coursierVersion >= "3.5.0".coursierVersion
@@ -644,7 +842,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       test(s"$wrapperType script wrapper satisfies strict compiler flags") {
         val expectedMessage = "Hello"
         val sourceFileName  = "strictClassWrapper.sc"
-        val warningOptions =
+        val warningOptions  =
           if (actualScalaVersion.startsWith("2.13"))
             Seq("-Werror", "-Wdead-code", "-Wextra-implicit")
           else Seq("-Werror")
@@ -666,43 +864,54 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       }
 
   test("verify drive-relative JAVA_HOME works") {
-    val java8Home =
-      os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+    TestUtil.retryOnCi() {
+      val jvmIndex =
+        if TestUtil.isJvmCli && !isScala38OrNewer then Constants.minimumLauncherJavaVersion
+        else if isScala38OrNewer then Constants.defaultJvmVersion
+        else 8
+      val oldJavaHome =
+        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", jvmIndex).call().out.trim(), os.pwd)
 
-    val dr = os.Path.driveRoot
+      val dr = os.Path.driveRoot
 
-    // forward slash is legal in `Windows`
-    val javaHome = java8Home.toString.replace('\\', '/')
-    expect(javaHome.drop(dr.length).startsWith("/"))
+      // forward slash is legal in `Windows`
+      val javaHome = oldJavaHome.toString.replace('\\', '/')
+      expect(javaHome.drop(dr.length).startsWith("/"))
 
-    val sysPath: String = System.getenv("PATH").replace('\\', '/')
-    val newPath: String = s"$javaHome/bin" + File.pathSeparator + sysPath
+      val sysPath: String = System.getenv("PATH").replace('\\', '/')
+      val newPath: String = s"$javaHome/bin" + File.pathSeparator + sysPath
 
-    val extraEnv = Map(
-      "JAVA_HOME" -> java8Home.toString,
-      "PATH"      -> newPath
-    )
+      val extraEnv = Map(
+        "JAVA_HOME" -> oldJavaHome.toString,
+        "PATH"      -> newPath
+      )
 
-    val inputs = TestInputs(
-      os.rel / "script-with-shebang" ->
-        s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
-            |//> using scala "$actualScalaVersion"
-            |println(args.toList)""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      printf("TestUtil.cli: [%s]\njavaHome: [%s]\nnewPath: [%s]\n", TestUtil.cli, javaHome, newPath)
-      val proc = if (!Properties.isWin) {
-        os.perms.set(root / "script-with-shebang", os.PermSet.fromString("rwx------"))
-        os.proc("./script-with-shebang", "1", "2", "3", "-v")
+      val inputs = TestInputs(
+        os.rel / "script-with-shebang" ->
+          s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
+              |//> using scala $actualScalaVersion
+              |println(args.toList)""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        printf(
+          "TestUtil.cli: [%s]\njavaHome: [%s]\nnewPath: [%s]\n",
+          TestUtil.cli,
+          javaHome,
+          newPath
+        )
+        val proc = if (!Properties.isWin) {
+          os.perms.set(root / "script-with-shebang", os.PermSet.fromString("rwx------"))
+          os.proc("./script-with-shebang", "1", "2", "3", "-v")
+        }
+        else
+          os.proc(TestUtil.cli, "shebang", "script-with-shebang", "1", "2", "3", "-v")
+
+        val output = proc.call(cwd = root, env = extraEnv).out.trim()
+
+        val expectedOutput = "List(1, 2, 3, -v)"
+
+        expect(output == expectedOutput)
       }
-      else
-        os.proc(TestUtil.cli, "shebang", "script-with-shebang", "1", "2", "3", "-v")
-
-      val output = proc.call(cwd = root, env = extraEnv).out.trim()
-
-      val expectedOutput = "List(1, 2, 3, -v)"
-
-      expect(output == expectedOutput)
     }
   }
 

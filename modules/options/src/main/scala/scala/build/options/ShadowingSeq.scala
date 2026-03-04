@@ -2,11 +2,12 @@ package scala.build.options
 
 import dependency.AnyDependency
 
+import scala.build.options.ScalacOpt.noDashPrefixes
 import scala.collection.mutable
 
 /** Seq ensuring some of its values are unique according to some key */
 final case class ShadowingSeq[T] private (values: Seq[Seq[T]]) {
-  lazy val toSeq: Seq[T] = values.flatten
+  lazy val toSeq: Seq[T]                                                      = values.flatten
   def map[U](f: T => U)(implicit key: ShadowingSeq.KeyOf[U]): ShadowingSeq[U] =
     ShadowingSeq.empty[U] ++ toSeq.map(f)
   def mapSubSeq[U](f: Seq[T] => Seq[U]): ShadowingSeq[U] =
@@ -20,7 +21,7 @@ final case class ShadowingSeq[T] private (values: Seq[Seq[T]]) {
       case Seq(head, _*) => f(head)
       case _             => true
     }
-  def keys: Seq[T] = values.map(_.head)
+  def keys: Seq[T]                                                            = values.map(_.head)
   def ++(other: Seq[T])(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] =
     addGroups(ShadowingSeq.groups(other, key.groups(other)))
   private def addGroups(other: Seq[Seq[T]])(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] =
@@ -31,10 +32,11 @@ final case class ShadowingSeq[T] private (values: Seq[Seq[T]]) {
       for (group <- values.iterator ++ other.iterator) {
         assert(group.nonEmpty)
         val keyOpt = key.makeKey(group)
-        if (!keyOpt.exists(seen.contains)) {
+        if !keyOpt.exists(k => seen.contains(k.noDashPrefixes))
+        then {
           l += group
           for (key <- keyOpt)
-            seen += key
+            seen += key.noDashPrefixes
         }
       }
 

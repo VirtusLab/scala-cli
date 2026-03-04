@@ -30,8 +30,8 @@ case class Options(
 enum Commands:
   def context: Context
   def name: String = toString.takeWhile(_ != '(')
-  def log: Any = this match {
-    case _: Clear => ""
+  def log: Any     = this match {
+    case _: Clear                  => ""
     case Check(patterns, regex, _) =>
       val kind = if regex then "regexes" else "patterns"
       s"last output matches $kind: ${patterns.map(p => s"'$p'").mkString(", ")}"
@@ -132,7 +132,7 @@ def checkPath(options: Options)(path: os.Path): Seq[TestCase] =
         os.list(path).filterNot(_.last.startsWith("."))
       toCheck.toList.flatMap(checkPath(options))
   catch
-    case e @ FailedCheck(line, file, text) =>
+    case e @ FailedCheck(_, _, _) =>
       println(Red(e.getMessage))
       Seq(TestCase(path.relativeTo(os.pwd), Some(e.getMessage)))
     case e: Throwable =>
@@ -169,7 +169,7 @@ def checkFile(file: os.Path, options: Options): Unit =
   val content  = os.read.lines(file).toList
   val commands = parse(content, Vector(), Context(file.relativeTo(os.pwd), 1))
   val destName = file.last.stripSuffix(".md")
-  val out =
+  val out      =
     sys.env.get("SCLICHECK_DEST") match
       case None =>
         val isCi = System.getenv("CI") != null
@@ -201,12 +201,13 @@ def checkFile(file: os.Path, options: Options): Unit =
            |exec $escapedCommand "$$@"
            |""".stripMargin
       os.write(binDir0 / scriptName, scriptCode)
-      os.perms.set(binDir0 / scriptName, "rwxr-xr-x")
+      if !scala.util.Properties.isWin then
+        os.perms.set(binDir0 / scriptName, "rwxr-xr-x")
     }
     createHelperScript(options.scalaCliCommand, "scala-cli")
     createHelperScript(options.scalaCliCommand, "scala")
     val coursierCliDep =
-      s"${Constants.coursierOrg}:${Constants.coursierCliModule}:${Constants.coursierCliVersion}"
+      s"${Constants.coursierOrg}:${Constants.coursierCliModule}_3:${Constants.coursierCliVersion}"
     createHelperScript(
       options.scalaCliCommand ++ Seq(
         "run",
@@ -214,7 +215,7 @@ def checkFile(file: os.Path, options: Options): Unit =
         coursierCliDep,
         "--",
         "launch",
-        s"scala:${Constants.defaultScalaVersion}",
+        s"scala:${Constants.scalaLegacyRunnerVersion}",
         "-M",
         "dotty.tools.MainGenericRunner",
         "--"
@@ -262,7 +263,7 @@ def checkFile(file: os.Path, options: Options): Unit =
         if !shouldAlignContent(file) then prefixLines.mkString("")
         else prefixLines.mkString("", "", s"$fakeLineMarker\n" * c.line)
 
-      os.write.over(file, code.mkString(prefix, "\n", ""), createFolders = true)
+      os.write.over(file, codeLines.mkString(prefix, "\n", ""), createFolders = true)
 
     def run(cmd: os.proc): Int =
       val res = cmd.call(
@@ -289,9 +290,12 @@ def checkFile(file: os.Path, options: Options): Unit =
             .foreach(os.remove.all)
         val script = out / ".scala-build" / "run.sh"
         os.write.over(script, mkBashScript(cmds), createFolders = true)
-        os.perms.set(script, "rwxr-xr-x")
-
-        val exitCode = run(os.proc(script))
+        val scriptProc = if scala.util.Properties.isWin then
+          os.proc("sh.exe", script)
+        else
+          os.perms.set(script, "rwxr-xr-x")
+          os.proc(script)
+        val exitCode = run(scriptProc)
         if shouldFail then
           check(exitCode != 0, s"Commands should fail.")
         else
@@ -342,7 +346,7 @@ def checkFile(file: os.Path, options: Options): Unit =
       def printResult(success: Boolean, startTime: Long): Unit =
         val duration    = System.currentTimeMillis - startTime
         val commandName = s"[${cmd.name} in $duration ms]"
-        val cmdLog =
+        val cmdLog      =
           if success then Green(commandName)
           else Red(commandName)
         println(s"$cmdLog ${cmd.log}")
@@ -386,7 +390,7 @@ def checkFile(file: os.Path, options: Options): Unit =
           val tail = content.drop(1).dropWhile(_ == fakeLineMarker)
           head ++ tail
 
-      os.write.over(s, content.mkString(s"// $header\n\n", "\n", ""))
+      os.write.over(s, cleared.mkString(s"// $header\n\n", "\n", ""))
     }
     val withoutFrontMatter =
       if !content.head.startsWith("---") then content
@@ -441,7 +445,7 @@ def checkFile(file: os.Path, options: Options): Unit =
 
   @tailrec
   def parseArgs(args: Seq[String], options: Options): Options = args match
-    case Nil => options
+    case Nil              => options
     case "--step" :: rest =>
       parseArgs(rest, options.copy(step = true))
     case "--stopAtFailure" :: rest =>

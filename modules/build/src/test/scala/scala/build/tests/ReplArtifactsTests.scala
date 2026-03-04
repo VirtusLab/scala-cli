@@ -4,23 +4,21 @@ import com.eed3si9n.expecty.Expecty.expect
 import coursier.cache.FileCache
 import dependency.ScalaParameters
 
-import scala.build.{Directories, Logger, ReplArtifacts}
+import scala.build.{Logger, ReplArtifacts}
 
 class ReplArtifactsTests extends TestUtil.ScalaCliBuildSuite {
-
   def scalaPyTest(version: String, usesFormerOrg: Boolean = false): Unit =
-    TestInputs.withTmpDir("replartifactstests") { root =>
+    TestInputs.withTmpDir("replartifactstests") { _ =>
       val artifacts = ReplArtifacts.ammonite(
-        ScalaParameters("2.13.8"),
-        "2.5.4",
-        Nil,
-        Nil,
-        Nil,
-        Nil,
-        Logger.nop,
-        FileCache(),
-        Directories.under(root),
-        Some(version)
+        scalaParams = ScalaParameters("2.13.8"),
+        ammoniteVersion = "2.5.4",
+        dependencies = Nil,
+        extraClassPath = Nil,
+        extraSourceJars = Nil,
+        extraRepositories = Nil,
+        logger = Logger.nop,
+        cache = FileCache(),
+        addScalapy = Some(version)
       ).fold(e => throw new Exception(e), identity)
 
       val urls           = artifacts.replArtifacts.map(_._1)

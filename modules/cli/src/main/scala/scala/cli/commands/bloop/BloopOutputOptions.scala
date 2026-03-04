@@ -2,7 +2,7 @@ package scala.cli.commands.bloop
 
 import caseapp.*
 
-import scala.cli.commands.shared.{GlobalOptions, GlobalSuppressWarningOptions, HasGlobalOptions, HelpMessages, LoggingOptions, SharedCompilationServerOptions}
+import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpMessages, SharedCompilationServerOptions}
 
 // format: off
 @HelpMessage(

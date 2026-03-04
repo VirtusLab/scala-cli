@@ -1,5 +1,6 @@
 package scala.build.tests
 
+import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.options.{BuildOptions, InternalOptions, PackageType}
@@ -7,12 +8,11 @@ import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 
 class PackagingUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
+  val buildThreads: BuildThreads            = BuildThreads.create()
+  def bloopConfig: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
 
-  val buildThreads = BuildThreads.create()
-  def bloopConfig  = Some(BloopServer.bloopConfig)
-
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
 
   val buildOptions = BuildOptions(
     internal = InternalOptions(
@@ -24,7 +24,7 @@ class PackagingUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("package type") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using packaging.packageType "graalvm"
+        """//> using packaging.packageType graalvm
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -38,7 +38,7 @@ class PackagingUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
     val output = "foo"
     val inputs = TestInputs(
       os.rel / "Bar.scala" ->
-        s"""//> using packaging.output "$output"
+        s"""//> using packaging.output $output
            |def hello() = println("hello")
            |""".stripMargin
     )
@@ -54,10 +54,10 @@ class PackagingUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("docker options") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using packaging.dockerFrom "openjdk:11"
-          |//> using packaging.dockerImageTag "1.0.0"
-          |//> using packaging.dockerImageRegistry "virtuslab"
-          |//> using packaging.dockerImageRepository "scala-cli"
+        """//> using packaging.dockerFrom openjdk:11
+          |//> using packaging.dockerImageTag 1.0.0
+          |//> using packaging.dockerImageRegistry virtuslab
+          |//> using packaging.dockerImageRepository scala-cli
           |
           |def foo() = println("hello foo")
           |""".stripMargin

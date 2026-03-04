@@ -4,7 +4,7 @@ import caseapp.*
 import caseapp.core.help.HelpFormat
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import coursier.core
+import coursier.version.Version
 
 import java.net.{HttpURLConnection, URL, URLConnection}
 import java.nio.charset.StandardCharsets
@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets
 import scala.build.Logger
 import scala.build.errors.CheckScalaCliVersionError
 import scala.build.internal.Constants.{ghName, ghOrg, version as scalaCliVersion}
-import scala.cli.CurrentParams
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.signing.shared.Secret
@@ -31,8 +30,8 @@ object Update extends ScalaCommand[UpdateOptions] {
     prerelease: Boolean,
     tag_name: String
   ) {
-    lazy val version: core.Version =
-      coursier.core.Version(tag_name.stripPrefix("v"))
+    lazy val version: Version =
+      Version(tag_name.stripPrefix("v"))
     def actualRelease: Boolean =
       !draft && !prerelease
   }
@@ -42,21 +41,21 @@ object Update extends ScalaCommand[UpdateOptions] {
   def newestScalaCliVersion(tokenOpt: Option[Secret[String]])
     : Either[CheckScalaCliVersionError, String] = {
     // FIXME Do we need paging here?
-    val url = s"https://api.github.com/repos/$ghOrg/$ghName/releases"
+    val url     = s"https://api.github.com/repos/$ghOrg/$ghName/releases"
     val headers =
       Seq("Accept" -> "application/vnd.github.v3+json") ++
         tokenOpt.toSeq.map(tk => "Authorization" -> s"token ${tk.value}")
 
     try {
-      val resp = download(url, headers: _*)
-      readFromArray(resp)(releaseListCodec).filter(_.actualRelease)
+      val resp = download(url, headers*)
+      readFromArray(resp)(using releaseListCodec).filter(_.actualRelease)
         .maxByOption(_.version)
         .map(_.version.repr)
         .toRight(CheckScalaCliVersionError(s"No $fullRunnerName versions found in $url"))
     }
     catch {
       case e: JsonReaderException => Left(CheckScalaCliVersionError(s"Error reading $url", e))
-      case e: Throwable => Left(CheckScalaCliVersionError(
+      case e: Throwable           => Left(CheckScalaCliVersionError(
           s"Failed to check for the newest Scala CLI version upstream: ${e.getMessage}",
           e
         ))

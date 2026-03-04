@@ -2,8 +2,6 @@ package scala.cli.exportCmd
 
 import dependency.NoAttributes
 
-import java.nio.charset.Charset
-
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaJsOptions}
 import scala.build.{Logger, Sources}
