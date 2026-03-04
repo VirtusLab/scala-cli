@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.util.CompilerPluginUtil
 
-trait CompilerPluginTestDefinitions { _: CompileTestDefinitions =>
+trait CompilerPluginTestDefinitions { this: CompileTestDefinitions =>
   def compilerPluginInputs(pluginName: String, pluginErrorMsg: String): TestInputs =
     if (actualScalaVersion.startsWith("3"))
       CompilerPluginUtil.compilerPluginForScala3(pluginName, pluginErrorMsg)

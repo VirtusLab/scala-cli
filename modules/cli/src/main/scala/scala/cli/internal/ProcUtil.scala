@@ -61,7 +61,7 @@ object ProcUtil {
     }
   }
 
-  def waitForProcess(process: Process, onExit: CompletableFuture[_]): Unit = {
+  def waitForProcess(process: Process, onExit: CompletableFuture[?]): Unit = {
     process.waitFor()
     try onExit.join()
     catch {

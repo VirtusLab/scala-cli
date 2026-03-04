@@ -5,7 +5,7 @@ import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic}
 import scala.build.options.BuildOptions
 
 object ActionablePreprocessor {
-  val actionableHandlers = Seq[ActionableHandler[_]](
+  val actionableHandlers = Seq[ActionableHandler[?]](
     ActionableDependencyHandler
   )
 

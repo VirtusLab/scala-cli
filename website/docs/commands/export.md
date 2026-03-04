@@ -121,7 +121,7 @@ object project extends ScalaModule {
 
 ```
 
-The script files `mill` and `mill.bat` are mill wrappers fetched from [lefou/millw repository](https://github.com/lefou/millw/tree/166bcdf5741de8569e0630e18c3b2ef7e252cd96).
+The script files `mill` and `mill.bat` are mill wrappers fetched from [the Mill repository](https://github.com/com-lihaoyi/mill).
 To change the build tool version used override the contents of `dest_mill/.mill-version`.
 
 

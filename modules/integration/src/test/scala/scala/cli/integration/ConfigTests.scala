@@ -111,7 +111,7 @@ class ConfigTests extends ScalaCliSuite {
     TestInputs().fromRoot { root =>
       val confDir  = root / "config"
       val confFile = confDir / "test-config.json"
-      val content =
+      val content  =
         // non-formatted on purpose
         s"""{
            |  "httpProxy": {  "address" :      "$proxyAddr"     } }

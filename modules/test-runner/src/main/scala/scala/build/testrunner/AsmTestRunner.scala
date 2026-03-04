@@ -1,14 +1,14 @@
 package scala.build.testrunner
 
 import org.objectweb.asm
-import sbt.testing.{Logger => _, _}
+import sbt.testing.*
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import java.util.concurrent.ConcurrentHashMap
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object AsmTestRunner {
 
@@ -38,11 +38,11 @@ object AsmTestRunner {
           parents
       }
 
-    def allParents(className: String): Stream[String] = {
+    def allParents(className: String): LazyList[String] = {
 
-      def helper(done: Set[String], todo: List[String]): Stream[String] =
+      def helper(done: Set[String], todo: List[String]): LazyList[String] =
         todo match {
-          case Nil    => Stream.empty
+          case Nil    => LazyList.empty
           case h :: t =>
             if (done(h)) helper(done, t)
             else h #:: helper(done + h, parents(h).toList ::: t)
@@ -97,7 +97,7 @@ object AsmTestRunner {
       }
   }
 
-  def listClassesByteCode(
+  private def listClassesByteCode(
     classPathEntry: Path,
     keepJars: Boolean
   ): Iterator[(String, () => InputStream)] =
@@ -113,7 +113,7 @@ object AsmTestRunner {
           .map { p =>
             val clsName      = classPathEntry.relativize(p).toString.stripSuffix(".class")
             def openStream() = Files.newInputStream(p)
-            (clsName, openStream _)
+            (clsName, () => openStream())
           }
           .toVector // fully consume stream before closing it
           .iterator
@@ -142,7 +142,7 @@ object AsmTestRunner {
               }) baos.write(buf, 0, read)
               val clsName      = ent.getName.stripSuffix(".class")
               def openStream() = new ByteArrayInputStream(baos.toByteArray)
-              (clsName, openStream _)
+              (clsName, () => openStream())
             }
             finally if (is != null) is.close()
           }
@@ -153,13 +153,13 @@ object AsmTestRunner {
     }
     else Iterator.empty
 
-  def listClassesByteCode(
+  private def listClassesByteCode(
     classPath: Seq[Path],
     keepJars: Boolean
   ): Iterator[(String, () => InputStream)] =
     classPath.iterator.flatMap(listClassesByteCode(_, keepJars))
 
-  def findInClassPath(classPathEntry: Path, name: String): Option[Array[Byte]] =
+  private def findInClassPath(classPathEntry: Path, name: String): Option[Array[Byte]] =
     if (Files.isDirectory(classPathEntry)) {
       val p = classPathEntry.resolve(name)
       if (Files.isRegularFile(p)) Some(Files.readAllBytes(p))
@@ -190,7 +190,7 @@ object AsmTestRunner {
     }
     else None
 
-  def findInClassPath(classPath: Seq[Path], name: String): Iterator[Array[Byte]] =
+  private def findInClassPath(classPath: Seq[Path], name: String): Iterator[Array[Byte]] =
     classPath
       .iterator
       .flatMap(findInClassPath(_, name).iterator)
@@ -329,7 +329,7 @@ object AsmTestRunner {
       ).toArray
 
     val runner       = framework.runner(Array(), Array(), classLoader)
-    val initialTasks = runner.tasks(taskDefs0)
+    val initialTasks = runner.tasks(taskDefs0).toSeq
     val events       = TestRunner.runTasks(initialTasks, out)
 
     val doneMsg = runner.done()

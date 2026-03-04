@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-trait RunGistTestDefinitions { _: RunTestDefinitions =>
+trait RunGistTestDefinitions { this: RunTestDefinitions =>
   def escapedUrls(url: String): String =
     if (Properties.isWin) "\"" + url + "\""
     else url

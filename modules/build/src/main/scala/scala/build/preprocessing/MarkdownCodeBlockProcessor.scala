@@ -10,7 +10,6 @@ object MarkdownCodeBlockProcessor {
   def process(
     codeBlocks: Seq[MarkdownCodeBlock],
     reportingPath: Either[String, os.Path],
-    scopePath: ScopePath,
     suppressWarningOptions: SuppressWarningOptions,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException]

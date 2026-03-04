@@ -43,7 +43,8 @@ final case class UserCheck(
 
   def check(pubOpt: BPublishOptions): Boolean =
     pubOpt.retained(options.publishParams.setupCi).repoUser.nonEmpty ||
-    !options.publishParams.setupCi && (userOpt(pubOpt) match {
+    !options.publishParams.setupCi &&
+    (userOpt(pubOpt) match {
       case Left(ex) =>
         logger.debug("Ignoring error while trying to get user from config")
         logger.debug(ex)

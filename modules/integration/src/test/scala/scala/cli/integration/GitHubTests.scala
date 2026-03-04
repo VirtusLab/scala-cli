@@ -1,7 +1,7 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import coursier.cache.ArchiveCache
 import coursier.util.Artifact
@@ -66,9 +66,11 @@ class GitHubTests extends ScalaCliSuite {
   // currently having issues loading libsodium from the static launcher
   // that launcher is mainly meant to be used on CIs or from docker, missing
   // that feature shouldn't be a big deal there
-  if (TestUtil.cliKind != "native-static")
-    if (Properties.isMac) test("create secret".flaky)(createSecret())
-    else test("create secret")(TestUtil.retryOnCi()(createSecret()))
+  if !TestUtil.isNativeStaticCli && !Properties.isMac && !TestUtil.isAarch64 then
+    // TODO fix this for static launchers: https://github.com/VirtusLab/scala-cli/issues/4068
+    // TODO fix this for MacOS: https://github.com/VirtusLab/scala-cli/issues/4067
+    // TODO fix this for Linux arm64: https://github.com/VirtusLab/scala-cli/issues/4069
+    test("create secret")(TestUtil.retryOnCi()(createSecret()))
 
 }
 
@@ -93,7 +95,7 @@ object GitHubTests {
   implicit val encryptedSecretCodec: JsonValueCodec[EncryptedSecret] =
     JsonCodecMaker.make
 
-  private def libsodiumVersion = Constants.libsodiumVersion
+  private def condaLibsodiumVersion = Constants.condaLibsodiumVersion
 
   // Warning: somehow also in settings.sc in the build, and in FetchExternalBinary
   lazy val condaPlatform: String = {
@@ -131,7 +133,7 @@ object GitHubTests {
       case other           => sys.error(s"Unrecognized conda platform $other")
     }
     (
-      s"https://anaconda.org/conda-forge/libsodium/$libsodiumVersion/download/$condaPlatform/libsodium-$libsodiumVersion$suffix.tar.bz2",
+      s"https://anaconda.org/conda-forge/libsodium/$condaLibsodiumVersion/download/$condaPlatform/libsodium-$condaLibsodiumVersion$suffix.tar.bz2",
       relPath
     )
   }

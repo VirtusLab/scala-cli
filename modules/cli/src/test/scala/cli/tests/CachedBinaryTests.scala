@@ -1,6 +1,7 @@
 package scala.cli.tests
 
 import bloop.rifle.BloopRifleConfig
+import cli.tests.TestUtil
 import com.eed3si9n.expecty.Expecty.assert as expect
 import os.Path
 
@@ -11,8 +12,7 @@ import scala.build.{Build, BuildThreads, Directories, LocalRepo}
 import scala.cli.internal.CachedBinary
 import scala.util.{Properties, Random}
 
-class CachedBinaryTests extends munit.FunSuite {
-
+class CachedBinaryTests extends TestUtil.ScalaCliSuite {
   val buildThreads: BuildThreads    = BuildThreads.create()
   def bloopConfig: BloopRifleConfig = BloopServer.bloopConfig
 

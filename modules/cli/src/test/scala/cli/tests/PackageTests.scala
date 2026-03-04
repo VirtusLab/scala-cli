@@ -1,5 +1,6 @@
 package cli.tests
 
+import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.nio.file.FileSystems
@@ -12,13 +13,12 @@ import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.cli.commands.package0.Package
 import scala.cli.packaging.Library
 
-class PackageTests extends munit.FunSuite {
+class PackageTests extends TestUtil.ScalaCliSuite {
+  val buildThreads: BuildThreads    = BuildThreads.create()
+  def bloopConfig: BloopRifleConfig = BloopServer.bloopConfig
 
-  val buildThreads = BuildThreads.create()
-  def bloopConfig  = BloopServer.bloopConfig
-
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
 
   val defaultOptions = BuildOptions(
     internal = InternalOptions(
@@ -93,5 +93,4 @@ class PackageTests extends munit.FunSuite {
         expect(packageType == PackageType.Native.Application)
     }
   }
-
 }

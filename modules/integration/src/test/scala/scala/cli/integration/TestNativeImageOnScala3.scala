@@ -40,14 +40,21 @@ class TestNativeImageOnScala3 extends ScalaCliSuite {
     }
   }
 
-  test("lazy vals") {
-    runTest("1")("2") {
-      """//> using scala 3.1.1
-        |class A(a: String) { lazy val b = a.toInt + 1 }
-        |@main def add1(i: String) = println(A(i).b)
-        |""".stripMargin
-    }
+  for {
+    scalaVersion <- TestUtil.legacyScalaVersionsOnePerMinor.sorted ++ Seq(
+      Constants.scala3Lts,
+      Constants.scala3Next,
+      Constants.scala3NextRc
+    )
   }
+    test(s"lazy vals ($scalaVersion)") {
+      runTest("1")("2") {
+        s"""//> using scala $scalaVersion
+           |class A(a: String) { lazy val b = a.toInt + 1 }
+           |@main def add1(i: String) = println(A(i).b)
+           |""".stripMargin
+      }
+    }
 
   test("lazy vals and enums with default scala version") {
     runTest("1")("2", "A") {

@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
+trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
   test("basic built-in rules") {
     val mainFileName = "Main.scala"
     val inputs       = TestInputs(
@@ -38,7 +38,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
         .call(cwd = root, mergeErrIntoOut = true).out.trim()
 
       assertNoDiff(
-        fixOutput,
+        filterDebugOutputs(fixOutput),
         """Running built-in rules...
           |Extracting directives from Main.scala
           |Extracting directives from project.scala
@@ -107,7 +107,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
           .call(cwd = root, mergeErrIntoOut = true).out.trim()
 
       assertNoDiff(
-        fixOutput,
+        filterDebugOutputs(fixOutput),
         """Running built-in rules...
           |Extracting directives from project.scala
           |Extracting directives from main.sc
@@ -192,7 +192,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
           .call(cwd = root, mergeErrIntoOut = true).out.trim()
 
       assertNoDiff(
-        fixOutput,
+        filterDebugOutputs(fixOutput),
         """Running built-in rules...
           |Extracting directives from project.scala
           |Extracting directives from src/Main.scala
@@ -335,7 +335,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
         ).call(cwd = root, stderr = os.Pipe)
 
         assertNoDiff(
-          res.err.trim(),
+          filterDebugOutputs(res.err.trim()),
           s"""Running built-in rules...
              |Extracting directives from project.scala
              |Extracting directives from src/Main.scala

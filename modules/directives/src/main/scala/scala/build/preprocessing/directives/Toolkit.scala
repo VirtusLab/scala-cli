@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 
-import coursier.core.Version
+import coursier.version.Version
 import dependency.*
 
 import scala.build.Positioned
@@ -19,7 +19,7 @@ import scala.cli.commands.SpecificationLevel
   "//> using toolkit _version_",
   """`//> using toolkit` _version_
     |
-    |//> using test.toolkit` _version_
+    |`//> using test.toolkit` _version_
     |""".stripMargin
 )
 @DirectiveDescription(
@@ -207,7 +207,7 @@ object Toolkit {
             .map(s => BuildOptions.empty.withScopeRequirement(s))
             .getOrElse(BuildOptions.empty.withEmptyRequirements)
         } { (acc, boWithReqs) =>
-          acc.map(_ orElse boWithReqs.value)
+          acc.map(_.orElse(boWithReqs.value))
         }
       }
     }

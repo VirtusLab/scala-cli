@@ -24,6 +24,7 @@ import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
+import scala.compiletime.uninitialized
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.jdk.CollectionConverters.*
@@ -55,9 +56,9 @@ final class BspImpl(
 
   private val shownGlobalMessages =
     new java.util.concurrent.ConcurrentHashMap[String, Unit]()
-  private var actualLocalClient: BspClient                     = _
-  private var localClient: b.BuildClient with BloopBuildClient = _
-  private val bloopSession                                     = new BloopSession.Reference
+  private var actualLocalClient: BspClient                  = uninitialized
+  private var localClient: b.BuildClient & BloopBuildClient = uninitialized
+  private val bloopSession                                  = new BloopSession.Reference
 
   /** Sends the buildTarget/didChange BSP notification to the BSP client, indicating that the build
     * targets defined in the current session have changed.
@@ -155,32 +156,30 @@ final class BspImpl(
 
     val (classesDir0Main, scalaParamsMain, artifactsMain, projectMain, buildChangedMain) = value {
       val res = Build.prepareBuild(
-        allInputs,
-        sourcesMain,
-        generatedSourcesMain,
-        options0Main,
-        None,
-        Scope.Main,
-        currentBloopSession.remoteServer,
-        persistentLogger,
-        localClient,
-        maybeRecoverOnError(Scope.Main)
+        inputs = allInputs,
+        sources = sourcesMain,
+        generatedSources = generatedSourcesMain,
+        options = options0Main,
+        scope = Scope.Main,
+        compiler = currentBloopSession.remoteServer,
+        logger = persistentLogger,
+        buildClient = localClient,
+        maybeRecoverOnError = maybeRecoverOnError(Scope.Main)
       )
       res.left.map((_, Scope.Main))
     }
 
     val (classesDir0Test, scalaParamsTest, artifactsTest, projectTest, buildChangedTest) = value {
       val res = Build.prepareBuild(
-        allInputs,
-        sourcesTest,
-        generatedSourcesTest,
-        options0Test,
-        None,
-        Scope.Test,
-        currentBloopSession.remoteServer,
-        persistentLogger,
-        localClient,
-        maybeRecoverOnError(Scope.Test)
+        inputs = allInputs,
+        sources = sourcesTest,
+        generatedSources = generatedSourcesTest,
+        options = options0Test,
+        scope = Scope.Test,
+        compiler = currentBloopSession.remoteServer,
+        logger = persistentLogger,
+        buildClient = localClient,
+        maybeRecoverOnError = maybeRecoverOnError(Scope.Test)
       )
       res.left.map((_, Scope.Test))
     }
@@ -388,7 +387,7 @@ final class BspImpl(
     * @return
     *   BSP client
     */
-  private def getLocalClient(verbosity: Int): b.BuildClient with BloopBuildClient =
+  private def getLocalClient(verbosity: Int): b.BuildClient & BloopBuildClient =
     if (verbosity >= 3)
       new BspImpl.LoggingBspClient(actualLocalClient)
     else
@@ -466,22 +465,18 @@ final class BspImpl(
     val currentBloopSession = newBloopSession(initialInputs, initialBspOptions)
     bloopSession.update(null, currentBloopSession, "BSP server already initialized")
 
-    val actualLocalServer: b.BuildServer
-      with b.ScalaBuildServer
-      with b.JavaBuildServer
-      with b.JvmBuildServer
-      with ScalaScriptBuildServer
-      with HasGeneratedSources = new BuildServerProxy(
-      () => bloopSession.get().bspServer,
-      () => onReload()
-    )
+    val actualLocalServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer
+      & ScalaScriptBuildServer & HasGeneratedSources =
+      new BuildServerProxy(
+        () => bloopSession.get().bspServer,
+        () => onReload()
+      )
 
-    val localServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
-      with b.JvmBuildServer with ScalaScriptBuildServer =
-      if (verbosity >= 3)
-        new LoggingBuildServerAll(actualLocalServer)
-      else
-        actualLocalServer
+    val localServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer
+      & ScalaScriptBuildServer =
+      if verbosity >= 3
+      then new LoggingBuildServerAll(actualLocalServer)
+      else actualLocalServer
 
     val launcher = new jsonrpc.Launcher.Builder[b.BuildClient]()
       .setExecutorService(threads.buildThreads.bloop.jsonrpc) // FIXME No
@@ -532,10 +527,10 @@ final class BspImpl(
 
     val es      = ExecutionContext.fromExecutorService(threads.buildThreads.bloop.jsonrpc)
     val futures = Seq(
-      BspImpl.naiveJavaFutureToScalaFuture(f).map(_ => ())(es),
+      BspImpl.naiveJavaFutureToScalaFuture(f).map(_ => ())(using es),
       currentBloopSession.bspServer.initiateShutdown
     )
-    Future.firstCompletedOf(futures)(es)
+    Future.firstCompletedOf(futures)(using es)
   }
 
   /** Shuts down the current Bloop session */
@@ -594,7 +589,7 @@ final class BspImpl(
             // RelodableOptions don't take into account buildOptions from sources
             val updatedReloadableOptions = reloadableOptions.copy(
               buildOptions =
-                reloadableOptions.buildOptions orElse preBuildProject.mainScope.buildOptions,
+                reloadableOptions.buildOptions.orElse(preBuildProject.mainScope.buildOptions),
               bloopRifleConfig = reloadableOptions.bloopRifleConfig.copy(
                 javaPath = projectJavaHome.javaCommand,
                 minimumBloopJvm = projectJavaHome.version
@@ -645,7 +640,7 @@ final class BspImpl(
     if (os.isFile(ideInputsJsonPath)) {
       val maybeResponse = either[BuildException] {
         val ideInputs = value {
-          try Right(readFromArray(os.read.bytes(ideInputsJsonPath))(IdeInputs.codec))
+          try Right(readFromArray(os.read.bytes(ideInputsJsonPath))(using IdeInputs.codec))
           catch {
             case e: JsonReaderException =>
               logger.debug(s"Caught $e while decoding $ideInputsJsonPath")

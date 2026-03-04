@@ -26,7 +26,7 @@ class BspServer(
     with JavaBuildServerForwardStubs
     with JvmBuildServerForwardStubs
     with HasGeneratedSourcesImpl {
-  private var client: Option[BuildClient] = None
+  private val client: Option[BuildClient] = None
 
   @volatile private var intelliJ: Boolean = presetIntelliJ
   def isIntelliJ: Boolean                 = intelliJ
@@ -280,7 +280,8 @@ class BspServer(
         capabilities.setCanDebug(true)
         val baseDirectory = new File(new URI(target.getBaseDirectory))
         if (
-          isIntelliJ && baseDirectory.getName == Constants.workspaceDirName && baseDirectory
+          isIntelliJ && baseDirectory.getName == Constants.workspaceDirName &&
+          baseDirectory
             .getParentFile != null
         ) {
           val newBaseDirectory = baseDirectory.getParentFile.toPath.toUri.toASCIIString

@@ -1,11 +1,12 @@
 package scala.cli.integration
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.async.Async.{async, await}
+import scala.cli.integration.TestUtil.await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.jdk.CollectionConverters._
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 class BspTests3NextRc extends BspTestDefinitions with BspTests3Definitions with Test3NextRc {
@@ -14,7 +15,8 @@ class BspTests3NextRc extends BspTestDefinitions with BspTests3Definitions with 
     // Yes, seriously. Which is why we can't use it there.
     val sv = if (Properties.isWin) Constants.scala3NextRc else "3.5.0-RC1-fakeversion-bin-SNAPSHOT"
     val inputs = TestInputs(
-      os.rel / "simple.sc" -> s"""assert(dotty.tools.dotc.config.Properties.versionNumberString == "$sv")"""
+      os.rel / "simple.sc" ->
+        s"""assert(dotty.tools.dotc.config.Properties.versionNumberString == "$sv")"""
     )
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
@@ -51,7 +53,8 @@ class BspTests3NextRc extends BspTestDefinitions with BspTests3Definitions with 
         if (Properties.isWin)
           (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString
         else
-          (localRepoPath / "thecache" / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString
+          (localRepoPath / "thecache" / "https" / "repo1.maven.org" /
+            "maven2").toNIO.toUri.toASCIIString
       os.proc(
         TestUtil.cli,
         "--cli-default-scala-version",
@@ -77,16 +80,16 @@ class BspTests3NextRc extends BspTestDefinitions with BspTests3Definitions with 
       val bspOptions      = jsonOptions ++ launcherOptions ++ envOptions
       withBsp(inputs, Seq("."), bspOptions = bspOptions, reuseRoot = Some(root)) {
         (_, _, remoteServer) =>
-          async {
-            val targets = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val targets = remoteServer.workspaceBuildTargets().asScala.await
               .getTargets.asScala
               .filter(!_.getId.getUri.contains("-test"))
               .map(_.getId())
             val compileResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
             expect(compileResult.getStatusCode == b.StatusCode.OK)
             val runResult =
-              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+              remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
             expect(runResult.getStatusCode == b.StatusCode.OK)
           }
       }

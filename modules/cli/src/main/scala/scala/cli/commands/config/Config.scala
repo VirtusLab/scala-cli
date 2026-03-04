@@ -105,7 +105,8 @@ object Config extends ScalaCommand[ConfigOptions] {
           Keys.map.get(name) match {
             case None => unrecognizedKey(name)
             case Some(powerEntry)
-                if (powerEntry.isRestricted || powerEntry.isExperimental) && !allowRestrictedFeatures =>
+                if (powerEntry.isRestricted || powerEntry.isExperimental) &&
+                !allowRestrictedFeatures =>
               logger.error(WarningMessages.powerConfigKeyUsedInSip(powerEntry))
               sys.exit(1)
             case Some(entry) =>
@@ -294,7 +295,7 @@ object Config extends ScalaCommand[ConfigOptions] {
   /** Check whether to ask for an update depending on the provided key.
     */
   private def checkIfAskForUpdate(
-    entry: Key[_],
+    entry: Key[?],
     newValues: Seq[String],
     db: ConfigDb,
     options: ConfigOptions

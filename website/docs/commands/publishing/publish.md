@@ -285,7 +285,7 @@ or relative (beware of name clashes with pre-defined repositories above).
 ### Authentication
 
 Specify publish repository authentication either on the command-line or via
-using directives. See user / password / realm in the [settings table](#settings)
+using directives. See user / password / realm in the [settings table](#other-settings)
 and the [CI overrides](#ci-overrides).
 
 ### Connection parameters configuration

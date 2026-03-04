@@ -1,8 +1,11 @@
 package scala.build.actionable
-import coursier.core.{Latest, Version}
+import coursier.cache.FileCache
+import coursier.core.Repository
+import coursier.util.Task
+import coursier.version.{Latest, Version}
 import dependency.*
 
-import scala.build.EitherCps.{either, value}
+import scala.build.EitherCps.*
 import scala.build.actionable.ActionableDiagnostic.*
 import scala.build.errors.{BuildException, Severity}
 import scala.build.internal.Constants
@@ -70,15 +73,15 @@ case object ActionableDependencyHandler
     setting: Positioned[AnyDependency],
     loggerOpt: Option[Logger]
   ): Either[BuildException, Option[String]] = either {
-    val dependency   = setting.value
-    val scalaParams  = value(buildOptions.scalaParams)
-    val cache        = buildOptions.finalCache
-    val csModule     = value(dependency.toCs(scalaParams)).module
-    val repositories = value(buildOptions.finalRepositories)
+    val dependency: AnyDependency            = setting.value
+    val scalaParams: Option[ScalaParameters] = value(buildOptions.scalaParams)
+    val cache: FileCache[Task]               = buildOptions.finalCache
+    val csModule: coursier.core.Module       = value(dependency.toCs(scalaParams)).module
+    val repositories: Seq[Repository]        = value(buildOptions.finalRepositories)
 
     val latestVersionOpt = cache.versions(csModule, repositories)
       .versions
-      .latest(coursier.core.Latest.Stable)
+      .latest(Latest.Stable)
 
     if (latestVersionOpt.isEmpty)
       loggerOpt.foreach(_.diagnostic(
@@ -87,6 +90,6 @@ case object ActionableDependencyHandler
         setting.positions
       ))
 
-    latestVersionOpt
+    latestVersionOpt.map(_.asString)
   }
 }

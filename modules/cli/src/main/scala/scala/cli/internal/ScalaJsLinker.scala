@@ -1,6 +1,6 @@
 package scala.cli.internal
 
-import coursier.Repositories
+import coursier.VersionConstraint
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.util.Task
 import dependency.*
@@ -60,8 +60,6 @@ object ScalaJsLinker {
           if scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT")
           then
             Seq(
-              Repositories.sonatype("snapshots"),
-              Repositories.sonatypeS01("snapshots"),
               RepositoryUtils.snapshotsRepository,
               RepositoryUtils.scala3NightlyRepository
             )
@@ -71,13 +69,15 @@ object ScalaJsLinker {
           case Right(()) =>
             val (_, linkerRes) = value {
               scala.build.Artifacts.fetchCsDependencies(
-                Seq(Positioned.none(scalaJsCliDep.toCs)),
-                extraRepos,
-                None,
-                forcedVersions.map { case (m, v) => (m.toCs, v) },
-                logger,
-                cache,
-                None
+                dependencies = Seq(Positioned.none(scalaJsCliDep.toCs)),
+                extraRepositories = extraRepos,
+                forceScalaVersionOpt = None,
+                forcedVersions = forcedVersions.map { case (m, v) =>
+                  (m.toCs, VersionConstraint(v))
+                },
+                logger = logger,
+                cache = cache,
+                classifiersOpt = None
               )
             }
             val linkerClassPath = linkerRes.files

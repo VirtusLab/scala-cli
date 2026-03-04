@@ -202,7 +202,7 @@ final case class SharedCompilationServerOptions(
         if (os.exists(filePath) && os.isFile(filePath))
           try {
             val content   = os.read.bytes(filePath)
-            val bloopJson = readFromArray(content)(BloopJson.codec)
+            val bloopJson = readFromArray(content)(using BloopJson.codec)
             bloopJson.javaOptions
           }
           catch {

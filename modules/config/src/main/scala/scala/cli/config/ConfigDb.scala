@@ -1,14 +1,14 @@
 package scala.cli.config
 
-import com.github.plokhotnyuk.jsoniter_scala.core.{Key => _, _}
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.{Key as _, *}
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.{PosixFilePermission, PosixFilePermissions}
 import java.nio.file.{Files, Path}
 
 import scala.collection.immutable.ListMap
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 /** In-memory representation of a configuration DB content.
@@ -50,7 +50,7 @@ final class ConfigDb private (
   }
 
   /** Removes an entry from memory */
-  def remove(key: Key[_]): this.type = {
+  def remove(key: Key[?]): this.type = {
     rawEntries -= key.fullName
     this
   }
@@ -90,7 +90,9 @@ final class ConfigDb private (
         }
       val sortedMap: Map[String, RawJson] = ListMap.empty ++ keyValues
       val b                               =
-        writeToArray(sortedMap, WriterConfig.withIndentionStep((level + 1) * 2))(ConfigDb.codec)
+        writeToArray(sortedMap, WriterConfig.withIndentionStep((level + 1) * 2))(using
+          ConfigDb.codec
+        )
       if (b.nonEmpty && b.last == '}'.toByte)
         // FIXME We're copying / moving arrays around quite a bit here
         b.init ++ ("  " * level).getBytes(StandardCharsets.US_ASCII) ++ Array('}'.toByte)
@@ -114,7 +116,7 @@ final class ConfigDb private (
       Array('\n': Byte)
   }
 
-  def saveUnsafe(path: Path): Either[ConfigDb.ConfigDbPermissionsError, Unit] = {
+  private def saveUnsafe(path: Path): Either[ConfigDb.ConfigDbPermissionsError, Unit] = {
     val dir = path.getParent
 
     if (Properties.isWin) {
@@ -164,7 +166,6 @@ final class ConfigDb private (
 }
 
 object ConfigDb {
-
   final class ConfigDbFormatError(
     message: String,
     causeOpt: Option[Throwable] = None
@@ -183,7 +184,7 @@ object ConfigDb {
     res += (if (perms.contains(PosixFilePermission.OTHERS_EXECUTE)) 'x' else '-')
     res.result()
   }
-  final class ConfigDbPermissionsError(path: Path, perms: Set[PosixFilePermission])
+  private final class ConfigDbPermissionsError(path: Path, perms: Set[PosixFilePermission])
       extends Exception(
         s"$path has wrong permissions ${permsString(perms)} (expected at most rwx------)"
       )
@@ -208,7 +209,7 @@ object ConfigDb {
       map.flatMap {
         case (k, v) =>
           try {
-            val subMap = flatten(readFromArray(v.value)(codec))
+            val subMap = flatten(readFromArray(v.value)(using codec))
             subMap.toSeq.map {
               case (k0, v0) =>
                 (k + "." + k0, v0)
@@ -221,7 +222,7 @@ object ConfigDb {
       }
 
     val maybeRawEntries =
-      try Right(flatten(readFromArray(dbContent)(codec)))
+      try Right(flatten(readFromArray(dbContent)(using codec)))
       catch {
         case e: JsonReaderException =>
           Left(new ConfigDbFormatError(
@@ -241,11 +242,9 @@ object ConfigDb {
     *   either an error on failure, or a ConfigDb instance on success
     */
   def open(path: Path): Either[Exception, ConfigDb] =
-    if (Files.exists(path))
-      apply(Files.readAllBytes(path), Some(path.toString))
-    else
-      Right(empty)
+    if Files.exists(path)
+    then apply(Files.readAllBytes(path), Some(path.toString))
+    else Right(empty)
 
-  def empty: ConfigDb =
-    new ConfigDb(Map())
+  def empty: ConfigDb = new ConfigDb(Map())
 }

@@ -2,8 +2,7 @@ package cli.tests
 
 import scala.cli.commands.shared.ArgSplitter
 
-class ArgSplitterTest extends munit.FunSuite {
-
+class ArgSplitterTest extends TestUtil.ScalaCliSuite {
   test("test scalac options are split correctly") {
     val args = List(
       List("-arg", "-other-arg"),
@@ -13,5 +12,4 @@ class ArgSplitterTest extends munit.FunSuite {
     val input = args.map(_.mkString("   ", " ", "")).mkString(" ", "\n", "")
     assertEquals(ArgSplitter.splitToArgs(input), args.flatten)
   }
-
 }

@@ -1,12 +1,12 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import org.jsoup._
+import org.jsoup.*
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
+  this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   for {
@@ -79,5 +79,22 @@ abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           expect(!element.attr("href").startsWith("http"))
         }
       }
+    }
+
+  if actualScalaVersion.startsWith("3") then
+    test("doc with compileOnly.dep") {
+      TestInputs(
+        os.rel / "project.scala" ->
+          s"""//> using compileOnly.dep org.springframework.boot:spring-boot:3.5.6
+             |//> using test.dep org.springframework.boot:spring-boot:3.5.6
+             |""".stripMargin,
+        os.rel / "RootLoggerConfigurer.scala" ->
+          s"""import org.springframework.beans.factory.annotation.Autowired
+             |import scala.compiletime.uninitialized
+             |
+             |class RootLoggerConfigurer:
+             |  @Autowired var sentryClient: String = uninitialized
+             |""".stripMargin
+      ).fromRoot(root => os.proc(TestUtil.cli, "doc", ".", extraOptions).call(cwd = root))
     }
 }

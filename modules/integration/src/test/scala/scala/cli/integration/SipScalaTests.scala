@@ -630,7 +630,8 @@ class SipScalaTests extends ScalaCliSuite
             if (Properties.isWin)
               (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString
             else
-              (localRepoPath / "thecache" / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString
+              (localRepoPath / "thecache" / "https" / "repo1.maven.org" /
+                "maven2").toNIO.toUri.toASCIIString
           val r = os.proc(
             TestUtil.cli,
             "--cli-default-scala-version",
@@ -682,7 +683,8 @@ class SipScalaTests extends ScalaCliSuite
             "--predefined-repository",
             (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString,
             "--predefined-repository",
-            (localRepoPath / "https" / "scala-ci.typesafe.com" / "artifactory" / "scala-integration")
+            (localRepoPath / "https" / "scala-ci.typesafe.com" / "artifactory" /
+              "scala-integration")
               .toNIO.toUri.toASCIIString,
             "run",
             "simple.sc",

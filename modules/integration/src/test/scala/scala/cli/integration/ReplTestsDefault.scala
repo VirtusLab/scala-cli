@@ -2,38 +2,29 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.File
-
 class ReplTestsDefault extends ReplTestDefinitions
     with ReplAmmoniteTestDefinitions
     with ReplAmmoniteTests3StableDefinitions
     with TestDefault {
-  if (TestUtil.isNativeCli)
-    test("not download java 17 when run repl without sources") {
-      TestUtil.retryOnCi() {
-        TestInputs.empty.fromRoot { root =>
-          val java8Home =
-            os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
-
-          val res =
-            os.proc(TestUtil.cli, "--power", "repl", TestUtil.extraOptions, "--", "-version").call(
-              cwd = root,
-              mergeErrIntoOut = true,
-              env = Map(
-                "JAVA_HOME"              -> java8Home.toString,
-                "COURSIER_ARCHIVE_CACHE" -> (root / "archive-cache").toString(),
-                "COURSIER_CACHE"         -> (root / "cache").toString(),
-                "PATH" -> ((java8Home / "bin").toString + File.pathSeparator + System.getenv(
-                  "PATH"
-                ))
-              )
-            )
-
-          val output = res.out.trim().toLowerCase()
-
-          expect(!output.contains("jdk17"))
-          expect(!output.contains("jvm-index"))
+  if canRunInRepl then
+    for { nightlyTag <- List("3.nightly", "nightly") }
+      test(
+        s"$runInReplPrefix $nightlyTag returns the same Scala version as <latest-minor>.nightly"
+      ) {
+        val code = """println(scala.util.Properties.versionNumberString)"""
+        runInRepl(code, cliOptions = Seq("-S", nightlyTag)) { r1 =>
+          val version1 = r1.out.trim()
+          System.err.println(s"$nightlyTag returns the following nightly: $version1")
+          val nightlyPrefix = version1.split('.').take(2).mkString(".")
+          runInRepl(code, cliOptions = Seq("-S", s"$nightlyPrefix.nightly")) { r2 =>
+            val version2 = r2.out.trim()
+            System.err.println(s"$nightlyPrefix.nightly returns the following nightly: $version2")
+            expect(version1 == version2)
+            val major = version1.split('.').take(1).head.toInt
+            expect(major == 3)
+            val minor = version1.split('.').take(2).last.toInt
+            expect(minor >= Constants.scala3NextPrefix.split('.').last.toInt)
+          }
         }
       }
-    }
 }

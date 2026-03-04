@@ -72,7 +72,7 @@ class TestTestsDefault extends TestTestDefinitions with TestDefault {
     scalaVersion <- TestUtil.legacyScalaVersionsOnePerMinor
     expectedMessage = "Hello, world!"
     expectedWarning =
-      s"Defaulting to a legacy test-runner module version: ${Constants.runnerLegacyVersion}"
+      s"Defaulting to a legacy test-runner module version: ${Constants.runnerScala30LegacyVersion}"
   }
     test(s"run a simple test with Scala $scalaVersion (legacy)") {
       TestInputs(os.rel / "example.test.scala" ->

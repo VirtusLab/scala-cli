@@ -87,7 +87,7 @@ object Runner {
       sys.error("should not happen")
     }
     else {
-      val b = new ProcessBuilder(command: _*)
+      val b = new ProcessBuilder(command*)
         .inheritIO()
 
       if (!inheritStreams) {
@@ -332,7 +332,7 @@ object Runner {
       sys.error("should not happen")
     }
     else {
-      val builder = new ProcessBuilder(command: _*)
+      val builder = new ProcessBuilder(command*)
         .inheritIO()
       val env = builder.environment()
       for ((k, v) <- extraEnv)

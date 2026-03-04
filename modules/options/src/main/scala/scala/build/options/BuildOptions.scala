@@ -17,7 +17,11 @@ import scala.build.errors.*
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.*
 import scala.build.internal.Constants.*
-import scala.build.internal.Regexes.scala3NightlyNicknameRegex
+import scala.build.internal.Regexes.{
+  scala3NightlyNicknameRegex,
+  scala3RcNicknameRegex,
+  scala3RcRegex
+}
 import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.internals.EnvVar
 import scala.build.options.validation.BuildOptionsRule
@@ -264,8 +268,6 @@ final case class BuildOptions(
       if classPathOptions.extraRepositories.contains("snapshots")
       then
         Seq(
-          coursier.Repositories.sonatype("snapshots"),
-          coursier.Repositories.sonatypeS01("snapshots"),
           RepositoryUtils.snapshotsRepository,
           RepositoryUtils.scala3NightlyRepository
         )
@@ -288,26 +290,26 @@ final case class BuildOptions(
   lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] = either {
     val params =
       if EnvVar.Internal.ci.valueOpt.isEmpty then
-        computeScalaParams(Constants.version, finalCache, value(finalRepositories)).orElse(
+        computeScalaParams(
+          cache = finalCache,
+          repositories = value(finalRepositories)
+        ).orElse {
           // when the passed scala version is missed in the cache, we always force a cache refresh
           // https://github.com/VirtusLab/scala-cli/issues/1090
           computeScalaParams(
-            Constants.version,
-            finalCache.withTtl(0.seconds),
-            value(finalRepositories)
+            cache = finalCache.withTtl(0.seconds),
+            repositories = value(finalRepositories)
           )
-        )
+        }
       else
         computeScalaParams(
-          Constants.version,
-          finalCache.withTtl(0.seconds),
-          value(finalRepositories)
+          cache = finalCache.withTtl(0.seconds),
+          repositories = value(finalRepositories)
         )
     value(params)
   }
 
   private[build] def computeScalaParams(
-    scalaCliVersion: String,
     cache: FileCache[Task] = finalCache,
     repositories: Seq[Repository] = Nil
   ): Either[BuildException, Option[ScalaParameters]] = either {
@@ -345,22 +347,32 @@ final case class BuildOptions(
           val sv = value {
             svInput match {
               case sv if ScalaVersionUtil.scala3Lts.contains(sv) =>
-                ScalaVersionUtil.validateStable(
-                  Constants.scala3LtsPrefix,
-                  cache,
-                  repositories
-                )
+                ScalaVersionUtil.validateStable(Constants.scala3LtsPrefix, cache, repositories)
+              case sv if ScalaVersionUtil.scala3LatestRc.contains(sv.toLowerCase) =>
+                ScalaVersionUtil.validateRc("3", cache, repositories)
+              case sv if ScalaVersionUtil.scala3LtsLatestRc.contains(sv.toLowerCase) =>
+                ScalaVersionUtil.validateRc(Constants.scala3LtsPrefix, cache, repositories)
+              case scala3RcRegex(threeSubBinarySuffix) =>
+                ScalaVersionUtil.validateRc(s"3.$threeSubBinarySuffix", cache, repositories)
+              case scala3RcNicknameRegex(threeSubBinarySuffix) =>
+                ScalaVersionUtil.validateRc(s"3.$threeSubBinarySuffix", cache, repositories)
               case sv if ScalaVersionUtil.scala2Lts.contains(sv) =>
                 Left(new ScalaVersionError(
                   s"Invalid Scala version: $sv. There is no official LTS version for Scala 2."
                 ))
-              case sv if sv == ScalaVersionUtil.scala3Nightly =>
+              case sv if ScalaVersionUtil.scala2LatestRc.contains(sv) =>
+                Left(new ScalaVersionError(
+                  s"Invalid Scala version: $sv. In the case of Scala 2, a particular nightly version serves as a release candidate."
+                ))
+              case sv if ScalaVersionUtil.scala3Nightly.contains(sv.toLowerCase) =>
                 ScalaVersionUtil.GetNightly.scala3(cache)
-              case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
+              case sv if ScalaVersionUtil.scala3LtsNightly.contains(sv.toLowerCase) =>
                 ScalaVersionUtil.GetNightly.scala3X(
-                  threeSubBinaryNum,
+                  Constants.scala3LtsPrefix.split('.').last,
                   cache
                 )
+              case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
+                ScalaVersionUtil.GetNightly.scala3X(threeSubBinaryNum, cache)
               case vs if ScalaVersionUtil.scala213Nightly.contains(vs) =>
                 ScalaVersionUtil.GetNightly.scala2("2.13", cache)
               case sv if sv == ScalaVersionUtil.scala212Nightly =>
@@ -379,7 +391,7 @@ final case class BuildOptions(
                 )
                   .map(_ => versionString)
               case versionString if versionString.exists(_.isLetter) =>
-                ScalaVersionUtil.validateNonStable(
+                ScalaVersionUtil.validateExactVersion(
                   versionString,
                   cache,
                   repositories
@@ -437,7 +449,8 @@ final case class BuildOptions(
           scalaNativeCliVersion =
             if (platform.value == Platform.Native) {
               val scalaNativeFinalVersion = scalaNativeOptions.finalVersion
-              if scalaNativeOptions.version.isEmpty && scalaNativeFinalVersion != Constants.scalaNativeVersion
+              if scalaNativeOptions.version.isEmpty &&
+                scalaNativeFinalVersion != Constants.scalaNativeVersion
               then
                 scalaNativeOptions.maxDefaultNativeVersions.map(_._2).distinct
                   .map(reason => s"[${Console.YELLOW}warn${Console.RESET}] $reason")
@@ -464,7 +477,7 @@ final case class BuildOptions(
     }
     val extraRepositories: Seq[Repository] = value(finalRepositories)
     val maybeArtifacts                     = Artifacts(
-      scalaArtifactsParamsOpt,
+      scalaArtifactsParamsOpt = scalaArtifactsParamsOpt,
       javacPluginDependencies = value(javacPluginDependencies),
       extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
       defaultDependencies = value(defaultDependencies),
@@ -474,6 +487,7 @@ final case class BuildOptions(
       extraCompileOnlyJars = allExtraCompileOnlyJars,
       extraSourceJars = allExtraSourceJars,
       fetchSources = classPathOptions.fetchSources.getOrElse(false),
+      jvmVersion = javaHome().value.version,
       addJvmRunner = addRunnerDependency0,
       addJvmTestRunner = isTests && addJvmTestRunner,
       addJmhDependencies = jmhOptions.finalJmhVersion,
@@ -492,7 +506,7 @@ final case class BuildOptions(
     val sortedExtraScalaVersions = scalaOptions0
       .extraScalaVersions
       .toVector
-      .map(coursier.core.Version(_))
+      .map(coursier.version.Version(_))
       .sorted
       .map(_.repr)
       .reverse

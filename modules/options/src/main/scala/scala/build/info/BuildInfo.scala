@@ -70,11 +70,12 @@ final case class BuildInfo(
         "/** Scala CLI version used for the compilation */",
         "val scalaCliVersion ="
       ) -> scalaCliVersion
-    ).flatMap { case (Seq(scaladoc, prefix), opt) =>
-      Seq(
-        scaladoc,
-        opt.map(v => s"$prefix Some(\"${escapeBackslashes(v)}\")").getOrElse(s"$prefix None")
-      )
+    ).flatMap {
+      case (Seq(scaladoc, prefix), Some(v)) =>
+        Seq(scaladoc, s"$prefix Some(\"${escapeBackslashes(v)}\")")
+      case (Seq(scaladoc, prefix), None) =>
+        Seq(scaladoc, s"$prefix None")
+      case other => other._1
     }
 
     val allVals = stringVals ++ optionVals
@@ -119,7 +120,7 @@ object BuildInfo {
       ),
       scalaVersionSettings(options),
       platformSettings(options),
-      scalaCliSettings(options)
+      scalaCliSettings
     )
       .reduceLeft(_ + _)
   }.left.map {
@@ -164,7 +165,7 @@ object BuildInfo {
         .orElse(Some(options.javaHome().value.version.toString))
     )
 
-  private def scalaCliSettings(options: BuildOptions): BuildInfo =
+  private def scalaCliSettings: BuildInfo =
     BuildInfo(scalaCliVersion = Some(Constants.version))
 
   private def platformSettings(options: BuildOptions): BuildInfo =

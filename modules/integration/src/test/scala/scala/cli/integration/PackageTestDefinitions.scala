@@ -8,12 +8,12 @@ import java.nio.file.Files
 import java.util
 import java.util.zip.ZipFile
 
-import scala.cli.integration.TestUtil.removeAnsiColors
-import scala.jdk.CollectionConverters._
+import scala.cli.integration.TestUtil.*
+import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
 abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
+  this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected lazy val node: String              = TestUtil.fromPath("node").getOrElse("node")
 
@@ -998,6 +998,59 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
   }
 
+  if (Properties.isWin)
+    test("availableDriveLetter") {
+      val message    = "Hello from native-image"
+      val dest       = "hello"
+      val actualDest =
+        if (Properties.isWin) "hello.exe"
+        else "hello"
+      val inputs = TestInputs(
+        os.rel / "Hello.scala" ->
+          s"""object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println("$message")
+             |}
+             |""".stripMargin
+      )
+      setCodePage("65001")
+      val codePageBefore = getCodePage
+      val driveLetter    = availableDriveLetter()
+      val substedBefore  = substedDrives
+      aliasDriveLetter(driveLetter, "C:\\Windows\\Temp") // trigger for #4005
+
+      inputs.fromRoot { root =>
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          extraOptions,
+          ".",
+          "--native-image",
+          "-o",
+          dest,
+          "--",
+          "--no-fallback"
+        ).call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit
+        )
+
+        expect(os.isFile(root / actualDest))
+
+        val res    = os.proc(root / actualDest).call(cwd = root)
+        val output = res.out.trim()
+        expect(output == message)
+
+        unaliasDriveLetter(driveLetter) // undo test condition
+        val substedAfter = substedDrives
+        expect(substedBefore == substedAfter)
+        val codePageAfter = getCodePage
+        expect(codePageBefore == codePageAfter)
+      }
+    }
+
   test("correctly list main classes") {
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val scriptsDir                           = "scripts"
@@ -1072,7 +1125,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       os.rel / "Simple.scala" -> s"""object Simple extends App { println() }"""
     ).fromRoot { (root: os.Path) =>
       val jarPath =
-        os.rel / "out" / "inner-out" / "Simple.jar" // the `out` directory doesn't exist and should be created
+        os.rel / "out" / "inner-out" /
+          "Simple.jar" // the `out` directory doesn't exist and should be created
       os.proc(
         TestUtil.cli,
         "--power",
@@ -1118,12 +1172,63 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
   }
 
-  if (Properties.isLinux)
-    test("pass java options to docker") {
+  def dockerWithExtraDirsTest(): Unit = {
+    val codePath       = os.rel / "src" / "Hello.scala"
+    val extraFileName  = "extraFile.txt"
+    val extraFileDir   = os.rel / "extraDir"
+    val extraFilePath  = extraFileDir / extraFileName
+    val imageName      = "extradir"
+    val expectedOutput = "hello"
+    val inputs         = TestInputs(
+      codePath ->
+        s"""//> using toolkit default
+           |
+           |object Smth extends App {
+           |  val content = 
+           |   os.walk(os.pwd)
+           |     .filter(os.isFile)
+           |     .filter(_.endsWith(os.rel / "$extraFileName"))
+           |     .headOption
+           |     .map(file => os.read(file).trim())
+           |     .getOrElse("No matching files found")
+           |  println(content)
+           |}
+           |""".stripMargin,
+      extraFilePath -> expectedOutput
+    )
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        codePath,
+        "--docker",
+        "--docker-image-repository",
+        imageName,
+        "--docker-extra-directories",
+        root / extraFileDir,
+        "-f"
+      ).call(cwd = root)
+      val output = os.proc("docker", "run", imageName).call(cwd = root).out.trim()
+      expect(output == expectedOutput)
+    }
+  }
+
+  if (Properties.isLinux) {
+    // TODO: restore this test when `registry-1.docker.io` is stable again
+    test("pass java options to docker".flaky) {
       TestUtil.retryOnCi() {
         javaOptionsDockerTest()
       }
     }
+
+    // TODO: restore this test when `registry-1.docker.io` is stable again
+    test("pass extra directory to docker".flaky) {
+      TestUtil.retryOnCi() {
+        dockerWithExtraDirsTest()
+      }
+    }
+  }
 
   test("default values in help") {
     TestInputs.empty.fromRoot { root =>
@@ -1347,12 +1452,13 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         Seq("--native") -> (if (Properties.isWin) ".exe" else ""),
         Nil             -> (if (Properties.isWin) ".bat" else ""),
         Seq(libraryArg) -> ".jar"
-      ) ++ (if (!TestUtil.isNativeCli || !Properties.isWin) Seq(
-              Seq("--assembly")     -> ".jar",
-              Seq("--native-image") -> (if (Properties.isWin) ".exe" else ""),
-              Seq(jsArg)            -> ".js"
-            )
-            else Nil)
+      ) ++
+        (if (!TestUtil.isNativeCli || !Properties.isWin) Seq(
+           Seq("--assembly")     -> ".jar",
+           Seq("--native-image") -> (if (Properties.isWin) ".exe" else ""),
+           Seq(jsArg)            -> ".js"
+         )
+         else Nil)
       packageDescription = packageOpts.headOption.getOrElse("bootstrap")
     } {
       test(s"package with main method in test scope ($packageDescription)") {
@@ -1362,8 +1468,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           val message           = "Hello"
           val outputFile        = mainClass + extension
           TestInputs(
-            os.rel / "Messages.scala" -> s"""object Messages { val msg = "$message" }""",
-            os.rel / testScopeFileName -> s"""object $mainClass extends App { println(Messages.msg) }"""
+            os.rel / "Messages.scala"  -> s"""object Messages { val msg = "$message" }""",
+            os.rel / testScopeFileName ->
+              s"""object $mainClass extends App { println(Messages.msg) }"""
           ).fromRoot { root =>
             os.proc(
               TestUtil.cli,
@@ -1434,4 +1541,26 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         }
     }
   }
+
+  if actualScalaVersion.startsWith("3") then
+    test("package Scala.js without a main method") {
+      val moduleName = "whatever"
+      TestInputs(
+        os.rel / s"$moduleName.scala" ->
+          s"""import scala.scalajs.js.annotation.*
+             |
+             |object $moduleName {
+             |  @JSExportTopLevel(name = "handler", moduleID = "$moduleName")
+             |  def handler(): Unit = {
+             |    println("Hello world!")
+             |  }
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "package", ".", "--js", "--power", extraOptions)
+            .call(cwd = root, mergeErrIntoOut = true, stderr = os.Pipe)
+        expect(res.out.trim().contains(s"$moduleName.js"))
+      }
+    }
 }

@@ -4,12 +4,12 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 /** For the `compile` counterpart, refer to [[CompileScalacCompatTestDefinitions]] */
 trait RunScalacCompatTestDefinitions {
-  _: RunTestDefinitions =>
+  this: RunTestDefinitions =>
 
   final val smithyVersion     = "1.50.0"
   private def shutdownBloop() =
@@ -185,7 +185,8 @@ trait RunScalacCompatTestDefinitions {
     val expectedOutput   = "Hello"
     TestInputs(
       os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
-      os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }"""
+      os.rel / runDir / mainInput               ->
+        s"""object Main extends App { println(Message("$expectedOutput").value) }"""
     ).fromRoot { (root: os.Path) =>
       val preCompileOutputDir = os.rel / "outParentDir" / "out"
 
@@ -220,7 +221,8 @@ trait RunScalacCompatTestDefinitions {
     val expectedOutput   = "Hello"
     TestInputs(
       os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
-      os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }"""
+      os.rel / runDir / mainInput               ->
+        s"""object Main extends App { println(Message("$expectedOutput").value) }"""
     ).fromRoot { (root: os.Path) =>
       val preCompileOutputDir = os.rel / "outParentDir" / "out"
 

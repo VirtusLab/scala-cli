@@ -67,11 +67,13 @@ class ArgsFileTests extends ScalaCliSuite {
 
     TestInputs(
       os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
-      os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }""",
+      os.rel / runDir / mainInput               ->
+        s"""object Main extends App { println(Message("$expectedOutput").value) }""",
       os.rel / runDir / "args.txt" -> s"""|-d
                                           |$outputDir""".stripMargin,
-      os.rel / runDir / "args2.txt" -> s"""|-cp
-                                           |${os.rel / os.up / preCompileDir / outputDir}""".stripMargin
+      os.rel / runDir / "args2.txt" ->
+        s"""|-cp
+            |${os.rel / os.up / preCompileDir / outputDir}""".stripMargin
     ).fromRoot { (root: os.Path) =>
 
       os.proc(

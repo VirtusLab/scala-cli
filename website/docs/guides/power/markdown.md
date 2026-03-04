@@ -448,19 +448,19 @@ context. A directive defined in a later snippet within the same source may overr
 ## 1
 
 ```scala
-//> using scala 2.12.17
+//> using scala 2.12.21
 println(util.Properties.versionNumberString)
 ```
 
 ## 2
 
 ```scala
-//> using scala 2.13.10
+//> using scala 2.13.18
 println(util.Properties.versionNumberString)
 ```
 ````
 
-In this example, the directive from the second `scala` snippet will override the previous one and Scala `2.13.10` will
+In this example, the directive from the second `scala` snippet will override the previous one and Scala `2.13.18` will
 be used for both.
 
 <ChainedSnippets>

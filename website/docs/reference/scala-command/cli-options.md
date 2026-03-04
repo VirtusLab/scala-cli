@@ -42,6 +42,16 @@ are assumed to be Scala compiler options and will be propagated to Scala Compile
 
 
 
+## Benchmarking options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
+
 ## Compilation server options
 
 Available in commands:
@@ -186,6 +196,16 @@ Aliases: `-f`
 
 Force overwriting values for key
 
+## Cross options
+
+Available in commands:
+
+[`compile`](./commands.md#compile), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
+
 ## Debug options
 
 Available in commands:
@@ -244,7 +264,7 @@ Aliases: `-r`, `--repo`
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 ### `--compiler-plugin`
 
@@ -370,7 +390,7 @@ Aliases: `--fmt-version`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Pass scalafmt version before running it (3.9.10 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.10.7 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -578,7 +598,7 @@ Aliases: `-j`
 
 `SHOULD have` per Scala Runner specification
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 ### `--jvm-index`
 
@@ -664,6 +684,26 @@ Aliases: `--list-main-class`, `--list-main-classes`, `--list-main-method`, `--li
 
 List main classes available in the current context
 
+## Markdown options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
+
+## Pgp scala signing options
+
+Available in commands:
+
+[`config`](./commands.md#config)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
+
 ## Power options
 
 Available in commands:
@@ -677,6 +717,16 @@ Available in commands:
 `MUST have` per Scala Runner specification
 
 Allows to use restricted & experimental features
+
+## Python options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
 
 ## Run options
 
@@ -722,7 +772,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 `SHOULD have` per Scala Runner specification
 
-The Scala.js version (1.20.1 by default).
+The Scala.js version (1.20.2 by default).
 
 ### `--js-mode`
 
@@ -822,7 +872,7 @@ Path to the Scala.js linker
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Scala.js CLI version to use for linking (1.20.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 ### `--js-cli-java-arg`
 
@@ -854,7 +904,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 `SHOULD have` per Scala Runner specification
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.10 by default).
 
 ### `--native-mode`
 
@@ -903,6 +953,18 @@ Use default linking settings
 `SHOULD have` per Scala Runner specification
 
 List of compile options
+
+### `--native-c-compile`
+
+`SHOULD have` per Scala Runner specification
+
+List of compile options (C files only)
+
+### `--native-cpp-compile`
+
+`SHOULD have` per Scala Runner specification
+
+List of compile options (C++ files only)
 
 ### `--native-compile-defaults`
 
@@ -1004,7 +1066,7 @@ Aliases: `-S`, `--scala`
 
 `MUST have` per Scala Runner specification
 
-Set the Scala version (3.7.3 by default)
+Set the Scala version (3.8.2 by default)
 
 ### `--scala-binary-version`
 
@@ -1094,7 +1156,7 @@ Aliases: `--toolkit`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 ### `--exclude`
 
@@ -1147,6 +1209,16 @@ Allows to execute a passed string as Java code
 `IMPLEMENTATION specific` per Scala Runner specification
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
+
+## Source generator options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
 
 ## Suppress warning options
 

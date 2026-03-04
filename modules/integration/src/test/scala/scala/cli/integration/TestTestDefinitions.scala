@@ -4,9 +4,10 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.annotation.tailrec
 import scala.cli.integration.Constants.munitVersion
+import scala.cli.integration.TestUtil.StringOps
 
 abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
+  this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   private val utestVersion                     = "0.8.3"
   private val zioTestVersion                   = "2.1.17"
@@ -82,7 +83,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
          |  val tests = Tests {
          |    test("foo") {
          |      assert(2 + 2 == 4)
-         |      Zone { implicit z =>
+         |      Zone { ${if actualScalaVersion.startsWith("3") then "" else "implicit z =>"}
          |       val io = StdioHelpers(stdio)
          |       io.printf(c"%s %s", c"Hello from", c"tests")
          |      }
@@ -345,10 +346,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from tests"))
     }
 
-  if (actualScalaVersion.startsWith("2."))
-    test("successful test native") {
-      TestUtil.retryOnCi()(successfulNativeTest())
-    }
+  test("successful test native") {
+    TestUtil.retryOnCi()(successfulNativeTest())
+  }
 
   test("failing test") {
     failingTestInputs.fromRoot { root =>
@@ -376,10 +376,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from tests"))
     }
 
-  if (actualScalaVersion.startsWith("2."))
-    test("failing test native") {
-      TestUtil.retryOnCi()(failingNativeTest())
-    }
+  test("failing test native") {
+    TestUtil.retryOnCi()(failingNativeTest())
+  }
 
   test("failing test return code") {
     failingTestInputs.fromRoot { root =>
@@ -447,10 +446,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
-  if (actualScalaVersion.startsWith("2."))
-    test("utest native") {
-      TestUtil.retryOnCi()(utestNative())
-    }
+  test("utest native") {
+    TestUtil.retryOnCi()(utestNative())
+  }
 
   test("junit") {
     successfulJunitInputs.fromRoot { root =>
@@ -1007,4 +1005,37 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       }
     }
   }
+
+  for {
+    javaVersion <-
+      if isScala38OrNewer then
+        Constants.allJavaVersions.filter(_ >= Constants.scala38MinJavaVersion)
+      else Constants.allJavaVersions.filter(_ < 24)
+    expectedMessage = "Hello, world!"
+    expectedWarning = s"Defaulting to a legacy test-runner module version"
+  }
+    test(s"run a simple test with Java $javaVersion") {
+      TestInputs(os.rel / "example.test.scala" ->
+        s"""//> using dep com.novocode:junit-interface:0.11
+           |import org.junit.Test
+           |
+           |class MyTests {
+           |  @Test
+           |  def foo(): Unit = {
+           |    assert(2 + 2 == 4)
+           |    println("$expectedMessage")
+           |  }
+           |}
+           |""".stripMargin).fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "test", ".", extraOptions, "--jvm", javaVersion)
+            .call(cwd = root, stderr = os.Pipe)
+        val out = res.out.trim()
+        expect(out.contains(expectedMessage))
+        if actualScalaVersion.startsWith("2") || javaVersion < Constants.scala38MinJavaVersion then
+          val err = res.err.trim()
+          expect(err.contains(expectedWarning))
+          expect(err.countOccurrences(expectedWarning) == 1)
+      }
+    }
 }

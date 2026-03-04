@@ -11,9 +11,9 @@ val modules =
 
 for { module <- modules } {
   println(s"Checking for $module...")
-  val depRegex            = "\\[\\d+]\\s+[│└├─\\S\\s]+\\s([\\w.-]+):([\\w.-]+):([\\w\\s\\S.-]+)".r
+  val depRegex            = "[│└├─\\S\\s]+\\s([\\w.-]+):([\\w.-]+):([\\w\\s\\S.-]+)".r
   val scalaDepSuffixRegex = "^(.+?)(_[23](?:\\.\\d{2})?)?$".r
-  val deps                = os.proc(os.pwd / "mill", "-i", s"$module.ivyDepsTree")
+  val deps                = os.proc(os.pwd / "mill", "-i", s"$module.showMvnDepsTree")
     .call(cwd = os.pwd)
     .out
     .lines()
@@ -27,9 +27,10 @@ for { module <- modules } {
     }
     .collect {
       case (key, entries) if key != invalidOrgAndName =>
-        key -> entries
-          .collect { case (_, scalaDepSuffixRegex(_, scalaVersion), _) => scalaVersion }
-          .distinct
+        key ->
+          entries
+            .collect { case (_, scalaDepSuffixRegex(_, scalaVersion), _) => scalaVersion }
+            .distinct
     }
     .filter { case (_, scalaVersions) => scalaVersions.head != null } // filter out non-Scala deps
   println("Checking for clashing dependency Scala versions...")

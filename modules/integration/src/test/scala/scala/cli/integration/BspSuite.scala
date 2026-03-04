@@ -1,9 +1,9 @@
 package scala.cli.integration
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
@@ -14,13 +14,13 @@ import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 import scala.annotation.tailrec
 import scala.cli.integration.BspSuite.{Details, detailsCodec}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, Future, Promise}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-trait BspSuite { _: ScalaCliSuite =>
+trait BspSuite { this: ScalaCliSuite =>
   protected def extraOptions: Seq[String]
   def initParams(root: os.Path): b.InitializeBuildParams =
     new b.InitializeBuildParams(
@@ -79,7 +79,8 @@ trait BspSuite { _: ScalaCliSuite =>
     f: (
       os.Path,
       TestBspClient,
-      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer
+      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+        TestBspClient.WrappedSourcesBuildServer
     ) => Future[T]
   ): T = withBspInitResults(
     inputs,
@@ -107,7 +108,8 @@ trait BspSuite { _: ScalaCliSuite =>
     f: (
       os.Path,
       TestBspClient,
-      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer,
+      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+        TestBspClient.WrappedSourcesBuildServer,
       b.InitializeBuildResult
     ) => Future[T]
   ): T = {
@@ -120,8 +122,9 @@ trait BspSuite { _: ScalaCliSuite =>
 
       val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptionsOverride, args)
         .spawn(cwd = root, stderr = stderr, env = bspEnvs)
-      var remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer =
-        null
+      var remoteServer
+        : b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+          TestBspClient.WrappedSourcesBuildServer = null
 
       val bspServerExited = Promise[Unit]()
       val t               = new Thread("bsp-server-watcher") {
@@ -167,7 +170,7 @@ trait BspSuite { _: ScalaCliSuite =>
         proc.join(2.seconds.toMillis)
         proc.destroy()
         proc.join(2.seconds.toMillis)
-        proc.destroyForcibly()
+        proc.destroy(shutdownGracePeriod = 0)
       }
     }
 

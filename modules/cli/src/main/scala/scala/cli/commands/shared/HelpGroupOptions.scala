@@ -52,7 +52,7 @@ case class HelpGroupOptions(
   helpScalafmt: Boolean = false
 ) {
 
-  private def printHelpWithGroup(help: Help[_], helpFormat: HelpFormat, group: String): Nothing = {
+  private def printHelpWithGroup(help: Help[?], helpFormat: HelpFormat, group: String): Nothing = {
     val oldHiddenGroups = helpFormat.hiddenGroups.toSeq.flatten
     val oldSortedGroups = helpFormat.sortedGroups.toSeq.flatten
     val newHiddenGroups = (oldHiddenGroups ++ oldSortedGroups).filterNot(_ == group)
@@ -65,7 +65,7 @@ case class HelpGroupOptions(
     sys.exit(0)
   }
 
-  def maybePrintGroupHelp(help: Help[_], helpFormat: HelpFormat): Unit = {
+  def maybePrintGroupHelp(help: Help[?], helpFormat: HelpFormat): Unit = {
     if (helpJs) printHelpWithGroup(help, helpFormat, HelpGroup.ScalaJs.toString)
     else if (helpNative) printHelpWithGroup(help, helpFormat, HelpGroup.ScalaNative.toString)
   }

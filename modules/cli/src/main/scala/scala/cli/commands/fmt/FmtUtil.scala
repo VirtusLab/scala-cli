@@ -158,7 +158,7 @@ object FmtUtil {
     def withUpdatedVersion(content: String, v: String): String = {
       val doc = docFrom(content)
       if (doc.hasPath("version"))
-        doc.withValueText("version", '"' + v + '"').render
+        doc.withValueText("version", s"\"$v\"").render
       else {
         // prepend to the beggining of file
         val sb = new StringBuilder
@@ -205,7 +205,7 @@ object FmtUtil {
         content + addSep + values
       }
 
-    val doNothing = identity[String] _
+    val doNothing = identity[String]
     val combined  = List(
       version.fold(doNothing)(v => withUpdatedVersion(_, v)),
       runnerDialect.fold(doNothing)(v => withUpdatedDialect(_, v)),

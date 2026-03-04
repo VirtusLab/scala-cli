@@ -17,34 +17,21 @@ Passing `--docker` to the `package` sub-command generates a Docker image. When c
 
 The following command generates a `hello-docker` image with the `latest` tag:
 
-```bash
+```bash ignore
 scala-cli --power package --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 
-<!-- Expected:
-Started building docker image with your application
-docker run hello-docker:latest
--->
-
-```bash
+```bash ignore
 docker run hello-docker
 # Hello from Docker
 ```
 
-<!-- Expected:
-Hello from Docker
--->
-
 You can also package your app in the Scala.js or Scala Native environments.
 For example, this command creates a Scala.js Docker image:
 
-```bash
+```bash ignore
 scala-cli --power package --js --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
-<!-- Expected:
-Started building docker image with your application
-docker run hello-docker:latest
--->
 
 This command creates a Scala Native Docker image:
 

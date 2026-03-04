@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.removeAnsiColors
 import scala.util.Properties
 
-trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
+trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
 
   def simpleNativeScriptCode(
     message: String,
@@ -470,7 +470,9 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
             expect(r.exitCode == 0)
             expect(r.out.trim() == expectedOutput)
           }
-          expect(r.err.trim().contains(s"multithreadingEnabled=$expectedMultithreadingState"))
+          val outputMultithreadingState =
+            if setExplicitly then expectedMultithreadingState.toString else "detect"
+          expect(r.err.trim().contains(s"multithreadingEnabled=$outputMultithreadingState"))
         }
       }
     }

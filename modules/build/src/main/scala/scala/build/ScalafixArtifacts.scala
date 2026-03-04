@@ -5,13 +5,12 @@ import coursier.core.Repository
 import coursier.util.Task
 import dependency.*
 import org.apache.commons.compress.archivers.zip.ZipFile
-import os.Path
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, IOException}
 import java.util.Properties
 
 import scala.build.EitherCps.{either, value}
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, ScalafixPropertiesError}
 import scala.build.internal.Constants
 import scala.build.internal.CsLoggerUtil.*
 
@@ -98,7 +97,7 @@ object ScalafixArtifacts {
     extraRepositories: Seq[Repository],
     logger: Logger,
     cache: FileCache[Task]
-  ): Either[BuildException, Path] =
+  ): Either[BuildException, os.Path] =
     either {
       val scalafixInterfaces = dep"ch.epfl.scala:scalafix-interfaces:${Constants.scalafixVersion}"
 
@@ -123,22 +122,26 @@ object ScalafixArtifacts {
       )
     }
 
-  private def readScalafixProperties(jar: Path): Either[BuildException, String] = {
-    import scala.jdk.CollectionConverters.*
-    val zipFile = new ZipFile(jar.toNIO)
-    val entry   = zipFile.getEntries().asScala.find(entry =>
-      entry.getName() == "scalafix-interfaces.properties"
-    )
-    val out =
-      entry.toRight(new BuildException("Failed to found scalafix properties") {})
-        .map { entry =>
-          val stream = zipFile.getInputStream(entry)
-          val bytes  = stream.readAllBytes()
-          new String(bytes)
-        }
-    zipFile.close()
-    out
-  }
+  private def readScalafixProperties(jar: os.Path): Either[BuildException, String] =
+    try {
+      import scala.jdk.CollectionConverters.*
+      val zipFile = ZipFile.builder().setPath(jar.toNIO).get()
+      val entry   = zipFile.getEntries().asScala.find(entry =>
+        entry.getName == "scalafix-interfaces.properties"
+      )
+      val out =
+        entry.toRight(new ScalafixPropertiesError(path = jar))
+          .map { entry =>
+            val stream = zipFile.getInputStream(entry)
+            val bytes  = stream.readAllBytes()
+            new String(bytes)
+          }
+      zipFile.close()
+      out
+    }
+    catch {
+      case e: IOException => Left(new ScalafixPropertiesError(path = jar, cause = Some(e)))
+    }
 
   private def scalafixPropsKey(scalaVersion: String): Either[BuildException, String] = {
     val regex = "(\\d)\\.(\\d+).+".r

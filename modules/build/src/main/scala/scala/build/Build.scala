@@ -22,6 +22,7 @@ import scala.build.options.validation.ValidationException
 import scala.build.postprocessing.*
 import scala.build.postprocessing.LineConversion.scalaLineToScLineShift
 import scala.collection.mutable.ListBuffer
+import scala.compiletime.uninitialized
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
@@ -54,12 +55,15 @@ object Build {
     isPartial: Boolean,
     logger: Logger
   ) extends Build {
-    def success: Boolean                  = true
-    def cancelled: Boolean                = false
-    def successfulOpt: Some[this.type]    = Some(this)
-    def outputOpt: Some[os.Path]          = Some(output)
-    def dependencyClassPath: Seq[os.Path] = sources.resourceDirs ++ artifacts.classPath
-    def fullClassPath: Seq[os.Path]       = Seq(output) ++ dependencyClassPath
+    def success: Boolean                         = true
+    def cancelled: Boolean                       = false
+    def successfulOpt: Some[this.type]           = Some(this)
+    def outputOpt: Some[os.Path]                 = Some(output)
+    def dependencyClassPath: Seq[os.Path]        = sources.resourceDirs ++ artifacts.classPath
+    def dependencyCompileClassPath: Seq[os.Path] =
+      sources.resourceDirs ++ artifacts.compileClassPath
+    def fullClassPath: Seq[os.Path]        = Seq(output) ++ dependencyClassPath
+    def fullCompileClassPath: Seq[os.Path] = fullClassPath ++ dependencyCompileClassPath
     private lazy val mainClassesFoundInProject: Seq[String] = MainClass.find(output, logger).sorted
     private lazy val mainClassesFoundOnExtraClasspath: Seq[String] =
       options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger)).sorted
@@ -784,15 +788,19 @@ object Build {
     val watcher =
       new Watcher(ListBuffer(), threads.fileWatcher, run(), info.foreach(_._1.shutdown()))
 
-    def doWatch(): Unit = {
+    def doWatch(): Unit = either {
+      val (crossSources: CrossSources, inputs0: Inputs) =
+        value(allInputs(inputs, options, logger))
       val elements: Seq[Element] =
-        if res == null then inputs.elements
+        if res == null then inputs0.elements
         else
           res
             .map { builds =>
+              val allResourceDirectories =
+                crossSources.resourceDirs.map(rd => ResourceDirectory(rd.value))
               val mainElems = builds.main.inputs.elements
               val testElems = builds.get(Scope.Test).map(_.inputs.elements).getOrElse(Nil)
-              (mainElems ++ testElems).distinct
+              (mainElems ++ testElems ++ allResourceDirectories).distinct
             }
             .getOrElse(inputs.elements)
       for (elem <- elements) {
@@ -906,7 +914,6 @@ object Build {
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
-    compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
     logger: Logger,
     artifacts: Artifacts,
@@ -926,7 +933,13 @@ object Build {
 
     val scalaCompilerParamsOpt = artifacts.scalaOpt match {
       case Some(scalaArtifacts) =>
-        val params = value(options.scalaParams).getOrElse {
+        val params = value {
+          options.scalaParams match {
+            case Left(buildException) if maybeRecoverOnError(buildException).isEmpty =>
+              Right(None) // this will effectively try to fall back to a pure Java build
+            case otherwise => otherwise
+          }
+        }.getOrElse {
           sys.error(
             "Should not happen (inconsistency between Scala parameters in BuildOptions and ScalaArtifacts)"
           )
@@ -1047,7 +1060,7 @@ object Build {
       scalaCompiler = scalaCompilerParamsOpt,
       scalaJsOptions =
         if options.platform.value == Platform.JS
-        then Some(value(options.scalaJsOptions.config(logger)))
+        then Some(value(options.scalaJsOptions.config(logger, maybeRecoverOnError)))
         else None,
       scalaNativeOptions =
         if options.platform.value == Platform.Native
@@ -1070,7 +1083,6 @@ object Build {
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
-    compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
     compiler: ScalaCompiler,
     logger: Logger,
@@ -1109,7 +1121,6 @@ object Build {
           sources = sources,
           generatedSources = generatedSources,
           options = options0,
-          compilerJvmVersionOpt = compilerJvmVersionOpt,
           scope = scope,
           logger = logger,
           artifacts = artifacts,
@@ -1162,13 +1173,12 @@ object Build {
         case Some(error) => value(Left(error))
       }
 
-    val (classesDir0, scalaParams, artifacts, project, projectChanged) = value {
+    val (classesDir0, scalaParams, artifacts, project, _) = value {
       prepareBuild(
         inputs = inputs,
         sources = sources,
         generatedSources = generatedSources,
         options = options,
-        compilerJvmVersionOpt = compiler.jvmVersion,
         scope = scope,
         compiler = compiler,
         logger = logger,
@@ -1295,7 +1305,7 @@ object Build {
     }
 
     private val lock                  = new Object
-    private var f: ScheduledFuture[?] = _
+    private var f: ScheduledFuture[?] = uninitialized
     private val waitFor               = 50.millis
     private val runnable: Runnable    = { () =>
       lock.synchronized {

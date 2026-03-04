@@ -5,21 +5,18 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.ProcOps
 import scala.util.{Properties, Try}
 
-trait RunJdkTestDefinitions { _: RunTestDefinitions =>
-  def javaIndex(javaVersion: Int): String =
-    // TODO just passing the version number on arm64 should be enough, needs a fix in cs
-    if (
-      (Properties.isMac && TestUtil.isM1 && (javaVersion < 11 || javaVersion == 16)) || javaVersion == 25
-    )
-      s"zulu:$javaVersion"
-    else javaVersion.toString
-
+trait RunJdkTestDefinitions { this: RunTestDefinitions =>
   def canUseScalaInstallationWrapper: Boolean =
     actualScalaVersion.startsWith("3") && actualScalaVersion.split('.').drop(1).head.toInt >= 5
 
   for {
-    javaVersion <- Constants.allJavaVersions
-    index = javaIndex(javaVersion)
+    javaVersion <- isScala38OrNewer -> TestUtil.isJvmCli match {
+      case (false, true) =>
+        Constants.allJavaVersions.filter(_ >= Constants.minimumLauncherJavaVersion)
+      case (true, _) => Constants.allJavaVersions.filter(_ >= Constants.defaultJvmVersion)
+      case _         => Constants.allJavaVersions
+    }
+    index = javaVersion
     useScalaInstallationWrapper <-
       if (canUseScalaInstallationWrapper) Seq(false, true) else Seq(false)
     launcherString = if (useScalaInstallationWrapper) "coursier scala installation" else "Scala CLI"

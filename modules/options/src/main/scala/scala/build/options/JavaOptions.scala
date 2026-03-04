@@ -2,7 +2,7 @@ package scala.build.options
 
 import bloop.rifle.VersionUtil.jvmRelease
 import coursier.cache.{ArchiveCache, FileCache}
-import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
+import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.util.Task
 import dependency.AnyDependency
 
@@ -38,7 +38,7 @@ final case class JavaOptions(
     cache: FileCache[Task],
     verbosity: Int
   ): JavaHome = {
-    val indexUrl  = jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
+    val indexUrl  = jvmIndexOpt.getOrElse(JvmChannel.gitHubIndexUrl)
     val indexTask = {
       val msg    = if (verbosity > 0) "Downloading JVM index" else ""
       val cache0 = cache.withMessage(msg)
@@ -54,7 +54,7 @@ final case class JavaOptions(
         )
       )
       .withOs(finalJvmIndexOs)
-      .withArchitecture(jvmIndexArch.getOrElse(JvmIndex.defaultArchitecture()))
+      .withArchitecture(jvmIndexArch.getOrElse(JvmChannel.defaultArchitecture()))
     JavaHome().withCache(jvmCache)
   }
 

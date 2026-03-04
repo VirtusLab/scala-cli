@@ -92,7 +92,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.7.3 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -134,7 +134,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.20.1 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -178,7 +178,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
@@ -200,6 +200,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -216,7 +224,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -238,7 +246,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -424,7 +432,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.20.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -634,7 +642,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -713,7 +721,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -874,7 +882,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.7.3 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -928,7 +936,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.20.1 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -972,7 +980,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
@@ -994,6 +1002,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -1010,7 +1026,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -1032,7 +1048,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -1206,7 +1222,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.20.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -1416,7 +1432,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -1475,7 +1491,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.7.3 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -1523,7 +1539,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.20.1 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -1567,7 +1583,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
@@ -1589,6 +1605,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -1605,7 +1629,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -1627,7 +1651,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -1807,7 +1831,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.20.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -2017,7 +2041,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -2090,7 +2114,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.7.3 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -2144,7 +2168,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.20.1 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -2188,7 +2212,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
@@ -2210,6 +2234,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -2226,7 +2258,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -2248,7 +2280,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -2438,7 +2470,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.20.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -2648,7 +2680,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -2730,7 +2762,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.7.3 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -2784,7 +2816,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.20.1 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -2828,7 +2860,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
@@ -2850,6 +2882,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -2866,7 +2906,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -2888,7 +2928,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -3078,7 +3118,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.20.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -3288,7 +3328,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -3358,7 +3398,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.7.3 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -3400,7 +3440,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.20.1 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -3444,7 +3484,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
@@ -3466,6 +3506,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -3482,7 +3530,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -3504,7 +3552,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -3676,7 +3724,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.20.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -3886,7 +3934,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -3948,7 +3996,7 @@ Aliases: `--dialect`
 
 **--scalafmt-version**
 
-Pass scalafmt version before running it (3.9.10 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.10.7 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 Aliases: `--fmt-version`
 
@@ -4005,7 +4053,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.7.3 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -4053,7 +4101,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.20.1 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -4097,7 +4145,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
@@ -4119,6 +4167,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -4135,7 +4191,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -4157,7 +4213,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -4352,7 +4408,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.20.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -4562,7 +4618,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -4724,7 +4780,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.7.3 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -4766,7 +4822,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.20.1 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -4810,7 +4866,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
@@ -4832,6 +4888,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -4848,7 +4912,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -4870,7 +4934,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -5038,7 +5102,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.20.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -5248,7 +5312,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 
@@ -5693,7 +5757,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.7.3 by default)
+Set the Scala version (3.8.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -5735,7 +5799,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.20.1 by default).
+The Scala.js version (1.20.2 by default).
 
 **--js-mode**
 
@@ -5779,7 +5843,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.10 by default).
 
 **--native-mode**
 
@@ -5801,6 +5865,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -5817,7 +5889,7 @@ Enable/disable Scala Native multithreading support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -5839,7 +5911,7 @@ Set the Java home directory
 
 **--jvm**
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 Aliases: `-j`
 
@@ -6007,7 +6079,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.20.1 by default).
+Scala.js CLI version to use for linking (1.20.2 by default).
 
 **--js-cli-java-arg**
 
@@ -6217,7 +6289,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 Aliases: `--toolkit`
 

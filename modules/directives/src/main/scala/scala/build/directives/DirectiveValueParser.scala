@@ -17,7 +17,7 @@ import scala.build.{Position, Positioned}
 abstract class DirectiveValueParser[+T] {
   def parse(
     key: String,
-    values: Seq[Value[_]],
+    values: Seq[Value[?]],
     scopePath: ScopePath,
     path: Either[String, os.Path]
   ): Either[BuildException, T]
@@ -32,7 +32,7 @@ object DirectiveValueParser {
       extends DirectiveValueParser[U] {
     def parse(
       key: String,
-      values: Seq[Value[_]],
+      values: Seq[Value[?]],
       scopePath: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, U] =
@@ -42,14 +42,14 @@ object DirectiveValueParser {
   abstract class DirectiveSingleValueParser[+T] extends DirectiveValueParser[T] {
     def parseValue(
       key: String,
-      value: Value[_],
+      value: Value[?],
       cwd: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, T]
 
     final def parse(
       key: String,
-      values: Seq[Value[_]],
+      values: Seq[Value[?]],
       scopePath: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, T] =
@@ -70,7 +70,7 @@ object DirectiveValueParser {
       }
   }
 
-  given DirectiveValueParser[Unit] = { (key, values, scopePath, path) =>
+  given DirectiveValueParser[Unit] = { (_, values, _, path) =>
     values match {
       case Seq()          => Right(())
       case Seq(value, _*) =>
@@ -79,7 +79,7 @@ object DirectiveValueParser {
     }
   }
 
-  extension (value: Value[_]) {
+  extension (value: Value[?]) {
 
     def isEmpty: Boolean =
       value match {
@@ -112,7 +112,7 @@ object DirectiveValueParser {
       DirectiveUtil.position(value, path)
   }
 
-  given DirectiveValueParser[Boolean] = { (key, values, scopePath, path) =>
+  given DirectiveValueParser[Boolean] = { (key, values, _, path) =>
     values.filter(!_.isEmpty) match {
       case Seq()  => Right(true)
       case Seq(v) =>
@@ -135,7 +135,7 @@ object DirectiveValueParser {
   }
 
   given DirectiveSingleValueParser[String] =
-    (key, value, scopePath, path) =>
+    (key, value, _, path) =>
       value.asString.toRight {
         val pos = value.position(path)
         new MalformedDirectiveError(
@@ -149,7 +149,7 @@ object DirectiveValueParser {
   final case class MaybeNumericalString(value: String)
 
   given DirectiveSingleValueParser[MaybeNumericalString] =
-    (key, value, scopePath, path) =>
+    (key, value, _, path) =>
       value.asString.map(MaybeNumericalString(_)).toRight {
         val pos = value.position(path)
         new MalformedDirectiveError(

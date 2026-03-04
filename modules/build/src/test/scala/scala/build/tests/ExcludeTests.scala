@@ -6,17 +6,16 @@ import coursier.cache.{ArchiveCache, ArtifactError, Cache}
 import coursier.util.{Artifact, EitherT, Task}
 
 import java.io.File
+
 import scala.build.Ops.*
-import scala.build.Sources
-import scala.build.CrossSources
 import scala.build.errors.ExcludeDefinitionError
 import scala.build.input.ScalaCliInvokeData
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
 import scala.build.preprocessing.Preprocessor
+import scala.build.{CrossSources, Sources}
 import scala.concurrent.ExecutionContext
 
 class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
-
   val preprocessors: Seq[Preprocessor] = Sources.defaultPreprocessors(
     archiveCache = ArchiveCache().withCache(
       new Cache[Task] {
@@ -74,6 +73,39 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
         case Left(_: ExcludeDefinitionError) =>
         case o                               => fail("Exception expected", clues(o))
       }
+    }
+  }
+
+  test("multiple excludes") {
+    val testInputs = TestInputs(
+      os.rel / "Hello.scala"   -> "object Hello",
+      os.rel / "World.scala"   -> "object World",
+      os.rel / "Main.scala"    -> "object Main",
+      os.rel / "project.scala" -> s"""//> using exclude Hello.scala World.scala"""
+    )
+    testInputs.withInputs { (root, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )(using ScalaCliInvokeData.dummy).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions())
+        .orThrow
+      val sources =
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        )
+          .orThrow
+
+      expect(sources.paths.nonEmpty)
+      expect(sources.paths.length == 2)
+      val paths = Seq(os.rel / "Main.scala", os.rel / "project.scala")
+      expect(sources.paths.map(_._2) == paths)
     }
   }
 

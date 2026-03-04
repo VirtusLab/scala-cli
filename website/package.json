@@ -14,16 +14,34 @@
     "write-heading-ids": "docusaurus write-heading-ids"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.8.1",
-    "@docusaurus/preset-classic": "^3.8.1",
-    "@easyops-cn/docusaurus-search-local": "^0.52.1",
+    "@algolia/client-search": "^5.49.1",
+    "@docusaurus/core": "^3.9.2",
+    "@docusaurus/plugin-content-docs": "^3.9.2",
+    "@docusaurus/preset-classic": "^3.9.2",
+    "@docusaurus/theme-common": "^3.9.2",
+    "@easyops-cn/docusaurus-search-local": "^0.55.1",
     "@mdx-js/react": "^3.1.1",
+    "@types/react": "^19.2.14",
     "clsx": "^2.1.1",
     "docusaurus-plugin-sass": "^0.2.6",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "react-player": "^2.16.1",
-    "sass": "^1.93.0"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-loadable": "^5.5.0",
+    "react-player": "^3.4.0",
+    "sass": "^1.97.3",
+    "search-insights": "^2.17.3",
+    "@svta/cml-cta": "1.0.5",
+    "@svta/cml-structured-field-values": "1.1.2",
+    "@svta/cml-utils": "1.4.0"
+  },
+  "resolutions": {
+    "react-loadable": "^5.5.0",
+    "search-insights": "^2.17.3",
+    "@algolia/client-search": "^5.48.1",
+    "@types/react": "^19.2.14",
+    "@svta/cml-cta": "1.0.5",
+    "@svta/cml-structured-field-values": "1.1.2",
+    "@svta/cml-utils": "1.4.0"
   },
   "browserslist": {
     "production": [

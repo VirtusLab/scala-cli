@@ -21,7 +21,7 @@ object WarningMessages {
         val distinctFeatureTypes                  = namesAndTypes.map(_._2).distinct
         val (bulletPointList, featureNameToPrint) = if (distinctFeatureTypes.size == 1)
           (
-            namesAndTypes.map((name, fType) => s" - `$name`")
+            namesAndTypes.map((name, _) => s" - `$name`")
               .mkString(nl),
             s"${distinctFeatureTypes.head}s" // plural form
           )
@@ -83,12 +83,12 @@ object WarningMessages {
   ): String =
     powerFeatureUsedInSip(optionName, "option", specificationLevel)
 
-  def powerConfigKeyUsedInSip(key: Key[_])(using ScalaCliInvokeData): String =
+  def powerConfigKeyUsedInSip(key: Key[?])(using ScalaCliInvokeData): String =
     powerFeatureUsedInSip(key.fullName, "configuration key", key.specificationLevel)
 
   def powerDirectiveUsedInSip(
     directive: ScopedDirective,
-    handler: DirectiveHandler[_]
+    handler: DirectiveHandler[?]
   )(using ScalaCliInvokeData): String =
     powerFeatureUsedInSip(
       directive.directive.toString,

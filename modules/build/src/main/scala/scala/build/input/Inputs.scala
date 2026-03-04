@@ -52,10 +52,11 @@ final case class Inputs(
 
   private lazy val inputsHash: String = elements.inputsHash
   lazy val projectName: String        = {
-    val needsSuffix = mayAppendHash && (elements match {
-      case Seq(d: Directory) => d.path != workspace
-      case _                 => true
-    })
+    val needsSuffix = mayAppendHash &&
+      (elements match {
+        case Seq(d: Directory) => d.path != workspace
+        case _                 => true
+      })
     if needsSuffix then s"$baseProjectName-$inputsHash" else baseProjectName
   }
 
@@ -438,7 +439,8 @@ object Inputs {
     extraClasspathWasPassed: Boolean
   )(using ScalaCliInvokeData): Either[BuildException, Inputs] =
     if (
-      args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty &&
+      args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty &&
+      javaSnippetList.isEmpty &&
       markdownSnippetList.isEmpty && !extraClasspathWasPassed
     )
       defaultInputs().toRight(new InputsException(

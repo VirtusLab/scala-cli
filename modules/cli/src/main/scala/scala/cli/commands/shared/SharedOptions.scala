@@ -7,8 +7,8 @@ import caseapp.core.help.Help
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.cache.FileCache
-import coursier.core.Version
 import coursier.util.Task
+import coursier.version.Version
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
@@ -273,6 +273,8 @@ final case class SharedOptions(
       linkingOptions = nativeLinking,
       linkingDefaults = nativeLinkingDefaults,
       compileOptions = nativeCompile,
+      cCompileOptions = nativeCCompile,
+      cppCompileOptions = nativeCppCompile,
       compileDefaults = nativeCompileDefaults,
       embedResources = embedResources,
       buildTargetStr = nativeTarget,
@@ -414,7 +416,8 @@ final case class SharedOptions(
           extraCompileOnlyJars = extraCompileOnlyClassPath,
           extraSourceJars = extraSourceJars.extractedClassPath ++ assumedSourceJars,
           extraRepositories =
-            (ScalaCli.launcherOptions.scalaRunner.cliPredefinedRepository ++ dependencies.repository)
+            (ScalaCli.launcherOptions.scalaRunner.cliPredefinedRepository ++
+              dependencies.repository)
               .map(_.trim)
               .filter(_.nonEmpty),
           extraDependencies = extraDependencies(ignoreErrors, resolvedToolkitDependency),
@@ -563,7 +566,7 @@ final case class SharedOptions(
 
   def bloopRifleConfig(extraBuildOptions: Option[scala.build.options.BuildOptions] = None)
     : Either[BuildException, BloopRifleConfig] = either {
-    val options             = extraBuildOptions.foldLeft(value(buildOptions()))(_ orElse _)
+    val options             = extraBuildOptions.foldLeft(value(buildOptions()))(_.orElse(_))
     lazy val defaultJvmHome = value {
       JvmUtils.downloadJvm(OsLibc.defaultJvm(OsLibc.jvmIndexOs), options)
     }
@@ -638,7 +641,8 @@ final case class SharedOptions(
   def allMarkdownSnippets: List[String] = snippet.markdownSnippet ++ snippet.executeMarkdown
 
   def hasSnippets =
-    allScriptSnippets.nonEmpty || allScalaSnippets.nonEmpty || allJavaSnippets
+    allScriptSnippets.nonEmpty || allScalaSnippets.nonEmpty ||
+    allJavaSnippets
       .nonEmpty || allMarkdownSnippets.nonEmpty
 
   def validateInputArgs(

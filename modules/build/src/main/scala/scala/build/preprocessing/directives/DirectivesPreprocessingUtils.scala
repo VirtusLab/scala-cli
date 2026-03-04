@@ -10,7 +10,7 @@ import scala.build.preprocessing.directives
 
 object DirectivesPreprocessingUtils {
   val usingDirectiveHandlers: Seq[DirectiveHandler[BuildOptions]] =
-    Seq[DirectiveHandler[_ <: HasBuildOptions]](
+    Seq[DirectiveHandler[? <: HasBuildOptions]](
       directives.Benchmarking.handler,
       directives.BuildInfo.handler,
       directives.ComputeVersion.handler,
@@ -36,7 +36,7 @@ object DirectivesPreprocessingUtils {
 
   val usingDirectiveWithReqsHandlers
     : Seq[DirectiveHandler[List[WithBuildRequirements[BuildOptions]]]] =
-    Seq[DirectiveHandler[_ <: HasBuildOptionsWithRequirements]](
+    Seq[DirectiveHandler[? <: HasBuildOptionsWithRequirements]](
       directives.CustomJar.handler,
       directives.Dependency.handler,
       directives.JavaOptions.handler,
@@ -48,7 +48,7 @@ object DirectivesPreprocessingUtils {
     ).map(_.mapE(_.buildOptionsWithRequirements))
 
   val requireDirectiveHandlers: Seq[DirectiveHandler[BuildRequirements]] =
-    Seq[DirectiveHandler[_ <: HasBuildRequirements]](
+    Seq[DirectiveHandler[? <: HasBuildRequirements]](
       directives.RequirePlatform.handler,
       directives.RequireScalaVersion.handler,
       directives.RequireScalaVersionBounds.handler,

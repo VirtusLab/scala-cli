@@ -82,13 +82,13 @@ scala-cli Hello.scala hi.sc --main-class hi_sc
 `--jvm` lets you run your application with a custom JVM:
 
 ```bash
-scala-cli Hello.scala --jvm adopt:14
+scala-cli Hello.scala --jvm zulu:21
 ```
 
 You can also specify custom JVM with the using directive `//> using jvm`:
 
 ```scala compile
-//> using jvm adopt:14
+//> using jvm zulu:21
 ```
 
 JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvms), and are read from
@@ -280,7 +280,7 @@ passed, Scala CLI throws an error.
 Scala CLI can also compile and run Scala scripts:
 
 ```scala title=HelloScript.sc
-#!/ usr / bin / env -S scala -cli shebang
+#!/usr/bin/env -S scala shebang
 
 println("Hello world from scala script")
 ```

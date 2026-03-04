@@ -1,12 +1,13 @@
 package scala.cli.integration
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.{Gson, JsonElement}
 
-import scala.async.Async.{async, await}
+import scala.cli.integration.TestUtil.await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.jdk.CollectionConverters._
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters.*
 
 class BspTests213 extends BspTestDefinitions with BspTests2Definitions with Test213 {
   List(".sc", ".scala").foreach { filetype =>
@@ -24,17 +25,19 @@ class BspTests213 extends BspTestDefinitions with BspTests2Definitions with Test
       )
       withBsp(inputs, Seq(".", "-O", "-Xsource:3")) {
         (_, localClient, remoteServer) =>
-          async {
+          Future {
             // prepare build
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
             // build code
             val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
-            await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+            remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
 
             val visibleDiagnostics =
-              localClient.diagnostics().map(_.getDiagnostics.asScala).find(_.nonEmpty).getOrElse(
-                Nil
-              )
+              localClient
+                .diagnostics()
+                .map(_.getDiagnostics.asScala)
+                .find(_.nonEmpty)
+                .getOrElse(Nil)
 
             expect(visibleDiagnostics.size == 1)
 

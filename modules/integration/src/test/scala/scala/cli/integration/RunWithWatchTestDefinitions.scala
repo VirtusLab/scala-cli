@@ -6,7 +6,7 @@ import scala.cli.integration.TestUtil.ProcOps
 import scala.concurrent.duration.DurationInt
 import scala.util.{Properties, Try}
 
-trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
+trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
   // TODO make this pass reliably on Mac CI
   if (!Properties.isMac || !TestUtil.isCI) {
     val expectedMessage1 = "Hello"
@@ -319,7 +319,9 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
       def code(includeDirective: Boolean) = {
         val directive = if (includeDirective) "//> using toolkit default" else ""
         s"""$directive
-           |object Smth extends App { println(os.pwd) }
+           |object Smth {
+           |  def main(args: Array[String]) = println(os.pwd)
+           |}
            |""".stripMargin
       }
 
@@ -345,27 +347,44 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
 
   for {
     useDirective <- Seq(false, true)
+    testScope    <- if (useDirective) Seq(false, true) else Seq(false)
+    scopeString = if (testScope) "test" else "main"
     // TODO make this pass reliably on Mac CI
     if !Properties.isMac || !TestUtil.isCI
-    directive       = if (useDirective) "//> using resourceDirs ./resources" else ""
+    directive =
+      useDirective -> testScope match {
+        case (true, true)  => "//> using test.resourceDirs ./resources"
+        case (true, false) => "//> using resourceDirs ./resources"
+        case _             => ""
+      }
     resourceOptions = if (useDirective) Nil else Seq("--resource-dirs", "./src/proj/resources")
+    scopeOptions    = if (testScope) Seq("--test") else Nil
     title           = if (useDirective) "directive" else "command line"
-  } test(s"resources via $title with --watch") {
+  } test(s"resources via $title with --watch ($scopeString)") {
     val expectedMessage1 = "Hello"
     val expectedMessage2 = "world"
     resourcesInputs(directive = directive, resourceContent = expectedMessage1)
       .fromRoot { root =>
         TestUtil.withProcessWatching(
-          os.proc(TestUtil.cli, "run", "src", "--watch", resourceOptions, extraOptions)
+          os.proc(
+            TestUtil.cli,
+            "run",
+            "src",
+            "--watch",
+            resourceOptions,
+            scopeOptions,
+            extraOptions
+          )
             .spawn(cwd = root, stderr = os.Pipe)
         ) { (proc, timeout, ec) =>
           val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output1 == expectedMessage1)
           proc.printStderrUntilRerun(timeout)(ec)
-          val Some((resourcePath, newResourceContent)) =
+          val (resourcePath, newResourceContent) =
             resourcesInputs(directive = directive, resourceContent = expectedMessage2)
               .files
               .find(_._1.toString.contains("resources"))
+              .get
           os.write.over(root / resourcePath, newResourceContent)
           val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output2 == expectedMessage2)

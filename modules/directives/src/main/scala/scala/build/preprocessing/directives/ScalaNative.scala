@@ -12,6 +12,8 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples(s"//> using nativeLto full")
 @DirectiveExamples(s"//> using nativeVersion ${Constants.scalaNativeVersion}")
 @DirectiveExamples(s"//> using nativeCompile -flto=thin")
+@DirectiveExamples(s"//> using nativeCCompile -std=c17")
+@DirectiveExamples(s"//> using nativeCppCompile -std=c++17 -fcxx-exceptions")
 @DirectiveExamples(s"//> using nativeLinking -flto=thin")
 @DirectiveExamples(s"//> using nativeClang ./clang")
 @DirectiveExamples(s"//> using nativeClangPP ./clang++")
@@ -31,6 +33,10 @@ import scala.cli.commands.SpecificationLevel
     |`//> using nativeVersion` _value_
     |
     |`//> using nativeCompile` _value1_ _value2_ …
+    |
+    |`//> using nativeCCompile` _value1_ _value2_ …
+    |
+    |`//> using nativeCppCompile` _value1_ _value2_ …
     |
     |`//> using nativeLinking` _value1_ _value2_ …
     |
@@ -59,6 +65,8 @@ final case class ScalaNative(
   nativeLto: Option[String] = None,
   nativeVersion: Option[String] = None,
   nativeCompile: List[String] = Nil,
+  nativeCCompile: List[String] = Nil,
+  nativeCppCompile: List[String] = Nil,
   nativeLinking: List[String] = Nil,
   nativeClang: Option[String] = None,
   @DirectiveName("nativeClangPp")
@@ -74,6 +82,8 @@ final case class ScalaNative(
       ltoStr = nativeLto,
       version = nativeVersion,
       compileOptions = nativeCompile,
+      cCompileOptions = nativeCCompile,
+      cppCompileOptions = nativeCppCompile,
       linkingOptions = nativeLinking,
       clang = nativeClang,
       clangpp = nativeClangPP,

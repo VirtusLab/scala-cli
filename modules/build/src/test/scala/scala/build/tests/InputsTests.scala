@@ -3,7 +3,7 @@ package scala.build.tests
 import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.Build
+import scala.build.input.ElementsUtils.*
 import scala.build.input.{
   Inputs,
   ScalaCliInvokeData,
@@ -11,11 +11,10 @@ import scala.build.input.{
   VirtualScalaFile,
   VirtualScript
 }
-import scala.build.input.ElementsUtils.*
-import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion}
-import scala.build.tests.util.BloopServer
-import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.build.internal.Constants
+import scala.build.options.{BuildOptions, InternalOptions}
+import scala.build.tests.util.BloopServer
+import scala.build.{Build, BuildThreads, Directories, LocalRepo}
 
 class InputsTests extends TestUtil.ScalaCliBuildSuite {
   val buildThreads: BuildThreads               = BuildThreads.create()
@@ -145,7 +144,7 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
       val elements = Inputs.validateArgs(
         urls,
         root,
-        download = url => Right(Array.emptyByteArray),
+        download = _ => Right(Array.emptyByteArray),
         stdinOpt = None,
         acceptFds = true,
         enableMarkdown = true

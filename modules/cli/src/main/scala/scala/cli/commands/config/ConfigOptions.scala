@@ -99,11 +99,11 @@ object ConfigOptions {
        |${HelpMessages.commandFullHelpReference(cmdName)}
        |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
   private def configKeyMessages(includeHidden: Boolean): Seq[String] = {
-    val allKeys: Seq[Key[_]]     = Keys.map.values.toSeq
-    val allowedKeys: Seq[Key[_]] =
+    val allKeys: Seq[Key[?]]     = Keys.map.values.toSeq
+    val allowedKeys: Seq[Key[?]] =
       if allowRestrictedFeatures then allKeys
       else allKeys.filterNot(k => k.isRestricted || k.isExperimental)
-    val keys: Seq[Key[_]] =
+    val keys: Seq[Key[?]] =
       if includeHidden then allowedKeys
       else allowedKeys.filterNot(k => k.hidden || k.isExperimental)
     val maxFullNameLength = keys.map(_.fullName.length).max

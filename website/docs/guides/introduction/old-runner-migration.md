@@ -26,15 +26,17 @@ Scala CLI is available as the `scala` command alongside the Scala distribution i
 
 ## Can I still use the old `scala` runner with Scala 3.5+?
 
-Yes, even though its usage has been deprecated, it is still available under the `scala_legacy` command. 
-However, it is likely to be dropped in a future version.
+Even though its usage has been deprecated, it was still available under the `scala_legacy` command until Scala 3.7.4. 
+It has been removed since Scala 3.8.0.
 
 ```bash
 scala_legacy -version
 # [warning] MainGenericRunner class is deprecated since Scala 3.5.0, and Scala CLI features will not work.
 # [warning] Please be sure to update to the Scala CLI launcher to use the new features.
 # [warning] Check the Scala 3.5.0 release notes to troubleshoot your installation.
-# Scala code runner version 3.5.0 -- Copyright 2002-2024, LAMP/EPFL
+# [warning] The MainGenericRunner class and 'legacy_scala' command have been deprecated for removal in Scala 3.8.0.
+# [warning] Please be sure to migrate to the scala command (Scala CLI).
+# Scala code runner version 3.7.4 -- Copyright 2002-2025, LAMP/EPFL
 ```
 
 ## How has the passing of arguments been changed from the old `scala` runner to Scala CLI?

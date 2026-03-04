@@ -524,7 +524,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               val (pythonExecutable, pythonLibraryPaths, pythonExtraEnv) =
                 if setupPython then {
                   val (exec, libPaths) = value {
-                    val python                  = Python()
+                    val python                  = value(createPythonInstance().orPythonDetectionError)
                     val pythonPropertiesOrError = for {
                       paths      <- python.nativeLibraryPaths
                       executable <- python.executable
@@ -611,7 +611,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                   val (pythonJavaProps, pythonExtraEnv) =
                     if setupPython then {
                       val scalapyProps = value {
-                        val python       = Python()
+                        val python       = value(createPythonInstance().orPythonDetectionError)
                         val propsOrError = python.scalapyProperties
                         logger.debug(s"Python Java properties: $propsOrError")
                         propsOrError.orPythonDetectionError
@@ -739,8 +739,64 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       logger = logger
     ).map(f)
 
+  def findHomebrewPython(): Option[os.Path] =
+    if (Properties.isMac) {
+      // Try common Homebrew locations
+      val homebrewPaths = Seq(
+        "/opt/homebrew/bin/python3",
+        "/usr/local/bin/python3"
+      )
+      homebrewPaths
+        .map(os.Path(_, os.pwd))
+        .find { path =>
+          os.exists(path) && {
+            // Verify it has the -config script
+            val configPath = path / os.up / s"${path.last}-config"
+            os.exists(configPath)
+          }
+        }
+    }
+    else None
+
+  def createPythonInstance(): Try[Python] =
+    // Try default Python detection first
+    // If it fails on macOS and Homebrew Python is available, the error message will guide the user
+    Try(Python())
+
   final class PythonDetectionError(cause: Throwable) extends BuildException(
-        s"Error detecting Python environment: ${cause.getMessage}",
+        {
+          val baseMessage = cause.getMessage
+          if (
+            Properties.isMac && baseMessage != null && baseMessage.contains(
+              "-config"
+            ) && baseMessage.contains("does not exist")
+          ) {
+            val homebrewPython = findHomebrewPython()
+            val homebrewHint   = homebrewPython match {
+              case Some(path) =>
+                s"""
+                   |Homebrew Python was found at $path, but it's not being used.
+                   |Ensure Homebrew's bin directory is first in your PATH:
+                   |  export PATH="${path / os.up}:$$PATH"
+                   |""".stripMargin
+              case None =>
+                """
+                  |Consider installing Python via Homebrew:
+                  |  brew install python
+                  |
+                  |Or install Python from https://www.python.org/downloads/
+                  |""".stripMargin
+            }
+            s"""Error detecting Python environment: $baseMessage
+               |
+               |The system Python from CommandLineTools may not include the required -config scripts.
+               |$homebrewHint
+               |
+               |Alternatively, you can disable Python setup with --python=false""".stripMargin
+          }
+          else
+            s"Error detecting Python environment: $baseMessage"
+        },
         cause = cause
       )
 

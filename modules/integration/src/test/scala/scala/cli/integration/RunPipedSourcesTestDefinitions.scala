@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
+trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
   def piping(): Unit = {
     emptyInputs.fromRoot { root =>
       val cliCmd         = (TestUtil.cli ++ extraOptions).mkString(" ")

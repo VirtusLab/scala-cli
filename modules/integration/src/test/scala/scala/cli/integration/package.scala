@@ -1,6 +1,6 @@
 package scala.cli
 
-import coursier.core.Version
+import coursier.version.Version
 
 import java.util.concurrent.CompletableFuture
 

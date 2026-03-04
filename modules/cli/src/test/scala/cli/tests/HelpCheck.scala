@@ -5,8 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.ScalaCliCommands
 import scala.cli.commands.version.Version
 
-class HelpCheck extends munit.FunSuite {
-
+class HelpCheck extends TestUtil.ScalaCliSuite {
   test("help message should be shorter then 80 lines") {
     val scalaCli    = new ScalaCliCommands("scala-cli", "scala-cli", "Scala CLI")
     val helpMessage = scalaCli.help.help(scalaCli.helpFormat)

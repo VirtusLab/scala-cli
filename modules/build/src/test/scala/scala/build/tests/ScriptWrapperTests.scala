@@ -1,18 +1,15 @@
 package scala.build.tests
 
+import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.IOException
 import scala.build.Ops.EitherThrowOps
-import scala.build.errors.ToolkitDirectiveMissingVersionError
 import scala.build.options.{
   BuildOptions,
   InternalOptions,
   MaybeScalaVersion,
   Platform,
   ScalaOptions,
-  ScalacOpt,
-  Scope,
   ScriptOptions
 }
 import scala.build.tests.util.BloopServer
@@ -20,7 +17,7 @@ import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Posit
 
 class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
 
-  def expectAppWrapper(wrapperName: String, path: os.Path) = {
+  def expectAppWrapper(wrapperName: String, path: os.Path): Unit = {
     val generatedFileContent = os.read(path)
     assert(
       generatedFileContent.contains(s"object $wrapperName extends App {"),
@@ -33,7 +30,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  def expectObjectWrapper(wrapperName: String, path: os.Path) = {
+  def expectObjectWrapper(wrapperName: String, path: os.Path): Unit = {
     val generatedFileContent = os.read(path)
     assert(
       generatedFileContent.contains(s"object $wrapperName {"),
@@ -46,7 +43,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  def expectClassWrapper(wrapperName: String, path: os.Path) = {
+  def expectClassWrapper(wrapperName: String, path: os.Path): Unit = {
     val generatedFileContent = os.read(path)
     assert(
       generatedFileContent.contains(s"final class $wrapperName$$_"),
@@ -59,12 +56,11 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  val buildThreads = BuildThreads.create()
+  val buildThreads: BuildThreads               = BuildThreads.create()
+  def bloopConfigOpt: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
 
-  def bloopConfigOpt = Some(BloopServer.bloopConfig)
-
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
 
   override def afterAll(): Unit = {
     TestInputs.tryRemoveAll(extraRepoTmpDir)
@@ -152,7 +148,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
     test(
       s"object wrapper forced with ${if (useDirectives) directive else optionName}"
     ) {
-      inputs.withBuild(options orElse baseOptions, buildThreads, bloopConfigOpt) {
+      inputs.withBuild(options.orElse(baseOptions), buildThreads, bloopConfigOpt) {
         (root, _, maybeBuild) =>
           expect(maybeBuild.orThrow.success)
           val projectDir = os.list(root / ".scala-build").filter(
@@ -195,7 +191,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
     test(
       s"App object wrapper forced with ${if (useDirectives) directive else optionName}"
     ) {
-      inputs.withBuild(options orElse baseOptions, buildThreads, bloopConfigOpt) {
+      inputs.withBuild(options.orElse(baseOptions), buildThreads, bloopConfigOpt) {
         (root, _, maybeBuild) =>
           expect(maybeBuild.orThrow.success)
           val projectDir = os.list(root / ".scala-build").filter(

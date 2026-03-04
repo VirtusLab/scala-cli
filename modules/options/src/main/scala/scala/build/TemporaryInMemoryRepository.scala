@@ -1,8 +1,11 @@
 package scala.build
 
+import coursier.Type
 import coursier.cache.{ConnectionBuilder, FileCache}
 import coursier.core.*
+import coursier.core.Repository.Fetch
 import coursier.util.{Artifact, EitherT, Monad}
+import coursier.version.{Version, VersionConstraint}
 
 import java.io.{File, FileNotFoundException, IOException}
 import java.net.{HttpURLConnection, URL, URLConnection}
@@ -111,17 +114,18 @@ object TemporaryInMemoryRepository {
       .getOrElse(genericAttempt)
   }
 
-  def apply(fallbacks: Map[(Module, String), (URL, Boolean)]): TemporaryInMemoryRepository =
+  def apply(fallbacks: Map[(Module, VersionConstraint), (URL, Boolean)])
+    : TemporaryInMemoryRepository =
     new TemporaryInMemoryRepository(fallbacks, localArtifactsShouldBeCached = false, None)
 
   def apply(
-    fallbacks: Map[(Module, String), (URL, Boolean)],
+    fallbacks: Map[(Module, VersionConstraint), (URL, Boolean)],
     localArtifactsShouldBeCached: Boolean
   ): TemporaryInMemoryRepository =
     new TemporaryInMemoryRepository(fallbacks, localArtifactsShouldBeCached, None)
 
   def apply[F[_]](
-    fallbacks: Map[(Module, String), (URL, Boolean)],
+    fallbacks: Map[(Module, VersionConstraint), (URL, Boolean)],
     cache: FileCache[F]
   ): TemporaryInMemoryRepository =
     new TemporaryInMemoryRepository(
@@ -133,21 +137,27 @@ object TemporaryInMemoryRepository {
 }
 
 final class TemporaryInMemoryRepository private (
-  val fallbacks: Map[(Module, String), (URL, Boolean)],
+  val fallbacks: Map[(Module, VersionConstraint), (URL, Boolean)],
   val localArtifactsShouldBeCached: Boolean,
   val cacheOpt: Option[FileCache[Nothing]]
 ) extends Repository {
 
-  def find[F[_]](
+  @deprecated
+  override def find[F[_]](
     module: Module,
     version: String,
     fetch: Repository.Fetch[F]
   )(implicit
     F: Monad[F]
+  ): EitherT[F, String, (ArtifactSource, Project)] =
+    find0(module, Version(version), fetch)
+
+  override def find0[F[_]](module: Module, version: Version, fetch: Fetch[F])(implicit
+    F: Monad[F]
   ): EitherT[F, String, (ArtifactSource, Project)] = {
 
     def res = fallbacks
-      .get((module, version))
+      .get((module, VersionConstraint.fromVersion(version)))
       .fold[Either[String, (ArtifactSource, Project)]](Left("No fallback URL found")) {
         case (url, _) =>
           val urlStr = url.toExternalForm
@@ -160,21 +170,24 @@ final class TemporaryInMemoryRepository private (
 
             if (TemporaryInMemoryRepository.exists(url, localArtifactsShouldBeCached, cacheOpt)) {
               val proj = Project(
-                module,
-                version,
-                Nil,
-                Map.empty,
-                None,
-                Nil,
-                Nil,
-                Nil,
-                None,
-                None,
-                None,
+                module = module,
+                version0 = version,
+                dependencies0 = Nil,
+                configurations = Map.empty,
+                parent0 = None,
+                dependencyManagement0 = Nil,
+                properties = Nil,
+                profiles = Nil,
+                versions = None,
+                snapshotVersioning = None,
+                packagingOpt = None,
                 relocated = false,
-                None,
-                Nil,
-                Info.empty
+                actualVersionOpt0 = None,
+                publications0 = Nil,
+                info = Info.empty,
+                overrides = Overrides.empty,
+                variants = Map.empty,
+                variantPublications = Map.empty
               )
 
               Right((this, proj))
@@ -188,13 +201,16 @@ final class TemporaryInMemoryRepository private (
     EitherT(F.map(F.point(()))(_ => res))
   }
 
-  def artifacts(
+  override def artifacts(
     dependency: Dependency,
     project: Project,
     overrideClassifiers: Option[Seq[Classifier]]
   ): Seq[(Publication, Artifact)] =
     fallbacks
-      .get(dependency.moduleVersion)
+      .get {
+        dependency.moduleVersionConstraint match
+          case (m, vc) => m -> vc
+      }
       .toSeq
       .map {
         case (url, changing) =>

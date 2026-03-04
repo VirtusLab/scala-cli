@@ -93,7 +93,8 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
     val expectedOutput = "Hello"
     val mainClassName  = "Main"
     TestInputs(
-      os.rel / s"$mainClassName.scala" -> s"""object $mainClassName extends App { println("$expectedOutput") }"""
+      os.rel / s"$mainClassName.scala" ->
+        s"""object $mainClassName extends App { println("$expectedOutput") }"""
     ).fromRoot { (root: os.Path) =>
       val compilationOutputDir = os.rel / "compilationOutput"
       // first, precompile to an explicitly specified output directory with -d
@@ -120,7 +121,8 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
     val expectedOutput = "Hello"
     val mainClassName  = "Main"
     TestInputs(
-      os.rel / s"$mainClassName.scala" -> s"""object $mainClassName extends App { println("$expectedOutput") }"""
+      os.rel / s"$mainClassName.scala" ->
+        s"""object $mainClassName extends App { println("$expectedOutput") }"""
     ).fromRoot { (root: os.Path) =>
       val compilationOutputDir = os.rel / "compilationOutput"
       // first, precompile to an explicitly specified output directory with -d

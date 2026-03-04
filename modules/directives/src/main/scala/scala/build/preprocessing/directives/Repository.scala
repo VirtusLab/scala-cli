@@ -8,6 +8,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveGroupName("Repository")
 @DirectiveExamples("//> using repository jitpack")
 @DirectiveExamples("//> using repository sonatype:snapshots")
+@DirectiveExamples("//> using repository ivy2Local")
 @DirectiveExamples("//> using repository m2Local")
 @DirectiveExamples(
   "//> using repository https://maven-central.storage-download.googleapis.com/maven2"
@@ -38,5 +39,5 @@ object Repository {
   val usageMsg =
     """Add repositories for dependency resolution.
       |
-      |Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository""".stripMargin
+      |Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository""".stripMargin
 }

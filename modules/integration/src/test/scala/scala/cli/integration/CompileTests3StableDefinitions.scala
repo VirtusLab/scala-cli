@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
-trait CompileTests3StableDefinitions { _: CompileTestDefinitions =>
+trait CompileTests3StableDefinitions { this: CompileTestDefinitions =>
   test(s"TASTY processor does not warn about Scala $actualScalaVersion") {
     TestInputs(os.rel / "simple.sc" -> s"""println("Hello")""")
       .fromRoot { root =>

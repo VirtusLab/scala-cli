@@ -37,7 +37,7 @@ class PgpProxy {
           Map("SCALA_CLI_RANDOM_KEY_PASSWORD" -> value)
         )
       case None => (Nil, Map.empty)
-    val quietOptions = Nil
+    val quietOptions = if quiet then Seq("--quiet") else Nil
     (new PgpCreateExternal).tryRun(
       cache,
       Seq(

@@ -121,7 +121,7 @@ final case class ScopedSources(
     */
   def combinedBuildOptions(scope: Scope, baseOptions: BuildOptions): BuildOptions =
     buildOptionsFor(scope)
-      .foldRight(baseOptions)(_ orElse _)
+      .foldRight(baseOptions)(_.orElse(_))
 
   def buildInfo(baseOptions: BuildOptions, workspace: os.Path): Either[BuildException, BuildInfo] =
     either {

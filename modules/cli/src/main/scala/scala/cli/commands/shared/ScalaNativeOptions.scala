@@ -56,6 +56,16 @@ final case class ScalaNativeOptions(
     nativeCompile: List[String] = Nil,
 
   @Group(HelpGroup.ScalaNative.toString)
+  @HelpMessage("List of compile options (C files only)")
+  @Tag(tags.should)
+    nativeCCompile: List[String] = Nil,
+
+  @Group(HelpGroup.ScalaNative.toString)
+  @HelpMessage("List of compile options (C++ files only)")
+  @Tag(tags.should)
+    nativeCppCompile: List[String] = Nil,
+
+  @Group(HelpGroup.ScalaNative.toString)
   @Hidden
   @HelpMessage("Use default compile options")
    @Tag(tags.implementation)

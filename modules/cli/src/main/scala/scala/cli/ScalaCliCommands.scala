@@ -22,7 +22,7 @@ class ScalaCliCommands(
   private def pgpCommands       = new pgp.PgpCommands
   private def pgpBinaryCommands = new pgp.PgpCommandsSubst
 
-  private def allCommands = Seq[ScalaCommand[_]](
+  private def allCommands = Seq[ScalaCommand[?]](
     addpath.AddPath,
     bloop.Bloop,
     bloop.BloopExit,

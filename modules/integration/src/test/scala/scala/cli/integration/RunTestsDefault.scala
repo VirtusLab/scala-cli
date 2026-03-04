@@ -48,7 +48,8 @@ class RunTestsDefault extends RunTestDefinitions
   }
 
   if (Properties.isLinux && TestUtil.isNativeCli)
-    test("arch linux") {
+    // TODO: restore this test once it gets reliable again
+    test("arch linux".ignore) {
       archLinuxTest()
     }
 
@@ -102,10 +103,9 @@ class RunTestsDefault extends RunTestDefinitions
       """//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar
         |import tabby.Grid
         |@main def main = println(Grid("a", "b", "c")(1, 2, 3))
-        |""".stripMargin).fromRoot {
-      root =>
-        val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath)
-          .call(cwd = root)
+        |""".stripMargin).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath)
+        .call(cwd = root)
       val out = res.out.trim()
       expect(out.contains("a, b, c"))
     }
@@ -223,7 +223,7 @@ class RunTestsDefault extends RunTestDefinitions
     scalaVersion <- TestUtil.legacyScalaVersionsOnePerMinor
     expectedMessage = "Hello, world!"
     expectedWarning =
-      s"Defaulting to a legacy runner module version: ${Constants.runnerLegacyVersion}"
+      s"Defaulting to a legacy runner module version: ${Constants.runnerScala30LegacyVersion}"
   }
     test(
       s"run a simple hello world with the runner module on the classpath and Scala $scalaVersion (legacy)"

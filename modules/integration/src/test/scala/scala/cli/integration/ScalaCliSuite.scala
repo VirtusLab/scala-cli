@@ -3,6 +3,7 @@ package scala.cli.integration
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.util.Properties
 
 abstract class ScalaCliSuite extends munit.FunSuite {
   implicit class BeforeEachOpts(munitContext: BeforeEach) {
@@ -28,6 +29,13 @@ abstract class ScalaCliSuite extends munit.FunSuite {
         s"X==== ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
       )
     }
+
+    override def afterAll(): Unit = {
+      super.afterAll()
+      // Clean up cached JDKs after all tests have run on Linux native CI runners
+      if isCI && Properties.isLinux then TestUtil.cleanCachedJdks()
+      else System.err.println("Skipping cached JDKs cleanup")
+    }
   }
 
   override def munitTimeout: Duration = new FiniteDuration(300, TimeUnit.SECONDS)
@@ -46,10 +54,10 @@ abstract class ScalaCliSuite extends munit.FunSuite {
 object ScalaCliSuite {
   sealed abstract class TestGroup(val idx: Int) extends Product with Serializable
   object TestGroup {
-    case object First  extends TestGroup(1)
-    case object Second extends TestGroup(2)
-    case object Third  extends TestGroup(3)
-    case object Fourth extends TestGroup(4)
-    case object Fifth  extends TestGroup(5)
+    case object First  extends TestGroup(1) // Scala 3 Next / default
+    case object Second extends TestGroup(2) // Scala 2.13
+    case object Third  extends TestGroup(3) // Scala 2.12
+    case object Fourth extends TestGroup(4) // Scala 3.3 LTS
+    case object Fifth  extends TestGroup(5) // Scala 3 Next RC
   }
 }

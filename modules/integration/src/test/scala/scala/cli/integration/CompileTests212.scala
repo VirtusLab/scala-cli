@@ -15,7 +15,7 @@ class CompileTests212 extends CompileTestDefinitions with Test212 {
         |""".stripMargin
   )
 
-  val kindProjectPlugin = "org.typelevel:::kind-projector:0.13.3"
+  val kindProjectPlugin = "org.typelevel:::kind-projector:0.13.4"
 
   test("should compile with compiler plugin") {
     pluginInputs.fromRoot { root =>

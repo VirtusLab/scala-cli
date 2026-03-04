@@ -42,7 +42,8 @@ final case class PasswordCheck(
 
   def check(pubOpt: BPublishOptions): Boolean =
     pubOpt.retained(options.publishParams.setupCi).repoPassword.nonEmpty ||
-    !options.publishParams.setupCi && (passwordOpt(pubOpt) match {
+    !options.publishParams.setupCi &&
+    (passwordOpt(pubOpt) match {
       case Left(ex) =>
         logger.debug("Ignoring error while trying to get password from config")
         logger.debug(ex)

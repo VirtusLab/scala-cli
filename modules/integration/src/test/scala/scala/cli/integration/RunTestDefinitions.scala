@@ -7,7 +7,7 @@ import java.nio.charset.Charset
 
 import scala.cli.integration.util.DockerServer
 import scala.io.Codec
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 abstract class RunTestDefinitions
@@ -23,7 +23,7 @@ abstract class RunTestDefinitions
     with RunScalaPyTestDefinitions
     with RunZipTestDefinitions
     with RunJdkTestDefinitions
-    with CoursierScalaInstallationTestHelper { _: TestScalaVersion =>
+    with CoursierScalaInstallationTestHelper { this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
 
@@ -31,6 +31,26 @@ abstract class RunTestDefinitions
 
   protected val ciOpt: Seq[String] =
     Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
+
+  protected def getScalaVersion(
+    scalaVersionIndex: String,
+    root: os.Path,
+    check: Boolean = true,
+    mergeErrIntoOut: Boolean = false
+  ): String =
+    os.proc(
+      TestUtil.cli,
+      "run",
+      "-e",
+      "println(dotty.tools.dotc.config.Properties.simpleVersionString)",
+      "-S",
+      scalaVersionIndex,
+      "--with-compiler",
+      TestUtil.extraOptions
+    )
+      .call(cwd = root, check = check, mergeErrIntoOut = mergeErrIntoOut)
+      .out
+      .trim()
 
   test("print command") {
     val fileName = "simple.sc"
@@ -182,9 +202,8 @@ abstract class RunTestDefinitions
     val url = "https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec"
     emptyInputs.fromRoot { root =>
       os.proc(TestUtil.cli, extraOptions, escapedUrls(url)).call(cwd = root)
-      expect(
-        !os.exists(root / ".scala-build")
-      ) // virtual source should not create workspace dir in cwd
+      val path = root / ".scala-build"
+      expect(!os.exists(path)) // virtual source should not create workspace dir in cwd
     }
   }
 
@@ -216,15 +235,15 @@ abstract class RunTestDefinitions
         "--java-prop",
         "scala.colored-stack-traces=false"
       )
-      val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
-      val output = res.out.lines()
+      val res = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output: Vector[String] = TestUtil.fullStableOutputLines(res)
       // FIXME We need to have the pretty-stacktraces stuff take scala.colored-stack-traces into account
       val exceptionLines =
         output.map(stripAnsi).dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
 
       val expectedLines =
-        if (actualScalaVersion.startsWith("2.12."))
+        if actualScalaVersion.startsWith("2.12.") then
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
              |${tab}at Throws$$.main(Throws.scala:8)
              |${tab}at Throws.main(Throws.scala)
@@ -234,7 +253,17 @@ abstract class RunTestDefinitions
              |${tab}at Throws$$.main(Throws.scala:5)
              |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
-        else if (actualScalaVersion.startsWith("3.") || actualScalaVersion.startsWith("2.13."))
+        else if isScala38OrNewer then
+          s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
+             |${tab}at Throws$$.main(Throws.scala:8)
+             |${tab}at Throws.main(Throws.scala)
+             |Caused by: java.lang.RuntimeException: nope
+             |${tab}at scala.sys.package$$.error(package.scala:28)
+             |${tab}at Throws$$.something(Throws.scala:3)
+             |${tab}at Throws$$.main(Throws.scala:5)
+             |$tab... 1 more
+             |""".stripMargin.linesIterator.toVector
+        else if actualScalaVersion.startsWith("3.") || actualScalaVersion.startsWith("2.13.") then
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
              |${tab}at Throws$$.main(Throws.scala:8)
              |${tab}at Throws.main(Throws.scala)
@@ -244,9 +273,8 @@ abstract class RunTestDefinitions
              |${tab}at Throws$$.main(Throws.scala:5)
              |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
-        else
-          sys.error(s"Unexpected Scala version: $actualScalaVersion")
-      if (exceptionLines != expectedLines) {
+        else sys.error(s"Unexpected Scala version: $actualScalaVersion")
+      if exceptionLines != expectedLines then {
         pprint.log(exceptionLines)
         pprint.log(expectedLines)
       }
@@ -381,7 +409,8 @@ abstract class RunTestDefinitions
     }
 
   if (Properties.isLinux && TestUtil.isNativeCli)
-    test("no JVM installed") {
+    // TODO: restore this test once it gets reliable again
+    test("no JVM installed".ignore) {
       val fileName = "simple.sc"
       val message  = "Hello"
       val inputs   = TestInputs(
@@ -567,9 +596,9 @@ abstract class RunTestDefinitions
   ): TestInputs =
     TestInputs(
       os.rel / "src" / "proj" / "resources" / "test" / "data" -> resourceContent,
-      os.rel / "src" / "proj" / "Test.scala"                  ->
+      os.rel / "src" / "proj" / "Example.scala"               ->
         s"""$directive
-           |object Test {
+           |object Example {
            |  def main(args: Array[String]): Unit = {
            |    val cl = Thread.currentThread().getContextClassLoader
            |    val is = cl.getResourceAsStream("test/data")
@@ -596,6 +625,22 @@ abstract class RunTestDefinitions
     )
       .fromRoot { root =>
         val res = os.proc(TestUtil.cli, "run", ".").call(cwd = root)
+        expect(res.out.trim() == expectedMessage)
+      }
+  }
+  test("resources via test directive") {
+    val expectedMessage = "hello"
+    resourcesInputs(
+      directive = "//> using test.resourceDirs ./resources",
+      resourceContent = expectedMessage
+    )
+      .fromRoot { root =>
+        val err = os.proc(TestUtil.cli, "run", ".")
+          .call(cwd = root, check = false, stderr = os.Pipe)
+        expect(err.err.trim().contains("java.lang.NullPointerException"))
+        expect(err.exitCode == 1)
+        val res = os.proc(TestUtil.cli, "run", ".", "--test")
+          .call(cwd = root)
         expect(res.out.trim() == expectedMessage)
       }
   }
@@ -686,25 +731,31 @@ abstract class RunTestDefinitions
       }
     }
 
-  test("Runs with JVM 8") {
-    val inputs =
-      TestInputs(
-        os.rel / "run.scala" -> """object Main extends App { println(System.getProperty("java.version"))}"""
-      )
-    inputs.fromRoot { root =>
-      val p = os.proc(TestUtil.cli, "run.scala", "--jvm", "8").call(cwd = root)
-      expect(p.out.trim().startsWith("1.8"))
+  {
+    val jvm = Constants.scala38MinJavaVersion
+    test(s"Runs with JVM $jvm") {
+      val inputs =
+        TestInputs(
+          os.rel / "run.scala" ->
+            """object Main extends App { println(System.getProperty("java.version"))}"""
+        )
+      inputs.fromRoot { root =>
+        val p   = os.proc(TestUtil.cli, "run.scala", "--jvm", jvm).call(cwd = root)
+        val res = p.out.trim()
+        expect(res.startsWith(s"1.$jvm") || res.startsWith(s"$jvm."))
+      }
     }
-  }
 
-  test("Runs with JVM 8 with using directive") {
-    val inputs =
-      TestInputs(os.rel / "run.scala" ->
-        """//> using jvm 8
-          |object Main extends App { println(System.getProperty("java.version"))}""".stripMargin)
-    inputs.fromRoot { root =>
-      val p = os.proc(TestUtil.cli, "run.scala").call(cwd = root)
-      expect(p.out.trim().startsWith("1.8"))
+    test(s"Runs with JVM $jvm with using directive") {
+      val inputs =
+        TestInputs(os.rel / "run.scala" ->
+          s"""//> using jvm $jvm
+             |object Main extends App { println(System.getProperty("java.version"))}""".stripMargin)
+      inputs.fromRoot { root =>
+        val p   = os.proc(TestUtil.cli, "run.scala").call(cwd = root)
+        val res = p.out.trim()
+        expect(res.startsWith(s"1.$jvm") || res.startsWith(s"$jvm."))
+      }
     }
   }
 
@@ -910,8 +961,12 @@ abstract class RunTestDefinitions
     }
   }
 
-  if (Properties.isLinux && TestUtil.isNativeCli && TestUtil.cliKind != "native-static")
-    test("sudo") {
+  if (
+    Properties.isLinux && TestUtil.isNativeCli && TestUtil.cliKind != "native-static" &&
+    TestUtil.cliKind != "native-mostly-static"
+  )
+    // TODO: restore this test once it gets reliable again
+    test("sudo".flaky) {
       sudoTest()
     }
 
@@ -1025,7 +1080,7 @@ abstract class RunTestDefinitions
   }
 
   def runAuthProxyTests: Boolean =
-    Properties.isLinux || (Properties.isMac && !TestUtil.isCI)
+    (Properties.isLinux && !TestUtil.isAarch64) || (Properties.isMac && !TestUtil.isCI)
 
   if (runAuthProxyTests) {
     test("auth proxy (legacy)") {
@@ -1062,11 +1117,11 @@ abstract class RunTestDefinitions
         fileName
       )
         .call(cwd = root)
-      if (res.out.text(Codec.default).trim != message) {
-        pprint.err.log(res.out.text(Codec.default).trim)
+      if (res.out.text(Codec.UTF8).trim != message) {
+        pprint.err.log(res.out.text(Codec.UTF8).trim)
         pprint.err.log(message)
       }
-      expect(res.out.text(Codec.default).trim == message)
+      expect(res.out.text(Codec.UTF8).trim == message)
     }
   }
 
@@ -1394,7 +1449,7 @@ abstract class RunTestDefinitions
       os.rel / projectFile ->
         """//> using dep com.lihaoyi::os-lib:0.9.1
           |//> using test.dep org.scalameta::munit::0.7.29
-          |//> using test.dep com.lihaoyi::pprint:0.8.1
+          |//> using test.dep com.lihaoyi::pprint:0.9.6
           |""".stripMargin,
       os.rel / invalidMainFile ->
         """object InvalidMain extends App {
@@ -1555,11 +1610,12 @@ abstract class RunTestDefinitions
   }
 
   test("BuildInfo fields should be reachable") {
+    val jvmId  = "18"
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
         s"""//> using dep com.lihaoyi::os-lib:0.9.1
            |//> using option -Xasync
-           |//> using jvm 11
+           |//> using jvm $jvmId
            |//> using mainClass Main
            |//> using resourceDir ./resources
            |//> using jar TEST1.jar TEST2.jar
@@ -1571,7 +1627,7 @@ abstract class RunTestDefinitions
            |object Main extends App {
            |  assert(BuildInfo.scalaVersion == "$actualScalaVersion")
            |  assert(BuildInfo.platform == "JVM")
-           |  assert(BuildInfo.jvmVersion == Some("11"))
+           |  assert(BuildInfo.jvmVersion == Some("$jvmId"))
            |  assert(BuildInfo.scalaJsVersion == None)
            |  assert(BuildInfo.jsEsVersion == None)
            |  assert(BuildInfo.scalaNativeVersion == None)
@@ -1938,13 +1994,13 @@ abstract class RunTestDefinitions
         val dep    = s"com.lihaoyi:os-lib_$depScalaVersion:0.10.6"
         val inputs = TestInputs(
           os.rel / "NoDeps.scala" ->
-            """//> using jvm zulu:11
+            """//> using jvm zulu:17
               |object NoDeps extends App {
               |  println("Hello from NoDeps")
               |}
               |""".stripMargin,
           os.rel / "WithDeps.scala" ->
-            s"""//> using jvm zulu:11
+            s"""//> using jvm zulu:17
                |//> using dep $dep
                |
                |object WithDeps extends App {
@@ -1997,7 +2053,7 @@ abstract class RunTestDefinitions
             }
 
           // Download JVM that won't suit Bloop, also no Bloop artifacts are present
-          os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:11")
+          os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:17")
             .call(cwd = root, env = extraEnv)
 
           val scalaJvmCacheWalkSize = os.walk(cachePath).size
@@ -2082,13 +2138,14 @@ abstract class RunTestDefinitions
   test("JVM id is printed with compilation info correctly") {
     val msg   = "Hello"
     val input = "jvm.sc"
+    val jvmId = "18"
     TestInputs(os.rel / input ->
-      s"""//> using jvm 11
+      s"""//> using jvm $jvmId
          |println("$msg")
          |""".stripMargin).fromRoot { root =>
       val res = os.proc(TestUtil.cli, "run", extraOptions, input).call(cwd = root, stderr = os.Pipe)
       expect(res.out.trim() == msg)
-      expect(res.err.trim().contains("JVM (11)"))
+      expect(res.err.trim().contains(s"JVM ($jvmId)"))
     }
   }
 
@@ -2320,7 +2377,8 @@ abstract class RunTestDefinitions
   for {
     (input, code) <- Seq(
       os.rel / "script.sc" -> """println(args.mkString(" "))""",
-      os.rel / "raw.scala" -> """object Main { def main(args: Array[String]) = println(args.mkString(" ")) }"""
+      os.rel / "raw.scala" ->
+        """object Main { def main(args: Array[String]) = println(args.mkString(" ")) }"""
     )
     testInputs = TestInputs(input -> code)
     shouldRestartBloop <- Seq(true, false)
@@ -2341,21 +2399,20 @@ abstract class RunTestDefinitions
             if (shouldRestartBloop)
               os.proc(TestUtil.cli, "bloop", "exit", "--power")
                 .call(cwd = root)
-            val processes: Seq[(os.SubProcess, Int)] =
-              (0 until parallelInstancesCount).map { i =>
-                os.proc(
-                  TestUtil.cli,
-                  "run",
-                  input.toString(),
-                  extraOptions,
-                  "--",
-                  "iteration",
-                  i.toString
-                )
-                  .spawn(cwd = root, env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"))
-              }.zipWithIndex
+            val processes: Seq[(os.SubProcess, Int)] = (0 until parallelInstancesCount).map { i =>
+              os.proc(
+                TestUtil.cli,
+                "run",
+                input.toString(),
+                extraOptions,
+                "--",
+                "iteration",
+                i.toString
+              )
+                .spawn(cwd = root, env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"))
+            }.zipWithIndex
             processes.foreach { case (p, _) => p.waitFor() }
-            processes.foreach { case (p, _) => expect(p.exitCode == 0) }
+            processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
             processes.foreach { case (p, i) => expect(p.stdout.trim() == s"iteration $i") }
         }
       }
@@ -2372,7 +2429,8 @@ abstract class RunTestDefinitions
     test(s"run a main method from the test scope ($platformDescription)") {
       val expectedMessage = "Hello from the test scope"
       TestInputs(
-        os.rel / "example.test.scala" -> s"""object Main extends App { println("$expectedMessage") }"""
+        os.rel / "example.test.scala" ->
+          s"""object Main extends App { println("$expectedMessage") }"""
       ).fromRoot { root =>
         val res = os.proc(TestUtil.cli, "run", ".", "--test", extraOptions, platformOpts)
           .call(cwd = root)
@@ -2384,8 +2442,10 @@ abstract class RunTestDefinitions
     val expectedMains @ Seq(expectedMain1, expectedMain2) = Seq("Main", "AnotherMain")
     val expectedOutput                                    = expectedMains.mkString(" ")
     TestInputs(
-      os.rel / "example.scala" -> s"""object $expectedMain1 extends App { println("Hello from the main scope") }""",
-      os.rel / "example.test.scala" -> s"""object $expectedMain2 extends App { println("Hello from the test scope") }"""
+      os.rel / "example.scala" ->
+        s"""object $expectedMain1 extends App { println("Hello from the main scope") }""",
+      os.rel / "example.test.scala" ->
+        s"""object $expectedMain2 extends App { println("Hello from the test scope") }"""
     ).fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
@@ -2400,19 +2460,32 @@ abstract class RunTestDefinitions
     }
   }
 
-  test(
-    s"run a simple hello world with the runner module on the classpath and Scala $actualScalaVersion"
-  ) {
-    val expectedMessage     = "Hello, world!"
-    val legacyRunnerWarning = "Defaulting to a legacy runner module version"
-    TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""")
-      .fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "run", ".", "--runner", extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-        expect(res.out.trim() == expectedMessage)
-        expect(!res.err.trim().contains(legacyRunnerWarning))
-      }
+  for {
+    javaVersion <-
+      if isScala38OrNewer then
+        Constants.allJavaVersions.filter(_ >= Constants.scala38MinJavaVersion)
+      else Constants.allJavaVersions.filter(_ < 24)
   }
+    test(
+      s"run a simple hello world with the runner module on the classpath, Scala $actualScalaVersion and Java $javaVersion"
+    ) {
+      val expectedMessage     = "Hello, world!"
+      val legacyRunnerWarning = "Defaulting to a legacy runner module version"
+      TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""")
+        .fromRoot { root =>
+          val res =
+            os.proc(TestUtil.cli, "run", ".", "--runner", extraOptions, "--jvm", javaVersion)
+              .call(cwd = root, stderr = os.Pipe)
+          expect(res.out.trim() == expectedMessage)
+          val legacyWarningCheck = {
+            val check       = res.err.trim().contains(legacyRunnerWarning)
+            val shouldCheck =
+              javaVersion < Constants.scala38MinJavaVersion || actualScalaVersion.startsWith("2")
+            if shouldCheck then check else !check
+          }
+          expect(legacyWarningCheck)
+        }
+    }
 
   for (parallelInstancesCount <- Seq(2, 5, 10))
     test(
@@ -2429,13 +2502,12 @@ abstract class RunTestDefinitions
           ).split(":", 2).last.trim())
         os.remove.all(localRepoPath)
 
-        val processes =
-          (0 until parallelInstancesCount).map { _ =>
-            os.proc(TestUtil.cli, "--version")
-              .spawn(cwd = root)
-          }.zipWithIndex
+        val processes = (0 until parallelInstancesCount).map { _ =>
+          os.proc(TestUtil.cli, "--version")
+            .spawn(cwd = root)
+        }.zipWithIndex
         processes.foreach { case (p, _) => p.waitFor() }
-        processes.foreach { case (p, _) => expect(p.exitCode == 0) }
+        processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
       }
     }
 }

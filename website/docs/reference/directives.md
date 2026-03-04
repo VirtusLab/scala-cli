@@ -67,7 +67,7 @@ Adds compiler plugins
 `using plugin` _org_`:`_name_`:`_ver_
 
 #### Examples
-`//> using plugin org.typelevel:::kind-projector:0.13.2`
+`//> using plugin org.typelevel:::kind-projector:0.13.4`
 
 ### Compute Version
 
@@ -188,14 +188,14 @@ Exclude sources from the project
 
 ### JVM version
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
+Use a specific JVM, such as `14`, `temurin:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 `//> using jvm` _value_
 
 #### Examples
 `//> using jvm 11`
 
-`//> using jvm adopt:11`
+`//> using jvm temurin:11`
 
 `//> using jvm graalvm:21`
 
@@ -300,6 +300,9 @@ Set parameters for packaging
 
 `//> using packaging.dockerCmd` _docker-command_
 
+`//> using packaging.dockerExtraDirectories` _directories_
+`//> using packaging.dockerExtraDirectory` _directory_
+
 
 
 #### Examples
@@ -322,6 +325,10 @@ Set parameters for packaging
 `//> using packaging.dockerCmd sh`
 
 `//> using packaging.dockerCmd node`
+
+`//> using packaging.dockerExtraDirectories path/to/directory1 path/to/directory2`
+
+`//> using packaging.dockerExtraDirectory path/to/directory`
 
 ### Platform
 
@@ -457,7 +464,7 @@ Enable Python support
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 `//> using repository` _repository_
 
@@ -465,6 +472,8 @@ Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`
 `//> using repository jitpack`
 
 `//> using repository sonatype:snapshots`
+
+`//> using repository ivy2Local`
 
 `//> using repository m2Local`
 
@@ -503,6 +512,10 @@ Add Scala Native options
 
 `//> using nativeCompile` _value1_ _value2_ …
 
+`//> using nativeCCompile` _value1_ _value2_ …
+
+`//> using nativeCppCompile` _value1_ _value2_ …
+
 `//> using nativeLinking` _value1_ _value2_ …
 
 `//> using nativeClang` _value_
@@ -528,9 +541,13 @@ Add Scala Native options
 
 `//> using nativeLto full`
 
-`//> using nativeVersion 0.5.8`
+`//> using nativeVersion 0.5.10`
 
 `//> using nativeCompile -flto=thin`
+
+`//> using nativeCCompile -std=c17`
+
+`//> using nativeCppCompile -std=c++17 -fcxx-exceptions`
 
 `//> using nativeLinking -flto=thin`
 
@@ -618,7 +635,7 @@ Add Scala.js options
 
 
 #### Examples
-`//> using jsVersion 1.20.1`
+`//> using jsVersion 1.20.2`
 
 `//> using jsMode mode`
 
@@ -664,15 +681,15 @@ Set the test framework
 
 ### Toolkit
 
-Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
+Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.1.29
 
 `//> using toolkit` _version_
 
-//> using test.toolkit` _version_
+`//> using test.toolkit` _version_
 
 
 #### Examples
-`//> using toolkit 0.7.0`
+`//> using toolkit 0.8.0`
 
 `//> using toolkit default`
 

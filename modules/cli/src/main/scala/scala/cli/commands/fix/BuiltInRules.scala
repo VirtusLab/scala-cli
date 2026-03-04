@@ -60,7 +60,7 @@ object BuiltInRules extends CommandHelpers {
     mainSources: Sources,
     testSources: Sources,
     logger: Logger
-  )(using ScalaCliInvokeData): Unit = {
+  ): Unit = {
     // Only initial inputs are used, new inputs discovered during processing of
     // CrossSources.forInput may be shared between projects
     val writableInputs: Seq[OnDisk] = inputs.flattened()
@@ -105,7 +105,8 @@ object BuiltInRules extends CommandHelpers {
     // Deal with directives from the Test scope
     val directivesFromWritableTestInputs: Seq[TransformedTestDirectives] =
       if (
-        testSources.paths.nonEmpty || testSources.inMemory.nonEmpty || testDirectivesFromMain.nonEmpty
+        testSources.paths.nonEmpty || testSources.inMemory.nonEmpty ||
+        testDirectivesFromMain.nonEmpty
       ) {
         val originalTestDirectives =
           getExtractedDirectives(testSources, buildOptions.suppressWarningOptions)
@@ -122,7 +123,8 @@ object BuiltInRules extends CommandHelpers {
                 .filter(_.existsTestEquivalent)
             }
           directive <-
-            directivesWithTestPrefix ++ directivesWithNoTestPrefixEquivalents ++ testDirectivesFromMain
+            directivesWithTestPrefix ++ directivesWithNoTestPrefixEquivalents ++
+              testDirectivesFromMain
         } yield directive
 
         createFormattedLinesAndAppend(allDirectives, projectFileContents, isTest = true)

@@ -207,7 +207,7 @@ def checkFile(file: os.Path, options: Options): Unit =
     createHelperScript(options.scalaCliCommand, "scala-cli")
     createHelperScript(options.scalaCliCommand, "scala")
     val coursierCliDep =
-      s"${Constants.coursierOrg}:${Constants.coursierCliModule}:${Constants.coursierCliVersion}"
+      s"${Constants.coursierOrg}:${Constants.coursierCliModule}_3:${Constants.coursierCliVersion}"
     createHelperScript(
       options.scalaCliCommand ++ Seq(
         "run",
@@ -215,7 +215,7 @@ def checkFile(file: os.Path, options: Options): Unit =
         coursierCliDep,
         "--",
         "launch",
-        s"scala:${Constants.defaultScalaVersion}",
+        s"scala:${Constants.scalaLegacyRunnerVersion}",
         "-M",
         "dotty.tools.MainGenericRunner",
         "--"

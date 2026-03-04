@@ -6,7 +6,7 @@ abstract class FixTestDefinitions
     extends ScalaCliSuite
     with TestScalaVersionArgs
     with FixBuiltInRulesTestDefinitions
-    with FixScalafixRulesTestDefinitions { _: TestScalaVersion =>
+    with FixScalafixRulesTestDefinitions { this: TestScalaVersion =>
   val projectFileName           = "project.scala"
   val extraOptions: Seq[String] =
     scalaVersionArgs ++ TestUtil.extraOptions ++ Seq("--suppress-experimental-feature-warning")
@@ -67,4 +67,12 @@ abstract class FixTestDefinitions
       os.proc(TestUtil.cli, "compile", ".", extraOptions).call(cwd = root)
     }
   }
+
+  def filterDebugOutputs(output: String): String =
+    output
+      .linesIterator
+      .filterNot(_.trim().contains("repo dir"))
+      .filterNot(_.trim().contains("local repo"))
+      .filterNot(_.trim().contains("archive url"))
+      .mkString(System.lineSeparator())
 }
