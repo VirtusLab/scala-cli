@@ -463,6 +463,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   ): Either[BuildException, Either[Seq[Seq[String]], Seq[(Process, Option[() => Unit])]]] = {
     val crossBuilds        = allBuilds.groupedByCrossParams.toSeq
     val shouldLogCrossInfo = crossBuilds.size > 1
+    // execve replaces the current process, so we must not use it when spawning multiple cross-builds
+    val effectiveAllowExecve = allowExecve && !shouldLogCrossInfo
     if shouldLogCrossInfo then
       logger.log(
         s"Running ${crossBuilds.size} cross builds, one for each Scala version and platform combination."
@@ -508,7 +510,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                         outputPath.toIO,
                         args,
                         logger,
-                        allowExecve = allowExecve,
+                        allowExecve = effectiveAllowExecve,
                         jsDom = jsDom,
                         sourceMap = build.options.scalaJsOptions.emitSourceMaps,
                         esModule = esModule
@@ -524,7 +526,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               val (pythonExecutable, pythonLibraryPaths, pythonExtraEnv) =
                 if setupPython then {
                   val (exec, libPaths) = value {
-                    val python                  = value(createPythonInstance().orPythonDetectionError)
+                    val python = value(createPythonInstance().orPythonDetectionError)
                     val pythonPropertiesOrError = for {
                       paths      <- python.nativeLibraryPaths
                       executable <- python.executable
@@ -557,10 +559,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                   val additionalEntries = pythonLibraryPaths.filter(!currentEntries.contains(_))
                   if additionalEntries.isEmpty then Map.empty
                   else {
-                    val newValue =
-                      (additionalEntries.iterator ++ currentOpt.iterator).mkString(
-                        File.pathSeparator
-                      )
+                    val newValue = (additionalEntries.iterator ++ currentOpt.iterator).mkString(
+                      File.pathSeparator
+                    )
                     Map(prependTo -> newValue)
                   }
                 }
@@ -583,7 +584,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                     launcher = launcher.toIO,
                     args = args,
                     logger = logger,
-                    allowExecve = allowExecve,
+                    allowExecve = effectiveAllowExecve,
                     extraEnv = extraEnv
                   )
                   Right((proc, None))
@@ -648,7 +649,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                       mainClass = mainClass,
                       args = args,
                       logger = logger,
-                      allowExecve = allowExecve,
+                      allowExecve = effectiveAllowExecve,
                       extraEnv = pythonExtraEnv,
                       useManifest = build.options.notForBloopOptions.runWithManifest,
                       scratchDirOpt = scratchDirOpt
@@ -663,7 +664,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                       args = args,
                       submitArgs = mode.submitArgs,
                       logger = logger,
-                      allowExecve = allowExecve,
+                      allowExecve = effectiveAllowExecve,
                       showCommand = showCommand,
                       scratchDirOpt = scratchDirOpt
                     )
@@ -676,7 +677,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                       args = args,
                       submitArgs = mode.submitArgs,
                       logger = logger,
-                      allowExecve = allowExecve,
+                      allowExecve = effectiveAllowExecve,
                       showCommand = showCommand,
                       scratchDirOpt = scratchDirOpt
                     )
@@ -688,7 +689,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                       mainClass = mainClass,
                       args = args,
                       logger = logger,
-                      allowExecve = allowExecve,
+                      allowExecve = effectiveAllowExecve,
                       showCommand = showCommand,
                       scratchDirOpt = scratchDirOpt
                     )
@@ -699,7 +700,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       }
       .sequence
       .left.map(CompositeBuildException(_))
-      .right.map(_.sequence.left.map(_.toSeq))
+      .map(_.sequence.left.map(_.toSeq))
   }
 
   def withLinkedJs[T](

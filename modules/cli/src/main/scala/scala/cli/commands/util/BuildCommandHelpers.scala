@@ -9,7 +9,7 @@ import scala.cli.commands.util.ScalacOptionsUtil.*
 trait BuildCommandHelpers { self: ScalaCommand[?] =>
   extension (b: Seq[Build.Successful]) {
     def groupedByCrossParams: Map[CrossBuildParams, Seq[Build.Successful]] =
-      b.groupBy(bb => CrossBuildParams(bb.options))
+      b.groupBy(bb => CrossBuildParams(bb.scalaParams, bb.options))
   }
   extension (successfulBuild: Build.Successful) {
     def retainedMainClass(
