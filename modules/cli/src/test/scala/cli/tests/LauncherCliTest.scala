@@ -10,7 +10,7 @@ import scala.cli.launcher.LauncherCli
 class LauncherCliTest extends TestUtil.ScalaCliSuite {
   test("resolve nightly version".flaky) {
     val logger          = TestLogger()
-    val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
+    val cache           = CoursierOptions().coursierCache(logger)
     val scalaParameters = ScalaParameters(Constants.defaultScalaVersion)
 
     val nightlyCliVersion =

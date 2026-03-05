@@ -45,7 +45,7 @@ object Config extends ScalaCommand[ConfigOptions] {
               )
               sys.exit(1)
             }
-            val coursierCache = options.coursier.coursierCache(logger.coursierLogger(""))
+            val coursierCache = options.coursier.coursierCache(logger)
             val secKeyEntry   = Keys.pgpSecretKey
             val pubKeyEntry   = Keys.pgpPublicKey
 
@@ -132,7 +132,7 @@ object Config extends ScalaCommand[ConfigOptions] {
                               System.err.println(err)
                               sys.exit(1)
                             case Right(passwordOption) =>
-                              val password = passwordOption.getBytes()
+                              val password = passwordOption.getBytes
                               System.out.write(password.value)
                           }
                         else

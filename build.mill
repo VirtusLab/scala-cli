@@ -420,6 +420,7 @@ trait Core extends ScalaCliCrossSbtModule
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros"))
       // Let's favor our config module rather than the one coursier pulls
       .exclude((organization, "config_2.13"))
+      .exclude((organization, "config_3"))
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13")),
     Deps.dependency,
     Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
@@ -927,7 +928,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
     Deps.caseApp,
     Deps.coursierLauncher,
     Deps.coursierProxySetup,
-    Deps.coursierPublish.exclude((organization, "config_2.13")),
+    Deps.coursierPublish.exclude((organization, "config_2.13")).exclude((organization, "config_3")),
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore,
@@ -935,7 +936,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
     Deps.metaconfigTypesafe,
     Deps.pythonNativeLibs,
     Deps.scalaPackager.exclude("com.lihaoyi" -> "os-lib_2.13"),
-    Deps.signingCli.exclude((organization, "config_2.13")),
+    Deps.signingCli.exclude((organization, "config_2.13")).exclude((organization, "config_3")),
     Deps.slf4jNop, // to silence jgit
     Deps.sttp,
     Deps.scalafixInterfaces,

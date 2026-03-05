@@ -27,7 +27,7 @@ object New extends ScalaCommand[NewOptions] {
         Seq.empty,
         Some(scalaParameters),
         logger,
-        CoursierOptions().coursierCache(logger.coursierLogger("")),
+        CoursierOptions().coursierCache(logger),
         None
       ) match {
         case Right(value) => value

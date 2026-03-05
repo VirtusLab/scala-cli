@@ -26,7 +26,7 @@ object LauncherCli {
   ): Either[BuildException, Nothing] =
     either {
       val logger          = LoggingOptions().logger
-      val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
+      val cache           = CoursierOptions().coursierCache(logger)
       val scalaVersion    = options.cliScalaVersion.getOrElse(scalaCliScalaVersion(version))
       val scalaParameters = ScalaParameters(scalaVersion)
       val snapshotsRepo   = Seq(
