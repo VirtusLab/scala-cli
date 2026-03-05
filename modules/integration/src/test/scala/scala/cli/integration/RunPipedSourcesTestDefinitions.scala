@@ -64,7 +64,7 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
            |}
            |""".stripMargin
       emptyInputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, "_.java", "-v", "-v", "-v", extraOptions)
+        val output = os.proc(TestUtil.cli, "_.java", extraOptions)
           .call(cwd = root, stdin = pipedInput)
           .out.trim()
         expect(output == expectedOutput)
@@ -88,7 +88,7 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
            |}
            |""".stripMargin
       emptyInputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, "_.java", "-v", "-v", "-v", extraOptions)
+        val output = os.proc(TestUtil.cli, "_.java", extraOptions)
           .call(cwd = root, stdin = pipedInput)
           .out.trim()
         expect(output == expectedOutput)
@@ -129,9 +129,6 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
             scalaSnippet,
             "--java-snippet",
             javaSnippet,
-            "-v",
-            "-v",
-            "-v",
             extraOptions
           )
             .call(cwd = root, stdin = pipedInput)
