@@ -387,6 +387,7 @@ object BuiltInRules extends CommandHelpers {
         JavaHome.handler.keys,
         ScalaNative.handler.keys,
         ScalaJs.handler.keys,
+        Wasm.handler.keys,
         ScalacOptions.handler.keys,
         JavaOptions.handler.keys,
         JavacOptions.handler.keys,

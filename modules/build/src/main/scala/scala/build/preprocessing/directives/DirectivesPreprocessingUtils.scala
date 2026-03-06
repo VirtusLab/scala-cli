@@ -31,7 +31,8 @@ object DirectivesPreprocessingUtils {
       directives.ScalaNative.handler,
       directives.ScalaVersion.handler,
       directives.Sources.handler,
-      directives.Tests.handler
+      directives.Tests.handler,
+      directives.Wasm.handler
     ).map(_.mapE(_.buildOptions))
 
   val usingDirectiveWithReqsHandlers
