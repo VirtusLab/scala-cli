@@ -668,6 +668,27 @@ Add Scala.js options
 
 `//> using jsEmitWasm`
 
+### WebAssembly
+
+Add WebAssembly options
+
+`//> using wasm` _true|false_
+
+`//> using wasm`
+
+`//> using wasmRuntime` _node|deno|wasmtime|wasmedge|wasmer_
+
+`//> using denoVersion` _value_
+
+#### Examples
+`//> using wasm`
+
+`//> using wasmRuntime node`
+
+`//> using wasmRuntime deno`
+
+`//> using denoVersion 2.1.4`
+
 ### Test framework
 
 Set the test framework

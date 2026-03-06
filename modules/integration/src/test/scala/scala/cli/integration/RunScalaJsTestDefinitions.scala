@@ -325,10 +325,285 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         .call(cwd = root).out.trim()
       val path = absOutDir / "main.wasm"
       expect(os.exists(path))
-
-      // TODO : Run WASM using node. Requires node 22.
     }
   }
+
+  test("Run with --wasm flag") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def main(args: Array[String]): Unit = println("Hello from WASM!")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--wasm",
+        "--wasm-runtime",
+        "node",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      expect(output == "Hello from WASM!")
+    }
+  }
+
+  test("Run with --wasm uses Node.js by default") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def main(args: Array[String]): Unit = println("Hello default WASM!")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--wasm",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      expect(output == "Hello default WASM!")
+    }
+  }
+
+  test("Run with //> using wasm directive") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """//> using wasm
+          |//> using wasmRuntime node
+          |object Hello {
+          |  def main(args: Array[String]): Unit = println("Hello from WASM directive!")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      expect(output == "Hello from WASM directive!")
+    }
+  }
+
+  test("WASM passes arguments to program") {
+    // Scala.js always passes an empty Array[String] to main(args),
+    // so we must read process.argv directly via JS interop.
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """import scala.scalajs.js
+          |import scala.scalajs.js.Dynamic.global
+          |object Hello {
+          |  def main(args: Array[String]): Unit = {
+          |    val argv = global.process.argv.asInstanceOf[js.Array[String]].drop(2).toSeq
+          |    println(argv.mkString(" "))
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--wasm",
+        "--wasm-runtime",
+        "node",
+        extraOptions,
+        "--",
+        "foo",
+        "bar",
+        "baz"
+      ).call(cwd = root).out.trim()
+      expect(output == "foo bar baz")
+    }
+  }
+
+  for (runtime <- Seq("wasmtime", "wasmedge", "wasmer"))
+    test(s"Unsupported WASM runtime '$runtime' gives clear error") {
+      val inputs = TestInputs(
+        os.rel / "Hello.scala" ->
+          """object Hello {
+            |  def main(args: Array[String]): Unit = println("Hello!")
+            |}
+            |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val res = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "Hello.scala",
+          "--wasm",
+          "--wasm-runtime",
+          runtime,
+          extraOptions
+        ).call(cwd = root, check = false, mergeErrIntoOut = true)
+        expect(res.exitCode != 0)
+        expect(res.out.trim().contains("not yet supported"))
+        expect(res.out.trim().contains("scala-js/scala-js/issues/4991"))
+      }
+    }
+
+  if (TestUtil.fromPath("deno").isDefined)
+    test("Run with --wasm-runtime deno") {
+      val inputs = TestInputs(
+        os.rel / "Hello.scala" ->
+          """object Hello {
+            |  def main(args: Array[String]): Unit = println("Hello from Deno WASM!")
+            |}
+            |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "Hello.scala",
+          "--wasm",
+          "--wasm-runtime",
+          "deno",
+          extraOptions
+        ).call(cwd = root).out.trim()
+        expect(output == "Hello from Deno WASM!")
+      }
+    }
+
+  test("WASM multiple source files") {
+    val inputs = TestInputs(
+      os.rel / "Greeter.scala" ->
+        """trait Greeter {
+          |  def greet(name: String): String
+          |}
+          |
+          |object EnthusiasticGreeter extends Greeter {
+          |  def greet(name: String): String = s"Hello, $name!"
+          |}
+          |""".stripMargin,
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = {
+          |    println(EnthusiasticGreeter.greet("WASM"))
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Main.scala",
+        "Greeter.scala",
+        "--wasm",
+        "--wasm-runtime",
+        "node",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      expect(output == "Hello, WASM!")
+    }
+  }
+
+  test("WASM exception handling") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def riskyOp(x: Int): Int =
+          |    if (x == 0) throw new IllegalArgumentException("zero!")
+          |    else 100 / x
+          |
+          |  def main(args: Array[String]): Unit = {
+          |    val ok = try riskyOp(5).toString catch { case e: Exception => s"err: ${e.getMessage}" }
+          |    val caught = try riskyOp(0).toString catch { case e: Exception => s"caught: ${e.getMessage}" }
+          |    println(ok)
+          |    println(caught)
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--wasm",
+        "--wasm-runtime",
+        "node",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      val lines = output.linesIterator.toSeq
+      expect(lines.contains("20"))
+      expect(lines.contains("caught: zero!"))
+    }
+  }
+
+  test("WASM collections and higher-order functions") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def fib(n: Int): Int = if (n <= 1) n else fib(n - 1) + fib(n - 2)
+          |
+          |  def main(args: Array[String]): Unit = {
+          |    val fibs = (0 to 7).map(fib).toList
+          |    println(fibs.mkString(", "))
+          |    println(fibs.filter(_ % 2 == 0).sum)
+          |    println(fibs.foldLeft(0)(_ + _))
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--wasm",
+        "--wasm-runtime",
+        "node",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      val lines = output.linesIterator.toSeq
+      expect(lines.contains("0, 1, 1, 2, 3, 5, 8, 13"))
+      expect(lines.contains("10")) // 0 + 2 + 8 = 10
+      expect(lines.contains("33")) // sum of first 8 fibs
+    }
+  }
+
+  if (!actualScalaVersion.startsWith("2"))
+    test("WASM @main annotation (Scala 3)") {
+      // Scala.js always passes empty args to main, so @main with parameters won't work.
+      // Test @main without parameters instead.
+      val inputs = TestInputs(
+        os.rel / "Hello.scala" ->
+          """@main def hello(): Unit =
+            |  println("Hello, Scala3!")
+            |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "Hello.scala",
+          "--wasm",
+          "--wasm-runtime",
+          "node",
+          extraOptions
+        ).call(cwd = root).out.trim()
+        expect(output == "Hello, Scala3!")
+      }
+    }
 
   test("remap imports directive") {
     val importmapFile = "importmap.json"
