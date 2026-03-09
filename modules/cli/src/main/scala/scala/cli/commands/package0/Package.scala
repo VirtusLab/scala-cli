@@ -101,16 +101,16 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
-        res.orReport(logger).map(_.builds).foreach {
+        res.orReport(logger).map(_.all).foreach {
           case b if b.forall(_.success) =>
             val successfulBuilds = b.collect { case s: Build.Successful => s }
             successfulBuilds.foreach(_.copyOutput(options.shared))
-            val mtimeDestPath = doPackage(
+            val mtimeDestPath = doPackageCrossBuilds(
               logger = logger,
               outputOpt = options.output.filter(_.nonEmpty),
               force = options.force,
               forcedPackageTypeOpt = options.forcedPackageTypeOpt,
-              builds = successfulBuilds,
+              allBuilds = successfulBuilds,
               extraArgs = args.unparsed,
               expectedModifyEpochSecondOpt = expectedModifyEpochSecondOpt,
               allowTerminate = !options.watch.watchMode,
@@ -141,16 +141,16 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         actionableDiagnostics = actionableDiagnostics
       )
         .orExit(logger)
-        .builds match {
+        .all match {
         case b if b.forall(_.success) =>
           val successfulBuilds = b.collect { case s: Build.Successful => s }
           successfulBuilds.foreach(_.copyOutput(options.shared))
-          val res0 = doPackage(
+          val res0 = doPackageCrossBuilds(
             logger = logger,
             outputOpt = options.output.filter(_.nonEmpty),
             force = options.force,
             forcedPackageTypeOpt = options.forcedPackageTypeOpt,
-            builds = successfulBuilds,
+            allBuilds = successfulBuilds,
             extraArgs = args.unparsed,
             expectedModifyEpochSecondOpt = None,
             allowTerminate = !options.watch.watchMode,
@@ -183,6 +183,69 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     buildOptions
   }
 
+  private def insertSuffixBeforeExtension(name: String, suffix: String): String =
+    if suffix.isEmpty then name
+    else {
+      val dotIdx = name.lastIndexOf('.')
+      if dotIdx > 0 then name.substring(0, dotIdx) + suffix + name.substring(dotIdx)
+      else name + suffix
+    }
+
+  private def doPackageCrossBuilds(
+    logger: Logger,
+    outputOpt: Option[String],
+    force: Boolean,
+    forcedPackageTypeOpt: Option[PackageType],
+    allBuilds: Seq[Build.Successful],
+    extraArgs: Seq[String],
+    expectedModifyEpochSecondOpt: Option[Long],
+    allowTerminate: Boolean,
+    mainClassOptions: MainClassOptions,
+    withTestScope: Boolean
+  ): Either[BuildException, Option[Long]] = either {
+    val crossBuildGroups    = allBuilds.groupedByCrossParams.toSeq
+    val multipleCrossGroups = crossBuildGroups.size > 1
+
+    if multipleCrossGroups then
+      logger.message(s"Packaging ${crossBuildGroups.size} cross builds...")
+
+    val platforms             = crossBuildGroups.map(_._1.platform).distinct
+    val needsPlatformInSuffix = platforms.size > 1
+
+    val results = value {
+      crossBuildGroups.map { (crossParams, builds) =>
+        val crossSuffix =
+          if multipleCrossGroups then {
+            val versionPart = s"_${crossParams.scalaVersion}"
+            if needsPlatformInSuffix then s"${versionPart}_${crossParams.platform}"
+            else versionPart
+          }
+          else ""
+
+        if multipleCrossGroups then
+          logger.message(s"Packaging for ${crossParams.asString}...")
+
+        doPackage(
+          logger = logger,
+          outputOpt = outputOpt,
+          force = force,
+          forcedPackageTypeOpt = forcedPackageTypeOpt,
+          builds = builds,
+          extraArgs = extraArgs,
+          expectedModifyEpochSecondOpt = expectedModifyEpochSecondOpt,
+          allowTerminate = allowTerminate,
+          mainClassOptions = mainClassOptions,
+          withTestScope = withTestScope,
+          crossSuffix = crossSuffix
+        )
+      }
+        .sequence
+        .left.map(CompositeBuildException(_))
+    }
+
+    results.lastOption.flatten
+  }
+
   private def doPackage(
     logger: Logger,
     outputOpt: Option[String],
@@ -193,7 +256,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     expectedModifyEpochSecondOpt: Option[Long],
     allowTerminate: Boolean,
     mainClassOptions: MainClassOptions,
-    withTestScope: Boolean
+    withTestScope: Boolean,
+    crossSuffix: String
   ): Either[BuildException, Option[Long]] = either {
     if mainClassOptions.mainClassLs.contains(true) then
       value {
@@ -285,7 +349,12 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         }
         .orElse(builds.flatMap(_.sources.paths).collectFirst(_._1.baseName + extension))
         .getOrElse(defaultName)
-      val destPath      = os.Path(dest, Os.pwd)
+      val destPath = {
+        val base = os.Path(dest, Os.pwd)
+        if crossSuffix.nonEmpty then
+          base / os.up / insertSuffixBeforeExtension(base.last, crossSuffix)
+        else base
+      }
       val printableDest = CommandUtils.printablePath(destPath)
 
       def alreadyExistsCheck(): Either[BuildException, Unit] =
