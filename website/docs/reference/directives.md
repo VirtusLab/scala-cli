@@ -695,6 +695,19 @@ Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for
 
 `//> using test.toolkit default`
 
+### Watch additional inputs
+
+Watch additional files or directories when using watch mode
+
+`//> using watching` _path_
+
+`//> using watching` _path1_ _path2_ …
+
+
+
+#### Examples
+`//> using watching ./data`
+
 
 ## target directives
 

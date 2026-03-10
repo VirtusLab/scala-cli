@@ -37,7 +37,7 @@ object Test extends ScalaCommand[TestOptions] {
 
   override def buildOptions(opts: TestOptions): Option[BuildOptions] = Some {
     import opts.*
-    val baseOptions = shared.buildOptions().orExit(opts.shared.logger)
+    val baseOptions = shared.buildOptions(watchOptions = watch).orExit(opts.shared.logger)
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =

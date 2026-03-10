@@ -2,6 +2,7 @@ package scala.cli.commands.shared
 
 import caseapp.*
 
+import scala.build.options.{BuildOptions, WatchOptions}
 import scala.cli.commands.tags
 
 // format: off
@@ -18,10 +19,22 @@ final case class SharedWatchOptions(
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
   @Name("revolver")
-    restart: Boolean = false
+    restart: Boolean = false,
+  @Group(HelpGroup.Watch.toString)
+  @HelpMessage("Watch additional paths for changes (used together with --watch or --restart)")
+  @Tag(tags.experimental)
+  @Name("watchingPath")
+    watching: List[String] = Nil
 ) { // format: on
 
   lazy val watchMode: Boolean = watch || restart
+
+  def buildOptions(cwd: os.Path = os.pwd): BuildOptions =
+    BuildOptions(
+      watchOptions = WatchOptions(
+        extraWatchPaths = watching.map(os.Path(_, cwd))
+      )
+    )
 }
 
 object SharedWatchOptions {

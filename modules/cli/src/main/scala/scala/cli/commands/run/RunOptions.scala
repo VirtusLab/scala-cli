@@ -4,7 +4,9 @@ import caseapp.*
 import caseapp.core.help.Help
 
 import scala.cli.ScalaCli
-import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
+import scala.cli.commands.shared.{
+  HasSharedOptions, HasSharedWatchOptions, HelpMessages, SharedOptions, SharedWatchOptions
+}
 
 @HelpMessage(RunOptions.helpMessage, "", RunOptions.detailedHelpMessage)
 // format: off
@@ -13,8 +15,10 @@ final case class RunOptions(
     shared: SharedOptions = SharedOptions(),
   @Recurse
     sharedRun: SharedRunOptions = SharedRunOptions()
-) extends HasSharedOptions
-// format: on
+) extends HasSharedOptions with HasSharedWatchOptions {
+  // format: on
+  override def watch: SharedWatchOptions = sharedRun.watch
+}
 
 object RunOptions {
   implicit lazy val parser: Parser[RunOptions] = Parser.derive

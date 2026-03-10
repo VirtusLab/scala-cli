@@ -4,7 +4,9 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
+import scala.cli.integration.TestUtil.ProcOps
 import scala.cli.integration.util.BloopUtil
+import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 
 abstract class CompileTestDefinitions
@@ -907,4 +909,43 @@ abstract class CompileTestDefinitions
       )
     }
   }
+
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("--watching with --watch re-compiles on external file change") {
+      val sourceFile   = os.rel / "Main.scala"
+      val externalFile = os.rel / "data" / "input.txt"
+      TestInputs(
+        sourceFile ->
+          """object Main {
+            |  def value = 1
+            |}
+            |""".stripMargin,
+        externalFile -> "Hello"
+      ).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "--power",
+            "compile",
+            ".",
+            "--watch",
+            "--watching",
+            "data",
+            extraOptions
+          )
+            .spawn(cwd = root, stderr = os.Pipe),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          implicit val ec0  = ec
+          val initialOutput = proc.readStderrUntilWatchingMessage(timeout)
+          expect(initialOutput.exists(_.contains("Compiled")))
+
+          Thread.sleep(2000L)
+          os.write.over(root / externalFile, "World")
+
+          val rerunOutput = proc.readStderrUntilWatchingMessage(timeout)
+          expect(rerunOutput.nonEmpty)
+        }
+      }
+    }
 }

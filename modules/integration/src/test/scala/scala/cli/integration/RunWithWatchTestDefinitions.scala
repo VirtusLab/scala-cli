@@ -77,6 +77,135 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
       }
   }
 
+  if (!Properties.isMac || !TestUtil.isCI) {
+    test("--watching with CLI option triggers re-run on external file change") {
+      val sourceFile   = os.rel / "app.scala"
+      val externalFile = os.rel / "data" / "input.txt"
+      val code         =
+        """object App {
+          |  def main(args: Array[String]): Unit = {
+          |    val content = scala.io.Source.fromFile("data/input.txt").mkString.trim
+          |    println(content)
+          |  }
+          |}
+          |""".stripMargin
+
+      TestInputs(
+        sourceFile   -> code,
+        externalFile -> "Hello"
+      ).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "--power",
+            "run",
+            ".",
+            "--watch",
+            "--watching",
+            "data",
+            extraOptions
+          )
+            .spawn(cwd = root, stderr = os.Pipe),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output1 == "Hello")
+          proc.printStderrUntilRerun(timeout)(ec)
+          Thread.sleep(2000L)
+          os.write.over(root / externalFile, "World")
+          val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output2 == "World")
+        }
+      }
+    }
+
+    test("//> using watching directive triggers re-run on external file change") {
+      val sourceFile   = os.rel / "app.scala"
+      val externalFile = os.rel / "data" / "input.txt"
+      val code         =
+        """//> using watching ./data
+          |object App {
+          |  def main(args: Array[String]): Unit = {
+          |    val content = scala.io.Source.fromFile("data/input.txt").mkString.trim
+          |    println(content)
+          |  }
+          |}
+          |""".stripMargin
+
+      TestInputs(
+        sourceFile   -> code,
+        externalFile -> "Hello"
+      ).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(TestUtil.cli, "--power", "run", ".", "--watch", extraOptions)
+            .spawn(cwd = root, stderr = os.Pipe),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output1 == "Hello")
+          proc.printStderrUntilRerun(timeout)(ec)
+          Thread.sleep(2000L)
+          os.write.over(root / externalFile, "World")
+          val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output2 == "World")
+        }
+      }
+    }
+
+    test("--watching CLI + //> using watching directive union") {
+      val sourceFile         = os.rel / "app.scala"
+      val directiveWatchFile = os.rel / "data1" / "input1.txt"
+      val cliWatchFile       = os.rel / "data2" / "input2.txt"
+      val code               =
+        """//> using watching ./data1
+          |object App {
+          |  def main(args: Array[String]): Unit = {
+          |    val fromDirective = scala.io.Source.fromFile("data1/input1.txt").mkString.trim
+          |    val fromCli = scala.io.Source.fromFile("data2/input2.txt").mkString.trim
+          |    println(s"$fromDirective|$fromCli")
+          |  }
+          |}
+          |""".stripMargin
+
+      TestInputs(
+        sourceFile         -> code,
+        directiveWatchFile -> "Hello",
+        cliWatchFile       -> "World"
+      ).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc =
+            os.proc(
+              TestUtil.cli,
+              "--power",
+              "run",
+              ".",
+              "--watch",
+              "--watching",
+              "data2",
+              extraOptions
+            )
+              .spawn(cwd = root, stderr = os.Pipe),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output1 == "Hello|World")
+
+          proc.printStderrUntilRerun(timeout)(ec)
+          Thread.sleep(2000L)
+          os.write.over(root / directiveWatchFile, "Bonjour")
+          val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output2 == "Bonjour|World")
+
+          proc.printStderrUntilRerun(timeout)(ec)
+          Thread.sleep(2000L)
+          os.write.over(root / cliWatchFile, "Universe")
+          val output3 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output3 == "Bonjour|Universe")
+        }
+      }
+    }
+  }
+
   for {
     (platformDescription, platformOpts) <- Seq(
       "JVM"    -> Nil,

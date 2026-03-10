@@ -23,7 +23,7 @@ final case class CompileOptions(
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
     printClassPath: Boolean = false
-) extends HasSharedOptions
+) extends HasSharedOptions with HasSharedWatchOptions
   // format: on
 
 object CompileOptions {

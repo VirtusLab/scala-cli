@@ -62,7 +62,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     val logger = ops.shared.logger
 
     val ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
-    val baseOptions        = shared.buildOptions().orExit(logger)
+    val baseOptions        = shared.buildOptions(watchOptions = watch).orExit(logger)
 
     val maybeDowngradedScalaVersion = {
       val isDefaultAmmonite = ammonite.contains(true) && ammoniteVersionOpt.isEmpty

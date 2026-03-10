@@ -84,6 +84,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
   override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 
+  override def buildOptions(options: PublishOptions): Some[BuildOptions] =
+    Some(options.buildOptions().orExit(options.shared.logger))
+
   def mkBuildOptions(
     baseOptions: BuildOptions,
     sharedVersionOptions: SharedVersionOptions,

@@ -23,6 +23,9 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
 
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
 
+  override def buildOptions(options: CompileOptions): Some[scala.build.options.BuildOptions] =
+    Some(options.buildOptions().orExit(options.shared.logger))
+
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.MUST
   val primaryHelpGroups: Seq[HelpGroup]                    =
     Seq(

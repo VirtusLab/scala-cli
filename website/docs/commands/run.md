@@ -227,6 +227,22 @@ Watching sources while your program is running.
 
 </ChainedSnippets>
 
+### Watching additional paths
+
+`--watching` lets you specify additional files or directories to watch while using `--watch` or `--restart`:
+
+```bash ignore
+scala-cli run --watch --watching ./data --watching ./templates Hello.scala
+```
+
+You can also declare extra watched paths from your sources:
+
+```scala
+//> using watching ./data
+```
+
+When both `--watching` and `//> using watching` are used, Scala CLI watches all of the specified paths.
+
 ## Scala.js
 
 Scala.js applications can also be compiled and run with the `--js` option.

@@ -408,6 +408,26 @@ object TestUtil {
     while (!revertTriggered()) Thread.sleep(100L)
   }
 
+  def readLinesUntil(
+    stream: os.SubProcess.OutputStream,
+    ec: ExecutionContext,
+    timeout: Duration
+  )(condition: String => Boolean): Seq[String] = {
+    val lines = scala.collection.mutable.ListBuffer.empty[String]
+    var done  = false
+    while (!done) {
+      val line = TestUtil.readLine(stream, ec, timeout)
+      if (line == null) done = true
+      else {
+        lines += line
+        done = condition(line)
+      }
+    }
+    lines.toSeq
+  }
+
+  private val watchingSourcesCondition: String => Boolean = _.contains("Watching sources")
+
   implicit class ProcOps(proc: os.SubProcess) {
     def printStderrUntilJlineRevertsToDumbTerminal(proc: os.SubProcess)(
       f: String => Unit
@@ -416,6 +436,16 @@ object TestUtil {
 
     def printStderrUntilRerun(timeout: Duration)(implicit ec: ExecutionContext): Unit =
       TestUtil.printStderrUntilCondition(proc, timeout)(_.contains("re-run"))()
+
+    def readStderrUntilWatchingMessage(timeout: Duration)(implicit
+      ec: ExecutionContext
+    ): Seq[String] =
+      TestUtil.readLinesUntil(proc.stderr, ec, timeout)(watchingSourcesCondition)
+
+    def readOutputUntilWatchingMessage(timeout: Duration)(implicit
+      ec: ExecutionContext
+    ): Seq[String] =
+      TestUtil.readLinesUntil(proc.stdout, ec, timeout)(watchingSourcesCondition)
   }
 
   // based on the implementation from bloop-rifle:

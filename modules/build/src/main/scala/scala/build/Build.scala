@@ -17,6 +17,7 @@ import scala.build.errors.*
 import scala.build.input.*
 import scala.build.internal.resource.ResourceMapper
 import scala.build.internal.{Constants, MainClass, Name, Util}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
 import scala.build.postprocessing.*
@@ -791,6 +792,7 @@ object Build {
     def doWatch(): Unit = either {
       val (crossSources: CrossSources, inputs0: Inputs) =
         value(allInputs(inputs, options, logger))
+      val mergedOptions          = crossSources.sharedOptions(options)
       val elements: Seq[Element] =
         if res == null then inputs0.elements
         else
@@ -851,6 +853,17 @@ object Build {
         watcher0.register(artifact.toNIO, depth)
         watcher0.addObserver(onChangeBufferedObserver(_ => watcher.schedule()))
       }
+
+      val extraWatchPaths = mergedOptions.watchOptions.extraWatchPaths.distinct
+      for (extraPath <- extraWatchPaths)
+        if os.exists(extraPath) then {
+          val depth    = if os.isFile(extraPath) then -1 else Int.MaxValue
+          val watcher0 = watcher.newWatcher()
+          watcher0.register(extraPath.toNIO, depth)
+          watcher0.addObserver(onChangeBufferedObserver(_ => watcher.schedule()))
+        }
+        else
+          logger.message(s"$warnPrefix provided watched path doesn't exist: $extraPath")
     }
 
     try doWatch()

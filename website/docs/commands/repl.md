@@ -80,6 +80,26 @@ scala> :quit
 
 </ChainedSnippets>
 
+## Watch mode
+
+Use `--watch` to recompile your inputs and restart the REPL session when sources change:
+
+```bash ignore
+scala-cli repl --watch Main.scala
+```
+
+`--watching` lets you include additional files or directories:
+
+```bash ignore
+scala-cli repl --watch --watching ./data Main.scala
+```
+
+You can also configure extra watched paths in sources:
+
+```scala
+//> using watching ./data
+```
+
 ## Passing REPL options
 It is also possible to manually pass REPL-specific options.
 It can be done in a couple ways:

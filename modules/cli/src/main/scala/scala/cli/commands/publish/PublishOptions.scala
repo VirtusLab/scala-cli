@@ -38,7 +38,7 @@ final case class PublishOptions(
   @Tag(tags.restricted)
   @Hidden
     parallelUpload: Option[Boolean] = None
-) extends HasSharedOptions
+) extends HasSharedOptions with HasSharedWatchOptions
 // format: on
 
 object PublishOptions {
