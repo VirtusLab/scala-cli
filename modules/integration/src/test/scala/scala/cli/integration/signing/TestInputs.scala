@@ -12,7 +12,7 @@ import scala.util.control.NonFatal
 // based on https://github.com/VirtusLab/scala-cli/blob/main/modules/integration/src/main/scala/scala/cli/integration/TestInputs.scala
 final case class TestInputs(maybeCharset: Option[Charset], files: (os.RelPath, String)*) {
   private lazy val charset = maybeCharset.getOrElse(StandardCharsets.UTF_8)
-  def add(extraFiles: (os.RelPath, String)*): TestInputs = TestInputs((files ++ extraFiles) *)
+  def add(extraFiles: (os.RelPath, String)*): TestInputs = TestInputs((files ++ extraFiles)*)
 
   private def writeIn(dir: os.Path): Unit =
     for ((relPath, content) <- files) {
@@ -39,11 +39,11 @@ final case class TestInputs(maybeCharset: Option[Charset], files: (os.RelPath, S
 }
 
 object TestInputs {
-  def apply(files: (os.RelPath, String)*): TestInputs = new TestInputs(None, files *)
+  def apply(files: (os.RelPath, String)*): TestInputs = new TestInputs(None, files*)
 
   def apply(charsetName: String, files: (os.RelPath, String)*): TestInputs = {
     val charset: Charset = Charset.forName(charsetName)
-    new TestInputs(Some(charset), files *)
+    new TestInputs(Some(charset), files*)
   }
 
   def empty: TestInputs = TestInputs()
