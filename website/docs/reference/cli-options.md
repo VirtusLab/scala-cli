@@ -1937,6 +1937,32 @@ A github token used to access GitHub. Not needed in most cases.
 
 Don't check for the newest available Scala CLI version upstream
 
+## WebAssembly options
+
+Available in commands:
+
+[`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--wasm`
+
+[Experimental]
+
+Enable WebAssembly output (Scala.js WASM backend). Uses Node.js by default. To show more options for WASM pass `--help-wasm`
+
+### `--wasm-runtime`
+
+[Experimental]
+
+WASM runtime to use: node (default), deno. Standalone runtimes (wasmtime, wasmedge) planned for future releases.
+
+### `--deno-version`
+
+[Experimental]
+
+Version of Deno to use. If Deno is not found on PATH, it will be downloaded automatically.
+
 ## Watch options
 
 Available in commands:

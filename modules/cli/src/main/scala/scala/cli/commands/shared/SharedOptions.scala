@@ -58,6 +58,8 @@ final case class SharedOptions(
   @Recurse
     native: ScalaNativeOptions = ScalaNativeOptions(),
   @Recurse
+    wasmOptions: WasmOptions = WasmOptions(),
+  @Recurse
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
   @Recurse
     dependencies: SharedDependencyOptions = SharedDependencyOptions(),
@@ -283,6 +285,16 @@ final case class SharedOptions(
     )
   }
 
+  private def buildWasmOptions(opts: WasmOptions): options.WasmOptions = {
+    import opts._
+    options.WasmOptions(
+      enabled = wasm,
+      runtime =
+        wasmRuntime.flatMap(options.WasmRuntime.parse).getOrElse(options.WasmRuntime.default),
+      denoVersion = denoVersion
+    )
+  }
+
   lazy val scalacOptionsFromFiles: List[String] =
     scalac.argsFiles.flatMap(argFile =>
       ArgSplitter.splitToArgs(os.read(os.Path(argFile.file, os.pwd)))
@@ -304,21 +316,27 @@ final case class SharedOptions(
         case _ =>
       }
       val parsedPlatform = platform.map(Platform.normalize).flatMap(Platform.parse)
-      val platformOpt    = value {
-        (parsedPlatform, js.js, native.native) match {
-          case (Some(p: Platform.JS.type), _, false)      => Right(Some(p))
-          case (Some(p: Platform.Native.type), false, _)  => Right(Some(p))
-          case (Some(p: Platform.JVM.type), false, false) => Right(Some(p))
-          case (Some(p), _, _)                            =>
-            val jsSeq        = if (js.js) Seq(Platform.JS) else Seq.empty
+      // WASM mode requires Scala.js platform for compilation
+      val wasmEnabled = wasmOptions.wasm
+      val platformOpt = value {
+        (parsedPlatform, js.js, native.native, wasmEnabled) match {
+          case (Some(p: Platform.JS.type), _, false, _)          => Right(Some(p))
+          case (Some(p: Platform.Native.type), false, _, false)  => Right(Some(p))
+          case (Some(p: Platform.JVM.type), false, false, false) => Right(Some(p))
+          case (Some(p), _, _, _)                                =>
+            val jsSeq        = if (js.js || wasmEnabled) Seq(Platform.JS) else Seq.empty
             val nativeSeq    = if (native.native) Seq(Platform.Native) else Seq.empty
             val platformsSeq = Seq(p) ++ jsSeq ++ nativeSeq
             Left(new AmbiguousPlatformError(platformsSeq.distinct.map(_.toString)))
-          case (_, true, true) =>
+          case (_, true, true, _) =>
             Left(new AmbiguousPlatformError(Seq(Platform.JS.toString, Platform.Native.toString)))
-          case (_, true, _) => Right(Some(Platform.JS))
-          case (_, _, true) => Right(Some(Platform.Native))
-          case _            => Right(None)
+          case (_, _, true, true) =>
+            Left(new AmbiguousPlatformError(Seq(Platform.Native.toString, "WASM (requires JS)")))
+          case (_, true, _, _) => Right(Some(Platform.JS))
+          case (_, _, _, true) =>
+            Right(Some(Platform.JS)) // WASM requires JS compilation (Scala.js WASM backend)
+          case (_, _, true, _) => Right(Some(Platform.Native))
+          case _               => Right(None)
         }
       }
       val (assumedSourceJars, extraRegularJarsAndClasspath) =
@@ -405,6 +423,7 @@ final case class SharedOptions(
         ),
         scalaJsOptions = scalaJsOptions(js),
         scalaNativeOptions = snOpts,
+        wasmOptions = buildWasmOptions(wasmOptions),
         javaOptions = value(scala.cli.commands.util.JvmUtils.javaOptions(jvm)),
         jmhOptions = scala.build.options.JmhOptions(
           jmhVersion = benchmarking.jmhVersion,

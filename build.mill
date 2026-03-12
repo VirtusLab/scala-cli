@@ -520,6 +520,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def toolkitVersionForNative04 = "${Deps.toolkitVersionForNative04}"
          |  def toolkitVersionForNative05 = "${Deps.toolkitVersionForNative05}"
          |
+         |  def defaultDenoVersion = "2.1.4"
+         |
          |  def typelevelOrganization = "${Deps.typelevelToolkit.dep.module.organization.value}"
          |  def typelevelToolkitDefaultVersion = "${Deps.typelevelToolkitVersion}"
          |  def typelevelToolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForTypelevelToolkit}"
