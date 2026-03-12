@@ -56,6 +56,28 @@ Hello
 Hello
 -->
 
+## Watch mode
+
+Use `--watch` to rebuild the package whenever sources change:
+
+```bash ignore
+scala-cli --power package --watch Hello.scala -o hello
+```
+
+You can watch additional inputs too:
+
+```bash ignore
+scala-cli --power package --watch --watching ./data Hello.scala -o hello
+```
+
+This also works from sources:
+
+```scala
+//> using watching ./data
+```
+
+When both are present, Scala CLI watches all of the configured paths.
+
 ## Library JARs
 
 *Library JARs* are suitable if you plan to put the resulting JAR in a class path, rather than running it as is.

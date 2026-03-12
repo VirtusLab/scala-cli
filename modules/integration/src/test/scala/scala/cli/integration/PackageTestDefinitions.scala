@@ -9,6 +9,7 @@ import java.util
 import java.util.zip.ZipFile
 
 import scala.cli.integration.TestUtil.*
+import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
@@ -1557,6 +1558,47 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           os.proc(TestUtil.cli, "package", ".", "--js", "--power", extraOptions)
             .call(cwd = root, mergeErrIntoOut = true, stderr = os.Pipe)
         expect(res.out.trim().contains(s"$moduleName.js"))
+      }
+    }
+
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("--watching with --watch re-packages on external file change") {
+      val sourceFile   = os.rel / "Main.scala"
+      val externalFile = os.rel / "data" / "input.txt"
+      TestInputs(
+        sourceFile ->
+          """object Main extends App {
+            |  println("Hello")
+            |}
+            |""".stripMargin,
+        externalFile -> "Hello"
+      ).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "--power",
+            "package",
+            ".",
+            "--watch",
+            "--watching",
+            "data",
+            "-o",
+            "app",
+            extraOptions
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          implicit val ec0  = ec
+          val initialOutput = proc.readOutputUntilWatchingMessage(timeout)
+          expect(initialOutput.exists(_.contains("Wrote")))
+
+          Thread.sleep(2000L)
+          os.write.over(root / externalFile, "World")
+
+          val rerunOutput = proc.readOutputUntilWatchingMessage(timeout)
+          expect(rerunOutput.nonEmpty)
+        }
       }
     }
 }

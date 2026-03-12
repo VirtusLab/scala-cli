@@ -141,7 +141,7 @@ final case class PackageOptions(
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     nativeImage: Boolean = false
-) extends HasSharedOptions {
+) extends HasSharedOptions with HasSharedWatchOptions {
   // format: on
 
   def packageTypeOpt: Option[PackageType] =
@@ -177,7 +177,7 @@ final case class PackageOptions(
       .left.map(CompositeBuildException(_))
 
   def baseBuildOptions(logger: Logger): Either[BuildException, BuildOptions] = either {
-    val baseOptions = value(shared.buildOptions())
+    val baseOptions = value(buildOptions())
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(

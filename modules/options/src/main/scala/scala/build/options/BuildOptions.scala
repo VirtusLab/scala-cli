@@ -46,6 +46,7 @@ final case class BuildOptions(
   mainClass: Option[String] = None,
   testOptions: TestOptions = TestOptions(),
   notForBloopOptions: PostBuildOptions = PostBuildOptions(),
+  watchOptions: WatchOptions = WatchOptions(),
   sourceGeneratorOptions: SourceGeneratorOptions = SourceGeneratorOptions(),
   useBuildServer: Option[Boolean] = None
 ) {

@@ -290,7 +290,10 @@ final case class SharedOptions(
 
   def scalacOptions: List[String] = scalac.scalacOption ++ scalacOptionsFromFiles
 
-  def buildOptions(ignoreErrors: Boolean = false)
+  def buildOptions(
+    ignoreErrors: Boolean = false,
+    watchOptions: SharedWatchOptions = SharedWatchOptions()
+  )
     : Either[BuildException, scala.build.options.BuildOptions] =
     either {
       val releaseOpt = scalacOptions.getScalacOption("-release")
@@ -441,7 +444,7 @@ final case class SharedOptions(
           scalaPyVersion = sharedPython.scalaPyVersion
         ),
         useBuildServer = compilationServer.server
-      )
+      ).orElse(watchOptions.buildOptions())
     }
 
   private def resolvedDependencies(

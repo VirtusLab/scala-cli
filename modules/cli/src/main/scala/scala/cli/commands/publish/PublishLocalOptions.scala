@@ -22,7 +22,7 @@ final case class PublishLocalOptions(
     sharedPublish: SharedPublishOptions = SharedPublishOptions(),
   @Recurse
     scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
-) extends HasSharedOptions
+) extends HasSharedOptions with HasSharedWatchOptions
 // format: on
 
 object PublishLocalOptions {

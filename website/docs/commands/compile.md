@@ -64,6 +64,22 @@ Watching sources, press Ctrl+C to exit.
 
 </ChainedSnippets>
 
+### Watching additional paths
+
+Use `--watching` to re-trigger compilation when files outside your Scala sources change:
+
+```bash ignore
+scala-cli compile --watch --watching ./data Hello.scala
+```
+
+You can also configure this from sources with:
+
+```scala
+//> using watching ./data
+```
+
+If you use both, Scala CLI watches every path from both the command line and the directive.
+
 ## Scala version
 
 Scala CLI uses the latest stable version of Scala which was tested in Scala CLI (see our list

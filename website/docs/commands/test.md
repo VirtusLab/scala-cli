@@ -171,6 +171,28 @@ tests.only.BarTests:
 + bar
 -->
 
+## Watch mode
+
+Use `--watch` to re-run your tests whenever sources change:
+
+```bash ignore
+scala-cli test --watch MyTests.test.scala
+```
+
+`--watching` can extend that to files or directories outside your Scala sources:
+
+```bash ignore
+scala-cli test --watch --watching ./data MyTests.test.scala
+```
+
+You can declare the same extra watched paths from sources:
+
+```scala
+//> using watching ./data
+```
+
+If both are used, Scala CLI watches all of the configured paths.
+
 ## Filter test case
 
 ### Munit

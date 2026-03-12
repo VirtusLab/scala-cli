@@ -20,6 +20,9 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
   override def sharedOptions(options: PublishLocalOptions): Option[SharedOptions] =
     Some(options.shared)
 
+  override def buildOptions(options: PublishLocalOptions): Some[scala.build.options.BuildOptions] =
+    Some(options.buildOptions().orExit(options.shared.logger))
+
   override def names: List[List[String]] = List(
     List("publish", "local")
   )

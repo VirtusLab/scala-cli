@@ -4,7 +4,9 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.annotation.tailrec
 import scala.cli.integration.Constants.munitVersion
-import scala.cli.integration.TestUtil.StringOps
+import scala.cli.integration.TestUtil.{ProcOps, StringOps}
+import scala.concurrent.duration.DurationInt
+import scala.util.Properties
 
 abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
@@ -231,6 +233,51 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from tests"))
     }
   }
+
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("--watching with --watch re-runs tests on external file change") {
+      val sourceFile   = os.rel / "MyTests.test.scala"
+      val externalFile = os.rel / "data" / "input.txt"
+      TestInputs(
+        sourceFile ->
+          s"""//> using dep org.scalameta::munit::$munitVersion
+             |
+             |class MyTests extends munit.FunSuite {
+             |  test("watched input") {
+             |    val content = scala.io.Source.fromFile("data/input.txt").mkString.trim
+             |    println(content)
+             |    assert(content.nonEmpty)
+             |  }
+             |}
+             |""".stripMargin,
+        externalFile -> "Hello"
+      ).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          proc = os.proc(
+            TestUtil.cli,
+            "--power",
+            "test",
+            ".",
+            "--watch",
+            "--watching",
+            "data",
+            extraOptions
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true),
+          timeout = 120.seconds
+        ) { (proc, timeout, ec) =>
+          implicit val ec0  = ec
+          val initialOutput = proc.readOutputUntilWatchingMessage(timeout)
+          expect(initialOutput.exists(_.contains("Hello")))
+
+          Thread.sleep(2000L)
+          os.write.over(root / externalFile, "World")
+
+          val rerunOutput = proc.readOutputUntilWatchingMessage(timeout)
+          expect(rerunOutput.exists(_.contains("World")))
+        }
+      }
+    }
 
   if (actualScalaVersion.startsWith("2"))
     test("successful test JVM 8") {

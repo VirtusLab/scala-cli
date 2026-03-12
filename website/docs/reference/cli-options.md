@@ -1957,6 +1957,12 @@ Aliases: `--revolver`
 
 Run the application in the background, automatically kill the process and restart if sources have been changed
 
+### `--watching`
+
+Aliases: `--watching-path`
+
+Watch additional paths for changes (used together with --watch or --restart)
+
 ## Internal options 
 ### Add path options
 

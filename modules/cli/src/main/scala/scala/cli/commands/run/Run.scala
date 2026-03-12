@@ -71,7 +71,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     import options.*
     import options.sharedRun.*
     val logger      = options.shared.logger
-    val baseOptions = shared.buildOptions().orExit(logger)
+    val baseOptions = options.buildOptions().orExit(logger)
     baseOptions.copy(
       mainClass = mainClass.mainClass,
       javaOptions = baseOptions.javaOptions.copy(
