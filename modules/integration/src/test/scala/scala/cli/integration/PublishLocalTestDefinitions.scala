@@ -349,6 +349,116 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
     }
   }
 
+  test("publish local --m2") {
+    val expectedFiles = {
+      val modName = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
+      val base    =
+        os.rel / PublishTestInputs.testOrg.split('.').toSeq / modName / testPublishVersion
+      val baseFiles = Seq(
+        base / s"$modName-$testPublishVersion.jar",
+        base / s"$modName-$testPublishVersion.pom",
+        base / s"$modName-$testPublishVersion-sources.jar",
+        base / s"$modName-$testPublishVersion-javadoc.jar"
+      )
+      baseFiles
+        .flatMap { f =>
+          val md5  = f / os.up / s"${f.last}.md5"
+          val sha1 = f / os.up / s"${f.last}.sha1"
+          Seq(f, md5, sha1)
+        }
+        .toSet
+    }
+
+    PublishTestInputs.inputs()
+      .fromRoot { root =>
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          "local",
+          ".",
+          "--m2",
+          "--m2-home",
+          (root / "m2repo").toString,
+          extraOptions
+        )
+          .call(cwd = root)
+        val m2Local    = root / "m2repo"
+        val foundFiles = os.walk(m2Local)
+          .filter(os.isFile(_))
+          .map(_.relativeTo(m2Local))
+          .toSet
+        val missingFiles    = expectedFiles -- foundFiles
+        val unexpectedFiles = foundFiles -- expectedFiles
+        if (missingFiles.nonEmpty)
+          pprint.err.log(missingFiles)
+        if (unexpectedFiles.nonEmpty)
+          pprint.err.log(unexpectedFiles)
+        expect(missingFiles.isEmpty)
+        expect(unexpectedFiles.isEmpty)
+      }
+  }
+
+  test("publish local --m2 twice") {
+    PublishTestInputs.inputs().fromRoot { root =>
+      val m2Repo  = root / "m2repo"
+      val modName = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
+      val jarPath = m2Repo /
+        PublishTestInputs.testOrg.split('.').toSeq /
+        modName / testPublishVersion / s"$modName-$testPublishVersion.jar"
+
+      def publishLocal(): os.CommandResult =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          "local",
+          ".",
+          "--m2",
+          "--m2-home",
+          m2Repo.toString,
+          "--working-dir",
+          os.rel / "work-dir",
+          extraOptions
+        )
+          .call(cwd = root)
+
+      lazy val depsCp: String =
+        os.proc(
+          TestUtil.cs,
+          "fetch",
+          "--classpath",
+          s"com.lihaoyi:os-lib_$testedPublishedScalaVersion:0.11.3"
+        )
+          .call(cwd = root)
+          .out.trim()
+
+      def output(): String =
+        os.proc(
+          "java",
+          "-cp",
+          s"$jarPath${java.io.File.pathSeparator}$depsCp",
+          "Project"
+        )
+          .call(cwd = root)
+          .out.trim()
+
+      val expectedMessage1 = "Hello"
+      val expectedMessage2 = "olleH"
+      publishLocal()
+      val output1 = output()
+      expect(output1 == expectedMessage1)
+
+      os.write.over(
+        root / PublishTestInputs.projectFilePath,
+        PublishTestInputs.projFile(expectedMessage2)
+      )
+      publishLocal()
+      val output2 = output()
+      expect(output2 == expectedMessage2)
+    }
+  }
+
   if actualScalaVersion.startsWith("3") then
     test("publish local with compileOnly.dep") {
       TestInputs(

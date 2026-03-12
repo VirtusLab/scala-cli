@@ -35,6 +35,11 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
     Publish.maybePrintLicensesAndExit(options.publishParams)
     Publish.maybePrintChecksumsAndExit(options.sharedPublish)
 
+    if options.m2 && options.sharedPublish.ivy2Home.exists(_.trim.nonEmpty) then {
+      logger.error("--m2 and --ivy2-home are mutually exclusive.")
+      sys.exit(1)
+    }
+
     val baseOptions = buildOptionsOrExit(options)
     val inputs      = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
@@ -71,6 +76,10 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       .filter(_.trim.nonEmpty)
       .map(os.Path(_, os.pwd))
 
+    val m2HomeOpt = options.m2Home
+      .filter(_.trim.nonEmpty)
+      .map(os.Path(_, os.pwd))
+
     Publish.doRun(
       inputs = inputs,
       logger = logger,
@@ -81,6 +90,8 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       workingDir = workingDir,
       ivy2HomeOpt = ivy2HomeOpt,
       publishLocal = true,
+      m2Local = options.m2,
+      m2HomeOpt = m2HomeOpt,
       forceSigningExternally = options.scalaSigning.forceSigningExternally.getOrElse(false),
       parallelUpload = Some(true),
       watch = options.watch.watch,
