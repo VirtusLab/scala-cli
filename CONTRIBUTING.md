@@ -57,7 +57,7 @@ will save you from getting a load of comments and speed up the code review.
 
 Other notes:
 
-- give a short explanation on what the PR is meant to achieve in the description, unless covered by the PR title;
+- fill the pull request template;
 - make sure to add tests wherever possible;
     - favor unit tests over integration tests where applicable;
 - try to add scaladocs for key classes and functions;
