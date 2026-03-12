@@ -4,6 +4,7 @@ import caseapp.*
 
 import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.shared.*
+import scala.cli.commands.tags
 
 // format: off
 @HelpMessage(PublishLocalOptions.helpMessage, "", PublishLocalOptions.detailedHelpMessage)
@@ -22,6 +23,19 @@ final case class PublishLocalOptions(
     sharedPublish: SharedPublishOptions = SharedPublishOptions(),
   @Recurse
     scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
+
+  @Group(HelpGroup.Publishing.toString)
+  @HelpMessage("Publish to the local Maven repository (~/.m2/repository) instead of Ivy2 local")
+  @Name("mavenLocal")
+  @Tag(tags.experimental)
+  @Tag(tags.inShortHelp)
+    m2: Boolean = false,
+
+  @Group(HelpGroup.Publishing.toString)
+  @HelpMessage("Set the local Maven repository path (defaults to ~/.m2/repository)")
+  @ValueDescription("path")
+  @Tag(tags.experimental)
+    m2Home: Option[String] = None,
 ) extends HasSharedOptions with HasSharedWatchOptions
 // format: on
 
@@ -29,7 +43,7 @@ object PublishLocalOptions {
   implicit lazy val parser: Parser[PublishLocalOptions] = Parser.derive
   implicit lazy val help: Help[PublishLocalOptions]     = Help.derive
   val cmdName                                           = "publish local"
-  private val helpHeader       = "Publishes build artifacts to the local Ivy2 repository."
+  private val helpHeader       = "Publishes build artifacts to the local Ivy2 or Maven repository."
   private val docWebsiteSuffix = "publishing/publish-local"
   val helpMessage: String      =
     s"""$helpHeader

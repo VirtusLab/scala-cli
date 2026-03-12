@@ -1088,6 +1088,24 @@ Proceed as if publishing, but do not upload / write artifacts to the remote repo
 ### `--parallel-upload`
 
 [Internal]
+## Publish local options
+
+Available in commands:
+
+[`publish local`](./commands.md#publish-local)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--m2`
+
+Aliases: `--maven-local`
+
+Publish to the local Maven repository (~/.m2/repository) instead of Ivy2 local
+
+### `--m2-home`
+
+Set the local Maven repository path (defaults to ~/.m2/repository)
+
 ## Publish params options
 
 Available in commands:
