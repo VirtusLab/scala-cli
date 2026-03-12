@@ -35,6 +35,9 @@ A subsequent PR from `stable` back to `main` is created automatically.
 Whenever reasonable, we try to follow the following set of rules when merging code to the repository. Following those
 will save you from getting a load of comments and speed up the code review.
 
+- If you are using LLM-based tools to assist you in your contribution, state that clearly in the PR description 
+  and refer to our [LLM usage policy](LLM_POLICY.md) for rules and guidelines regarding usage of LLM-based tools 
+  in contributions.
 - If the PR is meant to be merged as a single commit (`squash & merge`), please make sure that you modify only one
   thing.
     - This means such a PR shouldn't include code clean-up, a secondary feature or bug fix, just the single thing
