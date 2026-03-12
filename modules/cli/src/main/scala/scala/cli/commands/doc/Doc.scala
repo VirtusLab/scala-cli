@@ -125,16 +125,26 @@ object Doc extends ScalaCommand[DocOptions] {
     logger.message(s"Wrote Scaladoc to $printableOutput")
   }
 
+  private def javadocBaseUrl(javaVersion: Int): String =
+    if javaVersion >= 11 then
+      s"https://docs.oracle.com/en/java/javase/$javaVersion/docs/api/java.base/"
+    else
+      s"https://docs.oracle.com/javase/$javaVersion/docs/api/"
+
+  private def scaladocBaseUrl(scalaVersion: String): String =
+    s"https://scala-lang.org/api/$scalaVersion/"
+
   // from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-1039b442cbd23f605a61fdb9c3620b600aa4af6cab757932a719c54235d8e402R60
-  private def defaultScaladocArgs = Seq(
-    "-snippet-compiler:compile",
-    "-Ygenerate-inkuire",
-    "-external-mappings:" +
-      ".*/scala/.*::scaladoc3::https://scala-lang.org/api/3.x/," +
-      ".*/java/.*::javadoc::https://docs.oracle.com/javase/8/docs/api/",
-    "-author",
-    "-groups"
-  )
+  private[commands] def defaultScaladocArgs(scalaVersion: String, javaVersion: Int): Seq[String] =
+    Seq(
+      "-snippet-compiler:compile",
+      "-Ygenerate-inkuire",
+      "-external-mappings:" +
+        s".*/scala/.*::scaladoc3::${scaladocBaseUrl(scalaVersion)}," +
+        s".*/java/.*::javadoc::${javadocBaseUrl(javaVersion)}",
+      "-author",
+      "-groups"
+    )
 
   def generateScaladocDirPath(
     builds: Seq[Build.Successful],
@@ -171,10 +181,11 @@ object Doc extends ScalaCommand[DocOptions] {
           "-d",
           destDir.toString
         )
+        val javaVersion = builds.head.options.javaHome().value.version
         val defaultArgs =
           if builds.head.options.notForBloopOptions.packageOptions.useDefaultScaladocOptions
               .getOrElse(true)
-          then defaultScaladocArgs
+          then defaultScaladocArgs(scalaParams.scalaVersion, javaVersion)
           else Nil
         val args = baseArgs ++
           builds.head.project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil) ++

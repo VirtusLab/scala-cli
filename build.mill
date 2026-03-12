@@ -528,6 +528,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def minimumBloopJavaVersion = ${Java.minimumBloopJava}
          |  def minimumInternalJavaVersion = ${Java.minimumInternalJava}
          |  def defaultJavaVersion = ${Java.defaultJava}
+         |  def mainJavaVersions = Seq(${Java.mainJavaVersions.sorted.mkString(", ")})
          |
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultScala212Version = "${Scala.scala212}"
