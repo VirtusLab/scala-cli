@@ -80,6 +80,8 @@ object RepoParams {
     repo match {
       case "ivy2-local" =>
         RepoParams.ivy2Local(ivy2HomeOpt)
+      case "m2-local" | "maven-local" =>
+        RepoParams.m2Local(None)
       case "sonatype" | "central" | "maven-central" | "mvn-central" =>
         logger.message(s"Using Portal OSSRH Staging API: $sonatypeOssrhStagingApiBase")
         RepoParams.centralRepo(
@@ -237,6 +239,21 @@ object RepoParams {
       targetRepoOpt = None,
       hooks = Hooks.dummy,
       isIvy2LocalLike = true,
+      defaultParallelUpload = true,
+      supportsSig = true,
+      acceptsChecksums = true,
+      shouldSign = false,
+      shouldAuthenticate = false
+    )
+  }
+
+  def m2Local(m2HomeOpt: Option[os.Path]): RepoParams = {
+    val base = m2HomeOpt.getOrElse(os.home / ".m2" / "repository")
+    RepoParams(
+      repo = PublishRepository.Simple(MavenRepository(base.toNIO.toUri.toASCIIString)),
+      targetRepoOpt = None,
+      hooks = Hooks.dummy,
+      isIvy2LocalLike = false,
       defaultParallelUpload = true,
       supportsSig = true,
       acceptsChecksums = true,
