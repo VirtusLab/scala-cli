@@ -1199,6 +1199,24 @@ object Build {
       )
     }
 
+    if sources.hasJava && sources.hasScala && options.useBuildServer.contains(false) then {
+      val javaPaths = sources.paths
+        .filter(_._1.last.endsWith(".java"))
+        .map(_._1.toString) ++
+        sources.inMemory
+          .filter(_.generatedRelPath.last.endsWith(".java"))
+          .map(_.originalPath.fold(identity, _._2.toString))
+      val javaPathsList =
+        javaPaths.map(p => s"  $p").mkString(System.lineSeparator())
+      logger.message(
+        s"""$warnPrefix With ${Console.BOLD}--server=false${Console.RESET}, .java files are not compiled to .class files.
+           |scalac parses .java sources for type information (cross-compilation), but without the build server (Bloop/Zinc) nothing compiles them to bytecode.
+           |Affected .java files:
+           |$javaPathsList
+           |Remove --server=false or compile Java files separately to avoid runtime NoClassDefFoundError.""".stripMargin
+      )
+    }
+
     buildClient.clear()
     buildClient.setGeneratedSources(scope, generatedSources)
 
