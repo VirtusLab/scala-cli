@@ -10,7 +10,42 @@ import java.io.PrintStream
 import scala.build.Logger
 import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internals.FeatureType
+import scala.collection.mutable.ListBuffer
 import scala.scalanative.build as sn
+
+/** Logger that records all message() and log() calls for test assertions. */
+final class RecordingLogger(delegate: Logger = TestLogger()) extends Logger {
+  val messages: ListBuffer[String] = ListBuffer.empty
+
+  override def error(message: String): Unit      = delegate.error(message)
+  override def message(message: => String): Unit = {
+    val msg = message
+    messages += msg
+    delegate.message(msg)
+  }
+  override def log(s: => String): Unit = {
+    val msg = s
+    messages += msg
+    delegate.log(msg)
+  }
+  override def log(s: => String, debug: => String): Unit         = delegate.log(s, debug)
+  override def debug(s: => String): Unit                         = delegate.debug(s)
+  override def log(diagnostics: Seq[Diagnostic]): Unit           = delegate.log(diagnostics)
+  override def log(ex: BuildException): Unit                     = delegate.log(ex)
+  override def debug(ex: BuildException): Unit                   = delegate.debug(ex)
+  override def exit(ex: BuildException): Nothing                 = delegate.exit(ex)
+  override def coursierLogger(message: String): CacheLogger      = delegate.coursierLogger(message)
+  override def bloopRifleLogger: BloopRifleLogger                = delegate.bloopRifleLogger
+  override def scalaJsLogger: ScalaJsLogger                      = delegate.scalaJsLogger
+  override def scalaNativeTestLogger: sn.Logger                  = delegate.scalaNativeTestLogger
+  override def scalaNativeCliInternalLoggerOptions: List[String] =
+    delegate.scalaNativeCliInternalLoggerOptions
+  override def compilerOutputStream: PrintStream = delegate.compilerOutputStream
+  override def verbosity: Int                    = delegate.verbosity
+  override def experimentalWarning(featureName: String, featureType: FeatureType): Unit =
+    delegate.experimentalWarning(featureName, featureType)
+  override def flushExperimentalWarnings: Unit = delegate.flushExperimentalWarnings
+}
 
 case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logger {
   override def log(diagnostics: Seq[Diagnostic]): Unit = {

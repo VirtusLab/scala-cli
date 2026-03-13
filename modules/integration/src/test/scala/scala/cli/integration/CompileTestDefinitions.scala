@@ -62,9 +62,7 @@ abstract class CompileTestDefinitions
         |""".stripMargin
   )
 
-  test(
-    "java files with no using directives should not produce warnings about using directives in multiple files"
-  ) {
+  {
     val inputs = TestInputs(
       os.rel / "Bar.java" ->
         """public class Bar {}
@@ -73,12 +71,23 @@ abstract class CompileTestDefinitions
         """public class Foo {}
           |""".stripMargin
     )
-
-    inputs.fromRoot { root =>
-      val warningMessage = "Using directives detected in multiple files"
-      val output         = os.proc(TestUtil.cli, "compile", extraOptions, ".")
-        .call(cwd = root, stderr = os.Pipe).err.trim()
-      expect(!output.contains(warningMessage))
+    test(
+      "java files with no using directives should not produce warnings about using directives in multiple files"
+    ) {
+      inputs.fromRoot { root =>
+        val warningMessage = "Using directives detected in multiple files"
+        val output         = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+          .call(cwd = root, stderr = os.Pipe).err.trim()
+        expect(!output.contains(warningMessage))
+      }
+    }
+    test("Pure Java with --server=false: no warning about .java files not being compiled") {
+      inputs.fromRoot { root =>
+        val warningMessage = ".java files are not compiled to .class files"
+        val output         = os.proc(TestUtil.cli, "compile", "--server=false", extraOptions, ".")
+          .call(cwd = root, stderr = os.Pipe).err.text()
+        expect(!output.contains(warningMessage))
+      }
     }
   }
 
@@ -140,7 +149,7 @@ abstract class CompileTestDefinitions
   }
 
   test(
-    "having target + using directives in files should not produce warnings about using directives in multiple files"
+    "having target + using directives in files: no using-directives or .java-not-compiled warnings"
   ) {
     val inputs = TestInputs(
       os.rel / "Bar.java" ->
@@ -160,14 +169,14 @@ abstract class CompileTestDefinitions
       val output         = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
         .call(cwd = root).err.trim()
       expect(!output.contains(warningMessage))
+      expect(!output.contains(".java files are not compiled to .class files"))
     }
   }
 
-  test(
-    "warn about directives in multiple files"
-  ) {
-    val inputs = TestInputs(
-      os.rel / "Bar.java" ->
+  {
+    val javaSourceFile = "Bar.java"
+    val inputs         = TestInputs(
+      os.rel / javaSourceFile ->
         """//> using jvm 17
           |public class Bar {}
           |""".stripMargin,
@@ -176,12 +185,24 @@ abstract class CompileTestDefinitions
           |class Foo {}
           |""".stripMargin
     )
+    test("warn about directives in multiple files") {
+      inputs.fromRoot { root =>
+        val warningMessage = "Using directives detected in multiple files"
+        val output         = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
+          .call(cwd = root, stderr = os.Pipe).err.trim()
+        expect(output.contains(warningMessage))
+      }
+    }
 
-    inputs.fromRoot { root =>
-      val warningMessage = "Using directives detected in multiple files"
-      val output         = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
-        .call(cwd = root, stderr = os.Pipe).err.trim()
-      expect(output.contains(warningMessage))
+    test("mixed .java/.scala: with --server=false warn about .java not compiled") {
+      inputs.fromRoot { root =>
+        val warningMessage = ".java files are not compiled to .class files"
+        val output         =
+          os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".", "--server=false")
+            .call(cwd = root, stderr = os.Pipe).err.trim()
+        expect(output.contains(warningMessage))
+        expect(output.contains(javaSourceFile))
+      }
     }
   }
 
@@ -699,7 +720,9 @@ abstract class CompileTestDefinitions
       }
   }
 
-  test("pass java options to scalac when server=false") {
+  test(
+    "pass java options to scalac when server=false (Scala-only, no .java-not-compiled warning)"
+  ) {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
         """object Main extends App {
@@ -721,6 +744,7 @@ abstract class CompileTestDefinitions
       val out = res.out.text()
       expect(out.contains("Error occurred during initialization of VM"))
       expect(out.contains("Too small maximum heap"))
+      expect(!out.contains(".java files are not compiled to .class files"))
     }
   }
 
