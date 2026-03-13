@@ -82,6 +82,84 @@ abstract class CompileTestDefinitions
     }
   }
 
+  test("warn about Java files in mixed compilation with --server=false") {
+    val inputs = TestInputs(
+      os.rel / "Side.java" ->
+        """public class Side {
+          |    public static String message = "Hello";
+          |}
+          |""".stripMargin,
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println(Side.message)
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "compile", "--server=false", extraOptions, ".")
+        .call(cwd = root, check = false, stderr = os.Pipe)
+      val errOutput = res.err.text()
+      expect(errOutput.contains(".java files are not compiled to .class files"))
+      expect(errOutput.contains("Affected .java files"))
+      expect(errOutput.contains("--server=false"))
+    }
+  }
+
+  test("no Java warning with --server=false when only Scala sources") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("ok")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "compile", "--server=false", extraOptions, ".")
+        .call(cwd = root, stderr = os.Pipe)
+      val errOutput = res.err.text()
+      expect(!errOutput.contains(".java files are not compiled to .class files"))
+    }
+  }
+
+  test("no Java warning with --server=false when only Java sources") {
+    val inputs = TestInputs(
+      os.rel / "Main.java" ->
+        """public class Main {
+          |    public static void main(String[] args) {
+          |        System.out.println("ok");
+          |    }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "compile", "--server=false", extraOptions, ".")
+        .call(cwd = root, stderr = os.Pipe)
+      val errOutput = res.err.text()
+      expect(!errOutput.contains(".java files are not compiled to .class files"))
+    }
+  }
+
+  test("no Java warning with mixed Java/Scala when server enabled (default)") {
+    val inputs = TestInputs(
+      os.rel / "Side.java" ->
+        """public class Side {
+          |    public static String message = "Hello";
+          |}
+          |""".stripMargin,
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println(Side.message)
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+        .call(cwd = root, stderr = os.Pipe)
+      val errOutput = res.err.text()
+      expect(!errOutput.contains(".java files are not compiled to .class files"))
+    }
+  }
+
   test("with one file per scope, no warning about spread directives should be printed") {
     TestInputs(
       os.rel / "Bar.scala" ->

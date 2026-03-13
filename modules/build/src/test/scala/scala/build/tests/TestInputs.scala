@@ -8,7 +8,7 @@ import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.{Build, BuildThreads, Builds}
+import scala.build.{Build, BuildThreads, Builds, Logger}
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -94,7 +94,8 @@ final case class TestInputs(
     fromDirectory: Boolean = false,
     buildTests: Boolean = true,
     actionableDiagnostics: Boolean = false,
-    skipCreatingSources: Boolean = false
+    skipCreatingSources: Boolean = false,
+    logger: Option[Logger] = None
   )(f: (os.Path, Inputs, Either[BuildException, Builds]) => T): T =
     withCustomInputs(fromDirectory, None, skipCreatingSources) { (root, inputs) =>
       val compilerMaker = bloopConfigOpt match {
@@ -108,13 +109,14 @@ final case class TestInputs(
         case None =>
           SimpleScalaCompilerMaker("java", Nil)
       }
+      val log    = logger.getOrElse(TestLogger())
       val builds =
         Build.build(
           inputs,
           options,
           compilerMaker,
           None,
-          TestLogger(),
+          log,
           crossBuilds = false,
           buildTests = buildTests,
           partial = None,
@@ -131,7 +133,8 @@ final case class TestInputs(
     buildTests: Boolean = true,
     actionableDiagnostics: Boolean = false,
     scope: Scope = Scope.Main,
-    skipCreatingSources: Boolean = false
+    skipCreatingSources: Boolean = false,
+    logger: Option[Logger] = None
   )(f: (os.Path, Inputs, Either[BuildException, Build]) => T): T =
     withBuilds(
       options,
@@ -140,7 +143,8 @@ final case class TestInputs(
       fromDirectory,
       buildTests = buildTests,
       actionableDiagnostics = actionableDiagnostics,
-      skipCreatingSources = skipCreatingSources
+      skipCreatingSources = skipCreatingSources,
+      logger = logger
     ) {
       (p, i, builds) =>
         f(
