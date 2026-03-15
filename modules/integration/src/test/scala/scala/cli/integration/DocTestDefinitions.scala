@@ -97,4 +97,61 @@ abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
              |""".stripMargin
       ).fromRoot(root => os.proc(TestUtil.cli, "doc", ".", extraOptions).call(cwd = root))
     }
+
+  if actualScalaVersion.startsWith("3") then
+    for {
+      javaVersion <-
+        if isScala38OrNewer then
+          Constants.allJavaVersions.filter(_ >= Constants.scala38MinJavaVersion)
+        else Constants.allJavaVersions
+    }
+      test(s"doc generates correct external mapping URLs for JVM $javaVersion") {
+        TestUtil.retryOnCi() {
+          val dest   = os.rel / "doc-out"
+          val inputs = TestInputs(
+            os.rel / "Lib.scala" ->
+              """package mylib
+                |
+                |/** A wrapper around [[java.util.HashMap]] and [[scala.Option]]. */
+                |class Lib:
+                |  /** Returns a [[java.util.HashMap]]. */
+                |  def getMap: java.util.HashMap[String, String] = new java.util.HashMap()
+                |  /** Returns a [[scala.Option]]. */
+                |  def getOpt: Option[String] = Some("hello")
+                |""".stripMargin
+          )
+          inputs.fromRoot { root =>
+            os.proc(
+              TestUtil.cli,
+              "doc",
+              extraOptions,
+              ".",
+              "-o",
+              dest,
+              "--jvm",
+              javaVersion.toString
+            ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+            val docDir = root / dest
+            expect(os.isDir(docDir))
+
+            val htmlContent = os.walk(docDir)
+              .filter(_.last.endsWith(".html"))
+              .map(os.read(_))
+              .mkString
+
+            val expectedJavadocFragment =
+              if javaVersion >= 11 then
+                s"docs.oracle.com/en/java/javase/$javaVersion/docs/api/java.base/"
+              else
+                s"docs.oracle.com/javase/$javaVersion/docs/api/"
+            expect(htmlContent.contains(expectedJavadocFragment))
+
+            if javaVersion < 11 then
+              expect(!htmlContent.contains("java.base/"))
+
+            expect(htmlContent.contains(s"scala-lang.org/api/$actualScalaVersion/"))
+          }
+        }
+      }
 }
