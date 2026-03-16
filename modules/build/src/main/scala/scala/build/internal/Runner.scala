@@ -377,10 +377,9 @@ object Runner {
 
   def denoCommand(
     entrypoint: File,
-    args: Seq[String],
-    denoPathOpt: Option[String] = None
+    args: Seq[String]
   ): Seq[String] = {
-    val denoPath  = denoPathOpt.getOrElse(findInPath("deno").fold("deno")(_.toString))
+    val denoPath  = findInPath("deno").fold("deno")(_.toString)
     val denoFlags = Seq("run", "--allow-read")
     Seq(denoPath) ++ denoFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
   }
@@ -390,14 +389,12 @@ object Runner {
     args: Seq[String],
     logger: Logger,
     allowExecve: Boolean = false,
-    emitWasm: Boolean = false,
-    denoPathOpt: Option[String] = None
+    emitWasm: Boolean = false
   ): Either[BuildException, Process] = either {
-    val denoPath: String = denoPathOpt.getOrElse {
+    val denoPath: String =
       value(findInPath("deno")
         .map(_.toString)
         .toRight(DenoNotFoundError()))
-    }
     val denoFlags = Seq("run", "--allow-read")
     val extraEnv  =
       if (emitWasm && denoNeedsWasmFlag) Map("DENO_V8_FLAGS" -> "--experimental-wasm-exnref")

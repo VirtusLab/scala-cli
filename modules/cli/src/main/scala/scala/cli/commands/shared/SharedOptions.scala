@@ -285,13 +285,25 @@ final case class SharedOptions(
     )
   }
 
-  private def buildWasmOptions(opts: WasmOptions): options.WasmOptions = {
+  private def buildWasmOptions(
+    opts: WasmOptions
+  ): Either[BuildException, options.WasmOptions] = {
     import opts._
-    options.WasmOptions(
-      enabled = wasm,
-      runtime =
-        wasmRuntime.flatMap(options.WasmRuntime.parse).getOrElse(options.WasmRuntime.default),
-      denoVersion = denoVersion
+    val wasmEnabled   = wasm || wasmRuntime.isDefined
+    val parsedRuntime = wasmRuntime.fold(Right(options.WasmRuntime.default): Either[
+      BuildException,
+      options.WasmRuntime
+    ]) { rt =>
+      options.WasmRuntime.parse(rt).toRight {
+        val validValues = options.WasmRuntime.all.map(_.name).mkString(", ")
+        new scala.build.errors.UnrecognizedWasmRuntimeError(rt, validValues)
+      }
+    }
+    parsedRuntime.map(runtime =>
+      options.WasmOptions(
+        enabled = wasmEnabled,
+        runtime = runtime
+      )
     )
   }
 
@@ -320,7 +332,7 @@ final case class SharedOptions(
       }
       val parsedPlatform = platform.map(Platform.normalize).flatMap(Platform.parse)
       // WASM mode requires Scala.js platform for compilation
-      val wasmEnabled = wasmOptions.wasm
+      val wasmEnabled = wasmOptions.wasm || wasmOptions.wasmRuntime.isDefined
       val platformOpt = value {
         (parsedPlatform, js.js, native.native, wasmEnabled) match {
           case (Some(p: Platform.JS.type), _, false, _)          => Right(Some(p))
@@ -426,7 +438,7 @@ final case class SharedOptions(
         ),
         scalaJsOptions = scalaJsOptions(js),
         scalaNativeOptions = snOpts,
-        wasmOptions = buildWasmOptions(wasmOptions),
+        wasmOptions = value(buildWasmOptions(wasmOptions)),
         javaOptions = value(scala.cli.commands.util.JvmUtils.javaOptions(jvm)),
         jmhOptions = scala.build.options.JmhOptions(
           jmhVersion = benchmarking.jmhVersion,
