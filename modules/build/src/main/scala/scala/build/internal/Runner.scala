@@ -539,7 +539,7 @@ object Runner {
                |""".stripMargin
           )
 
-        if finalTestFrameworks.isEmpty then Left(new NoFrameworkFoundByBridgeError)
+        if finalTestFrameworks.isEmpty then Left(new NoFrameworkFoundByNativeBridgeError)
         else runTests(classPath, finalTestFrameworks, requireTests, args, parentInspector)
       }
       finally if adapter != null then adapter.close()
