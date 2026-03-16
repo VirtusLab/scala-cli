@@ -4,7 +4,9 @@ import caseapp.*
 import caseapp.core.help.Help
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, HelpMessages, SharedOptions}
+import scala.cli.commands.shared.{
+  CrossOptions, HasSharedOptions, HelpGroup, HelpMessages, SharedOptions
+}
 import scala.cli.commands.tags
 
 // format: off
@@ -12,6 +14,8 @@ import scala.cli.commands.tags
 final case class DocOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
+  @Recurse
+    compileCross: CrossOptions = CrossOptions(),
   @Group(HelpGroup.Doc.toString)
   @Tag(tags.must)
   @HelpMessage("Set the destination path")

@@ -154,4 +154,39 @@ abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           }
         }
       }
+
+  test(s"doc --cross with multiple Scala versions produces doc output per cross") {
+    val crossScalaVersions = Seq(actualScalaVersion, Constants.scala213, Constants.scala212)
+    val dest               = os.rel / "doc-cross"
+    TestInputs(
+      os.rel / "project.scala" -> s"//> using scala ${crossScalaVersions.mkString(" ")}",
+      os.rel / "Lib.scala"     ->
+        """package mylib
+          |
+          |/** A sample class. */
+          |class Lib {
+          |  def value: Int = 42
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "doc",
+        "--cross",
+        "--power",
+        extraOptions,
+        ".",
+        "-o",
+        dest
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val baseDocPath = root / dest
+      expect(os.isDir(baseDocPath))
+      crossScalaVersions.foreach { version =>
+        val subDir = baseDocPath / version
+        expect(os.isDir(subDir))
+        expect(os.list(subDir).exists(_.last.endsWith(".html")))
+      }
+    }
+  }
 }
