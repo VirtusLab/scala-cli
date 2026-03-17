@@ -195,9 +195,19 @@ object AsmTestRunner {
       .iterator
       .flatMap(findInClassPath(_, name).iterator)
 
+  /** Parse Java ServiceLoader format: one class name per line; # comments and empty lines ignored.
+    */
+  private def parseServiceFileContent(content: String): Seq[String] =
+    content
+      .split("[\r\n]+")
+      .iterator
+      .map(_.trim)
+      .filter(line => line.nonEmpty && !line.startsWith("#"))
+      .toSeq
+
   def findFrameworkServices(classPath: Seq[Path]): Seq[String] =
     findInClassPath(classPath, "META-INF/services/sbt.testing.Framework")
-      .map(b => new String(b, StandardCharsets.UTF_8))
+      .flatMap(b => parseServiceFileContent(new String(b, StandardCharsets.UTF_8)))
       .toSeq
 
   def findFrameworks(
