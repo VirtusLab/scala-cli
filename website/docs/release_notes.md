@@ -8,6 +8,98 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.12.5](https://github.com/VirtusLab/scala-cli/releases/tag/v1.12.5)
+
+### `--cross` support for `run`, `package` and `doc` sub-commands (experimental ⚡️)
+It is now possible to cross-`run`, cross-`package` and cross-generate docs (`doc`) with the `--cross` command line 
+option.
+- `run` runs each configured combination of Scala version and platform (e.g. JVM, Native, JS) in sequence;
+- `package` produces one artifact per cross build, with the Scala version and platform in the artifact name;
+- `doc` generates Scaladoc for each cross target into separate output directories.
+
+```scala title=cross.scala 
+//> using scala 3.3 3.8
+@main def main() = println("Hello")
+```
+
+```bash
+scala-cli run cross.scala --cross --power
+scala-cli package cross.scala --cross --power
+scala-cli doc cross.scala --cross -o doc-out --power
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3808](https://github.com/VirtusLab/scala-cli/pull/3808), [#4171](https://github.com/VirtusLab/scala-cli/pull/4171) & [#4183](https://github.com/VirtusLab/scala-cli/pull/4183)
+
+### Global `--offline` config key
+You can set offline mode globally with the `config` sub-command, so Scala CLI uses the cache and skips network access 
+without passing `--offline` every time.
+
+```bash ignore
+scala-cli config offline true
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3216](https://github.com/VirtusLab/scala-cli/pull/3216)
+
+### Watch extra paths with `--watching` (experimental ⚡️)
+Use the `--watching` option or `//> using watching` to have `--watch` re-run when files or directories outside 
+your sources change (e.g. config or assets). 
+
+```bash ignore
+scala-cli run . --watch --power --watching ./config --watching ./assets
+```
+
+Or in source:
+
+```scala compile power
+//> using watching ./config ./assets
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4174](https://github.com/VirtusLab/scala-cli/pull/4174)
+
+### Local `.m2` in `publish local` (experimental ⚡️)
+`publish local` now publishes to your local Maven repository (`~/.m2`), so other local projects can depend 
+on the published artifacts via Maven coordinates. 
+
+```bash ignore
+scala-cli publish local . --m2 --power
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4179](https://github.com/VirtusLab/scala-cli/pull/4179)
+
+### Features
+* Run all cross builds when `--cross` is passed by [@Gedochao](https://github.com/Gedochao) in [#3808](https://github.com/VirtusLab/scala-cli/pull/3808)
+* Add a global `--offline` config key by [@Gedochao](https://github.com/Gedochao) in [#3216](https://github.com/VirtusLab/scala-cli/pull/3216)
+* Support `--cross` with the `package` sub-command by [@Gedochao](https://github.com/Gedochao) in [#4171](https://github.com/VirtusLab/scala-cli/pull/4171)
+* Allow to `--watch` extra paths with `--watching` by [@Gedochao](https://github.com/Gedochao) in [#4174](https://github.com/VirtusLab/scala-cli/pull/4174)
+* Add support for `--cross` in the `doc` sub-command by [@Gedochao](https://github.com/Gedochao) in [#4183](https://github.com/VirtusLab/scala-cli/pull/4183)
+* Add support for local `.m2` in `publish local` by [@Gedochao](https://github.com/Gedochao) in [#4179](https://github.com/VirtusLab/scala-cli/pull/4179)
+
+### Fixes
+* Use Java 17 mapping when generating docs with Scala 3.8+ with `doc` by [@Gedochao](https://github.com/Gedochao) in [#4180](https://github.com/VirtusLab/scala-cli/pull/4180)
+* Make test framework discovery on Native more resilient & with better errors by [@Gedochao](https://github.com/Gedochao) in [#4185](https://github.com/VirtusLab/scala-cli/pull/4185)
+* Warn when `.java` & `.scala` sources are used in a mixed compilation with `--server=false` by [@Gedochao](https://github.com/Gedochao) in [#4181](https://github.com/VirtusLab/scala-cli/pull/4181)
+
+### Build and internal changes
+* Add LLM policy & a PR template by [@Gedochao](https://github.com/Gedochao) in [#4177](https://github.com/VirtusLab/scala-cli/pull/4177)
+* Add `AGENTS.md` by [@Gedochao](https://github.com/Gedochao) in [#4178](https://github.com/VirtusLab/scala-cli/pull/4178)
+
+### Updates
+* Bump the npm-dependencies group in /website with 3 updates by @dependabot[bot] in [#4165](https://github.com/VirtusLab/scala-cli/pull/4165)
+* Bump the github-actions group with 3 updates by @dependabot[bot] in [#4164](https://github.com/VirtusLab/scala-cli/pull/4164)
+* Update scala-cli.sh launcher for 1.12.4 by @github-actions[bot] in [#4166](https://github.com/VirtusLab/scala-cli/pull/4166)
+* Bump svgo from 3.3.2 to 3.3.3 in /website by @dependabot[bot] in [#4168](https://github.com/VirtusLab/scala-cli/pull/4168)
+* Bump immutable from 5.1.4 to 5.1.5 in /website by @dependabot[bot] in [#4167](https://github.com/VirtusLab/scala-cli/pull/4167)
+* Bump Mill to 1.1.3 (was 1.1.2) by [@Gedochao](https://github.com/Gedochao) in [#4169](https://github.com/VirtusLab/scala-cli/pull/4169)
+* Bump @algolia/client-search from 5.49.1 to 5.49.2 in /website in the npm-dependencies group by @dependabot[bot] in [#4173](https://github.com/VirtusLab/scala-cli/pull/4173)
+* Bump the github-actions group with 4 updates by @dependabot[bot] in [#4172](https://github.com/VirtusLab/scala-cli/pull/4172)
+* Update Scala 3 Next RC to 3.8.3-RC2 by [@Gedochao](https://github.com/Gedochao) in [#4175](https://github.com/VirtusLab/scala-cli/pull/4175)
+* Bump undici from 7.18.2 to 7.24.1 in /website by @dependabot[bot] in [#4182](https://github.com/VirtusLab/scala-cli/pull/4182)
+* Bump webfactory/ssh-agent from 0.9.1 to 0.10.0 in the github-actions group by @dependabot[bot] in [#4187](https://github.com/VirtusLab/scala-cli/pull/4187)
+* Bump `coursier` to 2.1.25-M24 by [@Gedochao](https://github.com/Gedochao) in [#4184](https://github.com/VirtusLab/scala-cli/pull/4184)
+* Bump sass from 1.97.3 to 1.98.0 in /website in the npm-dependencies group by @dependabot[bot] in [#4188](https://github.com/VirtusLab/scala-cli/pull/4188)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.12.4...v1.12.5
+
 ## [v1.12.4](https://github.com/VirtusLab/scala-cli/releases/tag/v1.12.4)
 
 This is just a small patch fixing a bug ([#4152](https://github.com/VirtusLab/scala-cli/issues/4152)) breaking Metals support in Scala CLI v1.12.3.
