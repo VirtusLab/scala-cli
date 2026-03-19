@@ -1,12 +1,10 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import com.virtuslab.using_directives.UsingDirectivesProcessor
-import com.virtuslab.using_directives.reporter.ConsoleReporter
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.URIish
 
-import scala.jdk.CollectionConverters.*
+import scala.cli.parse.{DirectiveValue, UsingDirectivesParser}
 import scala.util.Properties
 import scala.util.matching.Regex
 
@@ -70,21 +68,13 @@ class PublishSetupTests extends ScalaCliSuite {
   }
 
   private def directives(content: String): Map[String, Seq[String]] = {
-    val reporter  = new ConsoleReporter
-    val processor = new UsingDirectivesProcessor(reporter)
-
-    val usedDirectives = processor
-      .extract(content.toCharArray)
-      .asScala
-      .head
-
-    usedDirectives
-      .getFlattenedMap
-      .asScala
-      .toSeq
-      .map {
-        case (k, l) =>
-          (k.getPath.asScala.mkString("."), l.asScala.toSeq.map(_.toString))
+    val result = UsingDirectivesParser.parse(content.toCharArray)
+    result.directives
+      .map { d =>
+        d.key -> d.values.collect {
+          case DirectiveValue.StringVal(v, _, _) => v
+          case DirectiveValue.BoolVal(v, _)      => v.toString
+        }
       }
       .toMap
   }

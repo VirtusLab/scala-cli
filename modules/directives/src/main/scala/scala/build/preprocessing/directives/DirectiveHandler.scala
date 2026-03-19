@@ -2,10 +2,8 @@ package scala.build.preprocessing.directives
 import java.util.Locale
 
 import scala.build.Logger
-import scala.build.Ops.*
 import scala.build.directives.*
-import scala.build.errors.{BuildException, CompositeBuildException, UnexpectedDirectiveError}
-import scala.build.preprocessing.Scoped
+import scala.build.errors.{BuildException, UnexpectedDirectiveError}
 import scala.cli.commands.SpecificationLevel
 import scala.quoted.*
 
@@ -288,46 +286,21 @@ object DirectiveHandler {
 
             (scopedDirective, logger) =>
               '{
-                if (${ cond('{ $scopedDirective.directive.key }) }) {
-                  val valuesByScope = $scopedDirective.directive.values.groupBy(_.getScope)
-                    .toVector
-                    .map {
-                      case (scopeOrNull, values) =>
-                        (Option(scopeOrNull), values)
-                    }
-                    .sortBy(_._1.getOrElse(""))
-                  valuesByScope
-                    .map {
-                      case (scopeOpt, _) =>
-                        $parser.parse(
-                          $scopedDirective.directive.key,
-                          $scopedDirective.directive.values,
-                          $scopedDirective.cwd,
-                          $scopedDirective.maybePath
-                        ).map { r =>
-                          scopeOpt -> ${
-                            genNew(List(newArgs.updated(idx, 'r).map(_.asTerm)))
-                              .asExprOf[T]
-                          }
-                        }
-                    }
-                    .sequence
-                    .left.map(CompositeBuildException(_))
-                    .map { v =>
-                      val mainOpt = v.collectFirst {
-                        case (None, t) => t
-                      }
-                      val scoped = v.collect {
-                        case (Some(scopeStr), t) =>
-                          // FIXME os.RelPath(…) might fail
-                          Scoped(
-                            $scopedDirective.cwd / os.RelPath(scopeStr),
-                            t
-                          )
-                      }
-                      ProcessedDirective(mainOpt, scoped)
-                    }
-                }
+                if (${ cond('{ $scopedDirective.directive.key }) })
+                  $parser.parse(
+                    $scopedDirective.directive.key,
+                    $scopedDirective.directive.values,
+                    $scopedDirective.cwd,
+                    $scopedDirective.maybePath
+                  ).map { r =>
+                    ProcessedDirective(
+                      Some(${
+                        genNew(List(newArgs.updated(idx, 'r).map(_.asTerm)))
+                          .asExprOf[T]
+                      }),
+                      Nil
+                    )
+                  }
                 else
                   ${ elseCase0(scopedDirective, logger) }
               }
