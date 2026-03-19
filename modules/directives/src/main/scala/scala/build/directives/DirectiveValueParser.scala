@@ -1,7 +1,5 @@
 package scala.build.directives
 
-import com.virtuslab.using_directives.custom.model.{BooleanValue, EmptyValue, StringValue, Value}
-
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
@@ -13,11 +11,12 @@ import scala.build.errors.{
 import scala.build.preprocessing.ScopePath
 import scala.build.preprocessing.directives.DirectiveUtil
 import scala.build.{Position, Positioned}
+import scala.cli.parse.DirectiveValue
 
 abstract class DirectiveValueParser[+T] {
   def parse(
     key: String,
-    values: Seq[Value[?]],
+    values: Seq[DirectiveValue],
     scopePath: ScopePath,
     path: Either[String, os.Path]
   ): Either[BuildException, T]
@@ -32,7 +31,7 @@ object DirectiveValueParser {
       extends DirectiveValueParser[U] {
     def parse(
       key: String,
-      values: Seq[Value[?]],
+      values: Seq[DirectiveValue],
       scopePath: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, U] =
@@ -42,14 +41,14 @@ object DirectiveValueParser {
   abstract class DirectiveSingleValueParser[+T] extends DirectiveValueParser[T] {
     def parseValue(
       key: String,
-      value: Value[?],
+      value: DirectiveValue,
       cwd: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, T]
 
     final def parse(
       key: String,
-      values: Seq[Value[?]],
+      values: Seq[DirectiveValue],
       scopePath: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, T] =
@@ -79,33 +78,36 @@ object DirectiveValueParser {
     }
   }
 
-  extension (value: Value[?]) {
+  extension (value: DirectiveValue) {
 
     def isEmpty: Boolean =
       value match {
-        case _: EmptyValue => true
-        case _             => false
+        case _: DirectiveValue.EmptyVal => true
+        case _                          => false
       }
 
     def isString: Boolean =
       value match {
-        case _: StringValue => true
-        case _              => false
+        case _: DirectiveValue.StringVal => true
+        case _                           => false
       }
+
     def asString: Option[String] =
       value match {
-        case s: StringValue => Some(s.get())
-        case _              => None
+        case s: DirectiveValue.StringVal => Some(s.value)
+        case _                           => None
       }
+
     def isBoolean: Boolean =
       value match {
-        case _: BooleanValue => true
-        case _               => false
+        case _: DirectiveValue.BoolVal => true
+        case _                         => false
       }
+
     def asBoolean: Option[Boolean] =
       value match {
-        case s: BooleanValue => Some(s.get())
-        case _               => None
+        case b: DirectiveValue.BoolVal => Some(b.value)
+        case _                         => None
       }
 
     def position(path: Either[String, os.Path]): Position =
@@ -127,7 +129,7 @@ object DirectiveValueParser {
       case values0 =>
         Left(
           new MalformedDirectiveError(
-            s"Unexpected values ${values0.map(_.toString).mkString(", ")}",
+            s"Unexpected values ${values0.map(_.rawText).mkString(", ")}",
             values0.map(_.position(path))
           )
         )
@@ -141,7 +143,7 @@ object DirectiveValueParser {
         new MalformedDirectiveError(
           message =
             s"""Encountered an error for the $key using directive.
-               |Expected a string, got '${value.getRelatedASTNode.toString}'""".stripMargin,
+               |Expected a string, got '${value.rawText}'""".stripMargin,
           positions = Seq(pos)
         )
       }.map(DirectiveSpecialSyntax.handlingSpecialPathSyntax(_, path))
@@ -154,7 +156,7 @@ object DirectiveValueParser {
         val pos = value.position(path)
         new MalformedDirectiveError(
           s"""Encountered an error for the $key using directive.
-             |Expected a string value, got '${value.getRelatedASTNode.toString}'""".stripMargin,
+             |Expected a string value, got '${value.rawText}'""".stripMargin,
           Seq(pos)
         )
       }

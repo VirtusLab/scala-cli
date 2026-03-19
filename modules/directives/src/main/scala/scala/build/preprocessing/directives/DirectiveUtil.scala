@@ -1,48 +1,36 @@
 package scala.build.preprocessing.directives
 
-import com.virtuslab.using_directives.custom.model.{BooleanValue, StringValue, Value}
-import com.virtuslab.using_directives.custom.utils.ast.StringLiteral
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
-import scala.build.preprocessing.ScopePath
 import scala.build.{Position, Positioned}
+import scala.cli.parse.DirectiveValue
 
 object DirectiveUtil {
-  def isWrappedInDoubleQuotes(v: Value[?]): Boolean =
-    v match {
-      case stringValue: StringValue =>
-        stringValue.getRelatedASTNode match {
-          case literal: StringLiteral => literal.getIsWrappedDoubleQuotes()
-          case _                      => false
-        }
-      case _ => false
-    }
-  def position(v: Value[?], path: Either[String, os.Path]): Position.File = {
-    val skipQuotes: Boolean = isWrappedInDoubleQuotes(v)
-    val line                = v.getRelatedASTNode.getPosition.getLine
-    val column              = v.getRelatedASTNode.getPosition.getColumn + (if (skipQuotes) 1 else 0)
-    val endLinePos          = column + v.toString.length
-    Position.File(path, (line, column), (line, endLinePos))
-  }
+  def isWrappedInDoubleQuotes(v: DirectiveValue): Boolean =
+    v.isQuotedString
 
-  def scope(v: Value[?], cwd: ScopePath): Option[ScopePath] =
-    Option(v.getScope).map((p: String) => cwd / os.RelPath(p))
+  def position(v: DirectiveValue, path: Either[String, os.Path]): Position.File = {
+    val p          = v.pos
+    val skipQuotes = v.isQuotedString
+    val column     = p.column + (if skipQuotes then 1 else 0)
+    val endCol     = column + v.stringValue.length
+    Position.File(path, (p.line, column), (p.line, endCol))
+  }
 
   def concatAllValues(
     scopedDirective: ScopedDirective
   ): Seq[String] =
     scopedDirective.directive.values.collect:
-      case v: StringValue  => v.get
-      case v: BooleanValue => v.get.toString
+      case v: DirectiveValue.StringVal => v.value
+      case v: DirectiveValue.BoolVal   => v.value.toString
 
-  def positions(values: Seq[Value[?]], path: Either[String, os.Path]): Seq[Position] =
+  def positions(values: Seq[DirectiveValue], path: Either[String, os.Path]): Seq[Position] =
     values.map { v =>
-      val line   = v.getRelatedASTNode.getPosition.getLine
-      val column = v.getRelatedASTNode.getPosition.getColumn
-      Position.File(path, (line, column), (line, column))
+      val p = v.pos
+      Position.File(path, (p.line, p.column), (p.line, p.column))
     }
 
   extension (deps: List[Positioned[String]]) {
