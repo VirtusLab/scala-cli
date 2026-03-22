@@ -1,17 +1,12 @@
 package scala.build.preprocessing
 
-import com.virtuslab.using_directives.UsingDirectivesProcessor
-import com.virtuslab.using_directives.custom.model.{BooleanValue, EmptyValue, StringValue, Value}
-import com.virtuslab.using_directives.custom.utils.ast.*
-
 import scala.annotation.targetName
 import scala.build.errors.*
 import scala.build.options.SuppressWarningOptions
-import scala.build.preprocessing.UsingDirectivesOps.*
 import scala.build.preprocessing.directives.StrictDirective
 import scala.build.{Logger, Position}
+import scala.cli.parse.{DiagnosticSeverity, DirectiveValue, UsingDirectivesParser}
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
 
 case class ExtractedDirectives(
   directives: Seq[StrictDirective],
@@ -33,65 +28,68 @@ object ExtractedDirectives {
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, ExtractedDirectives] = {
-    val errors   = new mutable.ListBuffer[Diagnostic]
-    val reporter = CustomDirectivesReporter
-      .create(path) {
-        case diag
-            if diag.severity == Severity.Warning &&
-            diag.message.toLowerCase.contains("deprecated") &&
-            suppressWarningOptions.suppressDeprecatedFeatureWarning.getOrElse(false) =>
-          () // skip deprecated feature warnings if suppressed
-        case diag if diag.severity == Severity.Warning =>
-          logger.log(Seq(diag))
-        case diag => errors += diag
-      }
-    val processor                = new UsingDirectivesProcessor(reporter)
-    val allDirectives            = processor.extract(contentChars).asScala
+    val result           = UsingDirectivesParser.parse(contentChars)
+    val diagnosticErrors = mutable.ListBuffer.empty[Diagnostic]
+
+    for diag <- result.diagnostics do
+      val positions = diag.position.map { p =>
+        Position.File(path, (p.line, p.column), (p.line, p.column))
+      }.toSeq
+
+      if diag.severity == DiagnosticSeverity.Warning then
+        if diag.message.toLowerCase.contains("deprecated") &&
+          suppressWarningOptions.suppressDeprecatedFeatureWarning.getOrElse(false)
+        then () // skip
+        else logger.log(Seq(Diagnostic(diag.message, Severity.Warning, positions)))
+      else
+        diagnosticErrors += Diagnostic(diag.message, Severity.Error, positions)
+
     val malformedDirectiveErrors =
-      errors.map(diag => new MalformedDirectiveError(diag.message, diag.positions)).toSeq
+      diagnosticErrors
+        .map(diag => new MalformedDirectiveError(diag.message, diag.positions))
+        .toSeq
+
     val maybeCompositeMalformedDirectiveError =
-      if (malformedDirectiveErrors.nonEmpty)
+      if malformedDirectiveErrors.nonEmpty then
         maybeRecoverOnError(CompositeBuildException(malformedDirectiveErrors))
       else None
-    if (malformedDirectiveErrors.isEmpty || maybeCompositeMalformedDirectiveError.isEmpty) {
 
-      val directivesOpt         = allDirectives.headOption
-      val directivesPositionOpt = directivesOpt match {
-        case Some(directives)
-            if directives.containsTargetDirectives ||
-            directives.isEmpty => None
-        case Some(directives) => Some(directives.getPosition(path))
-        case None             => None
-      }
+    if malformedDirectiveErrors.isEmpty || maybeCompositeMalformedDirectiveError.isEmpty then
+      val directives = result.directives
 
-      val strictDirectives = directivesOpt.toSeq.flatMap { directives =>
-        def toStrictValue(value: UsingValue): Seq[Value[?]] = value match {
-          case uvs: UsingValues   => uvs.values.asScala.toSeq.flatMap(toStrictValue)
-          case el: EmptyLiteral   => Seq(EmptyValue(el))
-          case sl: StringLiteral  => Seq(StringValue(sl.getValue(), sl))
-          case bl: BooleanLiteral => Seq(BooleanValue(bl.getValue(), bl))
-        }
-        def toStrictDirective(ud: UsingDef) =
-          StrictDirective(
-            ud.getKey(),
-            toStrictValue(ud.getValue()),
-            ud.getPosition().getColumn(),
-            ud.getPosition().getLine()
-          )
+      val containsTargetDirectives = directives.exists(_.key.startsWith("target."))
 
-        directives.getAst match
-          case uds: UsingDefs => uds.getUsingDefs.asScala.toSeq.map(toStrictDirective)
-          case ud: UsingDef   => Seq(toStrictDirective(ud))
-          case _ => Nil // There should be nothing else here other than UsingDefs or UsingDef
+      val directivesPositionOpt =
+        if containsTargetDirectives || directives.isEmpty then None
+        else
+          val lastDirective     = directives.last
+          val (endLine, endCol) = lastDirective.values.lastOption match
+            case Some(sv: DirectiveValue.StringVal) if sv.isQuoted =>
+              (sv.pos.line, sv.pos.column + sv.value.length + 2)
+            case Some(sv: DirectiveValue.StringVal) =>
+              (sv.pos.line, sv.pos.column + sv.value.length)
+            case Some(bv: DirectiveValue.BoolVal) =>
+              (bv.pos.line, bv.pos.column + bv.value.toString.length)
+            case Some(ev: DirectiveValue.EmptyVal) =>
+              (ev.pos.line, ev.pos.column)
+            case None =>
+              val kp = lastDirective.keyPosition
+              (kp.line, kp.column + lastDirective.key.length)
+          Some(Position.File(path, (0, 0), (endLine, endCol), result.codeOffset))
+
+      val strictDirectives = directives.map { ud =>
+        StrictDirective(
+          ud.key,
+          ud.values,
+          ud.keyPosition.column,
+          ud.keyPosition.line
+        )
       }
 
       Right(ExtractedDirectives(strictDirectives.reverse, directivesPositionOpt))
-    }
     else
-      maybeCompositeMalformedDirectiveError match {
+      maybeCompositeMalformedDirectiveError match
         case Some(e) => Left(e)
         case None    => Right(ExtractedDirectives.empty)
-      }
   }
-
 }

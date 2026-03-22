@@ -281,7 +281,6 @@ object Deps {
   def toolkitTest               = mvn"org.scala-lang:toolkit-test:$toolkitVersion"
   val typelevelToolkitVersion   = "0.1.29"
   def typelevelToolkit          = mvn"org.typelevel:toolkit:$typelevelToolkitVersion"
-  def usingDirectives           = mvn"org.virtuslab:using_directives:1.1.4"
   // Lives at https://github.com/VirtusLab/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
