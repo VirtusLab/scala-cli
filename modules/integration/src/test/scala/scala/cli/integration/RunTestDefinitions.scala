@@ -2510,4 +2510,19 @@ abstract class RunTestDefinitions
         processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
       }
     }
+
+  test("sbt file in directory does not break run") {
+    val message = "Hello from run"
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""object Main {
+           |  def main(args: Array[String]): Unit = println("$message")
+           |}
+           |""".stripMargin,
+      os.rel / "build.sbt" -> """name := "my-project""""
+    ).fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
+      expect(output == message)
+    }
+  }
 }

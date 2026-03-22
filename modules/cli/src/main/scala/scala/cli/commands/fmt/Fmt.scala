@@ -5,7 +5,7 @@ import caseapp.core.help.HelpFormat
 import dependency.*
 
 import scala.build.Logger
-import scala.build.input.{ProjectScalaFile, Script, SourceScalaFile}
+import scala.build.input.{ProjectScalaFile, SbtFile, Script, SourceScalaFile}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.cli.CurrentParams
@@ -53,7 +53,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       if args.all.isEmpty then (Seq(os.pwd), os.pwd, None)
       else {
         val i = options.shared.inputs(args.all).orExit(logger)
-        type FormattableSourceFile = Script | SourceScalaFile | ProjectScalaFile
+        type FormattableSourceFile = Script | SourceScalaFile | ProjectScalaFile | SbtFile
         val s = i.sourceFiles().collect { case sc: FormattableSourceFile => sc.path }
         (s, i.workspace, Some(i))
       }
