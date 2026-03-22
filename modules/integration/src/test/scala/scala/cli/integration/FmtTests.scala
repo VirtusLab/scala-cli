@@ -232,4 +232,35 @@ class FmtTests extends ScalaCliSuite {
         expect(updatedContent == expectedSimpleInputsFormattedContent)
       }
   }
+
+  val sbtUnformattedContent: String =
+    """val message    =       "hello"
+      |""".stripMargin
+  val expectedSbtFormattedContent: String = noCrLf {
+    """val message = "hello"
+      |""".stripMargin
+  }
+  val sbtInputs: TestInputs = TestInputs(
+    os.rel / confFileName ->
+      s"""|version = "${Constants.defaultScalafmtVersion}"
+          |runner.dialect = scala213
+          |""".stripMargin,
+    os.rel / "build.sbt" -> sbtUnformattedContent
+  )
+
+  test("sbt file is formatted when passed explicitly") {
+    sbtInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "fmt", "build.sbt").call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "build.sbt"))
+      expect(updatedContent == expectedSbtFormattedContent)
+    }
+  }
+
+  test("sbt file is formatted when directory is passed") {
+    sbtInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "build.sbt"))
+      expect(updatedContent == expectedSbtFormattedContent)
+    }
+  }
 }

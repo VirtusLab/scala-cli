@@ -107,6 +107,11 @@ final case class MarkdownFile(base: os.Path, subPath: os.SubPath)
   lazy val path: os.Path = base / subPath
 }
 
+final case class SbtFile(base: os.Path, subPath: os.SubPath)
+    extends OnDisk with SourceFile {
+  lazy val path: os.Path = base / subPath
+}
+
 final case class Directory(path: os.Path) extends OnDisk with Compiled
 
 final case class ResourceDirectory(path: os.Path) extends OnDisk

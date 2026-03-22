@@ -104,6 +104,7 @@ final case class Inputs(
             Seq("dir:") ++ dirInput.singleFilesFromDirectory(enableMarkdown)
               .map(file => s"${file.path}:" + os.read(file.path))
           case _: ResourceDirectory => Nil
+          case _: SbtFile           => Nil
           case _                    => Seq(os.read(elem.path))
         }
         (Iterator(elem.path.toString) ++ content.iterator ++ Iterator("\n")).map(bytes)
@@ -282,6 +283,7 @@ object Inputs {
         else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))
         else if arg.endsWith(".jar") then Right(Seq(JarFile(dir, subPath)))
         else if arg.endsWith(".c") || arg.endsWith(".h") then Right(Seq(CFile(dir, subPath)))
+        else if arg.endsWith(".sbt") then Right(Seq(SbtFile(dir, subPath)))
         else if arg.endsWith(".md") then Right(Seq(MarkdownFile(dir, subPath)))
         else if acceptFds && arg.startsWith("/dev/fd/") then
           Right(Seq(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc")))
