@@ -49,6 +49,7 @@ final case class Artifacts(
   extraSourceJars: Seq[os.Path],
   scalaOpt: Option[ScalaArtifacts],
   hasJvmRunner: Boolean,
+  hasJavaTestRunner: Boolean,
   resolution: Option[Resolution]
 ) {
 
@@ -131,6 +132,7 @@ object Artifacts {
     jvmVersion: Int,
     addJvmRunner: Option[Boolean],
     addJvmTestRunner: Boolean,
+    addJvmJavaTestRunner: Boolean,
     addJmhDependencies: Option[String],
     extraRepositories: Seq[Repository],
     keepResolution: Boolean,
@@ -189,11 +191,19 @@ object Artifacts {
       }
       else Nil
 
+    val jvmJavaTestRunnerDependencies =
+      if addJvmJavaTestRunner then
+        Seq(
+          dep"${Constants.javaTestRunnerOrganization}:${Constants.javaTestRunnerModuleName}:${Constants.javaTestRunnerVersion}"
+        )
+      else Nil
+
     val jmhDependencies = addJmhDependencies.toSeq
       .map(version => dep"${Constants.jmhOrg}:${Constants.jmhGeneratorBytecodeModule}:$version")
 
     val maybeSnapshotRepo = {
       val hasSnapshots = jvmTestRunnerDependencies.exists(_.version.endsWith("SNAPSHOT")) ||
+        jvmJavaTestRunnerDependencies.exists(_.version.endsWith("SNAPSHOT")) ||
         scalaArtifactsParamsOpt.flatMap(_.scalaNativeCliVersion).exists(_.endsWith("SNAPSHOT"))
       val hasNightlies = scalaArtifactsParamsOpt.exists(a =>
         a.params.scalaVersion.endsWith("-NIGHTLY") ||
@@ -409,6 +419,7 @@ object Artifacts {
 
     val internalDependencies =
       jvmTestRunnerDependencies.map(Positioned.none) ++
+        jvmJavaTestRunnerDependencies.map(Positioned.none) ++
         scalaOpt.toSeq.flatMap(_.internalDependencies).map(Positioned.none) ++
         jmhDependencies.map(Positioned.none)
     val updatedDependencies = dependencies ++
@@ -582,6 +593,7 @@ object Artifacts {
       extraSourceJars,
       scalaOpt,
       hasRunner,
+      addJvmJavaTestRunner,
       if (keepResolution) Some(fetchRes.resolution) else None
     )
   }

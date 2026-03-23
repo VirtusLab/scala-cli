@@ -222,6 +222,10 @@ final case class BuildOptions(
   private def addJvmTestRunner: Boolean =
     platform.value == Platform.JVM &&
     internalDependencies.addTestRunnerDependency
+
+  private def addJvmJavaTestRunner: Boolean =
+    platform.value == Platform.JVM &&
+    internalDependencies.addTestRunnerDependency
   private def addJsTestBridge: Option[String] =
     if (platform.value == Platform.JS && internalDependencies.addTestRunnerDependency)
       Some(scalaJsOptions.finalVersion)
@@ -476,6 +480,7 @@ final case class BuildOptions(
       if (scalaArtifactsParamsOpt.isDefined) None
       else Some(false) // no runner in pure Java mode
     }
+    val isJavaBuild                        = scalaArtifactsParamsOpt.isEmpty
     val extraRepositories: Seq[Repository] = value(finalRepositories)
     val maybeArtifacts                     = Artifacts(
       scalaArtifactsParamsOpt = scalaArtifactsParamsOpt,
@@ -490,7 +495,8 @@ final case class BuildOptions(
       fetchSources = classPathOptions.fetchSources.getOrElse(false),
       jvmVersion = javaHome().value.version,
       addJvmRunner = addRunnerDependency0,
-      addJvmTestRunner = isTests && addJvmTestRunner,
+      addJvmTestRunner = isTests && addJvmTestRunner && !isJavaBuild,
+      addJvmJavaTestRunner = isTests && addJvmJavaTestRunner && isJavaBuild,
       addJmhDependencies = jmhOptions.finalJmhVersion,
       extraRepositories = extraRepositories,
       keepResolution = internal.keepResolution,

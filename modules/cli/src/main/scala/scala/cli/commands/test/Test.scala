@@ -256,11 +256,16 @@ object Test extends ScalaCommand[TestOptions] {
             testOnly.map(to => s"--test-only=$to").toSeq ++
             Seq("--") ++ args
 
+        val testRunnerMainClass =
+          if build.artifacts.hasJavaTestRunner
+          then Constants.javaTestRunnerMainClass
+          else Constants.testRunnerMainClass
+
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
           build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
           classPath,
-          Constants.testRunnerMainClass,
+          testRunnerMainClass,
           extraArgs,
           logger,
           allowExecve = allowExecve
