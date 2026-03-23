@@ -857,6 +857,63 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
+  test("pure Java test with JUnit has no Scala on classpath") {
+    TestInputs(
+      os.rel / "test" / "MyTests.java" ->
+        """//> using test.dep junit:junit:4.13.2
+          |//> using test.dep com.novocode:junit-interface:0.11
+          |import org.junit.Test;
+          |import static org.junit.Assert.assertEquals;
+          |
+          |public class MyTests {
+          |  @Test
+          |  public void foo() {
+          |    try {
+          |      Class.forName("scala.Predef");
+          |      throw new AssertionError("Scala should not be on the classpath");
+          |    } catch (ClassNotFoundException e) {
+          |      // expected
+          |    }
+          |    assertEquals(4, 2 + 2);
+          |    System.out.println("No Scala on classpath!");
+          |  }
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root)
+      expect(res.out.text().contains("No Scala on classpath!"))
+    }
+  }
+
+  test("pure Java test with JUnit and --server=false has no Scala on classpath") {
+    TestInputs(
+      os.rel / "test" / "MyTests.java" ->
+        """//> using test.dep junit:junit:4.13.2
+          |//> using test.dep com.novocode:junit-interface:0.11
+          |import org.junit.Test;
+          |import static org.junit.Assert.assertEquals;
+          |
+          |public class MyTests {
+          |  @Test
+          |  public void foo() {
+          |    try {
+          |      Class.forName("scala.Predef");
+          |      throw new AssertionError("Scala should not be on the classpath");
+          |    } catch (ClassNotFoundException e) {
+          |      // expected
+          |    }
+          |    assertEquals(4, 2 + 2);
+          |    System.out.println("No Scala on classpath (no server)!");
+          |  }
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val res =
+        os.proc(TestUtil.cli, "test", "--server=false", extraOptions, ".").call(cwd = root)
+      expect(res.out.text().contains("No Scala on classpath (no server)!"))
+    }
+  }
+
   test(s"zio-test warning when zio-test-sbt was not passed") {
     TestUtil.retryOnCi() {
       val expectedMessage = "Hello from zio"

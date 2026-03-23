@@ -1105,8 +1105,7 @@ object Build {
     either {
 
       val options0 =
-        // FIXME: don't add Scala to pure Java test builds (need to add pure Java test runner)
-        if sources.hasJava && !sources.hasScala && scope != Scope.Test
+        if sources.hasJava && !sources.hasScala
         then
           options.copy(
             scalaOptions = options.scalaOptions.copy(
