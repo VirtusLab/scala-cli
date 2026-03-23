@@ -112,6 +112,8 @@ object runner extends Cross[Runner](Scala.runnerScalaVersions)
     with CrossScalaDefaultToRunner
 object `test-runner` extends Cross[TestRunner](Scala.runnerScalaVersions)
     with CrossScalaDefaultToRunner
+object `java-test-runner` extends JavaTestRunner
+    with LocatedInModules
 object `tasty-lib` extends Cross[TastyLib](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 
@@ -452,10 +454,16 @@ trait Core extends ScalaCliCrossSbtModule
     val runnerMainClass = build.runner(crossScalaVersion)
       .mainClass()
       .getOrElse(sys.error("No main class defined for runner"))
+    val javaTestRunnerMainClass = `java-test-runner`
+      .mainClass()
+      .getOrElse(sys.error("No main class defined for java-test-runner"))
     val detailedVersionValue =
       if (`local-repo`.developingOnStubModules) s"""Some("${vcsState()}")"""
       else "None"
     val testRunnerOrganization = `test-runner`(crossScalaVersion)
+      .pomSettings()
+      .organization
+    val javaTestRunnerOrganization = `java-test-runner`
       .pomSettings()
       .organization
     val code =
@@ -478,6 +486,11 @@ trait Core extends ScalaCliCrossSbtModule
          |  def testRunnerModuleName = "${`test-runner`(crossScalaVersion).artifactName()}"
          |  def testRunnerVersion = "${`test-runner`(crossScalaVersion).publishVersion()}"
          |  def testRunnerMainClass = "$testRunnerMainClass"
+         |
+         |  def javaTestRunnerOrganization = "$javaTestRunnerOrganization"
+         |  def javaTestRunnerModuleName = "${`java-test-runner`.artifactName()}"
+         |  def javaTestRunnerVersion = "${`java-test-runner`.publishVersion()}"
+         |  def javaTestRunnerMainClass = "$javaTestRunnerMainClass"
          |
          |  def runnerOrganization = "${build.runner(crossScalaVersion).pomSettings().organization}"
          |  def runnerModuleName = "${build.runner(crossScalaVersion).artifactName()}"
@@ -1323,6 +1336,16 @@ trait TestRunner extends CrossSbtModule
   override def mainClass: T[Option[String]] = Some("scala.build.testrunner.DynamicTestRunner")
 }
 
+trait JavaTestRunner extends JavaModule
+    with ScalaCliPublishModule
+    with LocatedInModules {
+  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    Deps.asm,
+    Deps.testInterface
+  )
+  override def mainClass: T[Option[String]] = Some("scala.build.testrunner.JavaDynamicTestRunner")
+}
+
 trait TastyLib extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
@@ -1357,7 +1380,7 @@ object `local-repo` extends LocalRepo {
   def developingOnStubModules = false
 
   override def stubsModules: Seq[PublishLocalNoFluff] =
-    Seq(runner(Scala.runnerScala3), `test-runner`(Scala.runnerScala3))
+    Seq(runner(Scala.runnerScala3), `test-runner`(Scala.runnerScala3), `java-test-runner`)
 
   override def version: T[String] = runner(Scala.runnerScala3).publishVersion()
 }

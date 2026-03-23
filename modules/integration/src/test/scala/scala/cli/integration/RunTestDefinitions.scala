@@ -2510,4 +2510,24 @@ abstract class RunTestDefinitions
         processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
       }
     }
+
+  test("pure Java run has no Scala on classpath") {
+    TestInputs(
+      os.rel / "Main.java" ->
+        """public class Main {
+          |  public static void main(String[] args) {
+          |    try {
+          |      Class.forName("scala.Predef");
+          |      throw new RuntimeException("Scala should not be on the classpath");
+          |    } catch (ClassNotFoundException e) {
+          |      System.out.println("No Scala on classpath!");
+          |    }
+          |  }
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", extraOptions, ".").call(cwd = root)
+      expect(res.out.text().contains("No Scala on classpath!"))
+    }
+  }
 }
