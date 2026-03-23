@@ -1601,4 +1601,26 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         }
       }
     }
+
+  test("sbt file in directory does not break package") {
+    val message = "Hello from package"
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""object Main {
+           |  def main(args: Array[String]): Unit = println("$message")
+           |}
+           |""".stripMargin,
+      os.rel / "build.sbt" -> """name := "my-project""""
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+      val launcher = root / (if Properties.isWin then "Main.bat" else "Main")
+      expect(os.isFile(launcher))
+      val output = TestUtil.maybeUseBash(launcher)(cwd = root).out.trim()
+      expect(output == message)
+    }
+  }
 }

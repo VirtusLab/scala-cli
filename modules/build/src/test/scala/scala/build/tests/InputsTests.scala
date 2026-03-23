@@ -3,14 +3,8 @@ package scala.build.tests
 import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.build.input.*
 import scala.build.input.ElementsUtils.*
-import scala.build.input.{
-  Inputs,
-  ScalaCliInvokeData,
-  VirtualJavaFile,
-  VirtualScalaFile,
-  VirtualScript
-}
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
@@ -124,6 +118,34 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
         val filesUnderScalaBuild = os.list(root / Constants.workspaceDirName)
         assert(filesUnderScalaBuild.exists(_.baseName.startsWith(root.baseName)))
         assert(!filesUnderScalaBuild.exists(_.baseName.startsWith("project")))
+    }
+  }
+
+  test("sbt file is recognized as SbtFile when passed explicitly") {
+    TestInputs(os.rel / "build.sbt" -> "").fromRoot { root =>
+      val elements = Inputs.validateArgs(
+        Seq((root / "build.sbt").toString),
+        root,
+        download = _ => Right(Array.emptyByteArray),
+        stdinOpt = None,
+        acceptFds = false,
+        enableMarkdown = false
+      )(using ScalaCliInvokeData.dummy)
+      elements match {
+        case Seq(Right(Seq(f: SbtFile))) =>
+          assert(f.path == root / "build.sbt")
+        case _ => fail(s"Unexpected elements: $elements")
+      }
+    }
+  }
+
+  test("sbt file is picked up from directory scan") {
+    TestInputs(os.rel / "build.sbt" -> "").fromRoot { root =>
+      val dir      = Directory(root)
+      val singles  = dir.singleFilesFromDirectory(enableMarkdown = false)
+      val sbtFiles = singles.collect { case f: SbtFile => f }
+      assert(sbtFiles.nonEmpty)
+      assert(sbtFiles.head.path == root / "build.sbt")
     }
   }
 
