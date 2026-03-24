@@ -972,4 +972,17 @@ abstract class CompileTestDefinitions
         }
       }
     }
+
+  test("sbt file in directory does not break compile") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / "build.sbt" -> """name := "my-project""""
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
+    }
+  }
 }

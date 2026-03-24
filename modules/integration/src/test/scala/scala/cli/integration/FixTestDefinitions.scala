@@ -68,6 +68,30 @@ abstract class FixTestDefinitions
     }
   }
 
+  test("sbt file in directory does not break fix") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / "build.sbt"          -> """name := "my-project"""",
+      os.rel / scalafixConfFileName ->
+        """rules = [
+          |  RedundantSyntax
+          |]
+          |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions
+      ).call(cwd = root)
+    }
+  }
+
   def filterDebugOutputs(output: String): String =
     output
       .linesIterator

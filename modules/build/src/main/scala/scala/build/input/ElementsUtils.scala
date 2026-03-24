@@ -34,6 +34,8 @@ object ElementsUtils {
           case p if p.last.endsWith(".sc") =>
             // TODO: hasShebang test without consuming 1st 2 bytes of Stream
             Script(d.path, p.subRelativeTo(d.path), None)
+          case p if p.last.endsWith(".sbt") =>
+            SbtFile(d.path, p.subRelativeTo(d.path))
         }
         .toVector
         .sortBy(_.subPath.segments)
@@ -68,6 +70,7 @@ object ElementsUtils {
             case _: Script            => "sc:"
             case _: MarkdownFile      => "md:"
             case _: JarFile           => "jar:"
+            case _: SbtFile           => "sbt:"
           }
           Iterator(prefix, elem.path.toString, "\n").map(bytes)
         case v: Virtual =>
