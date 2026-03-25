@@ -15,15 +15,17 @@ public class JavaAsmTestRunner {
 
     public static class ParentInspector {
         private final List<Path> classPath;
+        private final JavaTestLogger logger;
         private final ConcurrentHashMap<String, List<String>> cache = new ConcurrentHashMap<>();
 
-        public ParentInspector(List<Path> classPath) {
+        public ParentInspector(List<Path> classPath, JavaTestLogger logger) {
             this.classPath = classPath;
+            this.logger = logger;
         }
 
         private List<String> parents(String className) {
             return cache.computeIfAbsent(className, name -> {
-                byte[] byteCode = findInClassPath(classPath, name + ".class");
+                byte[] byteCode = findInClassPath(classPath, name + ".class", logger);
                 if (byteCode == null) return Collections.emptyList();
                 TestClassChecker checker = new TestClassChecker();
                 ClassReader reader = new ClassReader(byteCode);
@@ -52,7 +54,8 @@ public class JavaAsmTestRunner {
         InputStream byteCodeStream,
         List<Fingerprint> fingerprints,
         ParentInspector parentInspector,
-        ClassLoader loader
+        ClassLoader loader,
+        JavaTestLogger logger
     ) throws IOException {
         TestClassChecker checker = new TestClassChecker();
         ClassReader reader = new ClassReader(byteCodeStream);
@@ -85,11 +88,13 @@ public class JavaAsmTestRunner {
                         String clsNameForLoad = rawName.endsWith("$") ? rawName.substring(0, rawName.length() - 1) : rawName;
                         Class<?> cls = loader.loadClass(clsNameForLoad);
                         Optional<Fingerprint> result =
-                            JavaFrameworkUtils.matchFingerprints(loader, cls, new Fingerprint[]{fp});
+                            JavaFrameworkUtils.matchFingerprints(loader, cls, new Fingerprint[]{fp}, logger);
                         if (result.isPresent()) return Optional.of(fp);
                     } catch (ClassNotFoundException | NoClassDefFoundError |
                              UnsupportedClassVersionError | IncompatibleClassChangeError e) {
-                        // fall through
+                        // Expected: class may not be loadable during scanning
+                        logger.debug(
+                            "Could not load class for annotation matching: " + className + " (" + e + ")");
                     }
                 }
             }
@@ -97,9 +102,9 @@ public class JavaAsmTestRunner {
         return Optional.empty();
     }
 
-    public static List<String> findFrameworkServices(List<Path> classPath) {
+    public static List<String> findFrameworkServices(List<Path> classPath, JavaTestLogger logger) {
         List<String> result = new ArrayList<>();
-        byte[] content = findInClassPath(classPath, "META-INF/services/sbt.testing.Framework");
+        byte[] content = findInClassPath(classPath, "META-INF/services/sbt.testing.Framework", logger);
         if (content != null) {
             parseServiceFileContent(new String(content, StandardCharsets.UTF_8), result);
         }
@@ -118,13 +123,14 @@ public class JavaAsmTestRunner {
     public static List<String> findFrameworks(
         List<Path> classPath,
         List<String> preferredClasses,
-        ParentInspector parentInspector
+        ParentInspector parentInspector,
+        JavaTestLogger logger
     ) {
         List<String> result = new ArrayList<>();
         // first check preferred classes
         for (String preferred : preferredClasses) {
             String resourceName = preferred.replace('.', '/') + ".class";
-            byte[] bytes = findInClassPath(classPath, resourceName);
+            byte[] bytes = findInClassPath(classPath, resourceName, logger);
             if (bytes != null) {
                 TestClassChecker checker = new TestClassChecker();
                 new ClassReader(bytes).accept(checker, 0);
@@ -139,7 +145,7 @@ public class JavaAsmTestRunner {
         if (!result.isEmpty()) return result;
 
         // scan all classes in classpath
-        for (Map.Entry<String, byte[]> entry : listClassesByteCode(classPath, true).entrySet()) {
+        for (Map.Entry<String, byte[]> entry : listClassesByteCode(classPath, true, logger).entrySet()) {
             String name = entry.getKey();
             if (name.contains("module-info")) continue;
             TestClassChecker checker = new TestClassChecker();
@@ -158,10 +164,11 @@ public class JavaAsmTestRunner {
         boolean keepJars,
         List<Fingerprint> fingerprints,
         ParentInspector parentInspector,
-        ClassLoader loader
+        ClassLoader loader,
+        JavaTestLogger logger
     ) {
         List<TaskDef> result = new ArrayList<>();
-        for (Map.Entry<String, byte[]> entry : listClassesByteCode(classPath, keepJars).entrySet()) {
+        for (Map.Entry<String, byte[]> entry : listClassesByteCode(classPath, keepJars, logger).entrySet()) {
             String name = entry.getKey();
             if (name.contains("module-info")) continue;
             try {
@@ -170,7 +177,8 @@ public class JavaAsmTestRunner {
                     new ByteArrayInputStream(entry.getValue()),
                     fingerprints,
                     parentInspector,
-                    loader
+                    loader,
+                    logger
                 );
                 if (fp.isPresent()) {
                     String stripped = name.endsWith("$") ? name.substring(0, name.length() - 1) : name;
@@ -178,21 +186,25 @@ public class JavaAsmTestRunner {
                     result.add(new TaskDef(clsName, fp.get(), false, new Selector[]{new SuiteSelector()}));
                 }
             } catch (IOException e) {
-                // skip
+                logger.debug("Could not read bytecode for " + name + ": " + e.getMessage());
             }
         }
         return result;
     }
 
-    private static Map<String, byte[]> listClassesByteCode(List<Path> classPath, boolean keepJars) {
+    private static Map<String, byte[]> listClassesByteCode(
+        List<Path> classPath, boolean keepJars, JavaTestLogger logger
+    ) {
         Map<String, byte[]> result = new LinkedHashMap<>();
         for (Path entry : classPath) {
-            result.putAll(listClassesByteCode(entry, keepJars));
+            result.putAll(listClassesByteCode(entry, keepJars, logger));
         }
         return result;
     }
 
-    private static Map<String, byte[]> listClassesByteCode(Path entry, boolean keepJars) {
+    private static Map<String, byte[]> listClassesByteCode(
+        Path entry, boolean keepJars, JavaTestLogger logger
+    ) {
         Map<String, byte[]> result = new LinkedHashMap<>();
         if (Files.isDirectory(entry)) {
             try (Stream<Path> stream = Files.walk(entry, Integer.MAX_VALUE)) {
@@ -203,11 +215,11 @@ public class JavaAsmTestRunner {
                         try {
                             result.put(name, Files.readAllBytes(p));
                         } catch (IOException e) {
-                            // skip
+                            logger.debug("Could not read class file " + p + ": " + e.getMessage());
                         }
                     });
             } catch (IOException e) {
-                // skip
+                logger.debug("Could not walk directory " + entry + ": " + e.getMessage());
             }
         } else if (keepJars && Files.isRegularFile(entry)) {
             byte[] buf = new byte[16384];
@@ -228,27 +240,28 @@ public class JavaAsmTestRunner {
                     result.put(name, baos.toByteArray());
                 }
             } catch (IOException e) {
-                // skip
+                logger.debug("Could not read JAR " + entry + ": " + e.getMessage());
             }
         }
         return result;
     }
 
-    private static byte[] findInClassPath(List<Path> classPath, String name) {
+    static byte[] findInClassPath(List<Path> classPath, String name, JavaTestLogger logger) {
         for (Path entry : classPath) {
-            byte[] found = findInClassPathEntry(entry, name);
+            byte[] found = findInClassPathEntry(entry, name, logger);
             if (found != null) return found;
         }
         return null;
     }
 
-    private static byte[] findInClassPathEntry(Path entry, String name) {
+    private static byte[] findInClassPathEntry(Path entry, String name, JavaTestLogger logger) {
         if (Files.isDirectory(entry)) {
             Path p = entry.resolve(name);
             if (Files.isRegularFile(p)) {
                 try {
                     return Files.readAllBytes(p);
                 } catch (IOException e) {
+                    logger.debug("Could not read " + p + ": " + e.getMessage());
                     return null;
                 }
             }
@@ -266,6 +279,7 @@ public class JavaAsmTestRunner {
                 }
                 return baos.toByteArray();
             } catch (IOException e) {
+                logger.debug("Could not read " + name + " from " + entry + ": " + e.getMessage());
                 return null;
             }
         }

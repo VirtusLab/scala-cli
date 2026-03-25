@@ -28,13 +28,13 @@ public class JavaTestRunner {
         );
     }
 
-    public static List<Path> classPath(ClassLoader loader) {
+    public static List<Path> classPath(ClassLoader loader, JavaTestLogger logger) {
         List<Path> result = new ArrayList<>();
-        collectClassPath(loader, result);
+        collectClassPath(loader, result, logger);
         return result;
     }
 
-    private static void collectClassPath(ClassLoader loader, List<Path> result) {
+    private static void collectClassPath(ClassLoader loader, List<Path> result, JavaTestLogger logger) {
         if (loader == null) return;
         if (loader instanceof URLClassLoader) {
             URLClassLoader urlLoader = (URLClassLoader) loader;
@@ -43,7 +43,8 @@ public class JavaTestRunner {
                     try {
                         result.add(Paths.get(url.toURI()).toAbsolutePath());
                     } catch (Exception e) {
-                        // skip
+                        logger.debug(
+                            "Could not convert URL to path: " + url + " (" + e.getMessage() + ")");
                     }
                 }
             }
@@ -55,7 +56,7 @@ public class JavaTestRunner {
                 }
             }
         }
-        collectClassPath(loader.getParent(), result);
+        collectClassPath(loader.getParent(), result, logger);
     }
 
     public static List<Event> runTasks(List<Task> initialTasks, PrintStream out) {

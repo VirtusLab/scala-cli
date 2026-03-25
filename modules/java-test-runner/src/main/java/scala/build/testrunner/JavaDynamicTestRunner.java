@@ -47,7 +47,7 @@ public class JavaDynamicTestRunner {
                 try {
                     verbosity = Integer.parseInt(arg.substring("--verbosity=".length()));
                 } catch (NumberFormatException e) {
-                    // ignore malformed
+                    System.err.println("Warning: malformed --verbosity value: " + arg);
                 }
             } else if ("--require-tests".equals(arg)) {
                 requireTests = true;
@@ -64,7 +64,7 @@ public class JavaDynamicTestRunner {
         }
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        java.util.List<java.nio.file.Path> classPath0 = JavaTestRunner.classPath(classLoader);
+        java.util.List<java.nio.file.Path> classPath0 = JavaTestRunner.classPath(classLoader, logger);
 
         List<Framework> frameworks;
         if (!testFrameworks.isEmpty()) {
@@ -73,15 +73,15 @@ public class JavaDynamicTestRunner {
                 try {
                     frameworks.add(JavaFrameworkUtils.loadFramework(classLoader, fw));
                 } catch (Exception e) {
-                    System.err.println("Could not load test framework: " + fw);
-                    System.err.println(e.getMessage());
+                    logger.error("Could not load test framework: " + fw);
+                    logger.error(e.toString());
                     System.exit(1);
                 }
             }
         } else {
             List<Framework> frameworkServices = JavaFrameworkUtils.findFrameworkServices(classLoader);
             List<Framework> scannedFrameworks = JavaFrameworkUtils.findFrameworks(
-                classPath0, classLoader, JavaTestRunner.commonTestFrameworks()
+                classPath0, classLoader, JavaTestRunner.commonTestFrameworks(), logger
             );
             List<Framework> toRun = JavaFrameworkUtils.getFrameworksToRun(
                 frameworkServices, scannedFrameworks, logger
@@ -108,19 +108,20 @@ public class JavaDynamicTestRunner {
             Runner runner = framework.runner(runnerArgs, new String[0], classLoader);
 
             List<Class<?>> classes = new ArrayList<>();
-            for (String name : JavaFrameworkUtils.listClasses(classPath0, false)) {
+            for (String name : JavaFrameworkUtils.listClasses(classPath0, false, logger)) {
                 try {
                     classes.add(classLoader.loadClass(name));
                 } catch (ClassNotFoundException | NoClassDefFoundError |
                          UnsupportedClassVersionError | IncompatibleClassChangeError e) {
-                    // skip
+                    // Expected: not every .class file on the classpath is loadable
+                    logger.debug("Could not load class " + name + ": " + e);
                 }
             }
 
             List<TaskDef> taskDefs = new ArrayList<>();
             for (Class<?> cls : classes) {
                 Optional<Fingerprint> fp = JavaFrameworkUtils.matchFingerprints(
-                    classLoader, cls, fingerprints
+                    classLoader, cls, fingerprints, logger
                 );
                 if (!fp.isPresent()) continue;
                 String clsName = cls.getName().endsWith("$")

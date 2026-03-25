@@ -30,7 +30,8 @@ public class JavaFrameworkUtils {
     public static List<Framework> findFrameworks(
         List<Path> classPath,
         ClassLoader loader,
-        List<String> preferredClasses
+        List<String> preferredClasses,
+        JavaTestLogger logger
     ) {
         Class<?> frameworkCls = Framework.class;
         List<Framework> result = new ArrayList<>();
@@ -38,7 +39,7 @@ public class JavaFrameworkUtils {
 
         // first try preferred classes, then scan classpath
         List<String> candidates = new ArrayList<>(preferredClasses);
-        for (String name : listClasses(classPath, true)) {
+        for (String name : listClasses(classPath, true, logger)) {
             if (!seen.contains(name)) {
                 candidates.add(name);
             }
@@ -51,6 +52,7 @@ public class JavaFrameworkUtils {
                 cls = loader.loadClass(name);
             } catch (ClassNotFoundException | UnsupportedClassVersionError |
                      NoClassDefFoundError | IncompatibleClassChangeError e) {
+                // Expected: most classpath entries aren't test frameworks
                 continue;
             }
             if (!frameworkCls.isAssignableFrom(cls)) continue;
@@ -63,7 +65,7 @@ public class JavaFrameworkUtils {
                 Framework instance = (Framework) cls.getConstructor().newInstance();
                 result.add(instance);
             } catch (Exception e) {
-                // skip
+                logger.debug("Could not instantiate framework " + name + ": " + e);
             }
         }
         return result;
@@ -72,7 +74,8 @@ public class JavaFrameworkUtils {
     public static Optional<Fingerprint> matchFingerprints(
         ClassLoader loader,
         Class<?> cls,
-        Fingerprint[] fingerprints
+        Fingerprint[] fingerprints,
+        JavaTestLogger logger
     ) {
         boolean isModule = cls.getName().endsWith("$");
         long publicCtorCount = Arrays.stream(cls.getConstructors())
@@ -93,7 +96,8 @@ public class JavaFrameworkUtils {
                     Class<?> superCls = loader.loadClass(sf.superclassName());
                     if (superCls.isAssignableFrom(cls)) return Optional.of(fp);
                 } catch (ClassNotFoundException e) {
-                    // skip
+                    logger.debug(
+                        "Superclass not found for fingerprint matching: " + sf.superclassName());
                 }
             } else if (fp instanceof AnnotatedFingerprint) {
                 AnnotatedFingerprint af = (AnnotatedFingerprint) fp;
@@ -111,7 +115,8 @@ public class JavaFrameworkUtils {
                                           Modifier.isPublic(m.getModifiers()));
                     if (matches) return Optional.of(fp);
                 } catch (ClassNotFoundException e) {
-                    // skip
+                    logger.debug(
+                        "Annotation class not found for fingerprint matching: " + af.annotationName());
                 }
             }
         }
@@ -150,15 +155,15 @@ public class JavaFrameworkUtils {
         return finalFrameworks;
     }
 
-    public static List<String> listClasses(List<Path> classPath, boolean keepJars) {
+    public static List<String> listClasses(List<Path> classPath, boolean keepJars, JavaTestLogger logger) {
         List<String> result = new ArrayList<>();
         for (Path entry : classPath) {
-            result.addAll(listClasses(entry, keepJars));
+            result.addAll(listClasses(entry, keepJars, logger));
         }
         return result;
     }
 
-    public static List<String> listClasses(Path entry, boolean keepJars) {
+    public static List<String> listClasses(Path entry, boolean keepJars, JavaTestLogger logger) {
         List<String> result = new ArrayList<>();
         if (Files.isDirectory(entry)) {
             try (Stream<Path> stream = Files.walk(entry, Integer.MAX_VALUE)) {
@@ -175,7 +180,7 @@ public class JavaFrameworkUtils {
                     })
                     .forEach(result::add);
             } catch (Exception e) {
-                // skip
+                logger.debug("Could not walk directory " + entry + ": " + e.getMessage());
             }
         } else if (keepJars && Files.isRegularFile(entry)) {
             try (ZipFile zf = new ZipFile(entry.toFile())) {
@@ -188,7 +193,7 @@ public class JavaFrameworkUtils {
                     }
                 }
             } catch (Exception e) {
-                // skip
+                logger.debug("Could not read JAR " + entry + ": " + e.getMessage());
             }
         }
         return result;
