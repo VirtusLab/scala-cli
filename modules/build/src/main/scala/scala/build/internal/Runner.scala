@@ -396,7 +396,12 @@ object Runner {
       logger.debug(s"  - ${foundFrameworkServices.mkString("\n  - ")}")
     logger.debug("Looking for more test frameworks on the classpath...")
     val foundFrameworks =
-      AsmTestRunner.findFrameworks(classPath, TestRunner.commonTestFrameworks, parentInspector, trLogger)
+      AsmTestRunner.findFrameworks(
+        classPath,
+        TestRunner.commonTestFrameworks,
+        parentInspector,
+        trLogger
+      )
         .map(_.replace('/', '.').replace('\\', '.'))
     logger.debug(s"Found ${foundFrameworks.length} additional test frameworks")
     if foundFrameworks.nonEmpty then
@@ -451,7 +456,7 @@ object Runner {
 
     logger.debug(s"JS tests class path: $classPath")
 
-    val parentInspector                   = new AsmTestRunner.ParentInspector(classPath, toTestRunnerLogger(logger))
+    val parentInspector = new AsmTestRunner.ParentInspector(classPath, toTestRunnerLogger(logger))
     val foundFrameworkNames: List[String] = predefinedTestFrameworks match {
       case f if f.nonEmpty => f.toList
       case Nil             => value(frameworkNames(classPath, parentInspector, logger)).toList
@@ -499,7 +504,7 @@ object Runner {
     logger.debug("Preparing to run tests with Scala Native...")
     logger.debug(s"Native tests class path: $classPath")
 
-    val parentInspector                   = new AsmTestRunner.ParentInspector(classPath, toTestRunnerLogger(logger))
+    val parentInspector = new AsmTestRunner.ParentInspector(classPath, toTestRunnerLogger(logger))
     val foundFrameworkNames: List[String] = predefinedTestFrameworks match {
       case f if f.nonEmpty => f.toList
       case Nil             => value(frameworkNames(classPath, parentInspector, logger)).toList

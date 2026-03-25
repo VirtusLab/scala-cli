@@ -143,7 +143,7 @@ object FrameworkUtils {
         }
         catch {
           case e: Exception =>
-            logger.debug(s"Could not instantiate framework ${cls.getName}: $e")
+            logger.log(s"Could not instantiate framework ${cls.getName}: $e")
             Iterator.empty
         }
       }
@@ -173,7 +173,7 @@ object FrameworkUtils {
       }
       catch {
         case e: Exception =>
-          logger.debug(s"Could not walk directory $classPathEntry: ${e.getMessage}")
+          logger.log(s"Could not walk directory $classPathEntry: ${e.getMessage}")
           Iterator.empty
       }
       finally if (stream != null) stream.close()
@@ -193,7 +193,7 @@ object FrameworkUtils {
       }
       catch {
         case e: Exception =>
-          logger.debug(s"Could not read JAR $classPathEntry: ${e.getMessage}")
+          logger.log(s"Could not read JAR $classPathEntry: ${e.getMessage}")
           Iterator.empty
       }
       finally if (zf != null) zf.close()
@@ -226,7 +226,8 @@ object FrameworkUtils {
             catch {
               case _: ClassNotFoundException =>
                 logger.debug(
-                  s"Superclass not found for fingerprint matching: ${f.superclassName()}")
+                  s"Superclass not found for fingerprint matching: ${f.superclassName()}"
+                )
                 false
             }
           }
@@ -246,7 +247,8 @@ object FrameworkUtils {
             catch {
               case _: ClassNotFoundException =>
                 logger.debug(
-                  s"Annotation class not found for fingerprint matching: ${f.annotationName()}")
+                  s"Annotation class not found for fingerprint matching: ${f.annotationName()}"
+                )
                 false
             }
           }

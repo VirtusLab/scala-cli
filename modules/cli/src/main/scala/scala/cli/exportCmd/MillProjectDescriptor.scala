@@ -137,8 +137,9 @@ final case class MillProjectDescriptor(
         logger.debug(exception.message)
         Seq.empty
     }
-    val parentInspector = new AsmTestRunner.ParentInspector(testClassPath, TestRunnerLogger(logger.verbosity))
-    val frameworkName0  = options.testOptions.frameworks.headOption.orElse {
+    val parentInspector =
+      new AsmTestRunner.ParentInspector(testClassPath, TestRunnerLogger(logger.verbosity))
+    val frameworkName0 = options.testOptions.frameworks.headOption.orElse {
       frameworkNames(testClassPath, parentInspector, logger).toOption
         .flatMap(_.headOption) // TODO: handle multiple frameworks here
     }

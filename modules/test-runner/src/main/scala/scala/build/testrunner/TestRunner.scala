@@ -42,7 +42,7 @@ object TestRunner {
               .to(LazyList)
               .map(Paths.get(_))
           case cl =>
-            logger.debug(s"Unknown classloader type: ${cl.getClass.getName}")
+            logger.log(s"Unknown classloader type: ${cl.getClass.getName}")
             LazyList.empty
         }
         paths #::: helper(loader.getParent)

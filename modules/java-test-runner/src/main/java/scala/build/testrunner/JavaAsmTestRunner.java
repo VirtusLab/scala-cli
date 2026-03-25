@@ -219,7 +219,7 @@ public class JavaAsmTestRunner {
                         }
                     });
             } catch (IOException e) {
-                logger.debug("Could not walk directory " + entry + ": " + e.getMessage());
+                logger.log("Could not walk directory " + entry + ": " + e.getMessage());
             }
         } else if (keepJars && Files.isRegularFile(entry)) {
             byte[] buf = new byte[16384];
@@ -240,7 +240,7 @@ public class JavaAsmTestRunner {
                     result.put(name, baos.toByteArray());
                 }
             } catch (IOException e) {
-                logger.debug("Could not read JAR " + entry + ": " + e.getMessage());
+                logger.log("Could not read JAR " + entry + ": " + e.getMessage());
             }
         }
         return result;

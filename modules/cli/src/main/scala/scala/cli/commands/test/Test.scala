@@ -279,7 +279,8 @@ object Test extends ScalaCommand[TestOptions] {
     // https://github.com/VirtusLab/scala-cli/issues/426
     if classPath0.exists(_.contains("zio-test")) && !classPath0.exists(_.contains("zio-test-sbt"))
     then {
-      val parentInspector = new AsmTestRunner.ParentInspector(classPath, TestRunnerLogger(logger.verbosity))
+      val parentInspector =
+        new AsmTestRunner.ParentInspector(classPath, TestRunnerLogger(logger.verbosity))
       Runner.frameworkNames(classPath, parentInspector, logger) match {
         case Right(f) => f.headOption
         case Left(_)  =>

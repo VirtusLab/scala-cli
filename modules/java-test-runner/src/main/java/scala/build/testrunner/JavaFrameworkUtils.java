@@ -65,7 +65,7 @@ public class JavaFrameworkUtils {
                 Framework instance = (Framework) cls.getConstructor().newInstance();
                 result.add(instance);
             } catch (Exception e) {
-                logger.debug("Could not instantiate framework " + name + ": " + e);
+                logger.log("Could not instantiate framework " + name + ": " + e);
             }
         }
         return result;
@@ -180,7 +180,7 @@ public class JavaFrameworkUtils {
                     })
                     .forEach(result::add);
             } catch (Exception e) {
-                logger.debug("Could not walk directory " + entry + ": " + e.getMessage());
+                logger.log("Could not walk directory " + entry + ": " + e.getMessage());
             }
         } else if (keepJars && Files.isRegularFile(entry)) {
             try (ZipFile zf = new ZipFile(entry.toFile())) {
@@ -193,7 +193,7 @@ public class JavaFrameworkUtils {
                     }
                 }
             } catch (Exception e) {
-                logger.debug("Could not read JAR " + entry + ": " + e.getMessage());
+                logger.log("Could not read JAR " + entry + ": " + e.getMessage());
             }
         }
         return result;

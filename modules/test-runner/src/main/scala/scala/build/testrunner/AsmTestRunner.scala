@@ -121,7 +121,7 @@ object AsmTestRunner {
       }
       catch {
         case e: Exception =>
-          logger.debug(s"Could not walk directory $classPathEntry: ${e.getMessage}")
+          logger.log(s"Could not walk directory $classPathEntry: ${e.getMessage}")
           Iterator.empty
       }
       finally if (stream != null) stream.close()
@@ -157,7 +157,7 @@ object AsmTestRunner {
       }
       catch {
         case e: Exception =>
-          logger.debug(s"Could not read JAR $classPathEntry: ${e.getMessage}")
+          logger.log(s"Could not read JAR $classPathEntry: ${e.getMessage}")
           Iterator.empty
       }
       finally if (zf != null) zf.close()
@@ -359,11 +359,17 @@ object AsmTestRunner {
 
     val parentCache = new ParentInspector(classPath, logger)
 
-    val frameworkClassName = findFrameworkServices(classPath, logger).headOption // TODO handle multiple
-      .orElse(findFrameworks(classPath, TestRunner.commonTestFrameworks, parentCache, logger).headOption)
-      .getOrElse(sys.error("No test framework found"))
-      .replace('/', '.')
-      .replace('\\', '.')
+    val frameworkClassName =
+      findFrameworkServices(classPath, logger).headOption // TODO handle multiple
+        .orElse(findFrameworks(
+          classPath,
+          TestRunner.commonTestFrameworks,
+          parentCache,
+          logger
+        ).headOption)
+        .getOrElse(sys.error("No test framework found"))
+        .replace('/', '.')
+        .replace('\\', '.')
 
     val framework = classLoader
       .loadClass(frameworkClassName)

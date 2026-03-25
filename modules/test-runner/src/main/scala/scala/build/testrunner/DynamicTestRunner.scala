@@ -101,7 +101,8 @@ object DynamicTestRunner {
         .getOrElse {
           getFrameworksToRun(
             frameworkServices = findFrameworkServices(classLoader),
-            frameworks = findFrameworks(classPath0, classLoader, TestRunner.commonTestFrameworks, logger)
+            frameworks =
+              findFrameworks(classPath0, classLoader, TestRunner.commonTestFrameworks, logger)
           )(logger) match {
             case f if f.nonEmpty     => f
             case _ if verbosity >= 2 => sys.error("No test framework found")
