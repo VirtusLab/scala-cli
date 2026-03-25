@@ -9,7 +9,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkNames
 import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
-import scala.build.testrunner.AsmTestRunner
+import scala.build.testrunner.{AsmTestRunner, Logger as TestRunnerLogger}
 import scala.build.{Logger, Sources}
 import scala.cli.ScalaCli
 
@@ -137,7 +137,7 @@ final case class MillProjectDescriptor(
         logger.debug(exception.message)
         Seq.empty
     }
-    val parentInspector = new AsmTestRunner.ParentInspector(testClassPath)
+    val parentInspector = new AsmTestRunner.ParentInspector(testClassPath, TestRunnerLogger(logger.verbosity))
     val frameworkName0  = options.testOptions.frameworks.headOption.orElse {
       frameworkNames(testClassPath, parentInspector, logger).toOption
         .flatMap(_.headOption) // TODO: handle multiple frameworks here

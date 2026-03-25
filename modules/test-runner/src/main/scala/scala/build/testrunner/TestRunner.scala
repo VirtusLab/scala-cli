@@ -20,7 +20,7 @@ object TestRunner {
     "weaver.framework.CatsEffect"
   )
 
-  def classPath(loader: ClassLoader): Seq[Path] = {
+  def classPath(loader: ClassLoader, logger: Logger): Seq[Path] = {
     def helper(loader: ClassLoader): LazyList[Path] =
       if (loader == null) LazyList.empty
       else {
@@ -30,7 +30,9 @@ object TestRunner {
               .flatMap {
                 case url if url.getProtocol == "file" =>
                   Seq(Paths.get(url.toURI).toAbsolutePath)
-                case _ => Nil // FIXME Warn about this
+                case url =>
+                  logger.debug(s"Skipping non-file URL in classloader: $url")
+                  Nil
               }
               .to(LazyList)
           case cl if cl.getClass.getName == "jdk.internal.loader.ClassLoaders$AppClassLoader" =>
@@ -39,7 +41,9 @@ object TestRunner {
               .split(File.pathSeparator)
               .to(LazyList)
               .map(Paths.get(_))
-          case _ => LazyList.empty // FIXME Warn about this
+          case cl =>
+            logger.debug(s"Unknown classloader type: ${cl.getClass.getName}")
+            LazyList.empty
         }
         paths #::: helper(loader.getParent)
       }
