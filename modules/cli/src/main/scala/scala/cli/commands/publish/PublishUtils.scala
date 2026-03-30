@@ -99,6 +99,17 @@ object PublishUtils {
   }
   case class ArtifactData(org: String, name: String, version: String)
   extension (publishOptions: PublishOptions) {
+
+    /** Maven POM `name` / ivy `m:name`: `publish.name` when set, otherwise the published artifact
+      * name.
+      */
+    def pomProjectNameForMaven(fallbackModuleName: String): String =
+      publishOptions.name
+        .map(_.value)
+        .map(_.trim)
+        .filter(_.nonEmpty)
+        .getOrElse(fallbackModuleName)
+
     def artifactData(
       workspace: os.Path,
       logger: Logger,

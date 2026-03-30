@@ -578,13 +578,15 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val description = publishOptions.description.getOrElse(moduleName)
     logger.debug(s"Published project description: $description")
 
+    val pomProjectName = publishOptions.pomProjectNameForMaven(moduleName)
+
     val pomContent = Pom.create(
       organization = coursier.Organization(org),
       moduleName = coursier.ModuleName(moduleName),
       version = ver,
       packaging = None,
       url = url,
-      name = Some(moduleName), // ?
+      name = Some(pomProjectName),
       dependencies = dependencies,
       description = Some(description),
       license = license,
@@ -616,8 +618,12 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       moduleName = coursier.ModuleName(moduleName),
       version = ver,
       url = url,
+      pomProjectName = Some(pomProjectName),
       dependencies = dependencies,
       description = Some(description),
+      license = license,
+      scm = scm,
+      developers = developers,
       time = LocalDateTime.ofInstant(now, ZoneOffset.UTC),
       hasDoc = docJarOpt.isDefined,
       hasSources = sourceJarOpt.isDefined
