@@ -1,7 +1,7 @@
 package scala.build.testrunner
 
 import org.objectweb.asm
-import sbt.testing.*
+import sbt.testing.{Logger as _, *}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 import java.nio.charset.StandardCharsets
@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters.*
 
 object AsmTestRunner {
 
-  class ParentInspector(classPath: Seq[Path]) {
+  class ParentInspector(classPath: Seq[Path], logger: Logger) {
 
     private val cache = new ConcurrentHashMap[String, Seq[String]]
 
@@ -21,7 +21,7 @@ object AsmTestRunner {
         case Some(value) => value
         case None        =>
           val byteCodeOpt =
-            findInClassPath(classPath, className + ".class")
+            findInClassPath(classPath, className + ".class", logger)
               .take(1)
               .toList
               .headOption
@@ -99,7 +99,8 @@ object AsmTestRunner {
 
   private def listClassesByteCode(
     classPathEntry: Path,
-    keepJars: Boolean
+    keepJars: Boolean,
+    logger: Logger
   ): Iterator[(String, () => InputStream)] =
     if (Files.isDirectory(classPathEntry)) {
       var stream: java.util.stream.Stream[Path] = null
@@ -117,6 +118,11 @@ object AsmTestRunner {
           }
           .toVector // fully consume stream before closing it
           .iterator
+      }
+      catch {
+        case e: Exception =>
+          logger.log(s"Could not walk directory $classPathEntry: ${e.getMessage}")
+          Iterator.empty
       }
       finally if (stream != null) stream.close()
     }
@@ -149,20 +155,36 @@ object AsmTestRunner {
           .toVector // fully consume ZipFile before closing it
           .iterator
       }
+      catch {
+        case e: Exception =>
+          logger.log(s"Could not read JAR $classPathEntry: ${e.getMessage}")
+          Iterator.empty
+      }
       finally if (zf != null) zf.close()
     }
     else Iterator.empty
 
   private def listClassesByteCode(
     classPath: Seq[Path],
-    keepJars: Boolean
+    keepJars: Boolean,
+    logger: Logger
   ): Iterator[(String, () => InputStream)] =
-    classPath.iterator.flatMap(listClassesByteCode(_, keepJars))
+    classPath.iterator.flatMap(listClassesByteCode(_, keepJars, logger))
 
-  private def findInClassPath(classPathEntry: Path, name: String): Option[Array[Byte]] =
+  private def findInClassPath(
+    classPathEntry: Path,
+    name: String,
+    logger: Logger
+  ): Option[Array[Byte]] =
     if (Files.isDirectory(classPathEntry)) {
       val p = classPathEntry.resolve(name)
-      if (Files.isRegularFile(p)) Some(Files.readAllBytes(p))
+      if (Files.isRegularFile(p))
+        try Some(Files.readAllBytes(p))
+        catch {
+          case e: java.io.IOException =>
+            logger.debug(s"Could not read $p: ${e.getMessage}")
+            None
+        }
       else None
     }
     else if (Files.isRegularFile(classPathEntry)) {
@@ -186,14 +208,23 @@ object AsmTestRunner {
           finally if (is != null) is.close()
         }
       }
+      catch {
+        case e: java.io.IOException =>
+          logger.debug(s"Could not read $name from $classPathEntry: ${e.getMessage}")
+          None
+      }
       finally if (zf != null) zf.close()
     }
     else None
 
-  private def findInClassPath(classPath: Seq[Path], name: String): Iterator[Array[Byte]] =
+  private def findInClassPath(
+    classPath: Seq[Path],
+    name: String,
+    logger: Logger
+  ): Iterator[Array[Byte]] =
     classPath
       .iterator
-      .flatMap(findInClassPath(_, name).iterator)
+      .flatMap(findInClassPath(_, name, logger).iterator)
 
   /** Parse Java ServiceLoader format: one class name per line; # comments and empty lines ignored.
     */
@@ -205,26 +236,29 @@ object AsmTestRunner {
       .filter(line => line.nonEmpty && !line.startsWith("#"))
       .toSeq
 
-  def findFrameworkServices(classPath: Seq[Path]): Seq[String] =
-    findInClassPath(classPath, "META-INF/services/sbt.testing.Framework")
+  def findFrameworkServices(classPath: Seq[Path], logger: Logger): Seq[String] =
+    findInClassPath(classPath, "META-INF/services/sbt.testing.Framework", logger)
       .flatMap(b => parseServiceFileContent(new String(b, StandardCharsets.UTF_8)))
       .toSeq
 
   def findFrameworks(
     classPath: Seq[Path],
     preferredClasses: Seq[String],
-    parentInspector: ParentInspector
+    parentInspector: ParentInspector,
+    logger: Logger
   ): List[String] = {
+    // first check preferred classes
     val preferredClassesByteCode = preferredClasses
       .map(_.replace('.', '/'))
       .flatMap { name =>
-        findInClassPath(classPath, name + ".class")
+        findInClassPath(classPath, name + ".class", logger)
           .map { b =>
             def openStream() = new ByteArrayInputStream(b)
             (name, () => openStream())
           }
       }
-    (preferredClassesByteCode.iterator ++ listClassesByteCode(classPath, true))
+    // scan all classes in classpath
+    (preferredClassesByteCode.iterator ++ listClassesByteCode(classPath, true, logger))
       .flatMap {
         case (moduleInfo, _) if moduleInfo.contains("module-info") => Iterator.empty
         case (name, is)                                            =>
@@ -290,14 +324,21 @@ object AsmTestRunner {
     classPath: Seq[Path],
     keepJars: Boolean,
     fingerprints: Seq[Fingerprint],
-    parentInspector: ParentInspector
+    parentInspector: ParentInspector,
+    logger: Logger
   ): Iterator[TaskDef] =
-    listClassesByteCode(classPath, keepJars = keepJars)
+    listClassesByteCode(classPath, keepJars = keepJars, logger)
       .flatMap {
         case (name, is) =>
-          matchFingerprints(name, is, fingerprints, parentInspector)
-            .map((name.stripSuffix("$"), _))
-            .iterator
+          try
+            matchFingerprints(name, is, fingerprints, parentInspector)
+              .map((name.stripSuffix("$"), _))
+              .iterator
+          catch {
+            case e: java.io.IOException =>
+              logger.debug(s"Could not read bytecode for $name: ${e.getMessage}")
+              Iterator.empty
+          }
       }
       .map {
         case (clsName, fp) =>
@@ -311,16 +352,24 @@ object AsmTestRunner {
 
   def main(args: Array[String]): Unit = {
 
+    val logger = Logger(0)
+
     val classLoader = Thread.currentThread().getContextClassLoader
-    val classPath   = TestRunner.classPath(classLoader)
+    val classPath   = TestRunner.classPath(classLoader, logger)
 
-    val parentCache = new ParentInspector(classPath)
+    val parentCache = new ParentInspector(classPath, logger)
 
-    val frameworkClassName = findFrameworkServices(classPath).headOption // TODO handle multiple
-      .orElse(findFrameworks(classPath, TestRunner.commonTestFrameworks, parentCache).headOption)
-      .getOrElse(sys.error("No test framework found"))
-      .replace('/', '.')
-      .replace('\\', '.')
+    val frameworkClassName =
+      findFrameworkServices(classPath, logger).headOption // TODO handle multiple
+        .orElse(findFrameworks(
+          classPath,
+          TestRunner.commonTestFrameworks,
+          parentCache,
+          logger
+        ).headOption)
+        .getOrElse(sys.error("No test framework found"))
+        .replace('/', '.')
+        .replace('\\', '.')
 
     val framework = classLoader
       .loadClass(frameworkClassName)
@@ -335,7 +384,8 @@ object AsmTestRunner {
         classPath,
         keepJars = false,
         framework.fingerprints().toIndexedSeq,
-        parentCache
+        parentCache,
+        logger
       ).toArray
 
     val runner       = framework.runner(Array(), Array(), classLoader)

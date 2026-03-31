@@ -3,7 +3,7 @@ package scala.build.tests
 import java.nio.file.Files
 
 import scala.build.errors.NoFrameworkFoundByNativeBridgeError
-import scala.build.testrunner.AsmTestRunner
+import scala.build.testrunner.{AsmTestRunner, Logger as TestRunnerLogger}
 
 class FrameworkDiscoveryTests extends TestUtil.ScalaCliBuildSuite {
 
@@ -25,7 +25,7 @@ class FrameworkDiscoveryTests extends TestUtil.ScalaCliBuildSuite {
           |""".stripMargin
       Files.writeString(serviceFile, content)
 
-      val found = AsmTestRunner.findFrameworkServices(Seq(dir))
+      val found = AsmTestRunner.findFrameworkServices(Seq(dir), TestRunnerLogger(0))
       assertEquals(
         found.sorted,
         Seq("munit.Framework", "munit.native.Framework"),

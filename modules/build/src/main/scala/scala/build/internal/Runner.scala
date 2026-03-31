@@ -15,11 +15,14 @@ import scala.build.Logger
 import scala.build.errors.*
 import scala.build.internals.EnvVar
 import scala.build.testrunner.FrameworkUtils.*
-import scala.build.testrunner.{AsmTestRunner, TestRunner}
+import scala.build.testrunner.{AsmTestRunner, Logger as TestRunnerLogger, TestRunner}
 import scala.scalanative.testinterface.adapter.TestAdapter as ScalaNativeTestAdapter
 import scala.util.{Failure, Properties, Success}
 
 object Runner {
+
+  private def toTestRunnerLogger(logger: Logger): TestRunnerLogger =
+    TestRunnerLogger(logger.verbosity)
 
   def maybeExec(
     commandName: String,
@@ -346,15 +349,18 @@ object Runner {
     frameworks: Seq[Framework],
     requireTests: Boolean,
     args: Seq[String],
-    parentInspector: AsmTestRunner.ParentInspector
+    parentInspector: AsmTestRunner.ParentInspector,
+    logger: Logger
   ): Either[NoTestsRun, Boolean] = frameworks
     .flatMap { framework =>
+      val trLogger = toTestRunnerLogger(logger)
       val taskDefs =
         AsmTestRunner.taskDefs(
           classPath,
           keepJars = false,
           framework.fingerprints().toIndexedSeq,
-          parentInspector
+          parentInspector,
+          trLogger
         ).toArray
 
       val runner       = framework.runner(args.toArray, Array(), null)
@@ -380,16 +386,22 @@ object Runner {
     parentInspector: AsmTestRunner.ParentInspector,
     logger: Logger
   ): Either[NoTestFrameworkFoundError, Seq[String]] = {
+    val trLogger = toTestRunnerLogger(logger)
     logger.debug("Looking for test framework services on the classpath...")
     val foundFrameworkServices =
-      AsmTestRunner.findFrameworkServices(classPath)
+      AsmTestRunner.findFrameworkServices(classPath, trLogger)
         .map(_.replace('/', '.').replace('\\', '.'))
     logger.debug(s"Found ${foundFrameworkServices.length} test framework services.")
     if foundFrameworkServices.nonEmpty then
       logger.debug(s"  - ${foundFrameworkServices.mkString("\n  - ")}")
     logger.debug("Looking for more test frameworks on the classpath...")
     val foundFrameworks =
-      AsmTestRunner.findFrameworks(classPath, TestRunner.commonTestFrameworks, parentInspector)
+      AsmTestRunner.findFrameworks(
+        classPath,
+        TestRunner.commonTestFrameworks,
+        parentInspector,
+        trLogger
+      )
         .map(_.replace('/', '.').replace('\\', '.'))
     logger.debug(s"Found ${foundFrameworks.length} additional test frameworks")
     if foundFrameworks.nonEmpty then
@@ -444,7 +456,7 @@ object Runner {
 
     logger.debug(s"JS tests class path: $classPath")
 
-    val parentInspector                   = new AsmTestRunner.ParentInspector(classPath)
+    val parentInspector = new AsmTestRunner.ParentInspector(classPath, toTestRunnerLogger(logger))
     val foundFrameworkNames: List[String] = predefinedTestFrameworks match {
       case f if f.nonEmpty => f.toList
       case Nil             => value(frameworkNames(classPath, parentInspector, logger)).toList
@@ -474,7 +486,7 @@ object Runner {
           )
 
         if finalTestFrameworks.isEmpty then Left(new NoFrameworkFoundByBridgeError)
-        else runTests(classPath, finalTestFrameworks, requireTests, args, parentInspector)
+        else runTests(classPath, finalTestFrameworks, requireTests, args, parentInspector, logger)
       }
       finally if adapter != null then adapter.close()
 
@@ -492,7 +504,7 @@ object Runner {
     logger.debug("Preparing to run tests with Scala Native...")
     logger.debug(s"Native tests class path: $classPath")
 
-    val parentInspector                   = new AsmTestRunner.ParentInspector(classPath)
+    val parentInspector = new AsmTestRunner.ParentInspector(classPath, toTestRunnerLogger(logger))
     val foundFrameworkNames: List[String] = predefinedTestFrameworks match {
       case f if f.nonEmpty => f.toList
       case Nil             => value(frameworkNames(classPath, parentInspector, logger)).toList
@@ -540,7 +552,7 @@ object Runner {
           )
 
         if finalTestFrameworks.isEmpty then Left(new NoFrameworkFoundByNativeBridgeError)
-        else runTests(classPath, finalTestFrameworks, requireTests, args, parentInspector)
+        else runTests(classPath, finalTestFrameworks, requireTests, args, parentInspector, logger)
       }
       finally if adapter != null then adapter.close()
 

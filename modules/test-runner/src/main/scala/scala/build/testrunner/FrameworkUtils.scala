@@ -87,46 +87,6 @@ object FrameworkUtils {
     getFrameworksToRun(allFrameworks = frameworkServices ++ frameworks)(logger)
   }
 
-  def listClasses(classPath: Seq[Path], keepJars: Boolean): Iterator[String] =
-    classPath.iterator.flatMap(listClasses(_, keepJars))
-
-  def listClasses(classPathEntry: Path, keepJars: Boolean): Iterator[String] =
-    if (Files.isDirectory(classPathEntry)) {
-      var stream: java.util.stream.Stream[Path] = null
-      try {
-        stream = Files.walk(classPathEntry, Int.MaxValue)
-        stream
-          .iterator
-          .asScala
-          .filter(_.getFileName.toString.endsWith(".class"))
-          .map(classPathEntry.relativize)
-          .map { p =>
-            val count = p.getNameCount
-            (0 until count).map(p.getName).mkString(".")
-          }
-          .map(_.stripSuffix(".class"))
-          .toVector // fully consume stream before closing it
-          .iterator
-      }
-      finally if (stream != null) stream.close()
-    }
-    else if (keepJars && Files.isRegularFile(classPathEntry)) {
-      import java.util.zip._
-      var zf: ZipFile = null
-      try {
-        zf = new ZipFile(classPathEntry.toFile)
-        zf.entries
-          .asScala
-          // FIXME Check if these are files too
-          .filter(_.getName.endsWith(".class"))
-          .map(ent => ent.getName.stripSuffix(".class").replace("/", "."))
-          .toVector // full consume ZipFile before closing it
-          .iterator
-      }
-      finally if (zf != null) zf.close()
-    }
-    else Iterator.empty
-
   def findFrameworkServices(loader: ClassLoader): Seq[Framework] =
     ServiceLoader.load(classOf[Framework], loader)
       .iterator()
@@ -145,15 +105,18 @@ object FrameworkUtils {
   def findFrameworks(
     classPath: Seq[Path],
     loader: ClassLoader,
-    preferredClasses: Seq[String]
+    preferredClasses: Seq[String],
+    logger: Logger
   ): Seq[Framework] = {
     val frameworkCls = classOf[Framework]
-    (preferredClasses.iterator ++ listClasses(classPath, true))
+    // first try preferred classes, then scan classpath
+    (preferredClasses.iterator ++ listClasses(classPath, true, logger))
       .flatMap { name =>
         val it: Iterator[Class[?]] =
           try Iterator(loader.loadClass(name))
           catch {
             case _: ClassNotFoundException | _: UnsupportedClassVersionError | _: NoClassDefFoundError | _: IncompatibleClassChangeError =>
+              // Expected: most classpath entries aren't test frameworks
               Iterator.empty
           }
         it
@@ -179,17 +142,70 @@ object FrameworkUtils {
           Iterator(constructor.newInstance().asInstanceOf[Framework])
         }
         catch {
-          case _: NoSuchMethodException => Iterator.empty
+          case e: Exception =>
+            logger.log(s"Could not instantiate framework ${cls.getName}: $e")
+            Iterator.empty
         }
       }
       .toSeq
   }
 
+  def listClasses(classPath: Seq[Path], keepJars: Boolean, logger: Logger): Iterator[String] =
+    classPath.iterator.flatMap(listClasses(_, keepJars, logger))
+
+  def listClasses(classPathEntry: Path, keepJars: Boolean, logger: Logger): Iterator[String] =
+    if (Files.isDirectory(classPathEntry)) {
+      var stream: java.util.stream.Stream[Path] = null
+      try {
+        stream = Files.walk(classPathEntry, Int.MaxValue)
+        stream
+          .iterator
+          .asScala
+          .filter(_.getFileName.toString.endsWith(".class"))
+          .map(classPathEntry.relativize)
+          .map { p =>
+            val count = p.getNameCount
+            (0 until count).map(p.getName).mkString(".")
+          }
+          .map(_.stripSuffix(".class"))
+          .toVector // fully consume stream before closing it
+          .iterator
+      }
+      catch {
+        case e: Exception =>
+          logger.log(s"Could not walk directory $classPathEntry: ${e.getMessage}")
+          Iterator.empty
+      }
+      finally if (stream != null) stream.close()
+    }
+    else if (keepJars && Files.isRegularFile(classPathEntry)) {
+      import java.util.zip._
+      var zf: ZipFile = null
+      try {
+        zf = new ZipFile(classPathEntry.toFile)
+        zf.entries
+          .asScala
+          // FIXME Check if these are files too
+          .filter(_.getName.endsWith(".class"))
+          .map(ent => ent.getName.stripSuffix(".class").replace("/", "."))
+          .toVector // full consume ZipFile before closing it
+          .iterator
+      }
+      catch {
+        case e: Exception =>
+          logger.log(s"Could not read JAR $classPathEntry: ${e.getMessage}")
+          Iterator.empty
+      }
+      finally if (zf != null) zf.close()
+    }
+    else Iterator.empty
+
   // adapted from https://github.com/com-lihaoyi/mill/blob/ab4d61a50da24fb7fac97c4453dd8a770d8ac62b/scalalib/src/Lib.scala#L156-L172
   def matchFingerprints(
     loader: ClassLoader,
     cls: Class[?],
-    fingerprints: Array[Fingerprint]
+    fingerprints: Array[Fingerprint],
+    logger: Logger
   ): Option[Fingerprint] = {
     val isModule               = cls.getName.endsWith("$")
     val publicConstructorCount = cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
@@ -203,21 +219,39 @@ object FrameworkUtils {
     else
       fingerprints.find {
         case f: SubclassFingerprint =>
-          f.isModule == isModule &&
-          loader.loadClass(f.superclassName())
-            .isAssignableFrom(cls)
+          f.isModule == isModule && {
+            try
+              loader.loadClass(f.superclassName())
+                .isAssignableFrom(cls)
+            catch {
+              case _: ClassNotFoundException =>
+                logger.debug(
+                  s"Superclass not found for fingerprint matching: ${f.superclassName()}"
+                )
+                false
+            }
+          }
 
         case f: AnnotatedFingerprint =>
-          val annotationCls = loader.loadClass(f.annotationName())
-            .asInstanceOf[Class[Annotation]]
-          f.isModule == isModule && (
-            cls.isAnnotationPresent(annotationCls) ||
-            cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
-            cls.getMethods.exists { m =>
-              m.isAnnotationPresent(annotationCls) &&
-              Modifier.isPublic(m.getModifiers)
+          f.isModule == isModule && {
+            try {
+              val annotationCls = loader.loadClass(f.annotationName())
+                .asInstanceOf[Class[Annotation]]
+              cls.isAnnotationPresent(annotationCls) ||
+              cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
+              cls.getMethods.exists { m =>
+                m.isAnnotationPresent(annotationCls) &&
+                Modifier.isPublic(m.getModifiers)
+              }
             }
-          )
+            catch {
+              case _: ClassNotFoundException =>
+                logger.debug(
+                  s"Annotation class not found for fingerprint matching: ${f.annotationName()}"
+                )
+                false
+            }
+          }
       }
   }
 }

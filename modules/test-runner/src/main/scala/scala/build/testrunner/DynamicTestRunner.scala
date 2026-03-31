@@ -61,11 +61,18 @@ object DynamicTestRunner {
               t
             )
           case h :: t if h.startsWith("--verbosity=") =>
+            val v =
+              try h.stripPrefix("--verbosity=").toInt
+              catch {
+                case _: NumberFormatException =>
+                  System.err.println(s"Warning: malformed --verbosity value: $h")
+                  0
+              }
             parse(
               testFrameworks,
               reverseTestArgs,
               requireTests,
-              h.stripPrefix("--verbosity=").toInt,
+              v,
               testOnly,
               t
             )
@@ -86,7 +93,7 @@ object DynamicTestRunner {
     )
 
     val classLoader = Thread.currentThread().getContextClassLoader
-    val classPath0  = TestRunner.classPath(classLoader)
+    val classPath0  = TestRunner.classPath(classLoader, logger)
     val frameworks  =
       Option(testFrameworks)
         .filter(_.nonEmpty)
@@ -94,7 +101,8 @@ object DynamicTestRunner {
         .getOrElse {
           getFrameworksToRun(
             frameworkServices = findFrameworkServices(classLoader),
-            frameworks = findFrameworks(classPath0, classLoader, TestRunner.commonTestFrameworks)
+            frameworks =
+              findFrameworks(classPath0, classLoader, TestRunner.commonTestFrameworks, logger)
           )(logger) match {
             case f if f.nonEmpty     => f
             case _ if verbosity >= 2 => sys.error("No test framework found")
@@ -105,7 +113,16 @@ object DynamicTestRunner {
         }
     def classes = {
       val keepJars = false // look into dependencies, much slower
-      listClasses(classPath0, keepJars).map(name => classLoader.loadClass(name))
+      listClasses(classPath0, keepJars, logger).flatMap { name =>
+        try Iterator(classLoader.loadClass(name))
+        catch {
+          case _: ClassNotFoundException | _: NoClassDefFoundError |
+              _: UnsupportedClassVersionError | _: IncompatibleClassChangeError =>
+            // Expected: not every .class file on the classpath is loadable
+            logger.debug(s"Could not load class $name")
+            Iterator.empty
+        }
+      }
     }
     val out = System.out
 
@@ -117,7 +134,7 @@ object DynamicTestRunner {
           val runner       = framework.runner(args0.toArray, Array(), classLoader)
 
           def clsFingerprints = classes.flatMap { cls =>
-            matchFingerprints(classLoader, cls, fingerprints)
+            matchFingerprints(classLoader, cls, fingerprints, logger)
               .map((cls, _))
               .iterator
           }

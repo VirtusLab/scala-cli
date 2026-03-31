@@ -12,7 +12,7 @@ import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
-import scala.build.testrunner.AsmTestRunner
+import scala.build.testrunner.{AsmTestRunner, Logger as TestRunnerLogger}
 import scala.cli.CurrentParams
 import scala.cli.commands.run.Run
 import scala.cli.commands.setupide.SetupIde
@@ -256,11 +256,16 @@ object Test extends ScalaCommand[TestOptions] {
             testOnly.map(to => s"--test-only=$to").toSeq ++
             Seq("--") ++ args
 
+        val testRunnerMainClass =
+          if build.artifacts.hasJavaTestRunner
+          then Constants.javaTestRunnerMainClass
+          else Constants.testRunnerMainClass
+
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
           build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
           classPath,
-          Constants.testRunnerMainClass,
+          testRunnerMainClass,
           extraArgs,
           logger,
           allowExecve = allowExecve
@@ -274,7 +279,8 @@ object Test extends ScalaCommand[TestOptions] {
     // https://github.com/VirtusLab/scala-cli/issues/426
     if classPath0.exists(_.contains("zio-test")) && !classPath0.exists(_.contains("zio-test-sbt"))
     then {
-      val parentInspector = new AsmTestRunner.ParentInspector(classPath)
+      val parentInspector =
+        new AsmTestRunner.ParentInspector(classPath, TestRunnerLogger(logger.verbosity))
       Runner.frameworkNames(classPath, parentInspector, logger) match {
         case Right(f) => f.headOption
         case Left(_)  =>

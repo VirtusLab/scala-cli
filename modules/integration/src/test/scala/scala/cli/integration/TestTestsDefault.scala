@@ -98,4 +98,38 @@ class TestTestsDefault extends TestTestDefinitions with TestDefault {
         expect(err.countOccurrences(expectedWarning) == 1)
       }
     }
+
+  for {
+    buildServerOptions <- Seq(Nil, Seq("--server=false"))
+    buildServerDesc =
+      if buildServerOptions.isEmpty then "with build server" else "without build server"
+  }
+    test(s"pure Java test with JUnit has no Scala on classpath $buildServerDesc") {
+      TestInputs(
+        os.rel / "test" / "MyTests.java" ->
+          """//> using test.dep junit:junit:4.13.2
+            |//> using test.dep com.novocode:junit-interface:0.11
+            |import org.junit.Test;
+            |import static org.junit.Assert.assertEquals;
+            |
+            |public class MyTests {
+            |  @Test
+            |  public void foo() {
+            |    try {
+            |      Class.forName("scala.Predef");
+            |      throw new AssertionError("Scala should not be on the classpath");
+            |    } catch (ClassNotFoundException e) {
+            |      // expected
+            |    }
+            |    assertEquals(4, 2 + 2);
+            |    System.out.println("No Scala on classpath!");
+            |  }
+            |}
+            |""".stripMargin
+      ).fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "test", extraOptions, buildServerOptions, ".").call(cwd = root)
+        expect(res.out.text().contains("No Scala on classpath!"))
+      }
+    }
 }
