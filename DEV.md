@@ -282,6 +282,27 @@ There is a script `scala-cli-src` in the repository root that is intended to wor
 using a binary compiled the worktree.
 Just add it to your PATH to get the already-released-scala-cli experience.
 
+## CI change detection
+
+On pull requests, the CI workflow detects which files changed and skips jobs that are not relevant.
+Pushes to `main`, `v*` tags, and manual dispatches always run everything.
+
+### Override keywords
+
+You can force specific job groups to run regardless of which files changed by including
+these keywords anywhere in the PR body (description):
+
+| Keyword | Effect |
+|---------|--------|
+| `[test_all]` | Run **all** CI jobs, no skipping |
+| `[test_native]` | Force native launcher builds and native integration tests |
+| `[test_integration]` | Force JVM integration tests |
+| `[test_docs]` | Force documentation tests |
+| `[test_format]` | Force format and scalafix checks |
+
+For example, if your PR only touches documentation, but you want to verify native
+launchers still build, add `[test_native]` to the PR description.
+
 ## Releases
 
 Instructions on how to
