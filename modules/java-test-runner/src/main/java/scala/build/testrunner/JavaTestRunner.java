@@ -16,16 +16,10 @@ import java.util.List;
 public class JavaTestRunner {
 
     public static List<String> commonTestFrameworks() {
-        return Arrays.asList(
-            "munit.Framework",
-            "utest.runner.Framework",
-            "org.scalacheck.ScalaCheckFramework",
-            "zio.test.sbt.ZTestFramework",
-            "org.scalatest.tools.Framework",
-            "com.novocode.junit.JUnitFramework",
-            "org.scalajs.junit.JUnitFramework",
-            "weaver.framework.CatsEffect"
-        );
+        // Only pure-Java-compatible frameworks belong here.
+        // Scala-only frameworks (munit, utest, ScalaCheck, ZIO Test, ScalaTest, weaver)
+        // live in the Scala test-runner's TestRunner.commonTestFrameworks instead.
+        return Arrays.asList("com.novocode.junit.JUnitFramework");
     }
 
     public static List<Path> classPath(ClassLoader loader, JavaTestLogger logger) {
