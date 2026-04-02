@@ -8,20 +8,15 @@ import scala.cli.commands.tags
 
 // format: off
 final case class WasmOptions(
-  @Group(HelpGroup.Scala.toString)
+  @Group(HelpGroup.Wasm.toString)
   @Tag(tags.experimental)
   @HelpMessage("Enable WebAssembly output (Scala.js WASM backend). Uses Node.js by default. To show more options for WASM pass `--help-wasm`")
     wasm: Boolean = false,
 
   @Group(HelpGroup.Wasm.toString)
   @Tag(tags.experimental)
-  @HelpMessage("WASM runtime to use: node (default), deno. Standalone runtimes (wasmtime, wasmedge) planned for future releases.")
-    wasmRuntime: Option[String] = None,
-
-  @Group(HelpGroup.Wasm.toString)
-  @Tag(tags.experimental)
-  @HelpMessage("Version of Deno to use. If Deno is not found on PATH, it will be downloaded automatically.")
-    denoVersion: Option[String] = None
+  @HelpMessage("WASM runtime to use: node (default), deno")
+    wasmRuntime: Option[String] = None
 )
 // format: on
 
