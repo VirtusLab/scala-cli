@@ -37,6 +37,7 @@ final case class BuildOptions(
   scalaOptions: ScalaOptions = ScalaOptions(),
   scalaJsOptions: ScalaJsOptions = ScalaJsOptions(),
   scalaNativeOptions: ScalaNativeOptions = ScalaNativeOptions(),
+  wasmOptions: WasmOptions = WasmOptions(),
   internalDependencies: InternalDependenciesOptions = InternalDependenciesOptions(),
   javaOptions: JavaOptions = JavaOptions(),
   jmhOptions: JmhOptions = JmhOptions(),
