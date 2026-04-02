@@ -17,7 +17,7 @@ enum HelpGroup:
     Scala, ScalaJs, ScalaNative, Secret, Signing, SuppressWarnings, SourceGenerator,
     Test,
     Uninstall, Update,
-    Watch, Windows,
+    Wasm, Watch, Windows,
     Version
 
   override def toString: String = this match
@@ -30,6 +30,7 @@ enum HelpGroup:
     case SuppressWarnings  => "Suppress warnings"
     case SourceGenerator   => "Source generator"
     case ProjectVersion    => "Project version"
+    case Wasm              => "WebAssembly"
     case e                 => e.productPrefix
 
 enum HelpCommandGroup:
