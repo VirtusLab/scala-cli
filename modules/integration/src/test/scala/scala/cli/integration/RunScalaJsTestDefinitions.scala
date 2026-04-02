@@ -428,32 +428,6 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  for (runtime <- Seq("wasmtime", "wasmedge", "wasmer"))
-    test(s"Unsupported WASM runtime '$runtime' gives clear error") {
-      val inputs = TestInputs(
-        os.rel / "Hello.scala" ->
-          """object Hello {
-            |  def main(args: Array[String]): Unit = println("Hello!")
-            |}
-            |""".stripMargin
-      )
-      inputs.fromRoot { root =>
-        val res = os.proc(
-          TestUtil.cli,
-          "--power",
-          "run",
-          "Hello.scala",
-          "--wasm",
-          "--wasm-runtime",
-          runtime,
-          extraOptions
-        ).call(cwd = root, check = false, mergeErrIntoOut = true)
-        expect(res.exitCode != 0)
-        expect(res.out.trim().contains("not yet supported"))
-        expect(res.out.trim().contains("scala-js/scala-js/issues/4991"))
-      }
-    }
-
   if (TestUtil.fromPath("deno").isDefined)
     test("Run with --wasm-runtime deno") {
       val inputs = TestInputs(

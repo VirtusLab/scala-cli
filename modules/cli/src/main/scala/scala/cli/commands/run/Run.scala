@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference
 import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.errors.{BuildException, CompositeBuildException, UnsupportedWasmRuntimeError}
+import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.input.*
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
@@ -28,7 +28,7 @@ import scala.cli.commands.util.BuildCommandHelpers.*
 import scala.cli.commands.util.{BuildCommandHelpers, RunHadoop, RunSpark}
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.Keys
-import scala.cli.internal.{ProcUtil, WasmRuntimeDownloader}
+import scala.cli.internal.ProcUtil
 import scala.cli.packaging.Library.fullClassPathMaybeAsJar
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
@@ -478,101 +478,66 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
 
           // Check if WASM mode is requested
           if wasmOpts.enabled then {
-            val runtime = wasmOpts.runtime
+            val runtime  = wasmOpts.runtime
+            val esModule = true // WASM backend uses ES modules
+            scratchDirOpt.foreach(os.makeDir.all(_))
+            val jsDest = os.temp(
+              dir = scratchDirOpt.orNull,
+              prefix = "main",
+              suffix = ".mjs",
+              deleteOnExit = scratchDirOpt.isEmpty
+            )
 
-            if runtime.isJsBased then {
-              // JS-based WASM path - uses Scala.js WASM with JavaScript helpers (Node.js or Deno)
-              val esModule = true // WASM backend uses ES modules
-              scratchDirOpt.foreach(os.makeDir.all(_))
-              val jsDest = os.temp(
-                dir = scratchDirOpt.orNull,
-                prefix = "main",
-                suffix = ".mjs",
-                deleteOnExit = scratchDirOpt.isEmpty
-              )
+            val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
+              .copy(emitWasm = true, moduleKind = ScalaJsLinkerConfig.ModuleKind.ESModule)
 
-              // Resolve Deno binary: check PATH first, download if needed
-              val denoPathOpt: Option[String] = runtime match {
-                case WasmRuntime.Deno =>
-                  val denoCmd = value(WasmRuntimeDownloader.denoCommand(
-                    wasmOpts.finalDenoVersion,
-                    build.options.archiveCache,
-                    logger
-                  ))
-                  Some(denoCmd.head)
-                case _ => None
-              }
-
-              val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-                .copy(emitWasm = true, moduleKind = ScalaJsLinkerConfig.ModuleKind.ESModule)
-
-              val res = Package.linkJs(
-                builds = builds,
-                dest = jsDest,
-                mainClassOpt = Some(mainClass),
-                addTestInitializer = false,
-                config = linkerConfig,
-                fullOpt = value(build.options.scalaJsOptions.fullOpt),
-                noOpt = build.options.scalaJsOptions.noOpt.getOrElse(false),
-                logger = logger,
-                scratchDirOpt = scratchDirOpt
-              ).map { outputPath =>
-                if showCommand then
+            val res = Package.linkJs(
+              builds = builds,
+              dest = jsDest,
+              mainClassOpt = Some(mainClass),
+              addTestInitializer = false,
+              config = linkerConfig,
+              fullOpt = value(build.options.scalaJsOptions.fullOpt),
+              noOpt = build.options.scalaJsOptions.noOpt.getOrElse(false),
+              logger = logger,
+              scratchDirOpt = scratchDirOpt
+            ).map { outputPath =>
+              if showCommand then
+                runtime match {
+                  case WasmRuntime.Deno =>
+                    Left(Runner.denoCommand(outputPath.toIO, args))
+                  case WasmRuntime.Node =>
+                    Left(Runner.jsCommand(outputPath.toIO, args, jsDom = false, emitWasm = true))
+                }
+              else {
+                val process = value {
                   runtime match {
                     case WasmRuntime.Deno =>
-                      Left(Runner.denoCommand(outputPath.toIO, args, denoPathOpt = denoPathOpt))
-                    case _ =>
-                      Left(Runner.jsCommand(outputPath.toIO, args, jsDom = false, emitWasm = true))
+                      Runner.runDeno(
+                        outputPath.toIO,
+                        args,
+                        logger,
+                        allowExecve = effectiveAllowExecve,
+                        emitWasm = true
+                      )
+                    case WasmRuntime.Node =>
+                      Runner.runJs(
+                        outputPath.toIO,
+                        args,
+                        logger,
+                        allowExecve = effectiveAllowExecve,
+                        jsDom = false,
+                        sourceMap = build.options.scalaJsOptions.emitSourceMaps,
+                        esModule = esModule,
+                        emitWasm = true
+                      )
                   }
-                else {
-                  val process = value {
-                    runtime match {
-                      case WasmRuntime.Deno =>
-                        Runner.runDeno(
-                          outputPath.toIO,
-                          args,
-                          logger,
-                          allowExecve = effectiveAllowExecve,
-                          emitWasm = true,
-                          denoPathOpt = denoPathOpt
-                        )
-                      case _ =>
-                        Runner.runJs(
-                          outputPath.toIO,
-                          args,
-                          logger,
-                          allowExecve = effectiveAllowExecve,
-                          jsDom = false,
-                          sourceMap = build.options.scalaJsOptions.emitSourceMaps,
-                          esModule = esModule,
-                          emitWasm = true
-                        )
-                    }
-                  }
-                  process.onExit().thenApply(_ => if os.exists(jsDest) then os.remove(jsDest))
-                  Right((process, None))
                 }
+                process.onExit().thenApply(_ => if os.exists(jsDest) then os.remove(jsDest))
+                Right((process, None))
               }
-              value(res)
             }
-            else {
-              // Standalone WASM runtimes - not yet supported.
-              // Scala.js currently produces JS-dependent WASM output.
-              // Standalone support requires upstream Scala.js changes (scala-js/scala-js#4991).
-              val runtimeName = runtime.name
-              val extraNote   = runtime match {
-                case WasmRuntime.Wasmer =>
-                  " Note: Wasmer does not yet support WasmGC, which is required for Scala WASM output."
-                case _ => ""
-              }
-              value(Left(new UnsupportedWasmRuntimeError(
-                s"Standalone WASM runtime '$runtimeName' is not yet supported." +
-                  s"$extraNote" +
-                  " Scala.js currently produces JavaScript-dependent WASM output." +
-                  " Standalone WASM support is tracked at: https://github.com/scala-js/scala-js/issues/4991" +
-                  " Use --wasm-runtime node (default) or --wasm-runtime deno for JS-based WASM execution."
-              )))
-            }
+            value(res)
           }
           else
             build.options.platform.value match {
