@@ -1872,6 +1872,33 @@ object ci extends Module {
     )
       .call(cwd = debianDir, stdin = pgpPassphrase, stdout = inReleasePath)
 
+    // Export the public key as a binary (non-armored) keyring at the repo root so that
+    // users can reference it via `signed-by` in their APT sources.
+    // Binary format is required per https://wiki.debian.org/DebianRepository/UseThirdParty
+    val keyringPath = packagesDir / "scala-cli-archive-keyring.gpg"
+    os.proc("gpg", "--batch", "--yes", "--export", keyName)
+      .call(stdout = keyringPath)
+
+    // Update the .list file to include the signed-by option pointing at the keyring.
+    // This scopes the key to this repository only, preventing the globally-trusted key
+    // security issue described in the Debian wiki.
+    os.write.over(
+      debianDir / "scala_cli_packages.list",
+      "deb [signed-by=/etc/apt/keyrings/scala-cli-archive-keyring.gpg] https://virtuslab.github.io/scala-cli-packages/debian ./\n"
+    )
+
+    // Also provide a DEB822 .sources file for users on modern Debian (apt modernize-sources).
+    // No Components field: this is a flat repository (Suites: ./).
+    // No Architectures field: avoids breaking when aarch64 packages are added later.
+    os.write.over(
+      debianDir / "scala_cli_packages.sources",
+      """Types: deb
+        |URIs: https://virtuslab.github.io/scala-cli-packages/debian
+        |Suites: ./
+        |Signed-By: /etc/apt/keyrings/scala-cli-archive-keyring.gpg
+        |""".stripMargin
+    )
+
     commitChanges(s"Update Debian packages for $version", branch, packagesDir)
   }
   def updateChocolateyPackage(): Command[os.CommandResult] = Task.Command {
