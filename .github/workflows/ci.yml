@@ -13,265 +13,395 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  unit-tests:
-    timeout-minutes: 120
+  changes:
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.classify.outputs.code }}
+      docs: ${{ steps.classify.outputs.docs }}
+      ci: ${{ steps.classify.outputs.ci }}
+      format_config: ${{ steps.classify.outputs.format_config }}
+      benchmark: ${{ steps.classify.outputs.benchmark }}
+      gifs: ${{ steps.classify.outputs.gifs }}
+      mill_wrapper: ${{ steps.classify.outputs.mill_wrapper }}
+      test_all: ${{ steps.overrides.outputs.test_all }}
+      test_native: ${{ steps.overrides.outputs.test_native }}
+      test_integration: ${{ steps.overrides.outputs.test_integration }}
+      test_docs: ${{ steps.overrides.outputs.test_docs }}
+      test_format: ${{ steps.overrides.outputs.test_format }}
     steps:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
+    - name: Classify changes
+      id: classify
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
+      run: .github/scripts/classify-changes.sh
+    - name: Check override keywords
+      id: overrides
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        PR_BODY: ${{ github.event.pull_request.body }}
+      run: .github/scripts/check-override-keywords.sh
+
+  unit-tests:
+    needs: [changes]
+    timeout-minutes: 120
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping unit tests -- changes do not affect compiled code, CI, or mill wrapper."
+    - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher --directory artifacts/
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && env.SHOULD_RUN == 'true'
     - name: Copy bootstrapped launcher
       run: ./mill -i copyJvmBootstrappedLauncher --directory artifacts/
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && env.SHOULD_RUN == 'true'
     - uses: actions/upload-artifact@v7
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && env.SHOULD_RUN == 'true'
       with:
         name: jvm-launchers
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
     - name: Cross compile everything
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i '__[_].compile'
     - name: Build macros negative compilation tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i build-macros[_].test.testNegativeCompilation
     - name: Unit tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i unitTests
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc unit-tests 'Scala CLI Unit Tests' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-unit-tests
         path: test-report.xml
 
   test-fish-shell:
+    needs: [changes]
     timeout-minutes: 120
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping fish shell test -- changes do not affect compiled code, CI, or mill wrapper."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Install fish
+      if: env.SHOULD_RUN == 'true'
       run: |
         sudo apt-add-repository ppa:fish-shell/release-3
         sudo apt update
         sudo apt install fish
     - name: Test mill script in fish shell
+      if: env.SHOULD_RUN == 'true'
       run: |
         fish -c './mill __.compile'
 
   jvm-bootstrapped-tests-default:
+    needs: [changes]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping JVM bootstrapped integration tests -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - name: JVM integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.jvmBootstrapped
         env:
           SCALA_CLI_IT_GROUP: 1
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc jvm-bootstrapped-tests-default 'Scala CLI JVM Bootstrapped Tests' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-jvm-bootstrapped-tests-default
           path: test-report.xml
 
   jvm-tests-default:
+    needs: [changes]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping JVM integration tests (default) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.jvm
       env:
         SCALA_CLI_IT_GROUP: 1
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc jvm-tests-default 'Scala CLI JVM Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-jvm-tests-default
         path: test-report.xml
 
   jvm-tests-scala-2-13:
+    needs: [changes]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping JVM integration tests (Scala 2.13) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.jvm
       env:
         SCALA_CLI_IT_GROUP: 2
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc jvm-tests-scala-2-13 'Scala CLI JVM Tests (Scala 2.13)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-jvm-tests-scala-2-13
         path: test-report.xml
 
   jvm-tests-scala-2-12:
+    needs: [changes]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping JVM integration tests (Scala 2.12) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.jvm
       env:
         SCALA_CLI_IT_GROUP: 3
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc jvm-tests-scala-2-12 'Scala CLI JVM Tests (Scala 2.12)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-jvm-tests-scala-2-12
         path: test-report.xml
 
   jvm-tests-lts:
+    needs: [changes]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping JVM integration tests (Scala 3 LTS) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - name: JVM integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.jvm
         env:
           SCALA_CLI_IT_GROUP: 4
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc jvm-tests-lts 'Scala CLI JVM Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-jvm-tests-lts
           path: test-report.xml
 
   jvm-tests-rc:
+    needs: [changes]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping JVM integration tests (RC) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - name: JVM integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.jvm
         env:
           SCALA_CLI_IT_GROUP: 5
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc jvm-tests-rc 'Scala CLI JVM Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-jvm-tests-rc
           path: test-report.xml
 
   generate-linux-launcher:
+    needs: [changes]
     timeout-minutes: 120
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping Linux native launcher generation -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-native-image.sh
     - run: ./mill -i ci.setShouldPublish
+      if: env.SHOULD_RUN == 'true'
     - name: Build OS packages
-      if: env.SHOULD_PUBLISH == 'true'
+      if: env.SHOULD_PUBLISH == 'true' && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i copyDefaultLauncher --directory artifacts/
     - name: Verify native launcher CPU compatibility
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/verify_old_cpus.sh artifacts/scala-cli-x86_64-pc-linux.gz
     - uses: actions/upload-artifact@v7
+      if: env.SHOULD_RUN == 'true'
       with:
         name: linux-launchers
         path: artifacts/
@@ -279,25 +409,35 @@ jobs:
         retention-days: 2
 
   native-linux-tests-default:
-    needs: generate-linux-launcher
+    needs: [changes, generate-linux-launcher]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping native Linux integration tests (default) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         name: linux-launchers
         path: artifacts/
     - name: Native integration tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i nativeIntegrationTests
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -305,35 +445,45 @@ jobs:
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc linux-tests-default 'Scala CLI Linux Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-linux-tests-default
         path: test-report.xml
 
   native-linux-tests-scala-2-13:
-    needs: generate-linux-launcher
+    needs: [changes, generate-linux-launcher]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping native Linux integration tests (Scala 2.13) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         name: linux-launchers
         path: artifacts/
     - name: Native integration tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i nativeIntegrationTests
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -341,35 +491,45 @@ jobs:
         SCALA_CLI_IT_GROUP: 2
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc linux-tests-scala-2-13 'Scala CLI Linux Tests (Scala 2.13)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-linux-tests-scala-2-13
         path: test-report.xml
 
   native-linux-tests-scala-2-12:
-    needs: generate-linux-launcher
+    needs: [changes, generate-linux-launcher]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping native Linux integration tests (Scala 2.12) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         name: linux-launchers
         path: artifacts/
     - name: Native integration tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i nativeIntegrationTests
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -377,35 +537,45 @@ jobs:
         SCALA_CLI_IT_GROUP: 3
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc linux-tests-scala-2-12 'Scala CLI Linux Tests (Scala 2.12)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-linux-tests-scala-2-12
         path: test-report.xml
 
   native-linux-tests-lts:
-    needs: generate-linux-launcher
+    needs: [changes, generate-linux-launcher]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native Linux integration tests (Scala 3 LTS) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: linux-launchers
           path: artifacts/
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
         env:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -413,35 +583,45 @@ jobs:
           SCALA_CLI_IT_GROUP: 4
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc linux-tests-lts 'Scala CLI Linux Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-linux-tests-lts
           path: test-report.xml
 
   native-linux-tests-rc:
-    needs: generate-linux-launcher
+    needs: [changes, generate-linux-launcher]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native Linux integration tests (RC) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: linux-launchers
           path: artifacts/
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
         env:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -449,42 +629,56 @@ jobs:
           SCALA_CLI_IT_GROUP: 5
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc linux-tests-rc 'Scala CLI Linux Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-linux-tests-rc
           path: test-report.xml
 
   generate-linux-arm64-native-launcher:
+    needs: [changes]
     timeout-minutes: 120
     runs-on: ubuntu-24.04-arm
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping Linux ARM64 native launcher generation -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - name: Install build dependencies
+        if: env.SHOULD_RUN == 'true'
         run: |
           sudo apt-get update -q -y
           sudo apt-get install -q -y build-essential libz-dev zlib1g-dev python3-pip
       - name: Generate native launcher
+        if: env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-native-image.sh
       - run: ./mill -i ci.setShouldPublish
+        if: env.SHOULD_RUN == 'true'
       - name: Build OS packages
-        if: env.SHOULD_PUBLISH == 'true'
+        if: env.SHOULD_PUBLISH == 'true' && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-os-packages.sh
       - name: Copy artifacts
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i copyDefaultLauncher --directory artifacts/
       - uses: actions/upload-artifact@v7
+        if: env.SHOULD_RUN == 'true'
         with:
           name: linux-aarch64-launchers
           path: artifacts/
@@ -492,25 +686,35 @@ jobs:
           retention-days: 2
 
   native-linux-arm64-tests-default:
-    needs: generate-linux-arm64-native-launcher
+    needs: [changes, generate-linux-arm64-native-launcher]
     timeout-minutes: 150
     runs-on: ubuntu-24.04-arm
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native Linux ARM64 integration tests (default) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: linux-aarch64-launchers
           path: artifacts/
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
         env:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -518,35 +722,45 @@ jobs:
           SCALA_CLI_IT_GROUP: 1
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc linux-tests-default 'Scala CLI Linux ARM 64 Tests (default)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-linux-arm64-tests-default
           path: test-report.xml
 
   native-linux-arm64-tests-rc:
-    needs: generate-linux-arm64-native-launcher
+    needs: [changes, generate-linux-arm64-native-launcher]
     timeout-minutes: 150
     runs-on: ubuntu-24.04-arm
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native Linux ARM64 integration tests (RC) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: linux-aarch64-launchers
           path: artifacts/
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
         env:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -554,40 +768,54 @@ jobs:
           SCALA_CLI_IT_GROUP: 5
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc linux-tests-rc 'Scala CLI Linux ARM64 Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-linux-arm64-tests-rc
           path: test-report.xml
 
   generate-macos-launcher:
+    needs: [changes]
     timeout-minutes: 120
     runs-on: "macOS-15-intel"
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping macOS native launcher generation -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Ensure it's not running on aarch64
+      if: env.SHOULD_RUN == 'true'
       run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
     - name: Generate native launcher
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-native-image.sh
     - run: ./mill -i ci.setShouldPublish
+      if: env.SHOULD_RUN == 'true'
     - name: Build OS packages
-      if: env.SHOULD_PUBLISH == 'true'
+      if: env.SHOULD_PUBLISH == 'true' && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i copyDefaultLauncher --directory artifacts/
     - uses: actions/upload-artifact@v7
+      if: env.SHOULD_RUN == 'true'
       with:
         name: macos-launchers
         path: artifacts/
@@ -595,27 +823,38 @@ jobs:
         retention-days: 2
 
   native-macos-tests-default:
-    needs: generate-macos-launcher
+    needs: [changes, generate-macos-launcher]
     timeout-minutes: 150
     runs-on: "macOS-15-intel"
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping native macOS integration tests (default) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Ensure it's not running on aarch64
+      if: env.SHOULD_RUN == 'true'
       run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
     - uses: actions/download-artifact@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         name: macos-launchers
         path: artifacts/
     - name: Native integration tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i nativeIntegrationTests
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -623,37 +862,48 @@ jobs:
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc macos-tests-default 'Scala CLI MacOS Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-macos-tests-default
         path: test-report.xml
 
   native-macos-tests-rc:
-    needs: generate-macos-launcher
+    needs: [changes, generate-macos-launcher]
     timeout-minutes: 150
     runs-on: "macOS-15-intel"
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native macOS integration tests (RC) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - name: Ensure it's not running on aarch64
+        if: env.SHOULD_RUN == 'true'
         run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: macos-launchers
           path: artifacts/
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
         env:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -661,40 +911,54 @@ jobs:
           SCALA_CLI_IT_GROUP: 5
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc macos-tests-rc 'Scala CLI MacOS Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-macos-tests-rc
           path: test-report.xml
 
   generate-macos-arm64-launcher:
+    needs: [changes]
     timeout-minutes: 120
     runs-on: "macOS-15"
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping macOS ARM64 native launcher generation -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
+        if: env.SHOULD_RUN == 'true'
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - name: Generate native launcher
+        if: env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-native-image.sh
       - run: ./mill -i ci.setShouldPublish
+        if: env.SHOULD_RUN == 'true'
       - name: Build OS packages
-        if: env.SHOULD_PUBLISH == 'true'
+        if: env.SHOULD_PUBLISH == 'true' && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-os-packages.sh
       - name: Copy artifacts
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i copyDefaultLauncher --directory artifacts/
       - uses: actions/upload-artifact@v7
+        if: env.SHOULD_RUN == 'true'
         with:
           name: macos-arm64-launchers
           path: artifacts/
@@ -702,27 +966,38 @@ jobs:
           retention-days: 2
 
   native-macos-arm64-tests-default:
-    needs: generate-macos-arm64-launcher
+    needs: [changes, generate-macos-arm64-launcher]
     timeout-minutes: 150
     runs-on: "macOS-15"
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native macOS ARM64 integration tests (default) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
+        if: env.SHOULD_RUN == 'true'
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: macos-arm64-launchers
           path: artifacts/
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
         env:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -730,37 +1005,48 @@ jobs:
           SCALA_CLI_IT_GROUP: 1
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-default 'Scala CLI MacOS ARM64 Tests (default)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-macos-arm64-tests-default
           path: test-report.xml
 
   native-macos-arm64-tests-lts:
-    needs: generate-macos-arm64-launcher
+    needs: [changes, generate-macos-arm64-launcher]
     timeout-minutes: 150
     runs-on: "macOS-15"
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native macOS ARM64 integration tests (Scala 3 LTS) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
+        if: env.SHOULD_RUN == 'true'
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: macos-arm64-launchers
           path: artifacts/
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
         env:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -768,37 +1054,48 @@ jobs:
           SCALA_CLI_IT_GROUP: 4
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-lts 'Scala CLI MacOS ARM64 Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-macos-arm64-tests-lts
           path: test-report.xml
 
   native-macos-arm64-tests-rc:
-    needs: generate-macos-arm64-launcher
+    needs: [changes, generate-macos-arm64-launcher]
     timeout-minutes: 150
     runs-on: "macOS-15"
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native macOS ARM64 integration tests (RC) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Ensure it's running on aarch64
+        if: env.SHOULD_RUN == 'true'
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: macos-arm64-launchers
           path: artifacts/
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
         env:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -806,47 +1103,62 @@ jobs:
           SCALA_CLI_IT_GROUP: 5
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-rc 'Scala CLI MacOS ARM64 Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-macos-arm64-tests-rc
           path: test-report.xml
 
   generate-windows-launcher:
+    needs: [changes]
     timeout-minutes: 120
     runs-on: "windows-2025"
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping Windows native launcher generation -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - name: Import custom registry and verify
+      if: env.SHOULD_RUN == 'true'
       uses: ./.github/actions/windows-reg-import
       with:
         reg-file: .github/ci/windows/custom.reg
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/get-latest-cs.sh
       shell: bash
     - name: Generate native launcher
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-native-image.sh
       shell: bash
     - run: ./mill -i ci.setShouldPublish
+      if: env.SHOULD_RUN == 'true'
     - name: Build OS packages
-      if: env.SHOULD_PUBLISH == 'true'
+      if: env.SHOULD_PUBLISH == 'true' && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-os-packages.sh
       shell: bash
     - name: Copy artifacts
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i copyDefaultLauncher --directory artifacts/
     - uses: actions/upload-artifact@v7
+      if: env.SHOULD_RUN == 'true'
       with:
         name: windows-launchers
         path: artifacts/
@@ -854,36 +1166,49 @@ jobs:
         retention-days: 2
 
   native-windows-tests-default:
-    needs: generate-windows-launcher
+    needs: [changes, generate-windows-launcher]
     timeout-minutes: 150
     runs-on: "windows-2025"
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping native Windows integration tests (default) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - name: Import custom registry and verify
+      if: env.SHOULD_RUN == 'true'
       uses: ./.github/actions/windows-reg-import
       with:
         reg-file: .github/ci/windows/custom.reg
     - name: Set up Python
+      if: env.SHOULD_RUN == 'true'
       uses: actions/setup-python@v6
       with:
         python-version: "3.10"
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/get-latest-cs.sh
       shell: bash
     - uses: actions/download-artifact@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         name: windows-launchers
         path: artifacts/
     - name: Native integration tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i nativeIntegrationTests
       env:
         COURSIER_JNI: force
@@ -892,46 +1217,59 @@ jobs:
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-default 'Scala CLI Windows Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-windows-tests-default
         path: test-report.xml
 
   native-windows-tests-lts:
-    needs: generate-windows-launcher
+    needs: [changes, generate-windows-launcher]
     timeout-minutes: 150
     runs-on: "windows-2025"
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native Windows integration tests (Scala 3 LTS) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - name: Import custom registry and verify
+        if: env.SHOULD_RUN == 'true'
         uses: ./.github/actions/windows-reg-import
         with:
           reg-file: .github/ci/windows/custom.reg
       - name: Set up Python
+        if: env.SHOULD_RUN == 'true'
         uses: actions/setup-python@v6
         with:
           python-version: "3.10"
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - name: Get latest coursier launcher
+        if: env.SHOULD_RUN == 'true'
         run: .github/scripts/get-latest-cs.sh
         shell: bash
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: windows-launchers
           path: artifacts/
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
         env:
           COURSIER_JNI: force
@@ -940,46 +1278,59 @@ jobs:
           SCALA_CLI_IT_GROUP: 4
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-lts 'Scala CLI Windows Tests (Scala 3 LTS)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-windows-tests-lts
           path: test-report.xml
 
   native-windows-tests-rc:
-    needs: generate-windows-launcher
+    needs: [changes, generate-windows-launcher]
     timeout-minutes: 150
     runs-on: "windows-2025"
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native Windows integration tests (RC) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - name: Import custom registry and verify
+        if: env.SHOULD_RUN == 'true'
         uses: ./.github/actions/windows-reg-import
         with:
           reg-file: .github/ci/windows/custom.reg
       - name: Set up Python
+        if: env.SHOULD_RUN == 'true'
         uses: actions/setup-python@v6
         with:
           python-version: "3.10"
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - name: Get latest coursier launcher
+        if: env.SHOULD_RUN == 'true'
         run: .github/scripts/get-latest-cs.sh
         shell: bash
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: windows-launchers
           path: artifacts/
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
         env:
           COURSIER_JNI: force
@@ -988,35 +1339,47 @@ jobs:
           SCALA_CLI_IT_GROUP: 5
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-rc 'Scala CLI Windows Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-windows-tests-rc
           path: test-report.xml
 
   generate-mostly-static-launcher:
+    needs: [changes]
     timeout-minutes: 120
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping mostly-static native launcher generation -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-native-image.sh mostly-static
       shell: bash
     - name: Copy artifacts
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i copyMostlyStaticLauncher --directory artifacts/
     - uses: actions/upload-artifact@v7
+      if: env.SHOULD_RUN == 'true'
       with:
         name: mostly-static-launchers
         path: artifacts/
@@ -1024,27 +1387,38 @@ jobs:
         retention-days: 2
 
   native-mostly-static-tests-default:
-    needs: generate-mostly-static-launcher
+    needs: [changes, generate-mostly-static-launcher]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping native mostly-static integration tests (default) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         name: mostly-static-launchers
         path: artifacts/
     - name: Build slim docker image
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-slim-docker-image.sh
     - name: Native integration tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.nativeMostlyStatic
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1052,47 +1426,57 @@ jobs:
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Docker integration tests
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: ./mill integration.docker-slim.test
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-default 'Scala CLI Native Mostly Static Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-native-mostly-static-tests-default
         path: test-report.xml
     - name: Login to GitHub Container Registry
-      if: startsWith(github.ref, 'refs/tags/v')
+      if: startsWith(github.ref, 'refs/tags/v') && env.SHOULD_RUN == 'true'
       uses: docker/login-action@v4
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Push slim scala-cli image to github container registry
-      if: startsWith(github.ref, 'refs/tags/v')
+      if: startsWith(github.ref, 'refs/tags/v') && env.SHOULD_RUN == 'true'
       run: .github/scripts/publish-slim-docker-images.sh
 
   native-mostly-static-tests-rc:
-    needs: generate-mostly-static-launcher
+    needs: [changes, generate-mostly-static-launcher]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native mostly-static integration tests (RC) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: mostly-static-launchers
           path: artifacts/
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.nativeMostlyStatic
         env:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1100,36 +1484,48 @@ jobs:
           SCALA_CLI_IT_GROUP: 5
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-rc 'Scala CLI Native Mostly Static Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-native-mostly-static-tests-rc
           path: test-report.xml
 
 
   generate-static-launcher:
+    needs: [changes]
     timeout-minutes: 120
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping static native launcher generation -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-native-image.sh static
       shell: bash
     - name: Copy artifacts
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i copyStaticLauncher --directory artifacts/
     - uses: actions/upload-artifact@v7
+      if: env.SHOULD_RUN == 'true'
       with:
         name: static-launchers
         path: artifacts/
@@ -1137,27 +1533,38 @@ jobs:
         retention-days: 2
 
   native-static-tests-default:
-    needs: generate-static-launcher
+    needs: [changes, generate-static-launcher]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping native static integration tests (default) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         name: static-launchers
         path: artifacts/
     - name: Build docker image
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-docker-image.sh
     - name: Native integration tests
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.nativeStatic
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1165,49 +1572,60 @@ jobs:
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Docker integration tests
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: ./mill integration.docker.test
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc native-static-tests-default 'Scala CLI Native Static Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-native-static-tests-default
         path: test-report.xml
     - name: Login to GitHub Container Registry
-      if: startsWith(github.ref, 'refs/tags/v')
+      if: startsWith(github.ref, 'refs/tags/v') && env.SHOULD_RUN == 'true'
       uses: docker/login-action@v4
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Push scala-cli to github container registry
-      if: startsWith(github.ref, 'refs/tags/v')
+      if: startsWith(github.ref, 'refs/tags/v') && env.SHOULD_RUN == 'true'
       run: .github/scripts/publish-docker-images.sh
 
   native-static-tests-rc:
-    needs: generate-static-launcher
+    needs: [changes, generate-static-launcher]
     timeout-minutes: 150
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native static integration tests (RC) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
+        if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
         with:
           name: static-launchers
           path: artifacts/
       - name: Build docker image
+        if: env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-docker-image.sh
       - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.nativeStatic
         env:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1215,71 +1633,98 @@ jobs:
           SCALA_CLI_IT_GROUP: 5
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc native-static-tests-rc 'Scala CLI Native Static Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
-        if: success() || failure()
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-native-static-tests-rc
           path: test-report.xml
 
   docs-tests:
+    needs: [changes]
     # for now, let's run those tests only on ubuntu
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.gifs == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_docs == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping docs tests -- changes do not affect code, docs, CI, or gifs."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "zulu:17"
     - uses: actions/setup-node@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         node-version: 24
     - name: Build documentation
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/build-website.sh
     - name: Verify release notes formatting
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/process_release_notes.sc verify website/docs/release_notes.md
     - name: Test documentation
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i 'docs-tests[]'.test
     - name: Convert Mill test reports to JUnit XML format
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc docs-tests 'Scala CLI Docs Tests' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
-      if: success() || failure()
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
       with:
         name: test-results-docs-tests
         path: test-report.xml
 
   checks:
+    needs: [changes]
     timeout-minutes: 60
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.format_config == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping checks -- changes do not affect code, docs, CI, or format config."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Check Scala / Scala.js versions in doc
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i ci.checkScalaVersions
     - name: Check native-image config format
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i __.checkNativeImageConfFormat
     - name: Check Ammonite availability
+      if: env.SHOULD_RUN == 'true'
       run: ./mill -i 'dummy.amm[_].resolvedRunMvnDeps'
     - name: Check for cross Scala version conflicts
+      if: env.SHOULD_RUN == 'true'
       run: .github/scripts/check-cross-version-deps.sc
     - name: Scalafix check
+      if: env.SHOULD_RUN == 'true'
       run: |
         ./mill -i __.fix --check || (
           echo "To remove unused import run"
@@ -1288,31 +1733,50 @@ jobs:
         )
 
   format:
+    needs: [changes]
     timeout-minutes: 15
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.format_config == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_format == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping format check -- changes do not affect code, docs, CI, or format config."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
     - run: scala-cli fmt . --check
+      if: env.SHOULD_RUN == 'true'
 
   reference-doc:
+    needs: [changes]
     timeout-minutes: 15
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping reference doc check -- changes do not affect code, docs, or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Check that reference doc is up-to-date
+      if: env.SHOULD_RUN == 'true'
       run: |
         ./mill -i 'generate-reference-doc[]'.run --check || (
           echo "Reference doc is not up-to-date. Run"
@@ -1322,68 +1786,104 @@ jobs:
         )
 
   bloop-memory-footprint:
+    needs: [changes]
     timeout-minutes: 120
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.benchmark == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping bloop memory footprint benchmark -- changes do not affect code, CI, or benchmarks."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Java Version
+      if: env.SHOULD_RUN == 'true'
       run: java -version
     - name: Java Home
+      if: env.SHOULD_RUN == 'true'
       run: echo "$JAVA_HOME"
     - name: Build Scala CLI
+      if: env.SHOULD_RUN == 'true'
       run: ./mill copyJvmLauncher --directory build
     - name: Build Benchmark
+      if: env.SHOULD_RUN == 'true'
       run: java -jar ./build/scala-cli --power package --standalone gcbenchmark/gcbenchmark.scala -o gc
     - name: Run Benchmark
+      if: env.SHOULD_RUN == 'true'
       run: ./gc $(realpath ./build/scala-cli)
 
   test-hypothetical-sbt-export:
+    needs: [changes]
     timeout-minutes: 120
     runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping sbt export test -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - name: Try to export to SBT
+      if: env.SHOULD_RUN == 'true'
       run: scala-cli --power export --sbt .
 
   vc-redist:
+    needs: [changes]
     timeout-minutes: 15
     runs-on: "windows-2025"
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'Virtuslab/scala-cli'
+    env:
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping vc-redist -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
+      if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
         submodules: true
     - name: Import custom registry and verify
+      if: env.SHOULD_RUN == 'true'
       uses: ./.github/actions/windows-reg-import
       with:
         reg-file: .github/ci/windows/custom.reg
     - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.copyVcRedist
+      if: env.SHOULD_RUN == 'true'
     - uses: actions/upload-artifact@v7
+      if: env.SHOULD_RUN == 'true'
       with:
         name: vc-redist-launchers
         path: artifacts/
@@ -1392,6 +1892,7 @@ jobs:
 
   publish:
     needs:
+      - changes
       - unit-tests
       - jvm-bootstrapped-tests-default
       - jvm-tests-default
@@ -1472,6 +1973,7 @@ jobs:
   launchers:
     timeout-minutes: 20
     needs:
+      - changes
       - unit-tests
       - jvm-bootstrapped-tests-default
       - jvm-tests-default
@@ -1574,6 +2076,7 @@ jobs:
   update-packages:
     name: Update packages
     needs:
+      - changes
       - launchers
       - publish
     runs-on: ubuntu-24.04
@@ -1669,6 +2172,7 @@ jobs:
   update-windows-packages:
     name: Update Windows packages
     needs:
+      - changes
       - launchers
       - publish
     runs-on: "windows-2025"
