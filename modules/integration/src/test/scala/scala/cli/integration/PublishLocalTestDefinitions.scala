@@ -459,6 +459,78 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
     }
   }
 
+  test("publish local ivy.xml includes license scm and developers") {
+    val licenseId  = "MIT"
+    val licenseUrl = "https://spdx.org/licenses/MIT.html"
+    val vcsOrg     = "it-integ"
+    val vcsProj    = "ivy-desc-test"
+    val devId      = "itest"
+    val devName    = "Integration Tester"
+    val devUrl     = "https://itest.example"
+
+    val modName        = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
+    val pomProjectName = "Ivy metadata integration display name"
+
+    val scmUrl             = s"https://github.com/$vcsOrg/$vcsProj.git"
+    val scmConnection      = s"scm:git:github.com/$vcsOrg/$vcsProj.git"
+    val scmDevConnection   = s"scm:git:git@github.com:$vcsOrg/$vcsProj.git"
+    val developerDirective = s"$devId|$devName|$devUrl"
+
+    val publishConf =
+      s"""//> using publish.organization ${PublishTestInputs.testOrg}
+         |//> using publish.moduleName $modName
+         |//> using publish.name "$pomProjectName"
+         |//> using publish.version $testPublishVersion
+         |//> using publish.license $licenseId:$licenseUrl
+         |//> using publish.scm github:$vcsOrg/$vcsProj
+         |//> using publish.developer "$developerDirective"
+         |""".stripMargin
+
+    TestInputs(
+      PublishTestInputs.projectFilePath -> PublishTestInputs.projFile("Hello"),
+      PublishTestInputs.projectConfPath -> publishConf
+    ).fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "local",
+        ".",
+        "--ivy2-home",
+        os.rel / "ivy2",
+        extraOptions
+      )
+        .call(cwd = root)
+
+      val ivyPath = root / "ivy2" / "local" / PublishTestInputs.testOrg / modName /
+        testPublishVersion / "ivys" / "ivy.xml"
+      val pomPath = root / "ivy2" / "local" / PublishTestInputs.testOrg / modName /
+        testPublishVersion / "poms" / s"$modName.pom"
+      expect(os.exists(ivyPath))
+      expect(os.exists(pomPath))
+      val ivyXml = os.read(ivyPath)
+      val pomXml = os.read(pomPath)
+
+      expect(ivyXml.contains(s"""<license name="$licenseId""""))
+      expect(ivyXml.contains(s"""url="$licenseUrl""""))
+
+      expect(ivyXml.contains("""xmlns:m="http://maven.apache.org/POM/4.0.0""""))
+      expect(ivyXml.contains(s"<m:name>$pomProjectName</m:name>"))
+      expect(ivyXml.contains("<m:scm>"))
+      expect(ivyXml.contains("<m:developers>"))
+
+      expect(ivyXml.contains(s"<m:url>$scmUrl</m:url>"))
+      expect(ivyXml.contains(s"<m:connection>$scmConnection</m:connection>"))
+      expect(ivyXml.contains(s"<m:developerConnection>$scmDevConnection</m:developerConnection>"))
+
+      expect(ivyXml.contains(s"<m:id>$devId</m:id>"))
+      expect(ivyXml.contains(s"<m:name>$devName</m:name>"))
+      expect(ivyXml.contains(s"<m:url>$devUrl</m:url>"))
+
+      expect(pomXml.contains(s"<name>$pomProjectName</name>"))
+    }
+  }
+
   if actualScalaVersion.startsWith("3") then
     test("publish local with compileOnly.dep") {
       TestInputs(
