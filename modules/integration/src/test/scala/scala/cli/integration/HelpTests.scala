@@ -73,13 +73,15 @@ class HelpTests extends ScalaCliSuite {
     ))
   }
   for {
-    (subcommandLabel, leadArgs) <-
-      Seq(("compile subcommand", Seq("compile")), ("default subcommand", Seq.empty))
+    (subcommandLabel, leadArgs) <- Seq(
+      ("compile subcommand", Seq("compile")),
+      ("default subcommand", Seq.empty)
+    )
   } test(s"-opt-inline:help works without inputs ($subcommandLabel) (Scala 3.8.3+)") {
     TestInputs.empty.fromRoot { root =>
-      val cmd: Seq = Seq(TestUtil.cli) ++ leadArgs ++
-        Seq("-S", Constants.scala3Next, "-opt-inline:help")
-      val res = os.proc(cmd*).call(cwd = root, mergeErrIntoOut = true, check = false)
+      val res =
+        os.proc(TestUtil.cli, leadArgs, "-S", Constants.scala3Next, "-opt-inline:help")
+          .call(cwd = root, mergeErrIntoOut = true, check = false)
       expect(res.exitCode == 0)
       val out = res.out.text()
       expect(out.nonEmpty)

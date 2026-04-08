@@ -108,21 +108,28 @@ object ScalacOptions {
       "unique-id"
     ) ++ replNoArgAliasedOptions
 
-  /** This includes all the scalac options which disregard inputs and print a help and/or context
-    * message instead.
+  /** True when the token ends with a `:help` suffix, with any number of colon-separated segments
+    * before it (e.g. `Xlint:help`, `opt:a:b:c:help`). Used together with `ScalacPrintOptions` so
+    * new compiler `…:help` flags work without listing each one.
     */
+  def isColonHelpPrintOption(noDashPrefixes: String): Boolean =
+    noDashPrefixes.endsWith(":help")
+
+  /** `scalac` options that print help or context and exit without requiring source inputs. */
   val ScalacPrintOptions: Set[String] =
     scalacOptionsPurePrefixes ++ Set(
       "help",
-      "opt:help",
-      "opt-inline:help",
       "Xshow-phases",
-      "Xsource:help",
       "Xplugin-list",
-      "Xmixin-force-forwarders:help",
-      "Xlint:help",
       "Vphases"
     )
+
+  /** Whether `ScalaCommand.maybePrintSimpleScalacOutput` should run for this token (after
+    * `ScalacOpt.noDashPrefixes`).
+    */
+  def isScalacPrintOption(noDashPrefixes: String): Boolean =
+    ScalacPrintOptions.contains(noDashPrefixes) ||
+    isColonHelpPrintOption(noDashPrefixes)
 
   /** This includes all the scalac options which are redirected to native Scala CLI options. */
   val ScalaCliRedirectedOptions: Set[String] = Set(
