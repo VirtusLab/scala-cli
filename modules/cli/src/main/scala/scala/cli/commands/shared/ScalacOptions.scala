@@ -70,6 +70,7 @@ object ScalacOptions {
       "g",
       "language",
       "opt",
+      "opt-inline",
       "pagewidth",
       "page-width",
       "target",
@@ -114,6 +115,7 @@ object ScalacOptions {
     scalacOptionsPurePrefixes ++ Set(
       "help",
       "opt:help",
+      "opt-inline:help",
       "Xshow-phases",
       "Xsource:help",
       "Xplugin-list",

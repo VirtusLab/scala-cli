@@ -72,6 +72,21 @@ class HelpTests extends ScalaCliSuite {
       "-cp, --jar, --jars, --class, --classes, -classpath, --extra-jar, --classpath, --extra-jars, --class-path, --extra-class, --extra-classes, --extra-class-path paths"
     ))
   }
+  for {
+    (subcommandLabel, leadArgs) <-
+      Seq(("compile subcommand", Seq("compile")), ("default subcommand", Seq.empty))
+  } test(s"-opt-inline:help works without inputs ($subcommandLabel) (Scala 3.8.3+)") {
+    TestInputs.empty.fromRoot { root =>
+      val cmd: Seq = Seq(TestUtil.cli) ++ leadArgs ++
+        Seq("-S", Constants.scala3Next, "-opt-inline:help")
+      val res = os.proc(cmd*).call(cwd = root, mergeErrIntoOut = true, check = false)
+      expect(res.exitCode == 0)
+      val out = res.out.text()
+      expect(out.nonEmpty)
+      expect(out.contains("Inlining requires"))
+    }
+  }
+
   for (withPower <- Seq(true, false))
     test("envs help" + (if (withPower) " with power" else "")) {
       val powerOptions = if (withPower) Seq("--power") else Nil
