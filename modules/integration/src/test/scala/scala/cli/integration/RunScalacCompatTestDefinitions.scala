@@ -154,9 +154,14 @@ trait RunScalacCompatTestDefinitions {
     printOption <- {
       val printOptionsForAllVersions   = Seq("-X", "-Xshow-phases", "-Xplugin-list", "-Y")
       val printOptionsScala213OrHigher = Seq("-V", "-Vphases", "-W", "-Xsource:help")
+      val printOptionsScala38Help      = Seq("-opt-inline:help")
       val printOptionsScala2 = Seq("-Xlint:help", "-opt:help", "-Xmixin-force-forwarders:help")
       actualScalaVersion match {
-        case v if v.startsWith("3")    => printOptionsForAllVersions ++ printOptionsScala213OrHigher
+        case v if v.startsWith("3") =>
+          val scala38Help =
+            if v.coursierVersion >= "3.8.3".coursierVersion then printOptionsScala38Help
+            else Nil
+          printOptionsForAllVersions ++ printOptionsScala213OrHigher ++ scala38Help
         case v if v.startsWith("2.13") =>
           printOptionsForAllVersions ++ printOptionsScala213OrHigher ++ printOptionsScala2
         case v if v.startsWith("2.12") => printOptionsForAllVersions ++ printOptionsScala2

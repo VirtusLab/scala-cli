@@ -192,7 +192,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       shared <- sharedOptions(options)
       scalacOptions        = shared.scalacOptions
       updatedScalacOptions = scalacOptions.withScalacExtraOptions(shared.scalacExtra)
-      if updatedScalacOptions.map(_.noDashPrefixes).exists(ScalacOptions.ScalacPrintOptions)
+      if updatedScalacOptions.map(_.noDashPrefixes).exists(ScalacOptions.isScalacPrintOption)
       logger            = shared.logger
       fixedBuildOptions = buildOptions.copy(scalaOptions =
         buildOptions.scalaOptions.copy(defaultScalaVersion = Some(ScalaCli.getDefaultScalaVersion))
