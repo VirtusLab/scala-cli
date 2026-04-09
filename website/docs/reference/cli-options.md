@@ -1262,21 +1262,27 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-### `--ammonite`
+### [deprecated] `--ammonite`
 
 Aliases: `-A`, `--amm`
 
+**Deprecated**: Ammonite integration is deprecated. Use the default Scala REPL instead.
+
 Use Ammonite (instead of the default Scala REPL)
 
-### `--ammonite-version`
+### [deprecated] `--ammonite-version`
 
 Aliases: `--ammonite-ver`
 
+**Deprecated**: Ammonite integration is deprecated. Use the default Scala REPL instead.
+
 Set the Ammonite version (3.0.9 by default)
 
-### `--ammonite-arg`
+### [deprecated] `--ammonite-arg`
 
 Aliases: `-a`
+
+**Deprecated**: Ammonite integration is deprecated. Use the default Scala REPL instead.
 
 [Internal]
 Provide arguments for ammonite repl
