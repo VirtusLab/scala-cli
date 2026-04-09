@@ -650,6 +650,16 @@ Aliases: `--toolkit`
 
 Exclude sources
 
+**--deprecated-test-option**
+
+Deprecated test option (internal, do not use)
+
+**--deprecated-test-alias-option**
+
+Option with deprecated alias (internal, do not use)
+
+Aliases: `--deprecated-test-alias`
+
 </details>
 
 ---
@@ -693,6 +703,7 @@ Available keys:
   - suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
   - suppress-warning.experimental-features         Globally suppresses warnings about experimental features.
   - suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.
+  - test.deprecated-key                            Deprecated test key (internal, do not use).
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/config
 
@@ -1441,6 +1452,16 @@ Aliases: `--toolkit`
 
 Exclude sources
 
+**--deprecated-test-option**
+
+Deprecated test option (internal, do not use)
+
+**--deprecated-test-alias-option**
+
+Option with deprecated alias (internal, do not use)
+
+Aliases: `--deprecated-test-alias`
+
 </details>
 
 ---
@@ -2049,6 +2070,16 @@ Aliases: `--toolkit`
 **--exclude**
 
 Exclude sources
+
+**--deprecated-test-option**
+
+Deprecated test option (internal, do not use)
+
+**--deprecated-test-alias-option**
+
+Option with deprecated alias (internal, do not use)
+
+Aliases: `--deprecated-test-alias`
 
 **--java-prop-option**
 
@@ -2688,6 +2719,16 @@ Aliases: `--toolkit`
 **--exclude**
 
 Exclude sources
+
+**--deprecated-test-option**
+
+Deprecated test option (internal, do not use)
+
+**--deprecated-test-alias-option**
+
+Option with deprecated alias (internal, do not use)
+
+Aliases: `--deprecated-test-alias`
 
 **--java-prop-option**
 
@@ -3337,6 +3378,16 @@ Aliases: `--toolkit`
 
 Exclude sources
 
+**--deprecated-test-option**
+
+Deprecated test option (internal, do not use)
+
+**--deprecated-test-alias-option**
+
+Option with deprecated alias (internal, do not use)
+
+Aliases: `--deprecated-test-alias`
+
 **--java-prop-option**
 
 Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
@@ -3942,6 +3993,16 @@ Aliases: `--toolkit`
 **--exclude**
 
 Exclude sources
+
+**--deprecated-test-option**
+
+Deprecated test option (internal, do not use)
+
+**--deprecated-test-alias-option**
+
+Option with deprecated alias (internal, do not use)
+
+Aliases: `--deprecated-test-alias`
 
 **--respect-project-filters**
 
@@ -4626,6 +4687,16 @@ Aliases: `--toolkit`
 **--exclude**
 
 Exclude sources
+
+**--deprecated-test-option**
+
+Deprecated test option (internal, do not use)
+
+**--deprecated-test-alias-option**
+
+Option with deprecated alias (internal, do not use)
+
+Aliases: `--deprecated-test-alias`
 
 **--java-prop-option**
 
@@ -5320,6 +5391,16 @@ Aliases: `--toolkit`
 **--exclude**
 
 Exclude sources
+
+**--deprecated-test-option**
+
+Deprecated test option (internal, do not use)
+
+**--deprecated-test-alias-option**
+
+Option with deprecated alias (internal, do not use)
+
+Aliases: `--deprecated-test-alias`
 
 **--json-options**
 
@@ -6297,6 +6378,16 @@ Aliases: `--toolkit`
 **--exclude**
 
 Exclude sources
+
+**--deprecated-test-option**
+
+Deprecated test option (internal, do not use)
+
+**--deprecated-test-alias-option**
+
+Option with deprecated alias (internal, do not use)
+
+Aliases: `--deprecated-test-alias`
 
 **--bsp-directory**
 

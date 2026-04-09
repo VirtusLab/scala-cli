@@ -203,8 +203,10 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
           for (arg <- distinctArgs) {
             import caseapp.core.util.NameOps._
             arg.name.option(nameFormatter)
-            val names = (arg.name +: arg.extraNames).map(_.option(nameFormatter))
-            b.append(s"### `${names.head}`\n\n")
+            val names           = (arg.name +: arg.extraNames).map(_.option(nameFormatter))
+            val deprecatedLabel =
+              if arg.isDeprecatedOption then "[deprecated] " else ""
+            b.append(s"### $deprecatedLabel`${names.head}`\n\n")
             if (names.tail.nonEmpty)
               b.append(
                 names
@@ -217,6 +219,9 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
                   }
                   .mkString("Aliases: ", ", ", "\n\n")
               )
+            arg.deprecationMessage.foreach { msg =>
+              b.append(s"**Deprecated**: $msg\n\n")
+            }
 
             if (onlyRestricted)
               b.section(s"`${arg.level.md}` per Scala Runner specification")

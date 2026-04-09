@@ -112,6 +112,10 @@ object Config extends ScalaCommand[ConfigOptions] {
             case Some(entry) =>
               if entry.isExperimental && !shouldSuppressExperimentalFeatureWarnings then
                 logger.experimentalWarning(entry.fullName, FeatureType.ConfigKey)
+              if !shouldSuppressDeprecatedFeatureWarnings then
+                entry.deprecationMessage.foreach { msg =>
+                  logger.deprecationWarning(entry.fullName, msg, FeatureType.ConfigKey)
+                }
               if (values.isEmpty)
                 if (options.unset) {
                   db.remove(entry)
@@ -290,6 +294,7 @@ object Config extends ScalaCommand[ConfigOptions] {
     }
 
     logger.flushExperimentalWarnings
+    logger.flushDeprecationWarnings
   }
 
   /** Check whether to ask for an update depending on the provided key.

@@ -130,8 +130,38 @@ object WarningMessages {
   val mainScriptNameClashesWithAppWrapper =
     "Script file named 'main.sc' detected, keep in mind that accessing it from other scripts is impossible due to a clash of `main` symbols"
 
+  private val deprecationNote =
+    "Deprecated features may be removed in a future version."
+
+  private def formatDeprecationEntry(
+    name: String,
+    detail: String,
+    featureType: FeatureType
+  ): String =
+    val suffix = if detail.nonEmpty then s" $detail" else ""
+    s"`$name` $featureType is deprecated.$suffix"
+
+  def deprecatedFeaturesUsed(namesMessagesAndTypes: Seq[(String, String, FeatureType)]): String = {
+    val message = namesMessagesAndTypes match {
+      case Seq((name, detail, featureType)) =>
+        formatDeprecationEntry(name, detail, featureType)
+      case entries =>
+        val nl           = System.lineSeparator()
+        val bulletPoints = entries.map((name, detail, ft) =>
+          s" - ${formatDeprecationEntry(name, detail, ft)}"
+        ).mkString(nl)
+        s"""Some utilized features are deprecated:
+           |$bulletPoints""".stripMargin
+    }
+    s"""[${Console.YELLOW}warn${Console.RESET}] $message
+       |$deprecationNote""".stripMargin
+  }
+
   def deprecatedWarning(old: String, `new`: String) =
     s"Using '$old' is deprecated, use '${`new`}' instead"
+
+  def deprecatedWarningForRemoval(name: String) =
+    s"Using '$name' is deprecated and will be removed in a future version"
 
   def deprecatedToolkitLatest(updatedValue: String = "") =
     if updatedValue.isEmpty then

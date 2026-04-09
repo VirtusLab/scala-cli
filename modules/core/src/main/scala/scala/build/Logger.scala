@@ -48,6 +48,9 @@ trait Logger {
   def experimentalWarning(featureName: String, featureType: FeatureType): Unit
   def flushExperimentalWarnings: Unit
 
+  def deprecationWarning(featureName: String, message: String, featureType: FeatureType): Unit
+  def flushDeprecationWarnings: Unit
+
   def cliFriendlyDiagnostic(
     message: String,
     @unused cliFriendlyMessage: String,
@@ -93,6 +96,9 @@ object Logger {
 
     def experimentalWarning(featureUsed: String, featureType: FeatureType): Unit = ()
     def flushExperimentalWarnings: Unit                                          = ()
+    def deprecationWarning(featureName: String, message: String, featureType: FeatureType): Unit =
+      ()
+    def flushDeprecationWarnings: Unit = ()
   }
   def nop: Logger = new Nop
 }

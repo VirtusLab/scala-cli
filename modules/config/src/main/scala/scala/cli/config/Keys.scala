@@ -148,6 +148,15 @@ object Keys {
   // Kept for binary compatibility
   val repositoriesMirrors: Key.StringListEntry = repositoryMirrors
 
+  val deprecatedTestKey = new Key.BooleanEntry(
+    prefix = Seq("test"),
+    name = "deprecated-key",
+    specificationLevel = SpecificationLevel.IMPLEMENTATION,
+    description = "Deprecated test key (internal, do not use).",
+    hidden = true,
+    deprecationMessage = Some("For testing purposes only.")
+  )
+
   // setting indicating if the global interactive mode was suggested
   val globalInteractiveWasSuggested = new Key.BooleanEntry(
     prefix = Seq.empty,
@@ -176,6 +185,7 @@ object Keys {
   def all: Seq[Key[?]] = Seq[Key[?]](
     actions,
     defaultRepositories,
+    deprecatedTestKey,
     ghToken,
     globalInteractiveWasSuggested,
     interactive,

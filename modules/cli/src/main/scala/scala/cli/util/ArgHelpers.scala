@@ -15,12 +15,16 @@ object ArgHelpers {
     private def hasTag(tag: String): Boolean             = arg.tags.exists(_.name == tag)
     private def hasTagPrefix(tagPrefix: String): Boolean =
       arg.tags.exists(_.name.startsWith(tagPrefix))
-    def isExperimental: Boolean = arg.hasTag(tags.experimental)
-    def isRestricted: Boolean   = arg.hasTag(tags.restricted)
-    def isDeprecated: Boolean   = arg.hasTagPrefix(tags.deprecatedPrefix)
+    def isExperimental: Boolean     = arg.hasTag(tags.experimental)
+    def isRestricted: Boolean       = arg.hasTag(tags.restricted)
+    def isDeprecated: Boolean       = arg.hasTagPrefix(tags.deprecatedPrefix)
+    def isDeprecatedOption: Boolean = arg.hasTagPrefix(tags.deprecatedOptionPrefix)
 
     def deprecatedNames: List[String] = arg.tags
-      .filter(_.name.startsWith(tags.deprecatedPrefix))
+      .filter(t =>
+        t.name.startsWith(tags.deprecatedPrefix) &&
+        !t.name.startsWith(tags.deprecatedOptionPrefix)
+      )
       .map(_.name.stripPrefix(s"${tags.deprecatedPrefix}${tags.valueSeparator}"))
       .toList
 
@@ -31,6 +35,12 @@ object ArgHelpers {
           _.toLowerCase
         ).mkString("-")
     }
+
+    def deprecationMessage: Option[String] = arg.tags
+      .find(_.name.startsWith(tags.deprecatedOptionPrefix))
+      .map(_.name.stripPrefix(s"${tags.deprecatedOptionPrefix}${tags.valueSeparator}"))
+      .map(_.stripPrefix(tags.deprecatedOptionPrefix))
+      .filter(_.nonEmpty)
 
     def isExperimentalOrRestricted: Boolean = arg.isRestricted || arg.isExperimental
 

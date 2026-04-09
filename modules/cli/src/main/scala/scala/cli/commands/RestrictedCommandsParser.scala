@@ -57,13 +57,18 @@ object RestrictedCommandsParser {
             logger.experimentalWarning(passedOption, FeatureType.Option)
             r
           case (r @ Right(Some(_, arg: Arg, _)), passedOption :: _)
+              if arg.isDeprecatedOption && !shouldSuppressDeprecatedWarnings =>
+            logger.deprecationWarning(
+              passedOption,
+              arg.deprecationMessage.getOrElse(""),
+              FeatureType.Option
+            )
+            r
+          case (r @ Right(Some(_, arg: Arg, _)), passedOption :: _)
               if arg.isDeprecated && !shouldSuppressDeprecatedWarnings =>
-            // TODO implement proper deprecation logic: https://github.com/VirtusLab/scala-cli/issues/3258
             arg.deprecatedOptionAliases.find(_ == passedOption)
               .foreach { deprecatedAlias =>
-                logger.message(
-                  s"""[${Console.YELLOW}warn${Console.RESET}] The $deprecatedAlias option alias has been deprecated and may be removed in a future version."""
-                )
+                logger.deprecationWarning(deprecatedAlias, "", FeatureType.Option)
               }
             r
           case (other, _) =>

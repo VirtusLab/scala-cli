@@ -1164,6 +1164,22 @@ Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Sc
 
 Exclude sources
 
+### [deprecated] `--deprecated-test-option`
+
+**Deprecated**: For testing purposes only.
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Deprecated test option (internal, do not use)
+
+### `--deprecated-test-alias-option`
+
+Aliases: [deprecated] `--deprecated-test-alias`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Option with deprecated alias (internal, do not use)
+
 ## Snippet options
 
 Available in commands:

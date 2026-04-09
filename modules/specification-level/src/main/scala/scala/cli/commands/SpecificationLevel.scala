@@ -75,6 +75,11 @@ object tags {
   def deprecated(name: String): String =
     s"$deprecatedPrefix$valueSeparator$name" // produces a deprecated warning for the given name
 
+  val deprecatedOptionPrefix: String            = "deprecatedOption"
+  def deprecatedOption: String                  = deprecatedOptionPrefix
+  def deprecatedOption(message: String): String =
+    s"$deprecatedOptionPrefix$valueSeparator$message"
+
   def levelFor(name: String): Option[SpecificationLevel] = name match {
     case `experimental`   => Some(SpecificationLevel.EXPERIMENTAL)
     case `restricted`     => Some(SpecificationLevel.RESTRICTED)

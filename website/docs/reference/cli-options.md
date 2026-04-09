@@ -1707,6 +1707,20 @@ Exclude sources
 
 Force object wrapper for scripts
 
+### [deprecated] `--deprecated-test-option`
+
+**Deprecated**: For testing purposes only.
+
+[Internal]
+Deprecated test option (internal, do not use)
+
+### `--deprecated-test-alias-option`
+
+Aliases: [deprecated] `--deprecated-test-alias`
+
+[Internal]
+Option with deprecated alias (internal, do not use)
+
 ## Snippet options
 
 Available in commands:
