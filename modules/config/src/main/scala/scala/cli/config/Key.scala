@@ -56,6 +56,9 @@ abstract class Key[T] {
 
   def isExperimental: Boolean = specificationLevel == SpecificationLevel.EXPERIMENTAL
   def isRestricted: Boolean   = specificationLevel == SpecificationLevel.RESTRICTED
+
+  def deprecationMessage: Option[String] = None
+  def isDeprecated: Boolean              = deprecationMessage.isDefined
 }
 
 object Key {
@@ -127,7 +130,8 @@ object Key {
     val name: String,
     override val specificationLevel: SpecificationLevel,
     val description: String = "",
-    override val hidden: Boolean = false
+    override val hidden: Boolean = false,
+    override val deprecationMessage: Option[String] = None
   ) extends KeyWithJsonCodec[Boolean] {
     def asString(value: Boolean): Seq[String] =
       Seq(value.toString)

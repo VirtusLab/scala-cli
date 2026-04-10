@@ -1262,21 +1262,27 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-### `--ammonite`
+### [deprecated] `--ammonite`
 
 Aliases: `-A`, `--amm`
 
+**Deprecated**: Ammonite integration is deprecated. Use the default Scala REPL instead.
+
 Use Ammonite (instead of the default Scala REPL)
 
-### `--ammonite-version`
+### [deprecated] `--ammonite-version`
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version (3.0.8 by default)
+**Deprecated**: Ammonite integration is deprecated. Use the default Scala REPL instead.
 
-### `--ammonite-arg`
+Set the Ammonite version (3.0.9 by default)
+
+### [deprecated] `--ammonite-arg`
 
 Aliases: `-a`
+
+**Deprecated**: Ammonite integration is deprecated. Use the default Scala REPL instead.
 
 [Internal]
 Provide arguments for ammonite repl
@@ -1706,6 +1712,20 @@ Exclude sources
 ### `--object-wrapper`
 
 Force object wrapper for scripts
+
+### [deprecated] `--deprecated-test-option`
+
+**Deprecated**: For testing purposes only.
+
+[Internal]
+Deprecated test option (internal, do not use)
+
+### `--deprecated-test-alias-option`
+
+Aliases: [deprecated] `--deprecated-test-alias`
+
+[Internal]
+Option with deprecated alias (internal, do not use)
 
 ## Snippet options
 

@@ -18,6 +18,7 @@ final case class SharedReplOptions(
   @Group(HelpGroup.Repl.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
+  @Tag(tags.deprecatedOption("Ammonite integration is deprecated. Use the default Scala REPL instead."))
   @HelpMessage("Use Ammonite (instead of the default Scala REPL)")
   @Name("A")
   @Name("amm")
@@ -25,6 +26,7 @@ final case class SharedReplOptions(
 
   @Group(HelpGroup.Repl.toString)
   @Tag(tags.restricted)
+  @Tag(tags.deprecatedOption("Ammonite integration is deprecated. Use the default Scala REPL instead."))
   @HelpMessage(s"Set the Ammonite version (${Constants.ammoniteVersion} by default)")
   @Name("ammoniteVer")
   @Tag(tags.inShortHelp)
@@ -34,6 +36,7 @@ final case class SharedReplOptions(
   @Name("a")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
+  @Tag(tags.deprecatedOption("Ammonite integration is deprecated. Use the default Scala REPL instead."))
   @HelpMessage("Provide arguments for ammonite repl")
   @Hidden
     ammoniteArg: List[String] = Nil,

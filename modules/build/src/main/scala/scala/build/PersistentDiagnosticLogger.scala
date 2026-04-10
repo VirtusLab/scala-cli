@@ -46,4 +46,9 @@ class PersistentDiagnosticLogger(parent: Logger) extends Logger {
     parent.experimentalWarning(featureName, featureType)
 
   def flushExperimentalWarnings: Unit = parent.flushExperimentalWarnings
+
+  def deprecationWarning(featureName: String, message: String, featureType: FeatureType): Unit =
+    parent.deprecationWarning(featureName, message, featureType)
+
+  def flushDeprecationWarnings: Unit = parent.flushDeprecationWarnings
 }

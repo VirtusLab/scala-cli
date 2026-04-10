@@ -26,6 +26,10 @@ Scala CLI by default uses the normal Scala REPL.
 
 If you prefer to use the [Ammonite REPL](https://ammonite.io/#Ammonite-REPL), specify `--amm` to launch it rather than the default REPL:
 
+:::warning
+The Ammonite integration (`--ammonite` / `--amm` / `-A` and related options) is **deprecated** and will be removed in a future version. Use the default Scala REPL instead.
+:::
+
 :::caution
 Using the Ammonite REPL is restricted and requires setting the `--power` option to be used.
 You can pass it explicitly or set it globally by running:

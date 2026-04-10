@@ -211,7 +211,20 @@ final case class SharedOptions(
   @Tag(tags.experimental)
     objectWrapper: Option[Boolean] = None,
   @Recurse
-    scope: ScopeOptions = ScopeOptions()
+    scope: ScopeOptions = ScopeOptions(),
+
+  @Hidden
+  @Tag(tags.implementation)
+  @Tag(tags.deprecatedOption("For testing purposes only."))
+  @HelpMessage("Deprecated test option (internal, do not use)")
+    deprecatedTestOption: Option[Boolean] = None,
+
+  @Hidden
+  @Tag(tags.implementation)
+  @Name("deprecatedTestAlias")
+  @Tag(tags.deprecated("deprecatedTestAlias"))
+  @HelpMessage("Option with deprecated alias (internal, do not use)")
+    deprecatedTestAliasOption: Option[Boolean] = None
 ) extends HasGlobalOptions {
   // format: on
 

@@ -45,6 +45,13 @@ final class RecordingLogger(delegate: Logger = TestLogger()) extends Logger {
   override def experimentalWarning(featureName: String, featureType: FeatureType): Unit =
     delegate.experimentalWarning(featureName, featureType)
   override def flushExperimentalWarnings: Unit = delegate.flushExperimentalWarnings
+  override def deprecationWarning(
+    featureName: String,
+    message: String,
+    featureType: FeatureType
+  ): Unit =
+    delegate.deprecationWarning(featureName, message, featureType)
+  override def flushDeprecationWarnings: Unit = delegate.flushDeprecationWarnings
 }
 
 case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logger {
@@ -123,4 +130,13 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
     System.err.println(s"Experimental $featureType `$featureName` used")
 
   override def flushExperimentalWarnings: Unit = ()
+
+  override def deprecationWarning(
+    featureName: String,
+    message: String,
+    featureType: FeatureType
+  ): Unit =
+    System.err.println(s"Deprecated $featureType `$featureName`: $message")
+
+  override def flushDeprecationWarnings: Unit = ()
 }

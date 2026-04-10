@@ -132,6 +132,7 @@ class CliLogger(
       printEx(ex, new mutable.HashMap)
   def exit(ex: BuildException): Nothing =
     flushExperimentalWarnings
+    flushDeprecationWarnings
     if (verbosity < 0)
       sys.exit(1)
     else if (verbosity == 0) {
@@ -232,6 +233,29 @@ class CliLogger(
     } yield featureType -> (names ++ reportedNames)
     experimentalWarnings = Map.empty
   }
+
+  private var deprecationWarnings: Map[FeatureType, Map[String, String]] = Map.empty
+  private var reportedDeprecations: Map[FeatureType, Set[String]]        = Map.empty
+  def deprecationWarning(featureName: String, msg: String, featureType: FeatureType): Unit =
+    if !reportedDeprecations.get(featureType).exists(_.contains(featureName)) then
+      deprecationWarnings = deprecationWarnings.updatedWith(featureType) {
+        case None          => Some(Map(featureName -> msg))
+        case Some(entries) => Some(entries + (featureName -> msg))
+      }
+  def flushDeprecationWarnings: Unit = if deprecationWarnings.nonEmpty then
+    val entries =
+      for
+        (featureType, nameMap) <- deprecationWarnings.toSeq.sortBy(_._1)
+        (name, msg)            <- nameMap
+      yield (name, msg, featureType)
+    val messageStr = WarningMessages.deprecatedFeaturesUsed(entries)
+    message(messageStr)
+    reportedDeprecations =
+      for
+        (featureType, nameMap) <- deprecationWarnings
+        alreadyReported = reportedDeprecations.getOrElse(featureType, Set.empty[String])
+      yield featureType -> (nameMap.keySet ++ alreadyReported)
+    deprecationWarnings = Map.empty
 
   override def cliFriendlyDiagnostic(
     message: String,

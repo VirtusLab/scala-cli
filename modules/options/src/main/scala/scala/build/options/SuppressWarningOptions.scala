@@ -14,6 +14,7 @@ object SuppressWarningOptions {
   val suppressAll = SuppressWarningOptions(
     suppressDirectivesInMultipleFilesWarning = Some(true),
     suppressOutdatedDependencyWarning = Some(true),
-    suppressExperimentalFeatureWarning = Some(true)
+    suppressExperimentalFeatureWarning = Some(true),
+    suppressDeprecatedFeatureWarning = Some(true)
   )
 }

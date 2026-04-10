@@ -27,6 +27,13 @@ trait RestrictableCommand[T](implicit myParser: Parser[T]) {
 
   /** Is that command a MUST / SHOULD / NICE TO have for the Scala runner specification? */
   def scalaSpecificationLevel: SpecificationLevel
+
+  /** Override to mark the entire sub-command as deprecated. */
+  def deprecationMessage: Option[String] = None
+
+  /** Override to mark specific command name aliases as deprecated. */
+  def deprecatedNames: Set[List[String]] = Set.empty
+
   // To reduce imports...
   protected def SpecificationLevel = scala.cli.commands.SpecificationLevel
 }

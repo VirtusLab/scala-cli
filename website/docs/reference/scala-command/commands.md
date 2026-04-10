@@ -71,6 +71,7 @@ Available keys:
   - suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
   - suppress-warning.experimental-features         Globally suppresses warnings about experimental features.
   - suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.
+  - test.deprecated-key                            Deprecated test key (internal, do not use).
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/config
 

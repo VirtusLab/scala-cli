@@ -51,6 +51,13 @@ class BuildProjectTests extends TestUtil.ScalaCliBuildSuite {
     override def experimentalWarning(featureName: String, featureType: FeatureType): Unit =
       System.err.println(s"experimental: $featureName")
     override def flushExperimentalWarnings: Unit = ()
+    override def deprecationWarning(
+      featureName: String,
+      message: String,
+      featureType: FeatureType
+    ): Unit =
+      System.err.println(s"deprecated: $featureName: $message")
+    override def flushDeprecationWarnings: Unit = ()
   }
 
   test("workspace for bsp") {
