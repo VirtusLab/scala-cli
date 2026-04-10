@@ -10,8 +10,7 @@ final class PPrintStringPrefixSubst {
 
   @Substitute
   String apply(scala.collection.Iterable<?> i) {
-    String name = (new PPrintStringPrefixHelper()).apply((scala.collection.Iterable<Object>) i);
-    return name;
+    return (new PPrintStringPrefixHelper()).apply(i);
   }
 
 }
