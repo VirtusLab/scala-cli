@@ -915,7 +915,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val modulesSet                         = modules.toSet
     val providedDeps: Seq[core.Dependency] = value {
       res
-        .map(_.dependencyArtifacts0.safeArtifacts.map(_.map(_._1)))
+        .map(_.dependencyArtifacts0().safeArtifacts.map(_.map(_._1)))
         .sequence
         .left
         .map(CompositeBuildException(_))
