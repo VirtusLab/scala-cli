@@ -602,7 +602,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                     case s: MarkdownFile => fwd(s.path.toString)
                     case _: SbtFile      => ""
                     case s: OnDisk       => fwd(s.path.toString)
-                    case s               => s.getClass.getName
+                    case null            => ""
                   }.filter(_.nonEmpty).distinct
                   val sources     = sourceFiles.mkString(File.pathSeparator)
                   val sourceNames = sourceFiles.map(base).mkString(File.pathSeparator)

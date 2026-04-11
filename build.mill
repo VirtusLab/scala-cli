@@ -314,9 +314,7 @@ trait BuildMacros extends ScalaCliCrossSbtModule
   }
 
   object test extends ScalaCliTests with ScalaCliScalafixModule {
-    override def scalacOptions: T[Seq[String]] = Task {
-      super.scalacOptions() ++ Seq("-deprecation")
-    }
+    override def scalacOptions: T[Seq[String]] = super.scalacOptions()
 
     def testNegativeCompilation(): Command[Unit] = Task.Command(exclusive = true) {
       val base          = BuildCtx.workspaceRoot / "modules" / "build-macros" / "src"
@@ -682,7 +680,7 @@ trait Config extends ScalaCliCrossSbtModule
     Seq(`specification-level`(crossScalaVersion))
   override def mvnDeps: T[Seq[Dep]]          = super.mvnDeps() ++ Seq(Deps.jsoniterCore)
   override def compileMvnDeps: T[Seq[Dep]]   = super.compileMvnDeps() ++ Seq(Deps.jsoniterMacros)
-  override def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq("-deprecation")
+  override def scalacOptions: T[Seq[String]] = super.scalacOptions()
 }
 
 trait Options extends ScalaCliCrossSbtModule
@@ -713,7 +711,7 @@ trait Options extends ScalaCliCrossSbtModule
     Task.Anon(super.repositoriesTask() ++ deps.customRepositories)
 
   object test extends ScalaCliTests with ScalaCliScalafixModule {
-    override def scalacOptions = super.scalacOptions() ++ Seq("-deprecation")
+    override def scalacOptions = super.scalacOptions()
     // uncomment below to debug tests in attach mode on 5005 port
     // def forkArgs = Task {
     //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
@@ -762,7 +760,7 @@ trait Build extends ScalaCliCrossSbtModule
     Task.Anon(super.repositoriesTask() ++ deps.customRepositories)
 
   object test extends ScalaCliTests with ScalaCliScalafixModule {
-    override def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq("-deprecation")
+    override def scalacOptions: T[Seq[String]] = super.scalacOptions()
     override def mvnDeps: T[Seq[Dep]]          = super.mvnDeps() ++ Seq(
       Deps.pprint,
       Deps.slf4jNop

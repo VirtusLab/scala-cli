@@ -1504,7 +1504,10 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           Seq(actualScalaVersion, Constants.scala213, Constants.scala212)
         val numberOfBuilds = crossScalaVersions.size
         test(s"package ($packageDescription, --cross) produces $numberOfBuilds artifacts") {
-          TestUtil.retryOnCi() {
+          TestUtil.retryOnCi(
+            maxAttempts = if packageDescription == "--native-image" then 5 else 3,
+            waitDuration = if packageDescription == "--native-image" then 15.seconds else 5.seconds
+          ) {
             val crossDirective =
               s"//> using scala ${crossScalaVersions.mkString(" ")}"
             val mainClass = "TestScopeMain"

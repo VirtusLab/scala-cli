@@ -350,7 +350,7 @@ def checkFile(file: os.Path, options: Options): Unit =
           if success then Green(commandName)
           else Red(commandName)
         println(s"$cmdLog ${cmd.log}")
-        println(logs.result.mkString("\n"))
+        println(logs.result().mkString("\n"))
 
       def pause(): Unit =
         println(s"After [${cmd.context}] using $out. Press ENTER key to continue...")

@@ -9,6 +9,7 @@ import scala.build.tests.{TestInputs, TestLogger}
 import scala.cli.commands.fmt.{FmtOptions, FmtUtil}
 
 class ScalafmtTests extends TestUtil.ScalaCliSuite {
+  import ScalafmtTests.*
   private lazy val defaultScalafmtVersion = Constants.defaultScalafmtVersion
 
   test("readVersionFromFile with non-default scalafmt version") {
@@ -35,8 +36,6 @@ class ScalafmtTests extends TestUtil.ScalaCliSuite {
   }
 
   test(s"check native launcher availability for scalafmt $defaultScalafmtVersion") {
-    final case class Asset(name: String)
-    final case class Release(tag_name: String, assets: List[Asset])
     lazy val releaseCodec: JsonValueCodec[Release] = JsonCodecMaker.make
     val url                                        =
       s"https://api.github.com/repos/scalameta/scalafmt/releases/tags/v$defaultScalafmtVersion"
@@ -74,4 +73,9 @@ class ScalafmtTests extends TestUtil.ScalaCliSuite {
         )
     }
   }
+}
+
+object ScalafmtTests {
+  private final case class Asset(name: String)
+  private final case class Release(tag_name: String, assets: List[Asset])
 }
