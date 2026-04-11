@@ -191,6 +191,15 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       else name + suffix
     }
 
+  /** GraalVM leaves many temp files under the work dir; a shared dir breaks `--cross` packaging. */
+  private def nativeImageWorkDirForArtifact(baseDir: os.Path, dest: os.Path): os.Path = {
+    def stripSuffixIgnoreCase(s: String, suffix: String): String =
+      if s.toLowerCase.endsWith(suffix.toLowerCase) then s.substring(0, s.length - suffix.length)
+      else s
+    val stem = stripSuffixIgnoreCase(dest.last, ".exe")
+    baseDir / (if stem.nonEmpty then stem else "native-image")
+  }
+
   private def doPackageCrossBuilds(
     logger: Logger,
     outputOpt: Option[String],
@@ -501,7 +510,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             builds,
             value(mainClass),
             destPath,
-            builds.head.inputs.nativeImageWorkDir,
+            nativeImageWorkDirForArtifact(builds.head.inputs.nativeImageWorkDir, destPath),
             extraArgs,
             logger
           )
