@@ -1,5 +1,6 @@
 package scala.cli.commands
 
+import caseapp.core.Scala3Helpers.*
 import caseapp.core.app.Command
 import caseapp.core.complete.{Completer, CompletionItem}
 import caseapp.core.help.{Help, HelpFormat}
@@ -296,7 +297,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
 
   override def helpFormat: HelpFormat = ScalaCliHelp.helpFormat
 
-  override val messages: Help[T] =
+  private val helpWithWarnings: Help[T] =
     if shouldExcludeInSip then
       inHelp.copy(helpMessage =
         Some(HelpMessage(WarningMessages.powerCommandUsedInSip(
@@ -322,6 +323,15 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
         )
       )
     else inHelp
+
+  override def help: Help[T] = helpWithWarnings
+
+  override lazy val finalHelp: Help[?] =
+    def withName[A](h: Help[A]): Help[A] =
+      if name == h.progName then h else h.withProgName(name)
+    if hasFullHelp then withName(help.withFullHelp)
+    else if hasHelp then withName(help.withHelp)
+    else withName(help)
 
   /** @param options
     *   command-specific [[T]] options

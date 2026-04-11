@@ -56,7 +56,7 @@ object OsLibc {
   // FIXME These values should be the default ones in coursier-jvm
 
   lazy val jvmIndexOs: String = {
-    val default = JvmChannel.defaultOs
+    val default = JvmChannel.defaultOs()
     if (default == "linux" && isMusl.getOrElse(false)) "linux-musl"
     else default
   }

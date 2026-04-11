@@ -69,6 +69,7 @@ object SemanticdbProcessor {
           for {
             fun <- updateTree(t.function)
           } yield t.withFunction(fun)
+        case _ => Some(tree)
       }
 
     if (os.isFile(orig)) {

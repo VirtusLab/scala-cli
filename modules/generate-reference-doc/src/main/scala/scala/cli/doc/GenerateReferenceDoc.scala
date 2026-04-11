@@ -319,7 +319,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
         if (command.names.tail.nonEmpty)
           b.section(command.names.map(_.mkString(" ")).tail.mkString("Aliases: `", "`, `", "`"))
-        for (desc <- command.messages.helpMessage.map(_.referenceDocDetailedMessage))
+        for (desc <- command.help.helpMessage.map(_.referenceDocDetailedMessage))
           b.section(desc)
         optionsForCommand(command)
         b.section("---")
@@ -360,7 +360,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       b.append(s"$headerPrefix## ${names.head}\n\n")
       if (names.tail.nonEmpty) b.append(names.tail.sorted.mkString("Aliases: `", "`, `", "`\n\n"))
 
-      for (desc <- c.messages.helpMessage.map(_.referenceDocDetailedMessage)) b.section(desc)
+      for (desc <- c.help.helpMessage.map(_.referenceDocDetailedMessage)) b.section(desc)
 
       if (origins.nonEmpty) {
         val links = origins.map { origin =>

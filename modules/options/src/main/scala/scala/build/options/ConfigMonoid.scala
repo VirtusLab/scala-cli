@@ -63,9 +63,6 @@ object ConfigMonoid:
   inline given derive[T](using m: Mirror.ProductOf[T]): ConfigMonoid[T] =
     inline m match
       case p: Mirror.ProductOf[T] =>
-        new ConfigMonoid[T]:
-          def zero: T =
-            p.fromProduct(zeroTuple[m.MirroredElemTypes])
-
-          def orElse(main: T, defaults: T): T =
-            p.fromProduct(valueTuple[m.MirroredElemTypes, T](0, main, defaults))
+        ConfigMonoidImpl[T](p.fromProduct(zeroTuple[m.MirroredElemTypes]))((main, defaults) =>
+          p.fromProduct(valueTuple[m.MirroredElemTypes, T](0, main, defaults))
+        )
