@@ -24,6 +24,7 @@ import scala.util.Try
 @DirectiveExamples("//> using packaging.output foo")
 @DirectiveExamples("//> using packaging.provided org.apache.spark::spark-sql")
 @DirectiveExamples("//> using packaging.graalvmArgs --no-fallback")
+@DirectiveExamples("//> using packaging.graalvmJvmId graalvm-community:23.0.2")
 @DirectiveExamples("//> using packaging.dockerFrom openjdk:11")
 @DirectiveExamples("//> using packaging.dockerImageTag 1.0.0")
 @DirectiveExamples("//> using packaging.dockerImageRegistry virtuslab")
@@ -54,6 +55,8 @@ import scala.util.Try
     |
     |`//> using packaging.graalvmArgs` _args_
     |
+    |`//> using packaging.graalvmJvmId` _graalvm-jvm-id_
+    |
     |`//> using packaging.dockerFrom` _base-docker-image_
     |
     |`//> using packaging.dockerImageTag` _image-tag_
@@ -76,6 +79,7 @@ final case class Packaging(
   output: Option[String] = None,
   provided: List[Positioned[String]] = Nil,
   graalvmArgs: List[Positioned[String]] = Nil,
+  graalvmJvmId: Option[String] = None,
   dockerFrom: Option[String] = None,
   dockerImageTag: Option[String] = None,
   dockerImageRegistry: Option[String] = None,
@@ -158,6 +162,7 @@ final case class Packaging(
             extraDirectories = extraDirectories
           ),
           nativeImageOptions = NativeImageOptions(
+            graalvmJvmId = graalvmJvmId,
             graalvmArgs = graalvmArgs
           )
         )
