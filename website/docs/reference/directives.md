@@ -290,6 +290,10 @@ Set parameters for packaging
 
 `//> using packaging.graalvmArgs` _args_
 
+`//> using packaging.graalvmVersion` _graalvm-version_
+
+`//> using packaging.graalvmJavaVersion` _graalvm-java-version_
+
 `//> using packaging.graalvmJvmId` _graalvm-jvm-id_
 
 `//> using packaging.dockerFrom` _base-docker-image_
@@ -316,7 +320,11 @@ Set parameters for packaging
 
 `//> using packaging.graalvmArgs --no-fallback`
 
-`//> using packaging.graalvmJvmId graalvm-community:23.0.2`
+`//> using packaging.graalvmVersion 17.0.9`
+
+`//> using packaging.graalvmJavaVersion 17`
+
+`//> using packaging.graalvmJvmId graalvm-java17:17.0.9`
 
 `//> using packaging.dockerFrom openjdk:11`
 

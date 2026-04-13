@@ -24,7 +24,9 @@ import scala.util.Try
 @DirectiveExamples("//> using packaging.output foo")
 @DirectiveExamples("//> using packaging.provided org.apache.spark::spark-sql")
 @DirectiveExamples("//> using packaging.graalvmArgs --no-fallback")
-@DirectiveExamples("//> using packaging.graalvmJvmId graalvm-community:23.0.2")
+@DirectiveExamples("//> using packaging.graalvmVersion 17.0.9")
+@DirectiveExamples("//> using packaging.graalvmJavaVersion 17")
+@DirectiveExamples("//> using packaging.graalvmJvmId graalvm-java17:17.0.9")
 @DirectiveExamples("//> using packaging.dockerFrom openjdk:11")
 @DirectiveExamples("//> using packaging.dockerImageTag 1.0.0")
 @DirectiveExamples("//> using packaging.dockerImageRegistry virtuslab")
@@ -39,6 +41,9 @@ import scala.util.Try
   """using packaging.packageType [package type]
     |using packaging.output [destination path]
     |using packaging.provided [module]
+    |using packaging.graalvmVersion [graalvm version]
+    |using packaging.graalvmJavaVersion [graalvm java version]
+    |using packaging.graalvmJvmId [graalvm jvm id]
     |using packaging.graalvmArgs [args]
     |using packaging.dockerFrom [base docker image]
     |using packaging.dockerImageTag [image tag]
@@ -54,6 +59,10 @@ import scala.util.Try
     |`//> using packaging.provided` _module_
     |
     |`//> using packaging.graalvmArgs` _args_
+    |
+    |`//> using packaging.graalvmVersion` _graalvm-version_
+    |
+    |`//> using packaging.graalvmJavaVersion` _graalvm-java-version_
     |
     |`//> using packaging.graalvmJvmId` _graalvm-jvm-id_
     |
@@ -79,6 +88,8 @@ final case class Packaging(
   output: Option[String] = None,
   provided: List[Positioned[String]] = Nil,
   graalvmArgs: List[Positioned[String]] = Nil,
+  graalvmVersion: Option[String] = None,
+  graalvmJavaVersion: Option[Positioned[String]] = None,
   graalvmJvmId: Option[String] = None,
   dockerFrom: Option[String] = None,
   dockerImageTag: Option[String] = None,
@@ -120,9 +131,23 @@ final case class Packaging(
       }
       .sequence
       .left.map(CompositeBuildException(_))
+    val maybeGraalVMJavaVersion = graalvmJavaVersion
+      .map { version =>
+        version.value.toIntOption
+          .filter(_ > 0)
+          .toRight {
+            new MalformedInputError(
+              "graalvm-java-version",
+              version.value,
+              "a positive integer",
+              positions = version.positions
+            )
+          }
+      }
+      .sequence
 
-    val (packageTypeOpt, output0, provided0) = value {
-      (maybePackageTypeOpt, maybeOutput, maybeProvided)
+    val (packageTypeOpt, output0, provided0, graalVMJavaVersion0) = value {
+      (maybePackageTypeOpt, maybeOutput, maybeProvided, maybeGraalVMJavaVersion)
         .traverseN
         .left.map(CompositeBuildException(_))
     }
@@ -162,6 +187,8 @@ final case class Packaging(
             extraDirectories = extraDirectories
           ),
           nativeImageOptions = NativeImageOptions(
+            graalvmVersion = graalvmVersion,
+            graalvmJavaVersion = graalVMJavaVersion0,
             graalvmJvmId = graalvmJvmId,
             graalvmArgs = graalvmArgs
           )
