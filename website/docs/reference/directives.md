@@ -290,6 +290,8 @@ Set parameters for packaging
 
 `//> using packaging.graalvmArgs` _args_
 
+`//> using packaging.graalvmJvmId` _graalvm-jvm-id_
+
 `//> using packaging.dockerFrom` _base-docker-image_
 
 `//> using packaging.dockerImageTag` _image-tag_
@@ -313,6 +315,8 @@ Set parameters for packaging
 `//> using packaging.provided org.apache.spark::spark-sql`
 
 `//> using packaging.graalvmArgs --no-fallback`
+
+`//> using packaging.graalvmJvmId graalvm-community:23.0.2`
 
 `//> using packaging.dockerFrom openjdk:11`
 
