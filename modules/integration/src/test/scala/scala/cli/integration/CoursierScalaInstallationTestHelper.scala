@@ -41,11 +41,23 @@ trait CoursierScalaInstallationTestHelper {
           setCommandLine match { case scriptPathRegex(extractedPath) => extractedPath }
         val batchScriptPath = os.Path(batchScript)
         val oldContent      = os.read(batchScriptPath)
-        val newContent      = oldContent.replace(
-          "call %SCALA_CLI_CMD_WIN%",
-          s"""set "SCALA_CLI_CMD_WIN=${TestUtil.cliPath}"
-             |call %SCALA_CLI_CMD_WIN%""".stripMargin
-        )
+        val cliPathWin      = TestUtil.cliPath
+        val legacyInvoke    = "call %SCALA_CLI_CMD_WIN%"
+        val newContent      =
+          if oldContent.contains(legacyInvoke) then
+            oldContent.replace(
+              legacyInvoke,
+              s"""set "SCALA_CLI_CMD_WIN=$cliPathWin"
+                 |call %SCALA_CLI_CMD_WIN%""".stripMargin
+            )
+          else
+            // Scala 3.8.4+ Windows launcher uses delayed expansion (!SCALA_CLI_CMD_WIN!) instead of
+            // `call %SCALA_CLI_CMD_WIN%`. Override the variable after cli-common-platform.bat runs.
+            val anchor =
+              """call "%_PROG_HOME%\libexec\cli-common-platform.bat""""
+            val injection =
+              s"$anchor${System.lineSeparator()}${System.lineSeparator()}set \"SCALA_CLI_CMD_WIN=$cliPathWin\""
+            oldContent.replace(anchor, injection)
         expect(newContent != oldContent)
         os.write.over(batchScriptPath, newContent)
         batchWrapperScript -> batchScriptPath
