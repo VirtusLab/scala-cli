@@ -134,12 +134,12 @@ final case class Packaging(
     val maybeGraalVMJavaVersion = graalvmJavaVersion
       .map { version =>
         version.value.toIntOption
-          .filter(_ > 0)
+          .filter(_ > 7)
           .toRight {
             new MalformedInputError(
               "graalvm-java-version",
               version.value,
-              "a positive integer",
+              "an integer greater than 7",
               positions = version.positions
             )
           }
