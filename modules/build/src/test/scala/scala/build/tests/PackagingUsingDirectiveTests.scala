@@ -34,7 +34,7 @@ class PackagingUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
-  test("graalvm packaging") {
+  test("graalvm packaging jvmId") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
         """//> using packaging.packageType graalvm
@@ -48,6 +48,43 @@ class PackagingUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
       val nativeImageOpt = maybeBuild.options.notForBloopOptions.packageOptions.nativeImageOptions
       expect(nativeImageOpt.jvmId == "graalvm-community:23.0.2")
       expect(nativeImageOpt.graalvmArgs.exists(_.value == "--no-fallback"))
+    }
+  }
+
+  test("graalvm packaging valid javaVersion") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using packaging.packageType graalvm
+          |//> using packaging.graalvmJavaVersion 23
+          |//> using packaging.graalvmVersion 23.0.2
+          |
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      val nativeImageOpt = maybeBuild.options.notForBloopOptions.packageOptions.nativeImageOptions
+      expect(nativeImageOpt.jvmId == "graalvm-java23:23.0.2")
+    }
+  }
+
+  test("graalvm packaging invalid javaVersion") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using packaging.packageType graalvm
+          |//> using packaging.graalvmJavaVersion 7
+          |
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      maybeBuild match
+        case Left(e) =>
+          expect(
+            e.message.contains("graalvm-java-version") &&
+            e.message.contains("an integer greater than 7")
+          )
+        case Right(_) =>
+          fail("Expected build to fail with invalid graalvmJavaVersion")
     }
   }
 
