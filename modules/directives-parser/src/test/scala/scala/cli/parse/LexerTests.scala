@@ -10,12 +10,12 @@ class LexerTests extends FunSuite:
   private def lexTokens(line: String): Seq[Token] =
     lex(line).dropRight(1) // drop trailing Newline
 
-  test("tokenize `using` keyword") {
-    val tokens = lexTokens("//> using dep foo")
-    assert(tokens.exists { case _: Token.Using => true; case _ => false })
+  test("`using` is tokenized as Using, not Ident") {
+    val tokens = lexTokens("//> using scala 3")
+    assert(tokens.head.isInstanceOf[Token.Using], s"got ${tokens.head}")
   }
 
-  test("tokenize bare identifier") {
+  test("tokenize bare identifiers") {
     val tokens = lexTokens("//> using dep foo")
     val idents = tokens.collect { case Token.Ident(v, _) => v }
     assertEquals(idents, Seq("dep", "foo"))
@@ -45,22 +45,21 @@ class LexerTests extends FunSuite:
 
   test("comma followed by whitespace is a Comma token") {
     val tokens = lexTokens("//> using dep a, b")
-    assert(tokens.exists { case _: Token.Comma => true; case _ => false })
+    assert(tokens.exists(_.isInstanceOf[Token.Comma]))
     val idents = tokens.collect { case Token.Ident(v, _) => v }
     assertEquals(idents.filter(_ != "dep"), Seq("a", "b"))
   }
 
   test("comma embedded in value is NOT a separator") {
     val tokens = lexTokens("//> using packaging.graalvmArgs --enable-url-protocols=http,https")
-    // the comma inside the value should be consumed as part of the Ident
     val idents = tokens.collect { case Token.Ident(v, _) => v }
     assert(idents.contains("--enable-url-protocols=http,https"), s"idents=$idents")
-    assert(!tokens.exists { case _: Token.Comma => true; case _ => false })
+    assert(!tokens.exists(_.isInstanceOf[Token.Comma]))
   }
 
   test("unterminated string literal produces LexError") {
     val tokens = lexTokens("""//> using dep "unterminated""")
-    assert(tokens.exists { case _: Token.LexError => true; case _ => false }, s"tokens=$tokens")
+    assert(tokens.exists(_.isInstanceOf[Token.LexError]), s"tokens=$tokens")
   }
 
   test("string escape sequences") {
@@ -69,56 +68,36 @@ class LexerTests extends FunSuite:
     assertEquals(strLits, Seq("line1\nline2"))
   }
 
-  test("column position of key") {
-    // `//> using dep foo` — `dep` starts at column 10
-    val tokens   = lexTokens("//> using dep foo")
-    val depToken = tokens.collectFirst { case t @ Token.Ident("dep", _) => t }
-    assert(depToken.isDefined, "expected Ident(dep)")
-    assertEquals(depToken.get.pos.column, 10)
-  }
-
-  test("column position of value") {
-    // `//> using dep foo` — `foo` starts at column 14
-    val tokens   = lexTokens("//> using dep foo")
-    val fooToken = tokens.collectFirst { case t @ Token.Ident("foo", _) => t }
-    assert(fooToken.isDefined)
-    assertEquals(fooToken.get.pos.column, 14)
+  test("column positions of key and value are correct") {
+    // "//> using dep foo"
+    //            ^10   ^14
+    val tokens = lexTokens("//> using dep foo")
+    val depPos = tokens.collectFirst { case Token.Ident("dep", p) => p }.get
+    assertEquals(depPos.column, 10)
+    val fooPos = tokens.collectFirst { case Token.Ident("foo", p) => p }.get
+    assertEquals(fooPos.column, 14)
   }
 
   test("line position is preserved") {
-    val tokens   = Lexer.tokenize("//> using dep foo", lineNum = 3, lineStartOffset = 100)
-    val depToken = tokens.collectFirst { case t @ Token.Ident("dep", _) => t }
-    assert(depToken.isDefined)
-    assertEquals(depToken.get.pos.line, 3)
+    val tokens = Lexer.tokenize("//> using dep foo", lineNum = 3, lineStartOffset = 100)
+    val depPos = tokens.collectFirst { case Token.Ident("dep", p) => p }.get
+    assertEquals(depPos.line, 3)
   }
 
   test("trailing Newline token is always emitted") {
     val tokens = lex("//> using scala 3")
-    assert(tokens.last match { case _: Token.Newline => true; case _ => false })
+    assert(tokens.last.isInstanceOf[Token.Newline])
   }
 
   test("empty directive line still produces Newline") {
     val tokens = lex("//> using")
-    assert(tokens.last match { case _: Token.Newline => true; case _ => false })
-  }
-
-  test("`using` as first ident after `//> ` is a Using token, not Ident") {
-    val tokens          = lexTokens("//> using scala 3")
-    val firstMeaningful = tokens.head
-    assert(
-      firstMeaningful match { case _: Token.Using => true; case _ => false },
-      s"got $firstMeaningful"
-    )
+    assert(tokens.last.isInstanceOf[Token.Newline])
   }
 
   test("backtick-quoted identifier strips backticks") {
-    val tokens = lexTokens("//> using `native-gc`")
-    val idents = tokens.collect { case Token.Ident(v, _) => v }
-    assertEquals(idents, Seq("native-gc"))
-  }
+    val tokens1 = lexTokens("//> using `native-gc`")
+    assertEquals(tokens1.collect { case Token.Ident(v, _) => v }, Seq("native-gc"))
 
-  test("backtick identifier with dash is a valid Ident") {
-    val tokens = lexTokens("//> using `native-mode`")
-    val idents = tokens.collect { case Token.Ident(v, _) => v }
-    assertEquals(idents, Seq("native-mode"))
+    val tokens2 = lexTokens("//> using `native-mode`")
+    assertEquals(tokens2.collect { case Token.Ident(v, _) => v }, Seq("native-mode"))
   }

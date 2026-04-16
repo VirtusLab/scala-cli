@@ -17,19 +17,14 @@ class ParserTests extends FunSuite:
   // Basic parsing
   // -----------------------------------------------------------------------
 
-  test("parse a simple directive") {
+  test("parse simple directive key and value") {
     val ds = directives("//> using scala 3\n")
     assertEquals(ds.length, 1)
     assertEquals(ds.head.key, "scala")
     assertEquals(ds.head.values.length, 1)
-  }
-
-  test("parse key value") {
-    val ds = directives("//> using scala 3\n")
-    val v  = ds.head.values.head
-    v match
-      case sv: DirectiveValue.StringVal => assertEquals(sv.value, "3")
-      case _                            => fail(s"expected StringVal, got $v")
+    val v = ds.head.values.head
+    assert(v.isInstanceOf[DirectiveValue.StringVal], s"expected StringVal, got $v")
+    assertEquals(v.asInstanceOf[DirectiveValue.StringVal].value, "3")
   }
 
   test("parse dotted key") {
@@ -44,7 +39,10 @@ class ParserTests extends FunSuite:
   }
 
   test("parse quoted string value") {
-    val ds = directives("""//> using scalacOption "-Xfatal-warnings"""" + "\n")
+    val src =
+      """//> using scalacOption "-Xfatal-warnings"
+        |""".stripMargin
+    val ds = directives(src)
     val v  = ds.head.values.head
     v match
       case sv: DirectiveValue.StringVal =>
@@ -78,8 +76,11 @@ class ParserTests extends FunSuite:
   }
 
   test("multiple directives") {
-    val src = "//> using scala 3\n//> using dep foo\n"
-    val ds  = directives(src)
+    val src =
+      """//> using scala 3
+        |//> using dep foo
+        |""".stripMargin
+    val ds = directives(src)
     assertEquals(ds.length, 2)
     assertEquals(ds(0).key, "scala")
     assertEquals(ds(1).key, "dep")
@@ -115,61 +116,43 @@ class ParserTests extends FunSuite:
   // Position tracking
   // -----------------------------------------------------------------------
 
-  test("key position line is correct") {
-    val ds = directives("//> using scala 3\n")
-    assertEquals(ds.head.keyPosition.line, 0)
-  }
-
-  test("key position column is correct") {
+  test("positions are correct for single directive") {
     // "//> using scala 3"
-    //  0123456789...
-    // `scala` starts at column 10
+    //  0123456789012345678
+    //            ^key  ^value
     val ds = directives("//> using scala 3\n")
-    assertEquals(ds.head.keyPosition.column, 10)
+    val kp = ds.head.keyPosition
+    assertEquals(kp.line, 0)
+    assertEquals(kp.column, 10)
+    assertEquals(kp.offset, 10)
+    val vp = ds.head.values.head.pos
+    assertEquals(vp.column, 16)
   }
 
-  test("value position column is correct") {
-    // "//> using scala 3"
-    //                ^16
-    val ds   = directives("//> using scala 3\n")
-    val vPos = ds.head.values.head.pos
-    assertEquals(vPos.column, 16)
-  }
-
-  test("key position offset is correct") {
-    val ds     = directives("//> using scala 3\n")
-    val offset = ds.head.keyPosition.offset
-    assertEquals(offset, 10) // first line starts at 0, column 10
-  }
-
-  test("value position on second line has correct line number") {
-    val src = "//> using scala 3\n//> using dep foo\n"
-    val ds  = directives(src)
-    assertEquals(ds(1).keyPosition.line, 1)
-  }
-
-  test("value position on second line has correct offset") {
-    val src       = "//> using scala 3\n//> using dep foo\n"
-    val ds        = directives(src)
-    val depOffset = ds(1).keyPosition.offset
+  test("positions are correct for second directive on next line") {
+    val src =
+      """//> using scala 3
+        |//> using dep foo
+        |""".stripMargin
+    val ds = directives(src)
+    val kp = ds(1).keyPosition
+    assertEquals(kp.line, 1)
     // "//> using scala 3\n" is 18 chars, then "//> using " is 10 more = offset 28
-    assertEquals(depOffset, 28)
+    assertEquals(kp.offset, 28)
   }
 
   // -----------------------------------------------------------------------
   // Diagnostics
   // -----------------------------------------------------------------------
 
-  test("directive after code emits warning") {
-    val src = "val x = 1\n//> using scala 3\n"
-    val ws  = warnings(src)
-    assert(ws.nonEmpty)
-  }
-
-  test("directive after code is not included in results") {
-    val src = "val x = 1\n//> using scala 3\n"
-    val ds  = directives(src)
-    assertEquals(ds.length, 0)
+  test("directive after code is ignored with warning") {
+    val src =
+      """val x = 1
+        |//> using scala 3
+        |""".stripMargin
+    val r = parse(src)
+    assertEquals(r.directives.length, 0)
+    assert(r.diagnostics.exists(_.severity == DiagnosticSeverity.Warning))
   }
 
   // -----------------------------------------------------------------------
@@ -177,8 +160,11 @@ class ParserTests extends FunSuite:
   // -----------------------------------------------------------------------
 
   test("codeOffset after single directive") {
-    val src = "//> using scala 3\nval x = 1\n"
-    val r   = parse(src)
+    val src =
+      """//> using scala 3
+        |val x = 1
+        |""".stripMargin
+    val r = parse(src)
     assertEquals(r.codeOffset, 18)
   }
 
@@ -215,4 +201,62 @@ class ParserTests extends FunSuite:
       case sv: DirectiveValue.StringVal =>
         assertEquals(sv.value, "com.lihaoyi::os-lib:0.11.4")
       case v => fail(s"expected StringVal, got $v")
+  }
+
+  // -----------------------------------------------------------------------
+  // Issue #2382: directive-like text in comments produces no errors
+  // -----------------------------------------------------------------------
+
+  test("issue 2382: directive-like text in all comment types produces no directives or errors") {
+    val src =
+      """// line comment '//> using ...'
+        |/* block comment '//> using ...' */
+        |/** ScalaDoc '//> using ...' */
+        |""".stripMargin
+    val r = parse(src)
+    assertEquals(r.directives.length, 0)
+    assertEquals(r.diagnostics.length, 0)
+  }
+
+  test("ScalaDoc before real directive does not interfere") {
+    val src =
+      """/** //> using dep fake */
+        |//> using scala 3
+        |val x = 1
+        |""".stripMargin
+    val r = parse(src)
+    assertEquals(r.directives.length, 1)
+    assertEquals(r.directives.head.key, "scala")
+    assertEquals(r.diagnostics.length, 0)
+  }
+
+  // -----------------------------------------------------------------------
+  // Issue #3019: directives after package/code emit warnings
+  // -----------------------------------------------------------------------
+
+  test("issue 3019: package before directives causes directives to be ignored with warning") {
+    val src =
+      """package x
+        |//> using scala 3.4.2
+        |//> using dep foo
+        |@main def run = println(42)
+        |""".stripMargin
+    val r = parse(src)
+    assertEquals(r.directives.length, 0)
+    assertEquals(r.codeOffset, 0)
+    val ws = r.diagnostics.filter(_.severity == DiagnosticSeverity.Warning)
+    assertEquals(ws.length, 2)
+    assert(ws(0).message.contains("//> using scala 3.4.2"))
+    assert(ws(1).message.contains("//> using dep foo"))
+  }
+
+  test("post-code directive warning includes directive text") {
+    val src =
+      """val x = 1
+        |//> using scala 3
+        |""".stripMargin
+    val ws = warnings(src)
+    assertEquals(ws.length, 1)
+    assert(ws.head.message.contains("Ignoring using directive found after Scala code"))
+    assert(ws.head.message.contains("//> using scala 3"))
   }
