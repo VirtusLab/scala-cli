@@ -8,7 +8,10 @@ class CommentExtractorTests extends FunSuite:
     CommentExtractor.extract(src.toCharArray)
 
   test("simple directive line") {
-    val r = extract("//> using scala 3\n")
+    val r = extract(
+      """//> using scala 3
+        |""".stripMargin
+    )
     assertEquals(r.directiveLines.length, 1)
     assertEquals(r.directiveLines.head.lineNum, 0)
     assertEquals(r.codeOffset, 18)
@@ -85,8 +88,10 @@ class CommentExtractorTests extends FunSuite:
   }
 
   test("no code -> codeOffset is file length") {
-    val src = "//> using scala 3\n"
-    val r   = extract(src)
+    val src =
+      """//> using scala 3
+        |""".stripMargin
+    val r = extract(src)
     assertEquals(r.codeOffset, src.length)
   }
 
@@ -243,4 +248,132 @@ class CommentExtractorTests extends FunSuite:
     val ws = r.diagnostics.filter(_.severity == DiagnosticSeverity.Warning)
     assertEquals(ws.length, 1)
     assert(ws.head.message.contains("//> using dep foo"))
+  }
+
+  test("leading spaces before //> are stripped and directive is parsed correctly") {
+    val src =
+      """  //> using scala 3
+        |""".stripMargin
+    val r = extract(src)
+    assertEquals(r.directiveLines.length, 1)
+    val dl = r.directiveLines.head
+    assertEquals(dl.content, "//> using scala 3")
+    assertEquals(dl.lineStartOffset, 2)
+    assertEquals(r.diagnostics.length, 0)
+  }
+
+  test("leading tabs before //> are stripped and directive is parsed correctly") {
+    val src =
+      """	//> using scala 3
+        |""".stripMargin
+    val r = extract(src)
+    assertEquals(r.directiveLines.length, 1)
+    assertEquals(r.directiveLines.head.content, "//> using scala 3")
+    assertEquals(r.diagnostics.length, 0)
+  }
+
+  test("//>using without space is treated as code") {
+    val src =
+      """//>using scala 3
+        |val x = 1
+        |""".stripMargin
+    val r = extract(src)
+    assertEquals(r.directiveLines.length, 0)
+    assertEquals(r.codeOffset, 0)
+  }
+
+  test("multiple spaces after //> emits a warning") {
+    val src =
+      """//>  using scala 3
+        |val x = 1
+        |""".stripMargin
+    val r = extract(src)
+    assertEquals(r.directiveLines.length, 0)
+    val ws = r.diagnostics.filter(_.severity == DiagnosticSeverity.Warning)
+    assertEquals(ws.length, 1)
+    assert(ws.head.message.contains("exact prefix"))
+    assert(ws.head.message.contains("//>  using scala 3"))
+  }
+
+  test("tab after //> emits a warning") {
+    val src =
+      """//>	using scala 3
+        |val x = 1
+        |""".stripMargin
+    val r = extract(src)
+    assertEquals(r.directiveLines.length, 0)
+    val ws = r.diagnostics.filter(_.severity == DiagnosticSeverity.Warning)
+    assertEquals(ws.length, 1)
+    assert(ws.head.message.contains("exact prefix"))
+  }
+
+  test("CRLF line endings parse correctly") {
+    val src = "//> using scala 3\r\nval x = 1\r\n"
+    val r   = extract(src)
+    assertEquals(r.directiveLines.length, 1)
+    assertEquals(r.directiveLines.head.content, "//> using scala 3\r")
+    assertEquals(r.codeOffset, 19) // includes \r\n
+  }
+
+  test("UTF-8 BOM at start of file is stripped and directives are parsed") {
+    val src =
+      s"""\uFEFF//> using scala 3
+         |""".stripMargin
+    val r = extract(src)
+    assertEquals(r.directiveLines.length, 1)
+    assertEquals(r.codeOffset, src.length)
+  }
+
+  test("UTF-8 BOM before code does not suppress post-code directive warnings") {
+    val src =
+      s"""\uFEFFval x = 1
+         |//> using scala 3
+         |""".stripMargin
+    val r = extract(src)
+    assertEquals(r.directiveLines.length, 0)
+    assertEquals(r.codeOffset, 1) // BOM(1) + start of `val`
+    val ws = r.diagnostics.filter(_.severity == DiagnosticSeverity.Warning)
+    assertEquals(ws.length, 1)
+    assert(ws.head.message.contains("Ignoring"))
+  }
+
+  // -----------------------------------------------------------------------
+  // Edge Case 7: `*/` followed by directive on same line
+  // -----------------------------------------------------------------------
+
+  test("directive on same line after block comment closing is treated as code") {
+    val src =
+      """/* comment */ //> using scala 3
+        |""".stripMargin
+    val r = extract(src)
+    assertEquals(r.directiveLines.length, 0)
+    assertEquals(r.codeOffset, 0)
+  }
+
+  test("unclosed block comment swallows rest of file gracefully") {
+    val src =
+      """/* never closed
+        |//> using scala 3
+        |""".stripMargin
+    val r = extract(src)
+    assertEquals(r.directiveLines.length, 0)
+    assertEquals(r.diagnostics.length, 0)
+  }
+
+  test("nested block comments are handled correctly") {
+    val src =
+      """/* outer /* inner */ still comment */
+        |//> using scala 3
+        |""".stripMargin
+    val r = extract(src)
+    assertEquals(r.directiveLines.length, 1)
+    assertEquals(r.directiveLines.head.lineNum, 1)
+  }
+
+  test("directive at end of file without trailing newline") {
+    val src = "//> using scala 3"
+    val r   = extract(src)
+    assertEquals(r.directiveLines.length, 1)
+    assertEquals(r.codeOffset, src.length)
+    assertEquals(r.diagnostics.length, 0)
   }

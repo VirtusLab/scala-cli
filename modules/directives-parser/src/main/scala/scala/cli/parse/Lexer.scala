@@ -66,7 +66,9 @@ object Lexer:
         val text = sb.toString
         if !closed then
           buf += Token.LexError("Unterminated backtick identifier", pos(startCol))
-        else if text.nonEmpty then
+        else if text.isEmpty then
+          buf += Token.LexError("Empty backtick identifier", pos(startCol))
+        else
           buf += Token.Ident(text, pos(startCol))
       else if c == '"' then
         // Double-quoted string literal
@@ -90,7 +92,14 @@ object Lexer:
                 case 'u' if col + 4 < length =>
                   val hex = lineText.substring(col + 1, col + 5)
                   col += 4
-                  Integer.parseInt(hex, 16).toChar
+                  try Integer.parseInt(hex, 16).toChar
+                  catch
+                    case _: NumberFormatException =>
+                      buf += Token.LexError(
+                        s"Invalid unicode escape: \\u$hex",
+                        pos(startCol)
+                      )
+                      ' '
                 case other => other
               sb += escaped
               col += 1
@@ -109,7 +118,12 @@ object Lexer:
         while col < length && !stop do
           val ch = chars(col)
           if isWhitespace(ch) then stop = true
-          else if ch == '"' then stop = true
+          else if ch == '"' then
+            buf += Token.LexError(
+              "Whitespace is required between values — a quote cannot immediately follow another value.",
+              pos(col)
+            )
+            stop = true
           else if ch == ',' && (col + 1 >= length || isWhitespace(chars(col + 1))) then
             // Comma followed by whitespace/end: stop here, don't consume the comma
             stop = true

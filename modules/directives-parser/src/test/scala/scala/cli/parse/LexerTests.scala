@@ -12,7 +12,10 @@ class LexerTests extends FunSuite:
 
   test("`using` is tokenized as Using, not Ident") {
     val tokens = lexTokens("//> using scala 3")
-    assert(tokens.head.isInstanceOf[Token.Using], s"got ${tokens.head}")
+    assert(
+      tokens.head match { case _: Token.Using => true; case _ => false },
+      s"got ${tokens.head}"
+    )
   }
 
   test("tokenize bare identifiers") {
@@ -45,7 +48,7 @@ class LexerTests extends FunSuite:
 
   test("comma followed by whitespace is a Comma token") {
     val tokens = lexTokens("//> using dep a, b")
-    assert(tokens.exists(_.isInstanceOf[Token.Comma]))
+    assert(tokens.exists { case _: Token.Comma => true; case _ => false })
     val idents = tokens.collect { case Token.Ident(v, _) => v }
     assertEquals(idents.filter(_ != "dep"), Seq("a", "b"))
   }
@@ -54,12 +57,12 @@ class LexerTests extends FunSuite:
     val tokens = lexTokens("//> using packaging.graalvmArgs --enable-url-protocols=http,https")
     val idents = tokens.collect { case Token.Ident(v, _) => v }
     assert(idents.contains("--enable-url-protocols=http,https"), s"idents=$idents")
-    assert(!tokens.exists(_.isInstanceOf[Token.Comma]))
+    assert(!tokens.exists { case _: Token.Comma => true; case _ => false })
   }
 
   test("unterminated string literal produces LexError") {
     val tokens = lexTokens("""//> using dep "unterminated""")
-    assert(tokens.exists(_.isInstanceOf[Token.LexError]), s"tokens=$tokens")
+    assert(tokens.exists { case _: Token.LexError => true; case _ => false }, s"tokens=$tokens")
   }
 
   test("string escape sequences") {
@@ -86,12 +89,12 @@ class LexerTests extends FunSuite:
 
   test("trailing Newline token is always emitted") {
     val tokens = lex("//> using scala 3")
-    assert(tokens.last.isInstanceOf[Token.Newline])
+    assert(tokens.last match { case _: Token.Newline => true; case _ => false })
   }
 
   test("empty directive line still produces Newline") {
     val tokens = lex("//> using")
-    assert(tokens.last.isInstanceOf[Token.Newline])
+    assert(tokens.last match { case _: Token.Newline => true; case _ => false })
   }
 
   test("backtick-quoted identifier strips backticks") {
@@ -100,4 +103,67 @@ class LexerTests extends FunSuite:
 
     val tokens2 = lexTokens("//> using `native-mode`")
     assertEquals(tokens2.collect { case Token.Ident(v, _) => v }, Seq("native-mode"))
+  }
+
+  test("invalid unicode escape produces LexError instead of crashing") {
+    val tokens = lexTokens("//> using dep \"\\uZZZZ\"")
+    assert(tokens.exists { case _: Token.LexError => true; case _ => false }, s"tokens=$tokens")
+    val err = tokens.collectFirst { case Token.LexError(msg, _) => msg }.get
+    assert(err.contains("Invalid unicode escape"), s"error message: $err")
+  }
+
+  test("empty backtick identifier produces LexError") {
+    val tokens = lexTokens("//> using `` foo")
+    assert(tokens.exists { case _: Token.LexError => true; case _ => false }, s"tokens=$tokens")
+    val err = tokens.collectFirst { case Token.LexError(msg, _) => msg }.get
+    assert(err.contains("Empty backtick identifier"), s"error message: $err")
+  }
+
+  test("empty quoted string produces StringLit with empty value") {
+    val tokens = lexTokens("//> using dep \"\"")
+    val strs   = tokens.collect { case Token.StringLit(v, _) => v }
+    assertEquals(strs, Seq(""))
+  }
+
+  test("backtick-quoted value is parsed as bare Ident") {
+    val tokens = lexTokens("//> using dep `com.lihaoyi::os-lib:0.11.4`")
+    val idents = tokens.collect { case Token.Ident(v, _) => v }
+    assert(idents.contains("com.lihaoyi::os-lib:0.11.4"), s"idents=$idents")
+  }
+
+  test("comma with no spaces produces single token") {
+    val tokens = lexTokens("//> using dep a,b")
+    val idents = tokens.collect { case Token.Ident(v, _) => v }
+    assertEquals(idents.filter(_ != "dep"), Seq("a,b"))
+    assert(
+      !tokens.exists { case _: Token.Comma => true; case _ => false },
+      "should not produce Comma token"
+    )
+  }
+
+  test("space before comma but not after produces two tokens") {
+    val tokens = lexTokens("//> using dep a ,b")
+    val idents = tokens.collect { case Token.Ident(v, _) => v }
+    assertEquals(idents.filter(_ != "dep"), Seq("a", ",b"))
+    assert(
+      !tokens.exists { case _: Token.Comma => true; case _ => false },
+      "should not produce Comma token"
+    )
+  }
+
+  test("double comma produces bare token ending with comma then Comma separator") {
+    val tokens = lexTokens("//> using dep a,, b")
+    val idents = tokens.collect { case Token.Ident(v, _) => v }
+    assertEquals(idents.filter(_ != "dep"), Seq("a,", "b"))
+    assert(
+      tokens.exists { case _: Token.Comma => true; case _ => false },
+      "second comma should be a separator"
+    )
+  }
+
+  test("bare value touching quoted string emits LexError") {
+    val tokens = lexTokens("""//> using dep a,"b"""")
+    assert(tokens.exists { case _: Token.LexError => true; case _ => false }, s"tokens=$tokens")
+    val err = tokens.collectFirst { case Token.LexError(msg, _) => msg }.get
+    assert(err.contains("Whitespace is required"), s"error message: $err")
   }

@@ -31,8 +31,14 @@ case class ExtractorResult(
   */
 object CommentExtractor:
 
-  def extract(content: Array[Char]): ExtractorResult =
+  private val UsingDirectiveRegex = """^//>\s+using(?:\s|$)""".r
+
+  def extract(rawContent: Array[Char]): ExtractorResult =
+    val content =
+      if rawContent.nonEmpty && rawContent(0) == '\uFEFF' then rawContent.drop(1)
+      else rawContent
     val length      = content.length
+    val bomOffset   = rawContent.length - content.length
     val diagnostics = scala.collection.mutable.ArrayBuffer.empty[UsingDirectiveDiagnostic]
     val directives  = scala.collection.mutable.ArrayBuffer.empty[DirectiveLine]
 
@@ -47,14 +53,24 @@ object CommentExtractor:
 
     // Skip a block comment starting at `offset` (which points to `/` of `/*`).
     // Returns the offset just after the closing `*/`, updating `lineNum`.
+    // Supports nested block comments to match the Scala compiler.
     def skipBlockComment(startOff: Int, startLine: Int): (Int, Int) =
-      var off = startOff + 2 // skip `/*`
-      var ln  = startLine
-      while off < length - 1 && !(content(off) == '*' && content(off + 1) == '/') do
+      var off   = startOff + 2 // skip `/*`
+      var ln    = startLine
+      var depth = 1
+      while off < length - 1 && depth > 0 do
+        if content(off) == '/' && content(off + 1) == '*' then
+          depth += 1
+          off += 2
+        else if content(off) == '*' && content(off + 1) == '/' then
+          depth -= 1
+          off += 2
+        else
+          if content(off) == '\n' then ln += 1
+          off += 1
+      if depth > 0 && off < length then
         if content(off) == '\n' then ln += 1
         off += 1
-      if off < length - 1 then
-        off += 2 // skip `*/`
       (off, ln)
 
     while offset < length && codeStart < 0 do
@@ -101,20 +117,25 @@ object CommentExtractor:
         if offset < length && content(offset) == '\n' then offset += 1
         lineNum += 1
       else if trimmed.startsWith("//>") then
-        // Potential directive line
         val withoutLeading = lineContent.dropWhile(c => c == ' ' || c == '\t')
-        if withoutLeading.startsWith("//> using") || withoutLeading.startsWith("//>using") then
-          // Normalize: ensure there's a space after `//>`
-          val effectiveContent =
-            if withoutLeading.startsWith("//> ") then lineContent
-            else lineContent // keep as-is; the lexer will handle it
-          directives += DirectiveLine(effectiveContent, lineNum, lineStart)
+        val leadingLen     = lineContent.length - withoutLeading.length
+        if withoutLeading.startsWith("//> using") then
+          val adjustedOffset = lineStart + leadingLen + bomOffset
+          directives += DirectiveLine(withoutLeading, lineNum, adjustedOffset)
+          offset = lineStart + lineContent.length
+          if offset < length && content(offset) == '\n' then offset += 1
+          lineNum += 1
+        else if UsingDirectiveRegex.findFirstIn(withoutLeading).isDefined then
+          val linePos = Some(Position(lineNum, leadingLen, lineStart + leadingLen + bomOffset))
+          val msg     =
+            s"Using directive must use the exact prefix `//> using`. Invalid prefix in: ${withoutLeading.trim}"
+          diagnostics += UsingDirectiveDiagnostic(msg, DiagnosticSeverity.Warning, linePos)
+          offset = lineStart + lineContent.length
+          if offset < length && content(offset) == '\n' then offset += 1
+          lineNum += 1
+          codeStart = offset
         else
-          // `//> ` but not followed by `using` — treat as code
           codeStart = lineStart
-        offset = lineStart + lineContent.length
-        if offset < length && content(offset) == '\n' then offset += 1
-        lineNum += 1
       else
         // First code line
         codeStart = lineStart
@@ -142,12 +163,15 @@ object CommentExtractor:
           if offset < length && content(offset) == '\n' then offset += 1
           ln += 1
         else
-          val linePos = Some(Position(ln, 0, lineStart))
-          if trimmed.startsWith("//> using") || trimmed.startsWith("//>using") then
+          val linePos = Some(Position(ln, 0, lineStart + bomOffset))
+          if trimmed.startsWith("//> using") then
+            val msg = s"Ignoring using directive found after Scala code: ${trimmed.trim}"
+            diagnostics += UsingDirectiveDiagnostic(msg, DiagnosticSeverity.Warning, linePos)
+          else if UsingDirectiveRegex.findFirstIn(trimmed).isDefined then
             val msg = s"Ignoring using directive found after Scala code: ${trimmed.trim}"
             diagnostics += UsingDirectiveDiagnostic(msg, DiagnosticSeverity.Warning, linePos)
           offset = lineStart + lineContent.length
           if offset < length && content(offset) == '\n' then offset += 1
           ln += 1
 
-    ExtractorResult(directives.toSeq, codeOffset, diagnostics.toSeq)
+    ExtractorResult(directives.toSeq, codeOffset + bomOffset, diagnostics.toSeq)

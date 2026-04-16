@@ -72,13 +72,17 @@ object Parser:
           case _: Token.Newline | _: Token.Eof =>
             values.toSeq
           case Token.Comma(p) =>
-            // One diagnostic per comma (matches legacy `using_directives` / integration tests).
-            warn(
-              "Use of commas as separators is deprecated. Only whitespace is necessary.",
-              p
-            )
-            advance()
-            loop()
+            if values.isEmpty then
+              values += DirectiveValue.StringVal(",", isQuoted = false, p)
+              advance()
+              loop()
+            else
+              warn(
+                "Use of commas as separators is deprecated. Only whitespace is necessary.",
+                p
+              )
+              advance()
+              loop()
           case Token.StringLit(v, p) =>
             values += DirectiveValue.StringVal(v, isQuoted = true, p)
             advance()
@@ -88,6 +92,11 @@ object Parser:
             advance()
             loop()
           case Token.Ident(v, p) =>
+            if v.endsWith(",") then
+              warn(
+                s"Value '$v' ends with a comma — this is likely a typo from a double-comma sequence.",
+                p
+              )
             values += DirectiveValue.StringVal(v, isQuoted = false, p)
             advance()
             loop()
