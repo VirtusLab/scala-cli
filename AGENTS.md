@@ -51,6 +51,8 @@ Modules live under `modules/`. The dependency graph flows roughly as:
 
 ```
 specification-level → config → core → options → directives → build-module → cli
+                                                    ↑
+                                          directives-parser
 ```
 
 ### Module overview
@@ -64,6 +66,7 @@ The list below may not be exhaustive — check `modules/` and `build.mill` for t
 | `build-macros`                                | Compile-time macros (e.g. `EitherCps`).                                                                          |
 | `core`                                        | Core types: `Inputs`, `Sources`, build constants, Bloop integration, JVM/JS/Native tooling.                      |
 | `options`                                     | `BuildOptions`, `SharedOptions`, and all option types.                                                           |
+| `directives-parser`                           | Pure Scala 3 parser for `//> using` directive syntax: comment extraction, lexing, and parsing into AST nodes.    |
 | `directives`                                  | Using directive handlers — the bridge between `//> using` directives and `BuildOptions`.                         |
 | `build-module` (aliased from `build` in mill) | The main build pipeline: preprocessing, compilation, post-processing. Most business logic lives here.            |
 | `cli`                                         | Command definitions, argument parsing (CaseApp), the `ScalaCli` entry point. Packaged as the native image.       |
@@ -106,9 +109,9 @@ Using directives are in-source configuration comments:
 //> using test.dep org.scalameta::munit::1.1.1
 ```
 
-Directives are parsed by `using_directives`, then `ExtractedDirectives` → `DirectivesPreprocessor` → `BuildOptions`/
-`BuildRequirements`. **CLI options override directive values.** To add a new directive,
-see [agentskills/adding-directives/](agentskills/adding-directives/SKILL.md).
+Directives are parsed by the `directives-parser` module (`CommentExtractor` → `Lexer` → `Parser`), then
+`ExtractedDirectives` → `DirectivesPreprocessor` → `BuildOptions`/`BuildRequirements`. **CLI options override directive
+values.** To add a new directive, see [agentskills/adding-directives/](agentskills/adding-directives/SKILL.md).
 
 ## Testing
 
