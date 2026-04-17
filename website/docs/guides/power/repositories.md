@@ -51,20 +51,92 @@ Repository authentication is also supported and there are a couple ways of using
 
 ## Default repositories
 
-You can override the default Coursier repositories globally by invoking:
+You can override the default Coursier repositories (Maven Central and local Ivy) globally by invoking:
 ```bash ignore
 scala-cli --power config repositories.default https://first-repo.company.com https://second-repo.company.com
 ```
 
+This **replaces** the built-in default repositories for all dependency resolution, including compiler
+and library downloads. Repositories added via `--repository` or `//> using repository` are not
+affected — those remain additive on top of the configured defaults.
+
+To include Maven Central alongside your internal repository, list both:
+```bash ignore
+scala-cli --power config repositories.default https://repo1.maven.org/maven2 https://nexus.company.com/repository/maven-public
+```
+
+Alternatively, you can set default repositories via the `COURSIER_REPOSITORIES` environment variable
+(pipe-separated) or the `coursier.repositories` Java property.
+
 ## Mirrors
 
 If you're fine directly downloading artifacts from the internet, but would rather have some
-repositories requests go through a repository of yours, configure mirror repositories, like
+repository requests go through a repository of yours, configure mirror repositories.
+
+To redirect a specific repository URL to your mirror:
 ```bash ignore
-scala-cli --power config repositories.mirrors https://repo1.maven.org/maven2=https://repository.company.com/maven
+scala-cli --power config repositories.mirrors https://repository.company.com/maven=https://repo1.maven.org/maven2
 ```
 
-To have all requests to a Maven repository go through a repository of yours, do
+To have **all** requests to any Maven repository go through a repository of yours:
 ```bash ignore
-scala-cli --power config repositories.mirrors maven:*=https://repository.company.com/maven
+scala-cli --power config repositories.mirrors maven:https://repository.company.com/maven=*
+```
+
+Mirrors apply to all Coursier-based operations including compiler downloads, dependency
+resolution, and Bloop server downloads. JVM downloads (via `--jvm`) are not affected, as they
+use a separate download mechanism.
+
+### Mirror string syntax
+
+The format is `destination=source` — the mirror target comes first, then the original repository:
+
+| Syntax | Type | Effect |
+|---|---|---|
+| `<mirror-url>=<original-url>` | Maven | Redirects `<original-url>` to `<mirror-url>` |
+| `maven:<mirror-url>=*` | Maven | Redirects **all** Maven repository URLs to `<mirror-url>` |
+| `tree:<mirror-url>=<original-url>` | Tree | Redirects URLs starting with `<original-url>` prefix to `<mirror-url>` |
+
+### Alternative mirror configuration
+
+Mirrors can also be configured via:
+- The `COURSIER_MIRRORS` environment variable, pointing to a `mirror.properties` file
+- The `coursier.mirrors` Java property (e.g. via `scala-cli --power config java.properties -Dcoursier.mirrors=/path/to/mirror.properties`)
+- A `mirror.properties` file in the Coursier configuration directory
+
+The `mirror.properties` file format:
+```properties
+central.from=https://repo1.maven.org/maven2
+central.to=https://repository.company.com/maven
+central.type=maven
+```
+
+### Using mirrors with default repositories
+
+If both `repositories.default` and `repositories.mirrors` are configured, default repositories
+are resolved first (which repos to query), then mirrors transform the URLs (where requests
+actually go). For example:
+```bash ignore
+scala-cli --power config repositories.default https://repo1.maven.org/maven2
+scala-cli --power config repositories.mirrors maven:https://nexus.company.com/maven=*
+```
+This uses Maven Central as the default repository, but routes all requests through `nexus.company.com`.
+
+## Corporate / air-gapped environments
+
+For environments behind a firewall where Maven Central is not directly reachable:
+
+1. **Override default repositories** to point at your internal repository:
+```bash ignore
+scala-cli --power config repositories.default https://nexus.company.com/repository/maven-public
+```
+
+2. Or **set up a mirror** to redirect Maven Central:
+```bash ignore
+scala-cli --power config repositories.mirrors maven:https://nexus.company.com/repository/maven-public=*
+```
+
+3. If your repository requires authentication, add credentials:
+```bash ignore
+scala-cli --power config repositories.credentials nexus.company.com value:username value:password
 ```
