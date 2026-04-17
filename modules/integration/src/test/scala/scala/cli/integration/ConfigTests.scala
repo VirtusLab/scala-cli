@@ -562,6 +562,282 @@ class ConfigTests extends ScalaCliSuite {
     }
   }
 
+  test("repository mirrors") {
+    val testOrg     = "test-org"
+    val testName    = "the-messages"
+    val testVersion = "0.1.2"
+    val inputs      = TestInputs(
+      os.rel / "messages" / "Messages.scala" ->
+        """package messages
+          |
+          |object Messages {
+          |  def hello(name: String): String =
+          |    s"Hello $name"
+          |}
+          |""".stripMargin,
+      os.rel / "hello" / "Hello.scala" ->
+        s"""//> using dep $testOrg::$testName:$testVersion
+           |import messages.Messages
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println(Messages.hello("World"))
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val configFile = {
+        val dir = root / "conf"
+        os.makeDir.all(dir, if (Properties.isWin) null else "rwx------")
+        dir / "config.json"
+      }
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+      val repoPath = root / "the-repo"
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "--publish-repo",
+        repoPath.toNIO.toUri.toASCIIString,
+        "messages",
+        "--organization",
+        testOrg,
+        "--name",
+        testName,
+        "--project-version",
+        testVersion
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      val fakeRepoUrl = "https://google.com/maven"
+      val repoUri     = repoPath.toNIO.toUri.toASCIIString.stripSuffix("/")
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "repositories.mirrors",
+        s"$repoUri=$fakeRepoUrl"
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        "--repository",
+        fakeRepoUrl,
+        "hello"
+      ).call(cwd = root, env = extraEnv)
+      expect(res.out.trim() == "Hello World")
+    }
+  }
+
+  test("repository mirrors with maven wildcard") {
+    val testOrg     = "test-org"
+    val testName    = "the-messages"
+    val testVersion = "0.1.5"
+    val inputs      = TestInputs(
+      os.rel / "messages" / "Messages.scala" ->
+        """package messages
+          |
+          |object Messages {
+          |  def hello(name: String): String =
+          |    s"Hello $name"
+          |}
+          |""".stripMargin,
+      os.rel / "hello" / "Hello.scala" ->
+        s"""//> using dep $testOrg::$testName:$testVersion
+           |import messages.Messages
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println(Messages.hello("World"))
+           |}
+           |""".stripMargin,
+      os.rel / "warmup.sc" -> "println(42)"
+    )
+    inputs.fromRoot { root =>
+      val configFile = {
+        val dir = root / "conf"
+        os.makeDir.all(dir, if (Properties.isWin) null else "rwx------")
+        dir / "config.json"
+      }
+      val extraEnv   = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+      val repoPath   = root / "the-repo"
+      val warmCache  = root / "warm-cache"
+      val freshCache = root / "fresh-cache"
+
+      os.proc(TestUtil.cli, "compile", "--server=false", "warmup.sc")
+        .call(cwd = root, env = extraEnv ++ Map("COURSIER_CACHE" -> warmCache.toString))
+
+      val centralCacheDir = warmCache / "https" / "repo1.maven.org" / "maven2"
+      os.copy(centralCacheDir, repoPath, createFolders = true)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "--publish-repo",
+        repoPath.toNIO.toUri.toASCIIString,
+        "messages",
+        "--organization",
+        testOrg,
+        "--name",
+        testName,
+        "--project-version",
+        testVersion
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      val repoUri = repoPath.toNIO.toUri.toASCIIString.stripSuffix("/")
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "repositories.mirrors",
+        s"maven:$repoUri=*"
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      val res = os.proc(TestUtil.cli, "run", "--server=false", "hello")
+        .call(cwd = root, env = extraEnv ++ Map("COURSIER_CACHE" -> freshCache.toString))
+      expect(res.out.trim() == "Hello World")
+    }
+  }
+
+  test("default repositories from config") {
+    val testOrg     = "test-org"
+    val testName    = "the-messages"
+    val testVersion = "0.1.3"
+    val inputs      = TestInputs(
+      os.rel / "messages" / "Messages.scala" ->
+        """package messages
+          |
+          |object Messages {
+          |  def hello(name: String): String =
+          |    s"Hello $name"
+          |}
+          |""".stripMargin,
+      os.rel / "hello" / "Hello.scala" ->
+        s"""//> using dep $testOrg::$testName:$testVersion
+           |import messages.Messages
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println(Messages.hello("World"))
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val configFile = {
+        val dir = root / "conf"
+        os.makeDir.all(dir, if (Properties.isWin) null else "rwx------")
+        dir / "config.json"
+      }
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+      val repoPath = root / "the-repo"
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "--publish-repo",
+        repoPath.toNIO.toUri.toASCIIString,
+        "messages",
+        "--organization",
+        testOrg,
+        "--name",
+        testName,
+        "--project-version",
+        testVersion
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      val repoUri = repoPath.toNIO.toUri.toASCIIString.stripSuffix("/")
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "repositories.default",
+        "https://repo1.maven.org/maven2",
+        repoUri
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        "hello"
+      ).call(cwd = root, env = extraEnv)
+      expect(res.out.trim() == "Hello World")
+    }
+  }
+
+  test("default repositories and mirrors together") {
+    val testOrg     = "test-org"
+    val testName    = "the-messages"
+    val testVersion = "0.1.4"
+    val inputs      = TestInputs(
+      os.rel / "messages" / "Messages.scala" ->
+        """package messages
+          |
+          |object Messages {
+          |  def hello(name: String): String =
+          |    s"Hello $name"
+          |}
+          |""".stripMargin,
+      os.rel / "hello" / "Hello.scala" ->
+        s"""//> using dep $testOrg::$testName:$testVersion
+           |import messages.Messages
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println(Messages.hello("World"))
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val configFile = {
+        val dir = root / "conf"
+        os.makeDir.all(dir, if (Properties.isWin) null else "rwx------")
+        dir / "config.json"
+      }
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+      val repoPath = root / "the-repo"
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "--publish-repo",
+        repoPath.toNIO.toUri.toASCIIString,
+        "messages",
+        "--organization",
+        testOrg,
+        "--name",
+        testName,
+        "--project-version",
+        testVersion
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      val fakeRepoUrl = "https://fake-repo.test/maven"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "repositories.default",
+        "https://repo1.maven.org/maven2",
+        fakeRepoUrl
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      val repoUri = repoPath.toNIO.toUri.toASCIIString.stripSuffix("/")
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "repositories.mirrors",
+        s"$repoUri=$fakeRepoUrl"
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        "hello"
+      ).call(cwd = root, env = extraEnv)
+      expect(res.out.trim() == "Hello World")
+    }
+  }
+
   for {
     offlineSetting <- Seq(true, false)
     prefillCache   <- if (offlineSetting) Seq(true, false) else Seq(false)
