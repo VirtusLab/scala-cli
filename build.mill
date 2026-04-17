@@ -1887,9 +1887,30 @@ object ci extends Module {
     // Export the public key as a binary (non-armored) keyring at the repo root so that
     // users can reference it via `signed-by` in their APT sources.
     // Binary format is required per https://wiki.debian.org/DebianRepository/UseThirdParty
+    // We export all public keys (without specifying a user ID) because `gpg-setup.sh`
+    // imports exactly one key, and `gpg --export <user-id>` silently produces empty
+    // output with exit code 0 when the user ID doesn't match.
     val keyringPath = packagesDir / "scala-cli-archive-keyring.gpg"
-    os.proc("gpg", "--batch", "--yes", "--export", keyName)
+    os.proc("gpg", "--batch", "--yes", "--export")
       .call(stdout = keyringPath)
+    if (!os.exists(keyringPath) || os.size(keyringPath) == 0)
+      sys.error(
+        s"""gpg --export produced an empty keyring at $keyringPath; 
+           |check that PGP_SECRET was imported correctly by gpg-setup.sh""".stripMargin
+      )
+
+    // Also re-export the armored KEY.gpg used by Fedora/yum and referenced by the
+    // packages repo landing page. Regenerating it on every release keeps it in sync
+    // with the binary keyring above, so key rotations (e.g. to replace a SHA1
+    // self-signed key) automatically propagate to all consumers.
+    val armoredKeyPath = packagesDir / "KEY.gpg"
+    os.proc("gpg", "--batch", "--yes", "--armor", "--export")
+      .call(stdout = armoredKeyPath)
+    if (!os.exists(armoredKeyPath) || os.size(armoredKeyPath) == 0)
+      sys.error(
+        s"""gpg --armor --export produced an empty key at $armoredKeyPath; 
+           |check that PGP_SECRET was imported correctly by gpg-setup.sh""".stripMargin
+      )
 
     // Update the .list file to include the signed-by option pointing at the keyring.
     // This scopes the key to this repository only, preventing the globally-trusted key
