@@ -5,7 +5,7 @@ package prclassify
   */
 object EnvNames:
 
-  // ---- Inputs ----
+  // ---- Inputs to classify-changes.sc / check-override-keywords.sc ----
   /** "pull_request", "push", ... */
   val EventName = "EVENT_NAME"
 
@@ -20,15 +20,7 @@ object EnvNames:
   /** Body of the pull request (scanned for override markers). */
   val PrBody = "PR_BODY"
 
-  /** "owner/repo". */
-  val Repo     = "REPO"
-  val PrNumber = "PR_NUMBER"
-  val HeadSha  = "HEAD_SHA"
-
-  /** e.g. "https://github.com". */
-  val ServerUrl = "SERVER_URL"
-
-  // ---- Outputs (file-based) ----
+  // ---- KEY=VALUE / comment artifact paths ----
   /** Path where `classify-changes` writes its KEY=VALUE output. */
   val ClassifyOutputFile = "CLASSIFY_OUTPUT_FILE"
 
@@ -39,22 +31,9 @@ object EnvNames:
     */
   val CommentOutputFile = "COMMENT_OUTPUT_FILE"
 
-  // ---- Run-link context ----
-  val ClassifyRunId  = "CLASSIFY_RUN_ID"
-  val ClassifyRunUrl = "CLASSIFY_RUN_URL"
-  val CiRunId        = "CI_RUN_ID"
-  val CiRunUrl       = "CI_RUN_URL"
-
-  // ---- Script tunables ----
-  /** Name of the workflow to search for when resolving the CI run link. */
-  val WorkflowName = "WORKFLOW_NAME"
-  val MaxAttempts  = "MAX_ATTEMPTS"
-  val RetryDelayMs = "RETRY_DELAY_MS"
-  val RunIdOutput  = "RUN_ID_OUTPUT"
-  val RunUrlOutput = "RUN_URL_OUTPUT"
-
-  /** Name of the GITHUB_OUTPUT key `fetch-pr-changed-files` writes to. */
-  val OutputName = "OUTPUT_NAME"
+  // ---- CI run context (embedded in the rendered comment) ----
+  val CiRunId  = "CI_RUN_ID"
+  val CiRunUrl = "CI_RUN_URL"
 
   // ---- GitHub Actions built-ins ----
   val GitHubOutput      = "GITHUB_OUTPUT"

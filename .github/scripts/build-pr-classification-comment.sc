@@ -13,16 +13,17 @@
 
 // Builds the Markdown body for the PR sticky comment that summarizes how the
 // `changes` job classified the diff and which suite groups will run / be
-// skipped.
+// skipped. Intended to be invoked from `ci.yml`'s `changes` job so the
+// resulting comment reflects the exact classification CI is using; the
+// `pr-classify-comment.yml` workflow then downloads the rendered body as
+// an artifact and posts it as a sticky PR comment.
 //
 // Inputs (env vars):
 //   CLASSIFY_OUTPUT_FILE  - KEY=VALUE file produced by classify-changes.sc.
 //   OVERRIDE_OUTPUT_FILE  - KEY=VALUE file produced by check-override-keywords.sc.
 //   COMMENT_OUTPUT_FILE   - Path to write the rendered Markdown to (default: comment.md).
-//   CLASSIFY_RUN_ID       - Run ID of the classification workflow (optional).
-//   CLASSIFY_RUN_URL      - URL to the classification workflow run (optional).
-//   CI_RUN_ID             - Run ID of the matching CI workflow run (optional).
-//   CI_RUN_URL            - URL to the matching CI workflow run, or a fallback.
+//   CI_RUN_ID             - Run ID of the CI workflow run (optional).
+//   CI_RUN_URL            - URL to the CI workflow run (optional).
 
 import prclassify.*
 
@@ -39,8 +40,6 @@ def overrideContributions(signals: Signals): Seq[(OverrideKey, Seq[SuiteGroup])]
 
 def renderComment(
   signals: Signals,
-  classifyRunId: Option[String],
-  classifyRunUrl: Option[String],
   ciRunId: Option[String],
   ciRunUrl: Option[String]
 ): String =
@@ -87,17 +86,8 @@ def renderComment(
     case Some(id) => Some(s"Full CI run: [#$id](${ciRunUrl.getOrElse("")})")
     case None     => ciRunUrl.map(url => s"Full CI run: $url")
 
-  val classifySection: Option[String] = classifyRunId.map: id =>
-    s"_Classified in run [#$id](${classifyRunUrl.getOrElse("")})._"
-
   val sections =
-    Seq(
-      Some(headerSection),
-      Some(suitesSection),
-      overridesSection,
-      ciRunSection,
-      classifySection
-    ).flatten
+    Seq(Some(headerSection), Some(suitesSection), overridesSection, ciRunSection).flatten
 
   sections.mkString("\n\n") + "\n"
 
@@ -111,10 +101,14 @@ val commentPath = Env.toAbsolutePath(
 
 val body = renderComment(
   signals,
-  classifyRunId = Env.opt(EnvNames.ClassifyRunId),
-  classifyRunUrl = Env.opt(EnvNames.ClassifyRunUrl),
   ciRunId = Env.opt(EnvNames.CiRunId),
   ciRunUrl = Env.opt(EnvNames.CiRunUrl)
+)
+println(
+  s"""Generated comment body:
+     |-----------------------
+     |$body
+     |-----------------------""".stripMargin
 )
 
 os.write.over(commentPath, body, createFolders = true)

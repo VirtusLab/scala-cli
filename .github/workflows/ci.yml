@@ -42,13 +42,35 @@ jobs:
       env:
         EVENT_NAME: ${{ github.event_name }}
         BASE_REF: ${{ github.event.pull_request.base.ref }}
+        CLASSIFY_OUTPUT_FILE: ${{ runner.temp }}/classify.env
       run: .github/scripts/classify-changes.sc
     - name: Check override keywords
       id: overrides
       env:
         EVENT_NAME: ${{ github.event_name }}
         PR_BODY: ${{ github.event.pull_request.body }}
+        OVERRIDE_OUTPUT_FILE: ${{ runner.temp }}/overrides.env
       run: .github/scripts/check-override-keywords.sc
+    # Build the sticky-comment body inside the CI run itself so the comment
+    # posted by pr-classify-comment.yml reflects the exact classification
+    # this CI run is using. The artifact is consumed by pr-classify-comment.yml.
+    - name: Build PR classification comment
+      if: github.event_name == 'pull_request'
+      env:
+        CLASSIFY_OUTPUT_FILE: ${{ runner.temp }}/classify.env
+        OVERRIDE_OUTPUT_FILE: ${{ runner.temp }}/overrides.env
+        COMMENT_OUTPUT_FILE: ${{ runner.temp }}/pr-classification-comment.md
+        CI_RUN_ID: ${{ github.run_id }}
+        CI_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: .github/scripts/build-pr-classification-comment.sc
+    - name: Upload PR classification comment artifact
+      if: github.event_name == 'pull_request'
+      uses: actions/upload-artifact@v7
+      with:
+        name: pr-classification-comment
+        path: ${{ runner.temp }}/pr-classification-comment.md
+        if-no-files-found: error
+        retention-days: 1
 
   unit-tests:
     needs: [changes]

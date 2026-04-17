@@ -1,12 +1,21 @@
 name: PR Classification Comment
 
-# Runs on pull_request_target so the job has write permissions even for
-# fork PRs (needed to post the comment). We deliberately do NOT check out
-# the PR head; we only read metadata via `gh api`, so running with base-ref
-# scripts is safe.
+# Posts a sticky PR comment describing how the `changes` job in ci.yml
+# classified the diff and which suite groups will run or be skipped.
+#
+# The comment body is produced by ci.yml itself (see the `changes` job's
+# `Build PR classification comment` step, which uploads the rendered
+# Markdown as the `pr-classification-comment` artifact). This workflow
+# only waits for that artifact to become available, downloads it, and
+# posts it.
+#
+# Using pull_request_target keeps the GITHUB_TOKEN write-capable for
+# fork PRs (required to post the comment). This workflow checks out the
+# BASE ref only (the default for pull_request_target) — never the PR
+# head — so the helper script we run is trusted base-repo code.
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened]
 
 concurrency:
   group: pr-classify-comment-${{ github.event.pull_request.number }}
@@ -18,64 +27,39 @@ permissions:
   actions: read
 
 jobs:
-  classify-and-comment:
+  post-comment:
     if: github.event.pull_request != null
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
-    - name: Checkout base ref
+    - name: Checkout base ref (for helper scripts)
       uses: actions/checkout@v6
       with:
-        ref: ${{ github.event.pull_request.base.sha }}
+        sparse-checkout: .github/scripts
+        sparse-checkout-cone-mode: false
         persist-credentials: false
-    - uses: coursier/cache-action@v8
-      with:
-        ignoreJob: true
-    - uses: VirtusLab/scala-cli-setup@v1
-      with:
-        jvm: "temurin:17"
-    - name: Fetch list of changed files
-      id: files
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
-        REPO: ${{ github.repository }}
-      run: .github/scripts/fetch-pr-changed-files.sc
-    - name: Classify changes
-      env:
-        EVENT_NAME: pull_request
-        BASE_REF: ${{ github.event.pull_request.base.ref }}
-        CHANGED_FILES_OVERRIDE: ${{ steps.files.outputs.files }}
-        CLASSIFY_OUTPUT_FILE: ${{ runner.temp }}/classify.env
-      run: .github/scripts/classify-changes.sc
-    - name: Check override keywords
-      env:
-        EVENT_NAME: pull_request
-        PR_BODY: ${{ github.event.pull_request.body }}
-        OVERRIDE_OUTPUT_FILE: ${{ runner.temp }}/overrides.env
-      run: .github/scripts/check-override-keywords.sc
-    - name: Resolve CI run link
-      id: ci_run
+
+    - name: Wait for CI changes job
+      id: wait
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         REPO: ${{ github.repository }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        SERVER_URL: ${{ github.server_url }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
-      run: .github/scripts/resolve-ci-run-link.sc
-    - name: Build comment body
-      env:
-        CLASSIFY_OUTPUT_FILE: ${{ runner.temp }}/classify.env
-        OVERRIDE_OUTPUT_FILE: ${{ runner.temp }}/overrides.env
-        COMMENT_OUTPUT_FILE: ${{ runner.temp }}/comment.md
-        CLASSIFY_RUN_ID: ${{ github.run_id }}
-        CLASSIFY_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        CI_RUN_ID: ${{ steps.ci_run.outputs.run_id }}
-        CI_RUN_URL: ${{ steps.ci_run.outputs.run_url }}
-      run: .github/scripts/build-pr-classification-comment.sc
+        MAX_ATTEMPTS: "40"  # 40 * 15s = 10 minutes
+        INTERVAL_SECONDS: "15"
+      run: .github/scripts/wait-for-ci-changes-job.sh
+
+    - name: Download classification comment artifact
+      uses: actions/download-artifact@v8
+      with:
+        name: pr-classification-comment
+        path: ${{ runner.temp }}
+        run-id: ${{ steps.wait.outputs.run_id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Post / update PR comment
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         header: scala-cli-changes-classification
         number: ${{ github.event.pull_request.number }}
-        path: ${{ runner.temp }}/comment.md
+        path: ${{ runner.temp }}/pr-classification-comment.md
