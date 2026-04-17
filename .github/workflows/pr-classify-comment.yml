@@ -40,24 +40,20 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
         REPO: ${{ github.repository }}
-      run: scala-cli run .github/scripts/fetch-pr-changed-files.sc
+      run: .github/scripts/fetch-pr-changed-files.sc
     - name: Classify changes
       env:
         EVENT_NAME: pull_request
         BASE_REF: ${{ github.event.pull_request.base.ref }}
         CHANGED_FILES_OVERRIDE: ${{ steps.files.outputs.files }}
         CLASSIFY_OUTPUT_FILE: ${{ runner.temp }}/classify.env
-      run: |
-        : > "$CLASSIFY_OUTPUT_FILE"
-        .github/scripts/classify-changes.sh
+      run: .github/scripts/classify-changes.sc
     - name: Check override keywords
       env:
         EVENT_NAME: pull_request
         PR_BODY: ${{ github.event.pull_request.body }}
         OVERRIDE_OUTPUT_FILE: ${{ runner.temp }}/overrides.env
-      run: |
-        : > "$OVERRIDE_OUTPUT_FILE"
-        .github/scripts/check-override-keywords.sh
+      run: .github/scripts/check-override-keywords.sc
     - name: Resolve CI run link
       id: ci_run
       env:
@@ -66,7 +62,7 @@ jobs:
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         SERVER_URL: ${{ github.server_url }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
-      run: scala-cli run .github/scripts/resolve-ci-run-link.sc
+      run: .github/scripts/resolve-ci-run-link.sc
     - name: Build comment body
       env:
         CLASSIFY_OUTPUT_FILE: ${{ runner.temp }}/classify.env
@@ -76,7 +72,7 @@ jobs:
         CLASSIFY_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         CI_RUN_ID: ${{ steps.ci_run.outputs.run_id }}
         CI_RUN_URL: ${{ steps.ci_run.outputs.run_url }}
-      run: scala-cli run .github/scripts/build-pr-classification-comment.sc
+      run: .github/scripts/build-pr-classification-comment.sc
     - name: Post / update PR comment
       uses: marocchino/sticky-pull-request-comment@v2
       with:
