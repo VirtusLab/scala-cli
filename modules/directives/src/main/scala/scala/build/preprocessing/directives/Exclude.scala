@@ -1,7 +1,6 @@
 package scala.build.preprocessing.directives
 
 import scala.build.EitherCps.either
-import scala.build.Ops.*
 import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.BuildException

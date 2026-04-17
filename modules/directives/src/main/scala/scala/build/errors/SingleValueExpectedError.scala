@@ -7,7 +7,7 @@ final class SingleValueExpectedError(
   val path: Either[String, os.Path]
 ) extends BuildException(
       s"Expected a single value for directive ${directive.key} " +
-        s"(got ${directive.values.length} values: ${directive.values.map(_.get().toString).mkString(", ")})",
+        s"(got ${directive.values.length} values: ${directive.values.map(_.stringValue).mkString(", ")})",
       positions = DirectiveUtil.positions(directive.values, path)
     ) {
   assert(directive.stringValuesCount > 1)
