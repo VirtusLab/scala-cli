@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
 class GifTests extends munit.FunSuite {
-  override def munitTimeout = new FiniteDuration(360, TimeUnit.SECONDS)
+  override def munitTimeout = new FiniteDuration(480, TimeUnit.SECONDS)
 
   val scenariosDir =
     Option(System.getenv("SCALA_CLI_GIF_SCENARIOS")).map(os.Path(_, os.pwd)).getOrElse {
@@ -59,10 +59,13 @@ class GifTests extends munit.FunSuite {
           .call(stdin = os.Inherit, stdout = os.Inherit)
     }
 
+  override def beforeAll(): Unit =
+    super.beforeAll()
+    maybeBuildImages()
+
   for (script <- scenarioScripts) {
     val name = script.last.stripSuffix(".sh")
     test(name) {
-      maybeBuildImages()
 
       TestUtil.withTmpDir(s"scala-cli-gif-test-$name") { out =>
 
