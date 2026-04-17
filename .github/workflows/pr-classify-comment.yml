@@ -1,0 +1,85 @@
+name: PR Classification Comment
+
+# Runs on pull_request_target so the job has write permissions even for
+# fork PRs (needed to post the comment). We deliberately do NOT check out
+# the PR head; we only read metadata via `gh api`, so running with base-ref
+# scripts is safe.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+
+concurrency:
+  group: pr-classify-comment-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: write
+  contents: read
+  actions: read
+
+jobs:
+  classify-and-comment:
+    if: github.event.pull_request != null
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+    - name: Checkout base ref
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+        persist-credentials: false
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      with:
+        jvm: "temurin:17"
+    - name: Fetch list of changed files
+      id: files
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+      run: scala-cli run .github/scripts/fetch-pr-changed-files.sc
+    - name: Classify changes
+      env:
+        EVENT_NAME: pull_request
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
+        CHANGED_FILES_OVERRIDE: ${{ steps.files.outputs.files }}
+        CLASSIFY_OUTPUT_FILE: ${{ runner.temp }}/classify.env
+      run: |
+        : > "$CLASSIFY_OUTPUT_FILE"
+        .github/scripts/classify-changes.sh
+    - name: Check override keywords
+      env:
+        EVENT_NAME: pull_request
+        PR_BODY: ${{ github.event.pull_request.body }}
+        OVERRIDE_OUTPUT_FILE: ${{ runner.temp }}/overrides.env
+      run: |
+        : > "$OVERRIDE_OUTPUT_FILE"
+        .github/scripts/check-override-keywords.sh
+    - name: Resolve CI run link
+      id: ci_run
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO: ${{ github.repository }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        SERVER_URL: ${{ github.server_url }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: scala-cli run .github/scripts/resolve-ci-run-link.sc
+    - name: Build comment body
+      env:
+        CLASSIFY_OUTPUT_FILE: ${{ runner.temp }}/classify.env
+        OVERRIDE_OUTPUT_FILE: ${{ runner.temp }}/overrides.env
+        COMMENT_OUTPUT_FILE: ${{ runner.temp }}/comment.md
+        CLASSIFY_RUN_ID: ${{ github.run_id }}
+        CLASSIFY_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        CI_RUN_ID: ${{ steps.ci_run.outputs.run_id }}
+        CI_RUN_URL: ${{ steps.ci_run.outputs.run_url }}
+      run: scala-cli run .github/scripts/build-pr-classification-comment.sc
+    - name: Post / update PR comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: scala-cli-changes-classification
+        number: ${{ github.event.pull_request.number }}
+        path: ${{ runner.temp }}/comment.md
