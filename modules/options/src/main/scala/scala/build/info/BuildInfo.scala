@@ -6,6 +6,13 @@ import scala.build.info.BuildInfo.escapeBackslashes
 import scala.build.internal.Constants
 import scala.build.options.*
 
+final case class NativeOptionsInfo(
+  scalaNativeVersion: String,
+  compilerPlugins: Seq[ExportDependencyFormat] = Nil,
+  runtimeDependencies: Seq[ExportDependencyFormat] = Nil,
+  toolingDependencies: Seq[ExportDependencyFormat] = Nil
+)
+
 final case class BuildInfo(
   projectVersion: Option[String] = None,
   scalaVersion: Option[String] = None,
@@ -14,6 +21,7 @@ final case class BuildInfo(
   scalaJsVersion: Option[String] = None,
   jsEsVersion: Option[String] = None,
   scalaNativeVersion: Option[String] = None,
+  nativeOptions: Option[NativeOptionsInfo] = None,
   mainClass: Option[String] = None,
   scopes: Map[String, ScopedBuildInfo] = Map.empty,
   scalaCliVersion: Option[String] = None
@@ -152,11 +160,35 @@ object BuildInfo {
     )
   }
 
-  private def scalaNativeSettings(options: ScalaNativeOptions): BuildInfo =
+  private def scalaNativeSettings(options: BuildOptions): BuildInfo = {
+    val nativeOptions  = options.scalaNativeOptions
+    val nativeVersion  = nativeOptions.finalVersion
+    val scalaParamsOpt = options.scalaParams.getOrElse(None)
+    val sv             = scalaParamsOpt.map(_.scalaVersion)
+      .orElse(options.scalaOptions.defaultScalaVersion)
+      .getOrElse(Constants.defaultScalaVersion)
+
+    val runtimeDeps = nativeOptions.nativeDependencies(sv)
+      .map(ExportDependencyFormat(_, scalaParamsOpt))
+    val compilerPluginDeps = nativeOptions.compilerPlugins
+      .map(ExportDependencyFormat(_, scalaParamsOpt))
+    val toolingDeps = Seq(ExportDependencyFormat(
+      "org.scala-native",
+      ArtifactId("scala-native-cli", "scala-native-cli_2.12"),
+      nativeVersion
+    ))
+
     BuildInfo(
       platform = Some(Platform.Native.repr),
-      scalaNativeVersion = Some(options.finalVersion)
+      scalaNativeVersion = Some(nativeVersion),
+      nativeOptions = Some(NativeOptionsInfo(
+        scalaNativeVersion = nativeVersion,
+        compilerPlugins = compilerPluginDeps,
+        runtimeDependencies = runtimeDeps,
+        toolingDependencies = toolingDeps
+      ))
     )
+  }
 
   private def jvmSettings(options: BuildOptions): BuildInfo =
     BuildInfo(
@@ -173,7 +205,7 @@ object BuildInfo {
       case Some(Platform.JS) =>
         scalaJsSettings(options.scalaJsOptions)
       case Some(Platform.Native) =>
-        scalaNativeSettings(options.scalaNativeOptions)
+        scalaNativeSettings(options)
       case _ => jvmSettings(options)
     }
 
