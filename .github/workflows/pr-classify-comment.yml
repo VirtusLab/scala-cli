@@ -1,0 +1,65 @@
+name: PR Classification Comment
+
+# Posts a sticky PR comment describing how the `changes` job in ci.yml
+# classified the diff and which suite groups will run or be skipped.
+#
+# The comment body is produced by ci.yml itself (see the `changes` job's
+# `Build PR classification comment` step, which uploads the rendered
+# Markdown as the `pr-classification-comment` artifact). This workflow
+# only waits for that artifact to become available, downloads it, and
+# posts it.
+#
+# Using pull_request_target keeps the GITHUB_TOKEN write-capable for
+# fork PRs (required to post the comment). This workflow checks out the
+# BASE ref only (the default for pull_request_target) — never the PR
+# head — so the helper script we run is trusted base-repo code.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: pr-classify-comment-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: write
+  contents: read
+  actions: read
+
+jobs:
+  post-comment:
+    if: github.event.pull_request != null
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+    - name: Checkout base ref (for helper scripts)
+      uses: actions/checkout@v6
+      with:
+        sparse-checkout: .github/scripts
+        sparse-checkout-cone-mode: false
+        persist-credentials: false
+
+    - name: Wait for CI changes job
+      id: wait
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO: ${{ github.repository }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        MAX_ATTEMPTS: "40"  # 40 * 15s = 10 minutes
+        INTERVAL_SECONDS: "15"
+      run: .github/scripts/wait-for-ci-changes-job.sh
+
+    - name: Download classification comment artifact
+      uses: actions/download-artifact@v8
+      with:
+        name: pr-classification-comment
+        path: ${{ runner.temp }}
+        run-id: ${{ steps.wait.outputs.run_id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Post / update PR comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: scala-cli-changes-classification
+        number: ${{ github.event.pull_request.number }}
+        path: ${{ runner.temp }}/pr-classification-comment.md
