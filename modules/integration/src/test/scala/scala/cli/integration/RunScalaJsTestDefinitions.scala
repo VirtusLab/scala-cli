@@ -452,6 +452,30 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       }
     }
 
+  if (TestUtil.fromPath("bun").isDefined)
+    test("Run with --wasm-runtime bun") {
+      val inputs = TestInputs(
+        os.rel / "Hello.scala" ->
+          """object Hello {
+            |  def main(args: Array[String]): Unit = println("Hello from Bun WASM!")
+            |}
+            |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "Hello.scala",
+          "--wasm",
+          "--wasm-runtime",
+          "bun",
+          extraOptions
+        ).call(cwd = root).out.trim()
+        expect(output == "Hello from Bun WASM!")
+      }
+    }
+
   test("WASM multiple source files") {
     val inputs = TestInputs(
       os.rel / "Greeter.scala" ->

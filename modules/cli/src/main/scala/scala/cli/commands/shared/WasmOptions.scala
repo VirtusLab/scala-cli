@@ -15,7 +15,7 @@ final case class WasmOptions(
 
   @Group(HelpGroup.Wasm.toString)
   @Tag(tags.experimental)
-  @HelpMessage("WASM runtime to use: node (default), deno")
+  @HelpMessage("WASM runtime to use: node (default), deno, bun")
     wasmRuntime: Option[String] = None
 )
 // format: on

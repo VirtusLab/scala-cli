@@ -508,6 +508,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                     Left(Runner.denoCommand(outputPath.toIO, args))
                   case WasmRuntime.Node =>
                     Left(Runner.jsCommand(outputPath.toIO, args, jsDom = false, emitWasm = true))
+                  case WasmRuntime.Bun =>
+                    Left(Runner.bunCommand(outputPath.toIO, args))
                 }
               else {
                 val process = value {
@@ -530,6 +532,13 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                         sourceMap = build.options.scalaJsOptions.emitSourceMaps,
                         esModule = esModule,
                         emitWasm = true
+                      )
+                    case WasmRuntime.Bun =>
+                      Runner.runBun(
+                        outputPath.toIO,
+                        args,
+                        logger,
+                        allowExecve = effectiveAllowExecve
                       )
                   }
                 }

@@ -10,6 +10,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using wasm")
 @DirectiveExamples("//> using wasmRuntime node")
 @DirectiveExamples("//> using wasmRuntime deno")
+@DirectiveExamples("//> using wasmRuntime bun")
 @DirectiveUsage(
   "//> using wasm|wasmRuntime _value_",
   """
@@ -17,7 +18,7 @@ import scala.cli.commands.SpecificationLevel
     |
     |`//> using wasm`
     |
-    |`//> using wasmRuntime` _node|deno_
+    |`//> using wasmRuntime` _node|deno|bun_
     |""".stripMargin
 )
 @DirectiveDescription("Add WebAssembly options")

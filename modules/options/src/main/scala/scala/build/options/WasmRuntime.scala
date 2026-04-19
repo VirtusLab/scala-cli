@@ -7,14 +7,16 @@ import java.util.Locale
   * JS-based runtimes (work now with Scala.js WASM backend):
   *   - Node: Uses Node.js (V8 engine) with JavaScript loader
   *   - Deno: Uses Deno (V8 engine) with ES module support
+  *   - Bun: Uses Bun (JavaScriptCore engine) with ES module support
   */
 sealed abstract class WasmRuntime(val name: String)
 
 object WasmRuntime {
   case object Node extends WasmRuntime("node")
   case object Deno extends WasmRuntime("deno")
+  case object Bun  extends WasmRuntime("bun")
 
-  val all: Seq[WasmRuntime] = Seq(Node, Deno)
+  val all: Seq[WasmRuntime] = Seq(Node, Deno, Bun)
 
   def default: WasmRuntime = Node
 
@@ -22,6 +24,7 @@ object WasmRuntime {
     s.trim.toLowerCase(Locale.ROOT) match {
       case "node" | "nodejs" => Some(Node)
       case "deno"            => Some(Deno)
+      case "bun"             => Some(Bun)
       case _                 => None
     }
 

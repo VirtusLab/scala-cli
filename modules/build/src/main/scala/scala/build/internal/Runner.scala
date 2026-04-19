@@ -435,6 +435,55 @@ object Runner {
     }
   }
 
+  def bunCommand(
+    entrypoint: File,
+    args: Seq[String]
+  ): Seq[String] = {
+    val bunPath = findInPath("bun").fold("bun")(_.toString)
+    Seq(bunPath, "run", entrypoint.getAbsolutePath) ++ args
+  }
+
+  def runBun(
+    entrypoint: File,
+    args: Seq[String],
+    logger: Logger,
+    allowExecve: Boolean = false
+  ): Either[BuildException, Process] = either {
+    val bunPath: String =
+      value(findInPath("bun")
+        .map(_.toString)
+        .toRight(BunNotFoundError()))
+
+    val command = Seq(bunPath, "run", entrypoint.getAbsolutePath) ++ args
+
+    if (allowExecve && Execve.available()) {
+      logger.log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
+      logger.debug("execve available")
+      Execve.execve(
+        command.head,
+        "bun" +: command.tail.toArray,
+        sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" }
+      )
+      sys.error("should not happen")
+    }
+    else {
+      logger.log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
+      new ProcessBuilder(command*)
+        .inheritIO()
+        .start()
+    }
+  }
+
   def runNative(
     launcher: File,
     args: Seq[String],
