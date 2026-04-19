@@ -716,7 +716,7 @@ Add WebAssembly options
 
 `//> using wasm`
 
-`//> using wasmRuntime` _node|deno_
+`//> using wasmRuntime` _node|deno|bun_
 
 
 #### Examples
@@ -725,6 +725,8 @@ Add WebAssembly options
 `//> using wasmRuntime node`
 
 `//> using wasmRuntime deno`
+
+`//> using wasmRuntime bun`
 
 ### Watch additional inputs
 

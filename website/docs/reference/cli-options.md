@@ -1995,7 +1995,7 @@ Enable WebAssembly output (Scala.js WASM backend). Uses Node.js by default. To s
 
 ### `--wasm-runtime`
 
-WASM runtime to use: node (default), deno
+WASM runtime to use: node (default), deno, bun
 
 ## Watch options
 
