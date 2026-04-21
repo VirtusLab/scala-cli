@@ -1,6 +1,7 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import coursier.version.Version
 
 import scala.cli.integration.TestUtil.removeAnsiColors
 import scala.util.Properties
@@ -313,9 +314,8 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
       titleStr = if (useDirectives) "with directives" else "with command line args"
       explicitNativeVersion <-
         Seq(Some(Constants.scalaNativeVersion04), Some(Constants.scalaNativeVersion05), None)
-      actualNativeVersion = explicitNativeVersion.getOrElse(Constants.scalaNativeVersion)
-      nativeVersionStr    = explicitNativeVersion.map(v => s"explicit: $v").getOrElse("default")
-      nativeVersionOpts   = explicitNativeVersion.toSeq.flatMap(v => Seq("--native-version", v))
+      nativeVersionStr  = explicitNativeVersion.map(v => s"explicit: $v").getOrElse("default")
+      nativeVersionOpts = explicitNativeVersion.toSeq.flatMap(v => Seq("--native-version", v))
       nativeVersionDirectiveStr =
         explicitNativeVersion
           .map(v => s"""//> using nativeVersion $v
@@ -327,8 +327,8 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
         else "default"
       typelevelToolkitVersion = "default"
     } {
-      // for the time being, typelevel toolkit does nto support Scala Native 0.5.x
-      if (!explicitNativeVersion.contains(Constants.scalaNativeVersion05))
+      // Typelevel toolkit 0.2.x is published for Scala Native 0.5+ only (no native0.4 artifacts).
+      if (!explicitNativeVersion.contains(Constants.scalaNativeVersion04))
         test(
           s"native ($nativeVersionStr) & typelevel toolkit ($typelevelToolkitVersion) $titleStr"
         ) {
@@ -361,7 +361,11 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
               val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
                 .call(cwd = root, stderr = os.Pipe)
               expect(result.out.trim() == expectedMessage)
-              if (actualNativeVersion != Constants.typelevelToolkitMaxScalaNative) {
+              if (
+                explicitNativeVersion.isEmpty &&
+                Version(Constants.scalaNativeVersion) >
+                  Version(Constants.typelevelToolkitMaxScalaNative)
+              ) {
                 val err = result.err.trim()
                 expect(
                   err.contains(
