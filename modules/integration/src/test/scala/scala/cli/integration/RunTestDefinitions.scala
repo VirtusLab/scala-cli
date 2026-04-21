@@ -1334,13 +1334,14 @@ abstract class RunTestDefinitions
 
   test("should add typelevel toolkit-test to classpath") {
     val inputs = TestInputs(
-      os.rel / "Hello.test.scala" ->
+      os.rel / "HelloSuite.test.scala" ->
         s"""|import cats.effect.*
-            |import munit.CatsEffectSuite
-            |class HelloSuite extends CatsEffectSuite {
-            |  // IO should be added to classpath by typelevel toolkit-test
+            |import weaver._
+            |
+            |object HelloSuite extends SimpleIOSuite {
             |  test("warm hello from the sun is coming") {
-            |    (IO("i love to live in the") *> IO("sun")).assertEquals("sun")
+            |    IO.println("typelevel-toolkit-test-ok") *>
+            |      (IO("i love to live in the") *> IO("sun")).map(expect.eql(_, "sun"))
             |  }
             |}""".stripMargin
     )
@@ -1354,7 +1355,7 @@ abstract class RunTestDefinitions
       )
         .call(cwd = root).out.text()
 
-      expect(output.contains("+")) // test succeeded
+      expect(output.contains("typelevel-toolkit-test-ok"))
     }
   }
 

@@ -137,7 +137,7 @@ object Deps {
     def scalaNative05                     = "0.5.11"
     def scalaNative                       = scalaNative05
     def maxScalaNativeForToolkit          = scalaNative05
-    def maxScalaNativeForTypelevelToolkit = scalaNative04
+    def maxScalaNativeForTypelevelToolkit = scalaNative05
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative05
     def scalaPackager                     = "0.2.1"
@@ -279,7 +279,7 @@ object Deps {
   val toolkitVersionForNative05 = toolkitVersion
   def toolkit                   = mvn"org.scala-lang:toolkit:$toolkitVersion"
   def toolkitTest               = mvn"org.scala-lang:toolkit-test:$toolkitVersion"
-  val typelevelToolkitVersion   = "0.1.29"
+  val typelevelToolkitVersion   = "0.2.0"
   def typelevelToolkit          = mvn"org.typelevel:toolkit:$typelevelToolkitVersion"
   // Lives at https://github.com/VirtusLab/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
