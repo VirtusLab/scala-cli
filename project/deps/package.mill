@@ -21,7 +21,7 @@ object Scala {
   def scala3NextPrefix = "3.8"
   def scala3Next       = s"$scala3NextPrefix.3" // the newest/next version of Scala
   def scala3NextAnnounced   = s"$scala3NextPrefix.2"  // the newest/next version of Scala that's been announced
-  def scala3NextRc          = "3.8.4-RC1" // the latest RC version of Scala Next
+  def scala3NextRc          = "3.8.4-RC2" // the latest RC version of Scala Next
   def scala3NextRcAnnounced = "3.8.4-RC1" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
@@ -134,7 +134,7 @@ object Deps {
     def scalaMeta                         = "4.15.2"
     def scalafmt                          = "3.11.0"
     def scalaNative04                     = "0.4.17"
-    def scalaNative05                     = "0.5.10"
+    def scalaNative05                     = "0.5.11"
     def scalaNative                       = scalaNative05
     def maxScalaNativeForToolkit          = scalaNative05
     def maxScalaNativeForTypelevelToolkit = scalaNative04
