@@ -591,6 +591,12 @@ Aliases: `--fmt-help`, `--help-fmt`, `--scalafmt-help`
 
 Show options for Scalafmt
 
+### `--help-wasm`
+
+Aliases: `--wasm-help`
+
+Show options for WebAssembly
+
 ## Install completions options
 
 Available in commands:
@@ -1974,6 +1980,22 @@ A github token used to access GitHub. Not needed in most cases.
 ### `--offline`
 
 Don't check for the newest available Scala CLI version upstream
+
+## Wasm options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--wasm`
+
+Enable WebAssembly output (Scala.js WASM backend). Uses Node.js by default. To show more options for WASM pass `--help-wasm`
+
+### `--wasm-runtime`
+
+WASM runtime to use: node (default), deno, bun
 
 ## Watch options
 

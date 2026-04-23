@@ -49,7 +49,13 @@ case class HelpGroupOptions(
   @Name("fmtHelp")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
-  helpScalafmt: Boolean = false
+  helpScalafmt: Boolean = false,
+  @Group(HelpGroup.Help.toString)
+  @HelpMessage("Show options for WebAssembly")
+  @Name("wasmHelp")
+  @Tag(tags.implementation)
+  @Tag(tags.inShortHelp)
+  helpWasm: Boolean = false
 ) {
 
   private def printHelpWithGroup(help: Help[?], helpFormat: HelpFormat, group: String): Nothing = {
@@ -68,6 +74,7 @@ case class HelpGroupOptions(
   def maybePrintGroupHelp(help: Help[?], helpFormat: HelpFormat): Unit = {
     if (helpJs) printHelpWithGroup(help, helpFormat, HelpGroup.ScalaJs.toString)
     else if (helpNative) printHelpWithGroup(help, helpFormat, HelpGroup.ScalaNative.toString)
+    else if (helpWasm) printHelpWithGroup(help, helpFormat, HelpGroup.Wasm.toString)
   }
 }
 

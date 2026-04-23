@@ -498,6 +498,14 @@ Aliases: `--fmt-help`, `--help-fmt`, `--scalafmt-help`
 
 Show options for Scalafmt
 
+### `--help-wasm`
+
+Aliases: `--wasm-help`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Show options for WebAssembly
+
 ## Install completions options
 
 Available in commands:
@@ -1450,6 +1458,16 @@ A github token used to access GitHub. Not needed in most cases.
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Don't check for the newest available Scala CLI version upstream
+
+## Wasm options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+*This section was automatically generated and may be empty if no options were available.*
 
 ## Watch options
 

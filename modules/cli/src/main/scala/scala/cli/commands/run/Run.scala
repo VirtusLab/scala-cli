@@ -18,7 +18,7 @@ import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.EnvVar
-import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, Scope}
+import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, Scope, WasmRuntime}
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package
 import scala.cli.commands.setupide.SetupIde
@@ -474,229 +474,304 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         if shouldLogCrossInfo then logger.debug(s"Running build for ${crossBuildParams.asString}")
         val build = builds.head
         either {
-          build.options.platform.value match {
-            case Platform.JS =>
-              val esModule =
-                build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
+          val wasmOpts = build.options.wasmOptions
 
-              val linkerConfig = builds.head.options.scalaJsOptions.linkerConfig(logger)
-              val jsDest       = {
-                val delete = scratchDirOpt.isEmpty
-                scratchDirOpt.foreach(os.makeDir.all(_))
-                os.temp(
-                  dir = scratchDirOpt.orNull,
-                  prefix = "main",
-                  suffix = if esModule then ".mjs" else ".js",
-                  deleteOnExit = delete
-                )
-              }
-              val res =
-                Package.linkJs(
-                  builds = builds,
-                  dest = jsDest,
-                  mainClassOpt = Some(mainClass),
-                  addTestInitializer = false,
-                  config = linkerConfig,
-                  fullOpt = value(build.options.scalaJsOptions.fullOpt),
-                  noOpt = build.options.scalaJsOptions.noOpt.getOrElse(false),
-                  logger = logger,
-                  scratchDirOpt = scratchDirOpt
-                ).map { outputPath =>
-                  val jsDom = build.options.scalaJsOptions.dom.getOrElse(false)
-                  if showCommand then Left(Runner.jsCommand(outputPath.toIO, args, jsDom = jsDom))
-                  else {
-                    val process = value {
+          // Check if WASM mode is requested
+          if wasmOpts.enabled then {
+            val runtime  = wasmOpts.runtime
+            val esModule = true // WASM backend uses ES modules
+            scratchDirOpt.foreach(os.makeDir.all(_))
+            val jsDest = os.temp(
+              dir = scratchDirOpt.orNull,
+              prefix = "main",
+              suffix = ".mjs",
+              deleteOnExit = scratchDirOpt.isEmpty
+            )
+
+            val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
+              .copy(emitWasm = true, moduleKind = ScalaJsLinkerConfig.ModuleKind.ESModule)
+
+            val res = Package.linkJs(
+              builds = builds,
+              dest = jsDest,
+              mainClassOpt = Some(mainClass),
+              addTestInitializer = false,
+              config = linkerConfig,
+              fullOpt = value(build.options.scalaJsOptions.fullOpt),
+              noOpt = build.options.scalaJsOptions.noOpt.getOrElse(false),
+              logger = logger,
+              scratchDirOpt = scratchDirOpt
+            ).map { outputPath =>
+              if showCommand then
+                runtime match {
+                  case WasmRuntime.Deno =>
+                    Left(Runner.denoCommand(outputPath.toIO, args))
+                  case WasmRuntime.Node =>
+                    Left(Runner.jsCommand(outputPath.toIO, args, jsDom = false, emitWasm = true))
+                  case WasmRuntime.Bun =>
+                    Left(Runner.bunCommand(outputPath.toIO, args))
+                }
+              else {
+                val process = value {
+                  runtime match {
+                    case WasmRuntime.Deno =>
+                      Runner.runDeno(
+                        outputPath.toIO,
+                        args,
+                        logger,
+                        allowExecve = effectiveAllowExecve,
+                        emitWasm = true
+                      )
+                    case WasmRuntime.Node =>
                       Runner.runJs(
                         outputPath.toIO,
                         args,
                         logger,
                         allowExecve = effectiveAllowExecve,
-                        jsDom = jsDom,
+                        jsDom = false,
                         sourceMap = build.options.scalaJsOptions.emitSourceMaps,
-                        esModule = esModule
+                        esModule = esModule,
+                        emitWasm = true
                       )
-                    }
-                    process.onExit().thenApply(_ => if os.exists(jsDest) then os.remove(jsDest))
-                    Right((process, None))
-                  }
-                }
-              value(res)
-            case Platform.Native =>
-              val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
-              val (pythonExecutable, pythonLibraryPaths, pythonExtraEnv) =
-                if setupPython then {
-                  val (exec, libPaths) = value {
-                    val python = value(createPythonInstance().orPythonDetectionError)
-                    val pythonPropertiesOrError = for {
-                      paths      <- python.nativeLibraryPaths
-                      executable <- python.executable
-                    } yield (Some(executable), paths)
-                    logger.debug(
-                      s"Python executable and native library paths: $pythonPropertiesOrError"
-                    )
-                    pythonPropertiesOrError.orPythonDetectionError
-                  }
-                  // Putting the workspace in PYTHONPATH, see
-                  // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
-                  // for context.
-                  (exec, libPaths, pythonPathEnv(builds.head.inputs.workspace))
-                }
-                else
-                  (None, Nil, Map())
-              // seems conda doesn't add the lib directory to LD_LIBRARY_PATH (see conda/conda#308),
-              // which prevents apps from finding libpython for example, so we update it manually here
-              val libraryPathsEnv =
-                if pythonLibraryPaths.isEmpty then Map.empty
-                else {
-                  val prependTo =
-                    if Properties.isWin then EnvVar.Misc.path.name
-                    else if Properties.isMac then EnvVar.Misc.dyldLibraryPath.name
-                    else EnvVar.Misc.ldLibraryPath.name
-                  val currentOpt     = Option(System.getenv(prependTo))
-                  val currentEntries = currentOpt
-                    .map(_.split(File.pathSeparator).toSet)
-                    .getOrElse(Set.empty)
-                  val additionalEntries = pythonLibraryPaths.filter(!currentEntries.contains(_))
-                  if additionalEntries.isEmpty then Map.empty
-                  else {
-                    val newValue = (additionalEntries.iterator ++ currentOpt.iterator).mkString(
-                      File.pathSeparator
-                    )
-                    Map(prependTo -> newValue)
-                  }
-                }
-              val programNameEnv =
-                pythonExecutable.fold(Map.empty)(py => Map("SCALAPY_PYTHON_PROGRAMNAME" -> py))
-              val extraEnv    = libraryPathsEnv ++ programNameEnv ++ pythonExtraEnv
-              val maybeResult = withNativeLauncher(
-                builds,
-                mainClass,
-                logger
-              ) { launcher =>
-                if showCommand then
-                  Left(
-                    extraEnv.toVector.sorted.map { case (k, v) => s"$k=$v" } ++
-                      Seq(launcher.toString) ++
-                      args
-                  )
-                else {
-                  val proc = Runner.runNative(
-                    launcher = launcher.toIO,
-                    args = args,
-                    logger = logger,
-                    allowExecve = effectiveAllowExecve,
-                    extraEnv = extraEnv
-                  )
-                  Right((proc, None))
-                }
-              }
-              value(maybeResult)
-            case Platform.JVM =>
-              def fwd(s: String): String  = s.replace('\\', '/')
-              def base(s: String): String = fwd(s).replaceAll(".*/", "")
-              runMode match {
-                case RunMode.Default =>
-                  val sourceFiles = builds.head.inputs.sourceFiles().map {
-                    case s: ScalaFile    => fwd(s.path.toString)
-                    case s: Script       => fwd(s.path.toString)
-                    case s: MarkdownFile => fwd(s.path.toString)
-                    case _: SbtFile      => ""
-                    case s: OnDisk       => fwd(s.path.toString)
-                    case null            => ""
-                  }.filter(_.nonEmpty).distinct
-                  val sources     = sourceFiles.mkString(File.pathSeparator)
-                  val sourceNames = sourceFiles.map(base).mkString(File.pathSeparator)
-
-                  val baseJavaProps = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
-                    ++ Seq(s"-Dscala.sources=$sources", s"-Dscala.source.names=$sourceNames")
-                  val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
-                  val (pythonJavaProps, pythonExtraEnv) =
-                    if setupPython then {
-                      val scalapyProps = value {
-                        val python       = value(createPythonInstance().orPythonDetectionError)
-                        val propsOrError = python.scalapyProperties
-                        logger.debug(s"Python Java properties: $propsOrError")
-                        propsOrError.orPythonDetectionError
-                      }
-                      val props = scalapyProps.toVector.sorted.map {
-                        case (k, v) => s"-D$k=$v"
-                      }
-                      // Putting the workspace in PYTHONPATH, see
-                      // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
-                      // for context.
-                      (props, pythonPathEnv(build.inputs.workspace))
-                    }
-                    else
-                      (Nil, Map.empty[String, String])
-                  val allJavaOpts = pythonJavaProps ++ baseJavaProps
-                  if showCommand then
-                    Left {
-                      Runner.jvmCommand(
-                        build.options.javaHome().value.javaCommand,
-                        allJavaOpts,
-                        builds.flatMap(_.fullClassPathMaybeAsJar(asJar)).distinct,
-                        mainClass,
+                    case WasmRuntime.Bun =>
+                      Runner.runBun(
+                        outputPath.toIO,
                         args,
+                        logger,
+                        allowExecve = effectiveAllowExecve
+                      )
+                  }
+                }
+                process.onExit().thenApply(_ => if os.exists(jsDest) then os.remove(jsDest))
+                Right((process, None))
+              }
+            }
+            value(res)
+          }
+          else
+            build.options.platform.value match {
+              case Platform.JS =>
+                val esModule =
+                  build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
+
+                val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
+                val jsDest       = {
+                  val delete = scratchDirOpt.isEmpty
+                  scratchDirOpt.foreach(os.makeDir.all(_))
+                  os.temp(
+                    dir = scratchDirOpt.orNull,
+                    prefix = "main",
+                    suffix = if esModule then ".mjs" else ".js",
+                    deleteOnExit = delete
+                  )
+                }
+                val res =
+                  Package.linkJs(
+                    builds = builds,
+                    dest = jsDest,
+                    mainClassOpt = Some(mainClass),
+                    addTestInitializer = false,
+                    config = linkerConfig,
+                    fullOpt = value(build.options.scalaJsOptions.fullOpt),
+                    noOpt = build.options.scalaJsOptions.noOpt.getOrElse(false),
+                    logger = logger,
+                    scratchDirOpt = scratchDirOpt
+                  ).map { outputPath =>
+                    val jsDom = build.options.scalaJsOptions.dom.getOrElse(false)
+                    if showCommand then Left(Runner.jsCommand(outputPath.toIO, args, jsDom = jsDom))
+                    else {
+                      val process = value {
+                        Runner.runJs(
+                          outputPath.toIO,
+                          args,
+                          logger,
+                          allowExecve = effectiveAllowExecve,
+                          jsDom = jsDom,
+                          sourceMap = build.options.scalaJsOptions.emitSourceMaps,
+                          esModule = esModule
+                        )
+                      }
+                      process.onExit().thenApply(_ => if os.exists(jsDest) then os.remove(jsDest))
+                      Right((process, None))
+                    }
+                  }
+                value(res)
+              case Platform.Native =>
+                val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
+                val (pythonExecutable, pythonLibraryPaths, pythonExtraEnv) =
+                  if setupPython then {
+                    val (exec, libPaths) = value {
+                      val python = value(createPythonInstance().orPythonDetectionError)
+                      val pythonPropertiesOrError = for {
+                        paths      <- python.nativeLibraryPaths
+                        executable <- python.executable
+                      } yield (Some(executable), paths)
+                      logger.debug(
+                        s"Python executable and native library paths: $pythonPropertiesOrError"
+                      )
+                      pythonPropertiesOrError.orPythonDetectionError
+                    }
+                    // Putting the workspace in PYTHONPATH, see
+                    // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
+                    // for context.
+                    (exec, libPaths, pythonPathEnv(builds.head.inputs.workspace))
+                  }
+                  else
+                    (None, Nil, Map())
+                // seems conda doesn't add the lib directory to LD_LIBRARY_PATH (see conda/conda#308),
+                // which prevents apps from finding libpython for example, so we update it manually here
+                val libraryPathsEnv =
+                  if pythonLibraryPaths.isEmpty then Map.empty
+                  else {
+                    val prependTo =
+                      if Properties.isWin then EnvVar.Misc.path.name
+                      else if Properties.isMac then EnvVar.Misc.dyldLibraryPath.name
+                      else EnvVar.Misc.ldLibraryPath.name
+                    val currentOpt     = Option(System.getenv(prependTo))
+                    val currentEntries = currentOpt
+                      .map(_.split(File.pathSeparator).toSet)
+                      .getOrElse(Set.empty)
+                    val additionalEntries = pythonLibraryPaths.filter(!currentEntries.contains(_))
+                    if additionalEntries.isEmpty then Map.empty
+                    else {
+                      val newValue = (additionalEntries.iterator ++ currentOpt.iterator).mkString(
+                        File.pathSeparator
+                      )
+                      Map(prependTo -> newValue)
+                    }
+                  }
+                val programNameEnv =
+                  pythonExecutable.fold(Map.empty)(py => Map("SCALAPY_PYTHON_PROGRAMNAME" -> py))
+                val extraEnv    = libraryPathsEnv ++ programNameEnv ++ pythonExtraEnv
+                val maybeResult = withNativeLauncher(
+                  builds,
+                  mainClass,
+                  logger
+                ) { launcher =>
+                  if showCommand then
+                    Left(
+                      extraEnv.toVector.sorted.map { case (k, v) => s"$k=$v" } ++
+                        Seq(launcher.toString) ++
+                        args
+                    )
+                  else {
+                    val proc = Runner.runNative(
+                      launcher = launcher.toIO,
+                      args = args,
+                      logger = logger,
+                      allowExecve = effectiveAllowExecve,
+                      extraEnv = extraEnv
+                    )
+                    Right((proc, None))
+                  }
+                }
+                value(maybeResult)
+              case Platform.JVM =>
+                def fwd(s: String): String  = s.replace('\\', '/')
+                def base(s: String): String = fwd(s).replaceAll(".*/", "")
+                runMode match {
+                  case RunMode.Default =>
+                    val sourceFiles = builds.head.inputs.sourceFiles().map {
+                      case s: ScalaFile    => fwd(s.path.toString)
+                      case s: Script       => fwd(s.path.toString)
+                      case s: MarkdownFile => fwd(s.path.toString)
+                      case s: OnDisk       => fwd(s.path.toString)
+                      case s               => s.getClass.getName
+                    }.filter(_.nonEmpty).distinct
+                    val sources     = sourceFiles.mkString(File.pathSeparator)
+                    val sourceNames = sourceFiles.map(base).mkString(File.pathSeparator)
+
+                    val baseJavaProps = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+                      ++ Seq(s"-Dscala.sources=$sources", s"-Dscala.source.names=$sourceNames")
+                    val setupPython =
+                      build.options.notForBloopOptions.doSetupPython.getOrElse(false)
+                    val (pythonJavaProps, pythonExtraEnv) =
+                      if setupPython then {
+                        val scalapyProps = value {
+                          val python       = value(createPythonInstance().orPythonDetectionError)
+                          val propsOrError = python.scalapyProperties
+                          logger.debug(s"Python Java properties: $propsOrError")
+                          propsOrError.orPythonDetectionError
+                        }
+                        val props = scalapyProps.toVector.sorted.map {
+                          case (k, v) => s"-D$k=$v"
+                        }
+                        // Putting the workspace in PYTHONPATH, see
+                        // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
+                        // for context.
+                        (props, pythonPathEnv(build.inputs.workspace))
+                      }
+                      else
+                        (Nil, Map.empty[String, String])
+                    val allJavaOpts = pythonJavaProps ++ baseJavaProps
+                    if showCommand then
+                      Left {
+                        Runner.jvmCommand(
+                          build.options.javaHome().value.javaCommand,
+                          allJavaOpts,
+                          builds.flatMap(_.fullClassPathMaybeAsJar(asJar)).distinct,
+                          mainClass,
+                          args,
+                          extraEnv = pythonExtraEnv,
+                          useManifest = build.options.notForBloopOptions.runWithManifest,
+                          scratchDirOpt = scratchDirOpt
+                        )
+                      }
+                    else {
+                      val proc = Runner.runJvm(
+                        javaCommand = build.options.javaHome().value.javaCommand,
+                        javaArgs = allJavaOpts,
+                        classPath = builds.flatMap(_.fullClassPathMaybeAsJar(asJar)).distinct,
+                        mainClass = mainClass,
+                        args = args,
+                        logger = logger,
+                        allowExecve = effectiveAllowExecve,
                         extraEnv = pythonExtraEnv,
                         useManifest = build.options.notForBloopOptions.runWithManifest,
                         scratchDirOpt = scratchDirOpt
                       )
+                      Right((proc, None))
                     }
-                  else {
-                    val proc = Runner.runJvm(
-                      javaCommand = build.options.javaHome().value.javaCommand,
-                      javaArgs = allJavaOpts,
-                      classPath = builds.flatMap(_.fullClassPathMaybeAsJar(asJar)).distinct,
-                      mainClass = mainClass,
-                      args = args,
-                      logger = logger,
-                      allowExecve = effectiveAllowExecve,
-                      extraEnv = pythonExtraEnv,
-                      useManifest = build.options.notForBloopOptions.runWithManifest,
-                      scratchDirOpt = scratchDirOpt
-                    )
-                    Right((proc, None))
-                  }
-                case mode: RunMode.SparkSubmit =>
-                  value {
-                    RunSpark.run(
-                      builds = builds,
-                      mainClass = mainClass,
-                      args = args,
-                      submitArgs = mode.submitArgs,
-                      logger = logger,
-                      allowExecve = effectiveAllowExecve,
-                      showCommand = showCommand,
-                      scratchDirOpt = scratchDirOpt
-                    )
-                  }
-                case mode: RunMode.StandaloneSparkSubmit =>
-                  value {
-                    RunSpark.runStandalone(
-                      builds = builds,
-                      mainClass = mainClass,
-                      args = args,
-                      submitArgs = mode.submitArgs,
-                      logger = logger,
-                      allowExecve = effectiveAllowExecve,
-                      showCommand = showCommand,
-                      scratchDirOpt = scratchDirOpt
-                    )
-                  }
-                case RunMode.HadoopJar =>
-                  value {
-                    RunHadoop.run(
-                      builds = builds,
-                      mainClass = mainClass,
-                      args = args,
-                      logger = logger,
-                      allowExecve = effectiveAllowExecve,
-                      showCommand = showCommand,
-                      scratchDirOpt = scratchDirOpt
-                    )
-                  }
-              }
-          }
+                  case mode: RunMode.SparkSubmit =>
+                    value {
+                      RunSpark.run(
+                        builds = builds,
+                        mainClass = mainClass,
+                        args = args,
+                        submitArgs = mode.submitArgs,
+                        logger = logger,
+                        allowExecve = effectiveAllowExecve,
+                        showCommand = showCommand,
+                        scratchDirOpt = scratchDirOpt
+                      )
+                    }
+                  case mode: RunMode.StandaloneSparkSubmit =>
+                    value {
+                      RunSpark.runStandalone(
+                        builds = builds,
+                        mainClass = mainClass,
+                        args = args,
+                        submitArgs = mode.submitArgs,
+                        logger = logger,
+                        allowExecve = effectiveAllowExecve,
+                        showCommand = showCommand,
+                        scratchDirOpt = scratchDirOpt
+                      )
+                    }
+                  case RunMode.HadoopJar =>
+                    value {
+                      RunHadoop.run(
+                        builds = builds,
+                        mainClass = mainClass,
+                        args = args,
+                        logger = logger,
+                        allowExecve = effectiveAllowExecve,
+                        showCommand = showCommand,
+                        scratchDirOpt = scratchDirOpt
+                      )
+                    }
+                }
+            }
         }
       }
       .sequence
