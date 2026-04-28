@@ -107,11 +107,41 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
 
       val jsonContents = readJson(exportJsonProc.out.text())
 
+      val nativeVersion        = Constants.scalaNativeVersion
       val expectedJsonContents =
         s"""{
            |"scalaVersion":"3.2.2",
            |"platform":"Native",
-           |"scalaNativeVersion":"${Constants.scalaNativeVersion}",
+           |"scalaNativeVersion":"$nativeVersion",
+           |"nativeOptions": {
+           |  "scalaNativeVersion":"$nativeVersion",
+           |  "compilerPlugins": [
+           |    {
+           |      "groupId":"org.scala-native",
+           |      "artifactId":{"name":"nscplugin","fullName":"nscplugin_3.2.2"},
+           |      "version":"$nativeVersion"
+           |    }
+           |  ],
+           |  "runtimeDependencies": [
+           |    {
+           |      "groupId":"org.scala-native",
+           |      "artifactId":{"name":"javalib_native0.5","fullName":"javalib_native0.5_3"},
+           |      "version":"$nativeVersion"
+           |    },
+           |    {
+           |      "groupId":"org.scala-native",
+           |      "artifactId":{"name":"scala3lib_native0.5","fullName":"scala3lib_native0.5_3"},
+           |      "version":"3.2.2+$nativeVersion"
+           |    }
+           |  ],
+           |  "toolingDependencies": [
+           |    {
+           |      "groupId":"org.scala-native",
+           |      "artifactId":{"name":"scala-native-cli","fullName":"scala-native-cli_2.12"},
+           |      "version":"$nativeVersion"
+           |    }
+           |  ]
+           |},
            |"scopes": {
            | "main": {
            |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
