@@ -42,6 +42,7 @@ class ScalaCliCommands(
     new HelpCmd(help),
     installcompletions.InstallCompletions,
     installhome.InstallHome,
+    listtargets.ListTargets,
     `new`.New,
     repl.Repl,
     package0.Package,
