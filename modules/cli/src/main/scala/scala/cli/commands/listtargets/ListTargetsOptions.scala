@@ -16,7 +16,7 @@ object ListTargetsOptions {
 
   private val helpHeader =
     "Print the full matrix of declared build targets (platform x Scala version) as JSON."
-  val helpMessage: String = helpHeader
+  val helpMessage: String         = helpHeader
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

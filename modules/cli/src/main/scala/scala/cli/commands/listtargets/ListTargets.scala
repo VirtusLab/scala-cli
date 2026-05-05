@@ -14,7 +14,7 @@ import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 
 object ListTargets extends ScalaCommand[ListTargetsOptions] {
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
-  override def names: List[List[String]] = List(
+  override def names: List[List[String]]                   = List(
     List("list-targets")
   )
   override def sharedOptions(options: ListTargetsOptions): Option[SharedOptions] =
@@ -47,7 +47,7 @@ object ListTargets extends ScalaCommand[ListTargetsOptions] {
 
   private def targetOf(options: BuildOptions): TargetEntry = {
     val platform = options.platform.value.repr
-    val sv = options.scalaParams.toOption.flatten.map(_.scalaVersion)
+    val sv       = options.scalaParams.toOption.flatten.map(_.scalaVersion)
       .orElse(options.scalaOptions.scalaVersion.flatMap(_.versionOpt))
       .orElse(options.scalaOptions.defaultScalaVersion)
     TargetEntry(platform, sv)
