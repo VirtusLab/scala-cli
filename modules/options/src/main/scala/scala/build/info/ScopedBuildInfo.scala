@@ -5,7 +5,8 @@ import coursier.maven.MavenRepository
 import coursier.{Dependency, LocalRepositories, Repositories}
 import dependency.AnyDependency
 
-import scala.build.options.{BuildOptions, ConfigMonoid}
+import scala.build.Logger
+import scala.build.options.{BuildOptions, ConfigMonoid, Platform, Scope}
 
 final case class ScopedBuildInfo(
   sources: Seq[String] = Nil,
@@ -60,6 +61,47 @@ object ScopedBuildInfo {
       customJarsSettings(options)
     )
       .reduceLeft(_ + _)
+
+  /** Build a [[ScopedBuildInfo]] for [[scope]] and inject the JVM test-runner dependency that
+    * scala-cli silently adds at test time, so consumers of `export --json` see the same classpath
+    * scala-cli would use.
+    *
+    * Injection conditions match [[scala.build.Artifacts.apply]]: scope is Test, the scope is
+    * non-empty (has sources), the platform is JVM, and the build has a Scala version (i.e. is not
+    * Java-only).
+    */
+  def forScope(
+    options: BuildOptions,
+    sourcePaths: Seq[String],
+    scope: Scope,
+    logger: Logger
+  ): ScopedBuildInfo = {
+    val base = apply(options, sourcePaths)
+    if scope == Scope.Test && sourcePaths.nonEmpty then
+      withJvmTestRunner(base, options, logger)
+    else base
+  }
+
+  private def withJvmTestRunner(
+    base: ScopedBuildInfo,
+    options: BuildOptions,
+    logger: Logger
+  ): ScopedBuildInfo = {
+    val isJvm        = options.platform.value == Platform.JVM
+    val scalaParams  = options.scalaParams.toOption.flatten
+    val isScalaBuild = scalaParams.nonEmpty
+    if isJvm && isScalaBuild then {
+      val params  = scalaParams.get
+      val dep     = scala.build.Artifacts.jvmTestRunnerExportDependency(
+        scalaVersion = params.scalaVersion,
+        scalaBinaryVersion = params.scalaBinaryVersion,
+        jvmVersion = options.javaHome().value.version,
+        logger = logger
+      )
+      base.copy(dependencies = base.dependencies :+ dep)
+    }
+    else base
+  }
 
   private def scalacOptionsSettings(options: BuildOptions): ScopedBuildInfo =
     ScopedBuildInfo(scalacOptions = options.scalaOptions.scalacOptions.toSeq.map(_.value.value))

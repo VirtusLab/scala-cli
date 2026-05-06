@@ -212,6 +212,139 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
     }
   }
 
+  test("export json injects JVM test-runner into test scope") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("hi")
+          |}
+          |""".stripMargin,
+      os.rel / "unit.test.scala" ->
+        s"""//> using dep org.scalameta::munit::${Constants.munitVersion}
+           |
+           |class MyTest extends munit.FunSuite { test("ok") { assert(true) } }
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val exportJsonProc =
+        os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--jvm", "temurin:17")
+          .call(cwd = root)
+      val jsonContents     = readJson(exportJsonProc.out.text())
+      val expectedFullName = s"test-runner_${Constants.scala3NextPrefix.split('.').head}"
+      // The test scope should include both munit and the scala-cli test-runner.
+      expect(jsonContents.contains("\"name\":\"test-runner\""))
+      expect(jsonContents.contains(s"\"fullName\":\"$expectedFullName\""))
+      expect(jsonContents.contains("\"groupId\":\"org.virtuslab.scala-cli\""))
+      expect(jsonContents.contains("\"name\":\"munit\""))
+    }
+  }
+
+  test("export json includes JVM test-runner even when no test framework dep is declared") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("hi")
+          |}
+          |""".stripMargin,
+      os.rel / "unit.test.scala" ->
+        """class MyTest { def foo() = () }
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val exportJsonProc =
+        os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--jvm", "temurin:17")
+          .call(cwd = root)
+      val jsonContents = readJson(exportJsonProc.out.text())
+      expect(jsonContents.contains("\"name\":\"test-runner\""))
+      expect(jsonContents.contains("\"groupId\":\"org.virtuslab.scala-cli\""))
+    }
+  }
+
+  test("export json includes legacy JVM test-runner for Scala 2.12") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("hi")
+          |}
+          |""".stripMargin,
+      os.rel / "unit.test.scala" ->
+        """class MyTest { def foo() = () }
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val exportJsonProc =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "export",
+          "--json",
+          ".",
+          "--jvm",
+          "temurin:17",
+          "--scala",
+          Constants.scala212
+        )
+          .call(cwd = root)
+      val jsonContents = readJson(exportJsonProc.out.text())
+      expect(jsonContents.contains("\"fullName\":\"test-runner_2.12\""))
+      expect(jsonContents.contains("\"groupId\":\"org.virtuslab.scala-cli\""))
+      expect(jsonContents.contains(s"\"version\":\"${Constants.runnerScala2LegacyVersion}\""))
+    }
+  }
+
+  test("export json includes legacy JVM test-runner for Scala 2.13") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("hi")
+          |}
+          |""".stripMargin,
+      os.rel / "unit.test.scala" ->
+        """class MyTest { def foo() = () }
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val exportJsonProc =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "export",
+          "--json",
+          ".",
+          "--jvm",
+          "temurin:17",
+          "--scala",
+          Constants.scala213
+        )
+          .call(cwd = root)
+      val jsonContents = readJson(exportJsonProc.out.text())
+      expect(jsonContents.contains("\"fullName\":\"test-runner_2.13\""))
+      expect(jsonContents.contains("\"groupId\":\"org.virtuslab.scala-cli\""))
+      expect(jsonContents.contains(s"\"version\":\"${Constants.runnerScala2LegacyVersion}\""))
+    }
+  }
+
+  test("export json does not inject test-runner for Native target") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("hi")
+          |}
+          |""".stripMargin,
+      os.rel / "unit.test.scala" ->
+        """class MyTest { def foo() = () }
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val exportJsonProc =
+        os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--native")
+          .call(cwd = root)
+      val jsonContents = readJson(exportJsonProc.out.text())
+      expect(!jsonContents.contains("\"name\":\"test-runner\""))
+      expect(!jsonContents.contains("org.virtuslab.scala-cli"))
+    }
+  }
+
   test("export json with js") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
