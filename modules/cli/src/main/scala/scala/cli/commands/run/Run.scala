@@ -552,7 +552,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             build.options.platform.value match {
               case Platform.JS =>
                 val esModule =
-                  build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
+                  build.options.scalaJsOptions.moduleKindStr.exists(m =>
+                    m == "es" || m == "esmodule"
+                  )
 
                 val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
                 val jsDest       = {
