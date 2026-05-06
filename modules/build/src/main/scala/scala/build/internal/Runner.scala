@@ -210,24 +210,26 @@ object Runner {
       case _: Exception => None
     }
 
-  // Node 24+ (V8 13+) has wasm-exnref enabled by default; older versions need --experimental-wasm-exnref.
-  private def nodeNeedsWasmFlag: Boolean =
-    nodeMajorVersion.forall(_ < 24) // true if unknown or < 24
+  // Pre-V8 13.x runtimes need --experimental-wasm-exnref for the Scala.js WASM exception model.
+  // V8 13.x ships in Node 25+ (Node 24 is still on V8 12.x where exnref is gated behind the flag),
+  // so until the default flips we always pass the flag when emitWasm is true.
+  private def nodeNeedsWasmFlag: Boolean = true
 
-  // Detects the major version of Deno on PATH; cached for the JVM lifetime (lazy val).
-  // Returns None if deno is not found or version cannot be parsed.
-  private lazy val denoMajorVersion: Option[Int] =
+  // Deno 2.x bundles V8 12.x where wasm-exnref is gated behind a flag; symmetrical reasoning to Node.
+  // We always set DENO_V8_FLAGS=--experimental-wasm-exnref on emitWasm until V8 13.x lands in Deno.
+  private def denoNeedsWasmFlag: Boolean = true
+
+  // Detects the major version of Bun on PATH; cached for the JVM lifetime (lazy val).
+  // Returns None if bun is not found or version cannot be parsed.
+  private lazy val bunMajorVersion: Option[Int] =
     try {
-      val process = new ProcessBuilder("deno", "--version")
+      val process = new ProcessBuilder("bun", "--version")
         .redirectErrorStream(true)
         .start()
       val output = new String(process.getInputStream.readAllBytes()).trim
       process.waitFor()
-      // Deno version format: "deno 2.1.0 (release, aarch64-apple-darwin)\nv8 13.x\ntypescript 5.x"
-      // Extract major from first line
-      val firstLine  = output.linesIterator.nextOption().getOrElse("")
-      val versionStr = firstLine.stripPrefix("deno ").takeWhile(c => c.isDigit || c == '.')
-      versionStr.takeWhile(_.isDigit) match {
+      // Bun version format: "1.1.30" -> extract 1
+      output.takeWhile(_.isDigit) match {
         case s if s.nonEmpty => Some(s.toInt)
         case _               => None
       }
@@ -235,10 +237,6 @@ object Runner {
     catch {
       case _: Exception => None
     }
-
-  // Deno 2.x+ bundles V8 13+ which has wasm-exnref enabled by default; no flag needed.
-  private def denoNeedsWasmFlag: Boolean =
-    denoMajorVersion.forall(_ < 2) // true if unknown or < 2
 
   private def endsWithCaseInsensitive(s: String, suffix: String): Boolean =
     s.length >= suffix.length &&
@@ -302,6 +300,10 @@ object Runner {
       value(findInPath("node")
         .map(_.toString)
         .toRight(NodeNotFoundError()))
+    if (emitWasm)
+      nodeMajorVersion.foreach { v =>
+        if (v < 22) value(Left(new NodeVersionTooOldForWasmError(v)))
+      }
     val nodeFlags = if (emitWasm && nodeNeedsWasmFlag) List("--experimental-wasm-exnref") else Nil
     if !jsDom && allowExecve && Execve.available() then {
       val command = Seq(nodePath) ++ nodeFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
@@ -453,6 +455,9 @@ object Runner {
       value(findInPath("bun")
         .map(_.toString)
         .toRight(BunNotFoundError()))
+    bunMajorVersion.foreach { v =>
+      if (v < 1) value(Left(new BunVersionTooOldForWasmError(v)))
+    }
 
     val command = Seq(bunPath, "run", entrypoint.getAbsolutePath) ++ args
 
