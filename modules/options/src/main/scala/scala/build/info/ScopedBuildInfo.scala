@@ -91,8 +91,8 @@ object ScopedBuildInfo {
     val scalaParams  = options.scalaParams.toOption.flatten
     val isScalaBuild = scalaParams.nonEmpty
     if isJvm && isScalaBuild then {
-      val params  = scalaParams.get
-      val dep     = scala.build.Artifacts.jvmTestRunnerExportDependency(
+      val params = scalaParams.get
+      val dep    = scala.build.Artifacts.jvmTestRunnerExportDependency(
         scalaVersion = params.scalaVersion,
         scalaBinaryVersion = params.scalaBinaryVersion,
         jvmVersion = options.javaHome().value.version,
