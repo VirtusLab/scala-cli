@@ -210,6 +210,13 @@ final case class SharedOptions(
   @HelpMessage("Force object wrapper for scripts")
   @Tag(tags.experimental)
     objectWrapper: Option[Boolean] = None,
+  @Group(HelpGroup.Scala.toString)
+  @HelpMessage(
+    "Automatically generate BSP configuration in `.bsp/` when running build commands. Enabled by default."
+  )
+  @Name("auto-setup-bsp")
+  @Tag(tags.implementation)
+    autoSetupIde: Option[Boolean] = None,
   @Recurse
     scope: ScopeOptions = ScopeOptions(),
 
@@ -231,6 +238,14 @@ final case class SharedOptions(
   def logger: Logger                 = logging.logger
   override def global: GlobalOptions =
     GlobalOptions(logging = logging, globalSuppress = suppress.global, powerOptions = powerOptions)
+  def autoSetupIdeEnabled: Boolean =
+    autoSetupIde
+      .orElse(
+        ConfigDbUtils.getLatestConfigDbOpt(logger)
+          .flatMap(_.get(Keys.autoSetupIde).toOption)
+          .flatten
+      )
+      .getOrElse(true)
 
   private def scalaJsOptions(opts: ScalaJsOptions): options.ScalaJsOptions = {
     import opts._

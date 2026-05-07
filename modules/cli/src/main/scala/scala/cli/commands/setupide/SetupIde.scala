@@ -93,17 +93,19 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     previousCommandName: Option[String],
     args: Seq[String]
   ): Unit =
-    writeBspConfiguration(
-      SetupIdeOptions(shared = options),
-      inputs,
-      buildOptions,
-      previousCommandName,
-      args
-    ) match {
-      case Left(ex) =>
-        logger.debug(s"Ignoring error during setup-ide: ${ex.message}")
-      case Right(_) =>
-    }
+    if options.autoSetupIdeEnabled then
+      writeBspConfiguration(
+        SetupIdeOptions(shared = options),
+        inputs,
+        buildOptions,
+        previousCommandName,
+        args
+      ) match {
+        case Left(ex) =>
+          logger.debug(s"Ignoring error during setup-ide: ${ex.message}")
+        case Right(_) =>
+      }
+    else logger.debug("Auto setup-ide is disabled, skipping .bsp generation.")
 
   override def sharedOptions(options: SetupIdeOptions): Option[SharedOptions] = Some(options.shared)
 

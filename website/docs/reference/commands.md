@@ -53,6 +53,7 @@ Available keys:
   - httpProxy.address                              HTTP proxy address.
   - httpProxy.password                             HTTP proxy password (used for authentication).
   - httpProxy.user                                 HTTP proxy user (used for authentication).
+  - ide.auto-setup                                 Globally controls whether the BSP configuration in `.bsp/` is generated automatically by build commands. Enabled by default.
   - interactive                                    Globally enables interactive mode (the '--interactive' flag).
   - interactive-was-suggested                      Setting indicating if the global interactive mode was already suggested.
   - java.properties                                Java properties for Scala CLI's execution.

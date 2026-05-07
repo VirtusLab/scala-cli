@@ -212,6 +212,34 @@ abstract class CompileTestDefinitions
     }
   }
 
+  test("compile auto setup-ide enabled by default") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("Hello")
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val bspEntry = root / ".bsp" / "scala-cli.json"
+      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
+      assert(os.exists(bspEntry))
+    }
+  }
+
+  test("compile can disable auto setup-ide via --auto-setup-ide=false") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("Hello")
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val bspEntry = root / ".bsp" / "scala-cli.json"
+      os.proc(TestUtil.cli, "compile", extraOptions, ".", "--auto-setup-ide=false").call(cwd = root)
+      assert(!os.exists(bspEntry))
+    }
+  }
+
   test("exit code") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->

@@ -46,6 +46,31 @@ class ConfigTests extends ScalaCliSuite {
     }
   }
 
+  test("ide.auto-setup controls implicit bsp generation for build commands") {
+    val configFile = os.rel / "config" / "config.json"
+    val configEnv  = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("Hello")
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val bspEntry = root / ".bsp" / "scala-cli.json"
+
+      os.proc(TestUtil.cli, "config", "ide.auto-setup", "false").call(cwd = root, env = configEnv)
+
+      os.proc(TestUtil.cli, "compile", ".").call(cwd = root, env = configEnv)
+      assert(!os.exists(bspEntry))
+
+      os.proc(TestUtil.cli, "compile", "--auto-setup-ide=true", ".").call(
+        cwd = root,
+        env = configEnv
+      )
+      assert(os.exists(bspEntry))
+    }
+  }
+
   test("password") {
     val configFile = os.rel / "config" / "config.json"
     val configEnv  = Map("SCALA_CLI_CONFIG" -> configFile.toString)

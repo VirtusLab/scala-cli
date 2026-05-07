@@ -123,6 +123,38 @@ abstract class RunTestDefinitions
     }
   }
 
+  test("run auto setup-ide enabled by default") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("Hello from run")
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val bspEntry = root / ".bsp" / "scala-cli.json"
+      val res      = os.proc(TestUtil.cli, "run", extraOptions, ".").call(cwd = root)
+      expect(res.out.trim() == "Hello from run")
+      assert(os.exists(bspEntry))
+    }
+  }
+
+  test("run can disable auto setup-ide via --auto-setup-ide=false") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("Hello from run")
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val bspEntry = root / ".bsp" / "scala-cli.json"
+      val res = os.proc(TestUtil.cli, "run", extraOptions, ".", "--auto-setup-ide=false").call(cwd =
+        root
+      )
+      expect(res.out.trim() == "Hello from run")
+      assert(!os.exists(bspEntry))
+    }
+  }
+
   test("Debugging") {
     val inputs = TestInputs(
       os.rel / "Foo.scala" ->

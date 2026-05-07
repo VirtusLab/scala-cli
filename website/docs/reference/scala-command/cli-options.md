@@ -1164,6 +1164,14 @@ Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Sc
 
 Exclude sources
 
+### `--auto-setup-ide`
+
+Aliases: `--auto-setup-bsp`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Automatically generate BSP configuration in `.bsp/` when running build commands. Enabled by default.
+
 ### [deprecated] `--deprecated-test-option`
 
 **Deprecated**: For testing purposes only.

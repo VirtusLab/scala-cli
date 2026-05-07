@@ -234,6 +234,27 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
+  test("test auto setup-ide enabled by default") {
+    successfulTestInputs().fromRoot { root =>
+      val bspEntry = root / ".bsp" / "scala-cli.json"
+      val output   = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
+      expect(output.contains("Hello from tests"))
+      assert(os.exists(bspEntry))
+    }
+  }
+
+  test("test can disable auto setup-ide via --auto-setup-ide=false") {
+    successfulTestInputs().fromRoot { root =>
+      val bspEntry = root / ".bsp" / "scala-cli.json"
+      val output   =
+        os.proc(TestUtil.cli, "test", extraOptions, ".", "--auto-setup-ide=false").call(cwd = root)
+          .out
+          .text()
+      expect(output.contains("Hello from tests"))
+      assert(!os.exists(bspEntry))
+    }
+  }
+
   if (!Properties.isMac || !TestUtil.isCI)
     test("--watching with --watch re-runs tests on external file change") {
       val sourceFile   = os.rel / "MyTests.test.scala"

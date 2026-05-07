@@ -1713,6 +1713,12 @@ Exclude sources
 
 Force object wrapper for scripts
 
+### `--auto-setup-ide`
+
+Aliases: `--auto-setup-bsp`
+
+Automatically generate BSP configuration in `.bsp/` when running build commands. Enabled by default.
+
 ### [deprecated] `--deprecated-test-option`
 
 **Deprecated**: For testing purposes only.

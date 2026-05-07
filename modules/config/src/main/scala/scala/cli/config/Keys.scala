@@ -54,6 +54,13 @@ object Keys {
     specificationLevel = SpecificationLevel.IMPLEMENTATION,
     description = "Globally enables actionable diagnostics. Enabled by default."
   )
+  val autoSetupIde = new Key.BooleanEntry(
+    prefix = Seq("ide"),
+    name = "auto-setup",
+    specificationLevel = SpecificationLevel.IMPLEMENTATION,
+    description =
+      "Globally controls whether the BSP configuration in `.bsp/` is generated automatically by build commands. Enabled by default."
+  )
   val interactive = new Key.BooleanEntry(
     prefix = Seq.empty,
     name = "interactive",
@@ -184,6 +191,7 @@ object Keys {
 
   def all: Seq[Key[?]] = Seq[Key[?]](
     actions,
+    autoSetupIde,
     defaultRepositories,
     deprecatedTestKey,
     ghToken,
