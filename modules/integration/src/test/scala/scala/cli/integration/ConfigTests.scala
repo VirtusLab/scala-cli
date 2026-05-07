@@ -492,6 +492,42 @@ class ConfigTests extends ScalaCliSuite {
     }
   }
 
+  test("adding the same credentials twice is a no-op and warns") {
+    val configFile = os.rel / "config" / "config.json"
+    val configEnv  = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+    val host       = "duplicate.test.credentials.example"
+    val keys       = List("repositories.credentials", "publish.credentials")
+    TestInputs.empty.fromRoot { root =>
+      for (key <- keys) {
+        def addProc() = os.proc(
+          TestUtil.cli,
+          "--power",
+          "config",
+          key,
+          host,
+          "value:dup-user",
+          "value:dup-pass",
+          "--password-value"
+        )
+        addProc().call(cwd = root, env = configEnv)
+        val second = addProc().call(cwd = root, env = configEnv, mergeErrIntoOut = true)
+        expect(second.exitCode == 0)
+        val combined = second.out.trim()
+        expect(combined.contains("identical"))
+        expect(combined.contains("already configured"))
+        expect(combined.contains(host))
+        val credsFromConfig = os.proc(TestUtil.cli, "--power", "config", key)
+          .call(cwd = root, env = configEnv)
+          .out.trim()
+        if key == "publish.credentials" then
+          val lines = credsFromConfig.linesIterator.map(_.trim).filter(_.nonEmpty).toSeq
+          expect(lines.length == 1)
+        else
+          expect(credsFromConfig.linesIterator.count(_.contains(s"host=$host")) == 1)
+      }
+    }
+  }
+
   for (
     (entryType, key, valuesPlural, invalidValue) <- Seq(
       ("boolean", "power", Seq("true", "false", "true"), "true."),

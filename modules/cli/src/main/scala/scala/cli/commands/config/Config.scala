@@ -6,6 +6,7 @@ import caseapp.core.help.HelpFormat
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
 import scala.build.internal.util.WarningMessages
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.FeatureType
 import scala.build.{Directories, Logger}
 import scala.cli.commands.publish.ConfigUtil.*
@@ -14,6 +15,7 @@ import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.*
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
+
 object Config extends ScalaCommand[ConfigOptions] {
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.MUST
 
@@ -146,17 +148,9 @@ object Config extends ScalaCommand[ConfigOptions] {
                   }
                 }
               else {
-                def parseSecret(input: String): Either[BuildException, Option[PasswordOption]] =
-                  if (input.trim.isEmpty) Right(None)
-                  else
-                    PasswordOption.parse(input)
-                      .left.map(err =>
-                        new MalformedCliInputError(s"Malformed secret value '$input': $err")
-                      )
-                      .map(Some(_))
-                entry match {
+                val shouldSave = entry match {
                   case Keys.repositoryCredentials =>
-                    if (options.unset)
+                    if options.unset then
                       values match {
                         case Seq(host) =>
                           val valueOpt = db.get(Keys.repositoryCredentials)
@@ -170,7 +164,8 @@ object Config extends ScalaCommand[ConfigOptions] {
                             case None           => notFound()
                             case Some(credList) =>
                               val idx = credList.indexWhere(_.host == host)
-                              if (idx < 0) notFound()
+                              if idx < 0
+                              then notFound()
                               else {
                                 val updatedCredList = credList.take(idx) ::: credList.drop(idx + 1)
                                 db.set(Keys.repositoryCredentials, updatedCredList)
@@ -178,31 +173,21 @@ object Config extends ScalaCommand[ConfigOptions] {
                               }
                           }
                         case _ =>
-                          System.err.println(
+                          logger.message(
                             s"Usage: $progName config --remove ${Keys.repositoryCredentials.fullName} host"
                           )
                           sys.exit(1)
                       }
+                      true
                     else {
-                      val (host, rawUser, rawPassword, realmOpt) = values match {
-                        case Seq(host, rawUser, rawPassword) => (host, rawUser, rawPassword, None)
-                        case Seq(host, rawUser, rawPassword, realm) =>
-                          (host, rawUser, rawPassword, Some(realm))
-                        case _ =>
-                          System.err.println(
-                            s"Usage: $progName config ${Keys.repositoryCredentials.fullName} host user password [realm]"
-                          )
-                          System.err.println(
-                            "Note that user and password are assumed to be secrets, specified like value:... or env:ENV_VAR_NAME, see https://scala-cli.virtuslab.org/docs/reference/password-options for more details"
-                          )
-                          sys.exit(1)
-                      }
-                      val (userOpt, passwordOpt) = (parseSecret(rawUser), parseSecret(rawPassword))
-                        .traverseN
-                        .left.map(CompositeBuildException(_))
-                        .orExit(logger)
+                      val (host, userOpt, passwordOpt, realmOpt) =
+                        parseHostUserPasswordRealm(
+                          values,
+                          Keys.repositoryCredentials.fullName,
+                          logger
+                        )
                       val credentials =
-                        if (options.passwordValue)
+                        if options.passwordValue then
                           RepositoryCredentials(
                             host,
                             userOpt.map(user => PasswordOption.Value(user.get())),
@@ -224,32 +209,14 @@ object Config extends ScalaCommand[ConfigOptions] {
                             httpsOnly = options.httpsOnly,
                             passOnRedirect = options.passOnRedirect
                           )
-                      val previousValueOpt =
-                        db.get(Keys.repositoryCredentials).wrapConfigException.orExit(logger)
-                      val newValue = credentials :: previousValueOpt.getOrElse(Nil)
-                      db.set(Keys.repositoryCredentials, newValue)
+                      addCredentialEntry(Keys.repositoryCredentials, credentials, db, logger)
                     }
 
                   case Keys.publishCredentials =>
-                    val (host, rawUser, rawPassword, realmOpt) = values match {
-                      case Seq(host, rawUser, rawPassword) => (host, rawUser, rawPassword, None)
-                      case Seq(host, rawUser, rawPassword, realm) =>
-                        (host, rawUser, rawPassword, Some(realm))
-                      case _ =>
-                        System.err.println(
-                          s"Usage: $progName config ${Keys.publishCredentials.fullName} host user password [realm]"
-                        )
-                        System.err.println(
-                          "Note that user and password are assumed to be secrets, specified like value:... or env:ENV_VAR_NAME, see https://scala-cli.virtuslab.org/docs/reference/password-options for more details"
-                        )
-                        sys.exit(1)
-                    }
-                    val (userOpt, passwordOpt) = (parseSecret(rawUser), parseSecret(rawPassword))
-                      .traverseN
-                      .left.map(CompositeBuildException(_))
-                      .orExit(logger)
+                    val (host, userOpt, passwordOpt, realmOpt) =
+                      parseHostUserPasswordRealm(values, Keys.publishCredentials.fullName, logger)
                     val credentials =
-                      if (options.passwordValue)
+                      if options.passwordValue then
                         PublishCredentials(
                           host,
                           userOpt.map(user => PasswordOption.Value(user.get())),
@@ -258,14 +225,11 @@ object Config extends ScalaCommand[ConfigOptions] {
                         )
                       else
                         PublishCredentials(host, userOpt, passwordOpt, realm = realmOpt)
-                    val previousValueOpt =
-                      db.get(Keys.publishCredentials).wrapConfigException.orExit(logger)
-                    val newValue = credentials :: previousValueOpt.getOrElse(Nil)
-                    db.set(Keys.publishCredentials, newValue)
+                    addCredentialEntry(Keys.publishCredentials, credentials, db, logger)
 
                   case _ =>
                     val finalValues =
-                      if (options.passwordValue && entry.isPasswordOption)
+                      if options.passwordValue && entry.isPasswordOption then
                         values.map { input =>
                           PasswordOption.parse(input) match {
                             case Left(err) =>
@@ -283,11 +247,14 @@ object Config extends ScalaCommand[ConfigOptions] {
                     db.setFromString(entry, finalValues)
                       .wrapConfigException
                       .orExit(logger)
+                    true
                 }
 
-                db.save(directories.dbPath.toNIO)
-                  .wrapConfigException
-                  .orExit(logger)
+                if shouldSave then
+                  db.save(directories.dbPath.toNIO)
+                    .wrapConfigException
+                    .orExit(logger)
+                else logger.message(s"Skipped saving config for key ${entry.fullName}")
               }
           }
       }
@@ -296,6 +263,53 @@ object Config extends ScalaCommand[ConfigOptions] {
     logger.flushExperimentalWarnings
     logger.flushDeprecationWarnings
   }
+
+  private def parseConfigSecret(input: String): Either[BuildException, Option[PasswordOption]] =
+    if input.trim.isEmpty then Right(None)
+    else
+      PasswordOption.parse(input)
+        .left.map(err =>
+          new MalformedCliInputError(s"Malformed secret value '$input': $err")
+        )
+        .map(Some(_))
+
+  private def parseHostUserPasswordRealm(
+    values: Seq[String],
+    keyFullName: String,
+    logger: Logger
+  ): (String, Option[PasswordOption], Option[PasswordOption], Option[String]) =
+    val (host, rawUser, rawPassword, realmOpt) = values match
+      case Seq(host, rawUser, rawPassword)        => (host, rawUser, rawPassword, None)
+      case Seq(host, rawUser, rawPassword, realm) =>
+        (host, rawUser, rawPassword, Some(realm))
+      case _ =>
+        logger.error(s"Usage: $progName config $keyFullName host user password [realm]")
+        logger.error(
+          "Note that user and password are assumed to be secrets, specified like value:... or env:ENV_VAR_NAME, see https://scala-cli.virtuslab.org/docs/reference/password-options for more details"
+        )
+        sys.exit(1)
+    val (userOpt, passwordOpt) =
+      (parseConfigSecret(rawUser), parseConfigSecret(rawPassword))
+        .traverseN
+        .left.map(CompositeBuildException(_))
+        .orExit(logger)
+    (host, userOpt, passwordOpt, realmOpt)
+
+  private def addCredentialEntry[T <: CredentialsValue](
+    entry: Key.CredentialsEntry[T, ?],
+    credentials: T,
+    db: ConfigDb,
+    logger: Logger
+  ): Boolean =
+    val previousValueOpt = db.get(entry).wrapConfigException.orExit(logger)
+    if previousValueOpt.exists(_.contains(credentials)) then
+      logger.message(
+        s"$warnPrefix: an identical ${entry.fullName} entry for host ${credentials.host} is already configured, a duplicate won't be saved."
+      )
+      false
+    else
+      db.set(entry, credentials :: previousValueOpt.getOrElse(Nil))
+      true
 
   /** Check whether to ask for an update depending on the provided key.
     */
