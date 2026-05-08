@@ -16,6 +16,13 @@ final case class SharedReplOptions(
     compileCross: CrossOptions = CrossOptions(),
 
   @Group(HelpGroup.Repl.toString)
+  @Tag(tags.experimental)
+  @Tag(tags.inShortHelp)
+  @HelpMessage("Use JShell as the REPL (default for pure-Java projects). Requires JDK >= 9.")
+  @Name("jsh")
+    jshell: Option[Boolean] = None,
+
+  @Group(HelpGroup.Repl.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @Tag(tags.deprecatedOption("Ammonite integration is deprecated. Use the default Scala REPL instead."))

@@ -96,7 +96,7 @@ Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [c
 
 Aliases: `console`
 
-Fire-up a Scala REPL.
+Fire-up a REPL (Scala REPL by default, JShell for pure-Java projects).
 
 The entire Scala CLI project's classpath is loaded to the repl.
 

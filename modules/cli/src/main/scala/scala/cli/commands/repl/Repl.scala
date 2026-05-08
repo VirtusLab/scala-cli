@@ -60,6 +60,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     import ops.sharedRepl.*
 
     val logger = ops.shared.logger
+    if (jshell.contains(true) && ammonite.contains(true))
+      throw new ConflictingReplBackendsError("--jshell cannot be used together with --ammonite")
 
     val ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
     val baseOptions        = shared.buildOptions(watchOptions = watch).orExit(logger)
@@ -103,6 +105,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       ),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         replOptions = baseOptions.notForBloopOptions.replOptions.copy(
+          useJshellOpt = jshell,
           useAmmoniteOpt = ammonite,
           ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty),
           ammoniteArgs = ammoniteArg
@@ -298,6 +301,16 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
 
     val cache             = options.internal.cache.getOrElse(FileCache())
     val shouldUseAmmonite = options.notForBloopOptions.replOptions.useAmmonite
+    val explicitJshellOpt = options.notForBloopOptions.replOptions.useJshellOpt
+    val isPureJavaProject =
+      successfulBuilds.nonEmpty &&
+      successfulBuilds.exists(_.sources.hasJava) &&
+      !successfulBuilds.exists(_.sources.hasScala)
+    val shouldUseJshell = explicitJshellOpt.getOrElse(isPureJavaProject && !shouldUseAmmonite)
+    val replBackend     =
+      if (shouldUseJshell) ReplBackend.JShell
+      else if (shouldUseAmmonite) ReplBackend.Ammonite
+      else ReplBackend.Default
 
     val scalaParams: ScalaParameters = value {
       val distinctScalaParams = allArtifacts.flatMap(_.scalaOpt).map(_.params).distinct
@@ -482,22 +495,59 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         case other => other
       }
 
-    if (shouldUseAmmonite)
-      runMode match {
-        case RunMode.Default =>
-          val replArtifacts = value(ammoniteArtifacts())
-          val replArgs      = ammoniteAdditionalArgs() ++ programArgs
-          maybeRunRepl(replArtifacts, replArgs)
-      }
-    else
-      runMode match {
-        case RunMode.Default =>
-          val replArtifacts = value(defaultArtifacts())
-          val replArgs      = additionalArgs ++ programArgs
-          maybeRunRepl(replArtifacts, replArgs)
-      }
+    replBackend match {
+      case ReplBackend.JShell =>
+        val parsedReplArgs = JShellRunner.parseReplArgs(additionalArgs)
+        if (parsedReplArgs.remainingArgs.nonEmpty)
+          logger.message(
+            s"Warning: JShell ignores Scala REPL options (${parsedReplArgs.remainingArgs.mkString(" ")})."
+          )
+        val javaHomeInfo   = options.javaHome().value
+        val jshellCommand0 = value(
+          JShellRunner.commandFor(
+            javaHomeInfo = javaHomeInfo,
+            javaOpts = scalapyJavaOpts ++ options.javaOptions.javaOpts.toSeq.map(_.value.value),
+            classPath = mainJarsOrClassDirs ++ allArtifacts.flatMap(_.classPath).distinct,
+            programArgs = programArgs,
+            initScriptOpt = parsedReplArgs.initScriptOpt,
+            quitAfterInit = parsedReplArgs.quitAfterInit,
+            currentEnv = sys.env
+          )
+        )
+        val jshellCommand =
+          jshellCommand0.copy(extraEnv = jshellCommand0.extraEnv ++ scalapyExtraEnv)
+        value(
+          JShellRunner.run(
+            jshellCommand,
+            logger,
+            allowExecve = allowExit,
+            dryRun = dryRun
+          )
+        )
+
+      case ReplBackend.Ammonite =>
+        runMode match {
+          case RunMode.Default =>
+            val replArtifacts = value(ammoniteArtifacts())
+            val replArgs      = ammoniteAdditionalArgs() ++ programArgs
+            maybeRunRepl(replArtifacts, replArgs)
+        }
+
+      case ReplBackend.Default =>
+        runMode match {
+          case RunMode.Default =>
+            val replArtifacts = value(defaultArtifacts())
+            val replArgs      = additionalArgs ++ programArgs
+            maybeRunRepl(replArtifacts, replArgs)
+        }
+    }
   }
 
+  private enum ReplBackend {
+    case Default, Ammonite, JShell
+  }
+
+  final class ConflictingReplBackendsError(message0: String) extends BuildException(message0)
   final class ReplError(retCode: Int)
       extends BuildException(s"Failed to run REPL (exit code: $retCode)")
 }

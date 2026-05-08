@@ -19,9 +19,9 @@ object ReplOptions {
   implicit lazy val parser: Parser[ReplOptions] = Parser.derive
   implicit lazy val help: Help[ReplOptions]     = Help.derive
   val cmdName                                   = "repl"
-  private val helpHeader                        = "Fire-up a Scala REPL."
-  val helpMessage: String                       = HelpMessages.shortHelpMessage(cmdName, helpHeader)
-  val detailedHelpMessage: String               =
+  private val helpHeader  = "Fire-up a REPL (Scala REPL by default, JShell for pure-Java projects)."
+  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val detailedHelpMessage: String =
     s"""$helpHeader
        |
        |The entire $fullRunnerName project's classpath is loaded to the repl.
