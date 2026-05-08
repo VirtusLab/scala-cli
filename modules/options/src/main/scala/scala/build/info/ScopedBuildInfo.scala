@@ -62,9 +62,11 @@ object ScopedBuildInfo {
     )
       .reduceLeft(_ + _)
 
-  /** Build a [[ScopedBuildInfo]] for [[scope]] and inject the JVM test-runner dependency that
-    * scala-cli silently adds at test time, so consumers of `export --json` see the same classpath
-    * scala-cli would use.
+  /** Build a [[ScopedBuildInfo]] for [[scope]]. When [[injectTestRunner]] is true, also inject the
+    * JVM test-runner dependency that scala-cli silently adds at test time, so consumers of
+    * `export --json` see the same classpath scala-cli would use. The runtime `BuildInfo.scala`
+    * generator must leave it false — the test-runner is supplied by scala-cli at runtime, not
+    * declared by the user.
     *
     * Injection conditions match [[scala.build.Artifacts.apply]]: scope is Test, the scope is
     * non-empty (has sources), the platform is JVM, and the build has a Scala version (i.e. is not
@@ -74,10 +76,11 @@ object ScopedBuildInfo {
     options: BuildOptions,
     sourcePaths: Seq[String],
     scope: Scope,
-    logger: Logger
+    logger: Logger,
+    injectTestRunner: Boolean = false
   ): ScopedBuildInfo = {
     val base = apply(options, sourcePaths)
-    if scope == Scope.Test && sourcePaths.nonEmpty then
+    if injectTestRunner && scope == Scope.Test && sourcePaths.nonEmpty then
       withJvmTestRunner(base, options, logger)
     else base
   }

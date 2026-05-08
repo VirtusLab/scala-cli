@@ -20,7 +20,13 @@ final case class JsonProjectDescriptor(
       val sourcePaths   = sources.paths.map(_._1.toString)
       val inMemoryPaths = sources.inMemory.flatMap(_.originalPath.toSeq.map(_._2.toString))
 
-      ScopedBuildInfo.forScope(options, sourcePaths ++ inMemoryPaths, scope, logger)
+      ScopedBuildInfo.forScope(
+        options,
+        sourcePaths ++ inMemoryPaths,
+        scope,
+        logger,
+        injectTestRunner = true
+      )
 
     for {
       baseBuildInfo <- BuildInfo(optionsMain, workspace)
