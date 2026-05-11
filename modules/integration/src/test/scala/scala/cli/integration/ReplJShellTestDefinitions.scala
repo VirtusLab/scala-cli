@@ -93,6 +93,27 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
     }
   }
 
+  protected def runInJShellOnJvm(javaVersion: Int, extraInitScript: String = "")(
+    check: os.CommandResult => Unit
+  ): Unit = {
+    val sentinel   = s"java-feature=$javaVersion"
+    val initScript =
+      s"""int __feature = Runtime.version().feature();
+         |if (__feature != $javaVersion) {
+         |  throw new RuntimeException("Unexpected JDK feature: " + __feature);
+         |}
+         |else {
+         |$extraInitScript
+         |  System.out.println("$sentinel");
+         |}
+         |""".stripMargin
+    runInJShell(initScript = initScript, cliOptions = Seq("--jvm", javaVersion.toString)) { res =>
+      val out = jshellOutput(res)
+      expect(out.contains(sentinel))
+      check(res)
+    }
+  }
+
   test(s"$jshellDryRunPrefix default") {
     val res = dryRunJshell(TestInputs.empty)
     expect(res.exitCode == 0)
@@ -198,6 +219,23 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
       )
     }
 
+    for javaVersion <- Constants.allJavaVersions.filter(_ >= 11) do
+      test(s"$runInJShellPrefix simple on JDK $javaVersion") {
+        val versionSpecific = javaVersion match {
+          case v if v >= 23 =>
+            """System.out.println(javax.print.attribute.standard.OutputBin.LEFT);"""
+          case v if v >= 21 =>
+            """System.out.println(Thread.ofVirtual().unstarted(() -> {}).getClass().getName());"""
+          case v if v >= 17 =>
+            """System.out.println(java.util.HexFormat.of().toHexDigits(255));"""
+          case v if v >= 16 =>
+            """System.out.println(java.util.stream.Stream.of(1, 2, 3).toList());"""
+          case _ =>
+            """System.out.println(java.util.Optional.of(1).isEmpty());"""
+        }
+        runInJShellOnJvm(javaVersion, extraInitScript = versionSpecific)(_ => ())
+      }
+
     if !Properties.isWin then
       test(s"$runInJShellPrefix direct --repl-init-script string form") {
         val initScript =
@@ -222,20 +260,6 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
           expect(out.contains("java.lang.String"))
         }
       }
-
-    test(s"$runInJShellPrefix verify JVM version respects --jvm") {
-      runInJShell(
-        initScript = """System.out.println(System.getProperty("java.specification.version"));""",
-        cliOptions = Seq("--jvm", "17")
-      )(res =>
-        expect(
-          jshellOutput(res).trim().linesIterator.exists { line =>
-            val t = line.trim
-            t == "17" || t.startsWith("17.")
-          }
-        )
-      )
-    }
 
     if !Properties.isWin then
       test(s"$runInJShellPrefix with extra JAR") {
