@@ -4,7 +4,8 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class ReplTests3Lts extends ReplTestDefinitions with Test3Lts
     with ReplAmmoniteTestDefinitions
-    with ReplAmmoniteTests3StableDefinitions {
+    with ReplAmmoniteTests3StableDefinitions
+    with ReplJShellTestDefinitions {
   import Constants.scala3LtsPrefix
   if canRunInRepl then
     for { ltsNightlyTag <- List("3.lts.nightly", "lts.nightly") }

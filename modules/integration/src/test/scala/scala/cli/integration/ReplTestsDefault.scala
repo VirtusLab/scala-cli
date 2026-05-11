@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 class ReplTestsDefault extends ReplTestDefinitions
     with ReplAmmoniteTestDefinitions
     with ReplAmmoniteTests3StableDefinitions
+    with ReplJShellTestDefinitions
     with TestDefault {
   if canRunInRepl then
     for { nightlyTag <- List("3.nightly", "nightly") }
