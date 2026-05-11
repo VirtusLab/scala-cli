@@ -44,21 +44,28 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     shouldPipeStdErr: Boolean = false,
     check: Boolean = true,
     skipScalaVersionArgs: Boolean = false,
-    env: Map[String, String] = Map.empty
+    env: Map[String, String] = Map.empty,
+    initScriptFromFile: Boolean = false
   )(
     runAfterRepl: os.CommandResult => Unit,
     runBeforeReplAndGetExtraCliOpts: () => Seq[os.Shellable] = () => Seq.empty
   ): Unit = {
     testInputs.fromRoot { root =>
       val potentiallyExtraCliOpts = runBeforeReplAndGetExtraCliOpts()
+      val initScriptArgs          =
+        if initScriptFromFile then {
+          val initScriptFile = root / ".scala-cli-repl-init.sc"
+          os.write.over(initScriptFile, codeToRunInRepl)
+          Seq("--repl-init-script-file", initScriptFile.toString)
+        }
+        else Seq("--repl-init-script", codeToRunInRepl)
       runAfterRepl(
         os.proc(
           TestUtil.cli,
           "repl",
           ".",
           "--repl-quit-after-init",
-          "--repl-init-script",
-          codeToRunInRepl,
+          initScriptArgs,
           if skipScalaVersionArgs then TestUtil.extraOptions else extraOptions,
           cliOptions,
           potentiallyExtraCliOpts
@@ -113,12 +120,13 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   private def jshellOutput(res: os.CommandResult): String =
     TestUtil.removeAnsiColors(res.out.text())
 
-  /** Run JShell via `repl --jshell` with `--repl-init-script` + `--repl-quit-after-init`.
+  /** Run JShell via `repl --jshell` with `--repl-init-script-file` + `--repl-quit-after-init`.
     *
     * @param replCliOptions
     *   forwarded after [[initScript]] (defaults to [[extraOptions]]). Use [[TestUtil.extraOptions]]
     *   alone when inputs compile Scala 2.x sources: Scala 2 scalac rejects `--repl-quit-after-init`
-    *   / `--repl-init-script`, while default Scala (see launcher) accepts them for JShell mapping.
+    *   / `--repl-init-script-file`, while default Scala (see launcher) accepts them for JShell
+    *   mapping.
     */
   protected def runInJShell(
     initScript: String,
@@ -133,6 +141,8 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   ): Unit = {
     testInputs.fromRoot { root =>
       val potentiallyExtraCliOpts = runBeforeReplAndGetExtraCliOpts()
+      val initScriptFile          = root / ".scala-cli-jshell-init.jsh"
+      os.write.over(initScriptFile, initScript)
       runAfterRepl(
         os.proc(
           TestUtil.cli,
@@ -141,8 +151,8 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           ".",
           "--jshell",
           "--repl-quit-after-init",
-          "--repl-init-script",
-          initScript,
+          "--repl-init-script-file",
+          initScriptFile.toString,
           replCliOptions,
           cliOptions,
           potentiallyExtraCliOpts
@@ -321,6 +331,16 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       )
     }
 
+    test(s"$runInReplPrefix init script file with quotes and newlines") {
+      runInRepl(
+        codeToRunInRepl =
+          """val message = "hello from file"
+            |println(message)
+            |""".stripMargin,
+        initScriptFromFile = true
+      )(r => expect(r.out.trim().linesIterator.exists(_.trim == "hello from file")))
+    }
+
     test(s"$runInReplPrefix verify Scala version from the REPL") {
       val opts = if actualScalaVersion.startsWith("3") && !isScala38OrNewer then
         Seq("--with-compiler")
@@ -478,6 +498,31 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         expect(jshellOutput(res).contains(expectedMessage))
       )
     }
+
+    if !Properties.isWin then
+      test(s"$runInJShellPrefix direct --repl-init-script string form") {
+        val initScript =
+          """System.out.println("hi from string");
+            |var c = Class.forName("java.lang.String");
+            |System.out.println(c.getName());
+            |""".stripMargin
+        TestInputs.empty.fromRoot { root =>
+          val res = os.proc(
+            TestUtil.cli,
+            "--power",
+            "repl",
+            ".",
+            "--jshell",
+            "--repl-quit-after-init",
+            "--repl-init-script",
+            initScript,
+            extraOptions
+          ).call(cwd = root, mergeErrIntoOut = true)
+          val out = jshellOutput(res)
+          expect(out.contains("hi from string"))
+          expect(out.contains("java.lang.String"))
+        }
+      }
 
     test(s"$runInJShellPrefix verify JVM version respects --jvm") {
       runInJShell(

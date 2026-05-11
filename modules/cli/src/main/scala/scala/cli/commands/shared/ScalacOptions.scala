@@ -47,9 +47,9 @@ object ScalacOptions {
   val YScriptRunnerOption               = "Yscriptrunner"
   private val scalacOptionsPurePrefixes = Set("V", "W", "X", "Y")
   private val scalacOptionsPrefixes     = Set("P") ++ scalacOptionsPurePrefixes
-  val replExecuteScriptOptions @ Seq(replInitScript, replQuitAfterInit) =
-    Seq("repl-init-script", "repl-quit-after-init")
-  private val replAliasedOptions      = Set(replInitScript)
+  val replExecuteScriptOptions @ Seq(replInitScript, replQuitAfterInit, replInitScriptFile) =
+    Seq("repl-init-script", "repl-quit-after-init", "repl-init-script-file")
+  private val replAliasedOptions      = Set(replInitScript, replInitScriptFile)
   private val replNoArgAliasedOptions = Set(replQuitAfterInit)
   private val scalacAliasedOptions = // these options don't require being passed after -O and accept an arg
     Set(

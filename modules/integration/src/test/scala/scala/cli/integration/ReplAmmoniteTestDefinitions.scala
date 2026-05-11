@@ -3,6 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.TestUtil.{normalizeArgsForWindows, removeAnsiColors}
+import scala.util.Properties
 
 trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
   protected val ammonitePrefix: String        = "Running in Ammonite REPL:"
@@ -185,6 +186,54 @@ trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
     else s" with Scala $actualMaxAmmoniteScalaVersion (the latest supported version)"
 
   test(s"$ammonitePrefix simple $ammoniteMaxVersionString")(ammoniteTest())
+  test(s"$ammonitePrefix init script file with quotes and newlines$ammoniteMaxVersionString") {
+    TestInputs.empty.fromRoot { root =>
+      val initScriptFile = root / ".scala-cli-ammonite-init.sc"
+      os.write.over(
+        initScriptFile,
+        """val message = "hello from ammonite file"
+          |""".stripMargin
+      )
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "repl",
+        ".",
+        "--ammonite",
+        "--repl-init-script-file",
+        initScriptFile.toString,
+        "--ammonite-arg",
+        "-c",
+        "--ammonite-arg",
+        "println(message)",
+        ammoniteExtraOptions
+      ).call(cwd = root, stderr = os.Pipe)
+      expect(res.out.trim() == "hello from ammonite file")
+    }
+  }
+  if !Properties.isWin then
+    test(s"$ammonitePrefix direct --repl-init-script string form$ammoniteMaxVersionString") {
+      val initScript =
+        """val message = "hello from ammonite string"
+          |""".stripMargin
+      TestInputs.empty.fromRoot { root =>
+        val res = os.proc(
+          TestUtil.cli,
+          "--power",
+          "repl",
+          ".",
+          "--ammonite",
+          "--repl-init-script",
+          initScript,
+          "--ammonite-arg",
+          "-c",
+          "--ammonite-arg",
+          "println(message)",
+          ammoniteExtraOptions
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(res.out.trim() == "hello from ammonite string")
+      }
+    }
   test(s"$ammonitePrefix scalapy$ammoniteMaxVersionString")(ammoniteScalapyTest())
   test(s"$ammonitePrefix with test scope sources$ammoniteMaxVersionString")(ammoniteTestScope())
 

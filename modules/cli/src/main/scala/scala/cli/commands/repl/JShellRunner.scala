@@ -21,6 +21,8 @@ object JShellRunner {
 
   final class JShellUnavailable(message0: String)
       extends BuildException(message0)
+  final class ReplInitScriptError(message0: String, cause0: Throwable = null)
+      extends BuildException(message0, cause = cause0)
 
   final case class ParsedReplArgs(
     initScriptOpt: Option[String],
@@ -32,11 +34,36 @@ object JShellRunner {
     if (isWindows) ".exe"
     else ""
 
-  def parseReplArgs(args: Seq[String]): ParsedReplArgs = {
-    val b                             = Seq.newBuilder[String]
-    var initScriptOpt: Option[String] = None
-    var quitAfterInit                 = false
-    var idx                           = 0
+  def readInitScriptFile(file: String): Either[BuildException, String] = {
+    val pathEither: Either[BuildException, os.Path] =
+      try Right(os.Path(file, os.pwd))
+      catch {
+        case e: IllegalArgumentException =>
+          Left(ReplInitScriptError(s"Invalid REPL init script file path: $file", e))
+      }
+    pathEither.flatMap { path =>
+      if (!os.exists(path))
+        Left(ReplInitScriptError(s"REPL init script file not found: $path"))
+      else if (os.isDir(path))
+        Left(ReplInitScriptError(s"REPL init script file is a directory: $path"))
+      else
+        try Right(os.read(path))
+        catch {
+          case e: Exception =>
+            Left(ReplInitScriptError(
+              s"Error reading REPL init script file $path: ${e.getMessage}",
+              e
+            ))
+        }
+    }
+  }
+
+  def parseReplArgs(args: Seq[String]): Either[BuildException, ParsedReplArgs] = {
+    val b                                 = Seq.newBuilder[String]
+    var initScriptOpt: Option[String]     = None
+    var initScriptFileOpt: Option[String] = None
+    var quitAfterInit                     = false
+    var idx                               = 0
     while (idx < args.length) {
       val arg = args(idx)
       if (arg == "--repl-init-script" || arg == "-repl-init-script")
@@ -47,16 +74,42 @@ object JShellRunner {
         else b += arg
       else if (arg.startsWith("--repl-init-script:") || arg.startsWith("-repl-init-script:"))
         initScriptOpt = Some(arg.dropWhile(_ != ':').drop(1))
+      else if (arg == "--repl-init-script-file" || arg == "-repl-init-script-file")
+        if (idx + 1 < args.length) {
+          initScriptFileOpt = Some(args(idx + 1))
+          idx += 1
+        }
+        else b += arg
+      else if (
+        arg.startsWith("--repl-init-script-file:") || arg.startsWith("-repl-init-script-file:")
+      )
+        initScriptFileOpt = Some(arg.dropWhile(_ != ':').drop(1))
       else if (arg == "--repl-quit-after-init" || arg == "-repl-quit-after-init")
         quitAfterInit = true
       else b += arg
       idx += 1
     }
-    ParsedReplArgs(
-      initScriptOpt = initScriptOpt,
-      quitAfterInit = quitAfterInit,
-      remainingArgs = b.result()
-    )
+    if (initScriptOpt.nonEmpty && initScriptFileOpt.nonEmpty)
+      Left(ReplInitScriptError(
+        "--repl-init-script cannot be used together with --repl-init-script-file"
+      ))
+    else {
+      val resolvedInitScriptOpt =
+        initScriptOpt match {
+          case some @ Some(_) => Right(some)
+          case None           => initScriptFileOpt match {
+              case Some(file) => readInitScriptFile(file).map(Some(_))
+              case None       => Right(None)
+            }
+        }
+      resolvedInitScriptOpt.map { resolvedInitScriptOpt =>
+        ParsedReplArgs(
+          initScriptOpt = resolvedInitScriptOpt,
+          quitAfterInit = quitAfterInit,
+          remainingArgs = b.result()
+        )
+      }
+    }
   }
 
   def commandFor(

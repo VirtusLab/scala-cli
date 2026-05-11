@@ -108,7 +108,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           useJshellOpt = jshell,
           useAmmoniteOpt = ammonite,
           ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty),
-          ammoniteArgs = ammoniteArg
+          ammoniteArgs = ammoniteArg,
+          replInitScriptFileOpt = replInitScriptFile.map(_.trim).filter(_.nonEmpty)
         ),
         addRunnerDependencyOpt = baseOptions.notForBloopOptions.addRunnerDependencyOpt
           .orElse(Some(false))
@@ -280,7 +281,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
   private def maybeAdaptForWindows(args: Seq[String]): Seq[String] =
     if (Properties.isWin)
       args.map { a =>
-        if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
+        if (a.exists(c => c.isWhitespace || c == '"')) "\"" + a.replace("\"", "\\\"") + "\""
         else a
       }
     else
@@ -350,7 +351,14 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       pythonArgs ++ options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
     }
 
-    def ammoniteAdditionalArgs() = {
+    val replInitScriptFileArgs =
+      options.notForBloopOptions.replOptions.replInitScriptFileOpt.toSeq.flatMap { path =>
+        Seq("--repl-init-script-file", path)
+      }
+
+    val parsedReplArgs = value(JShellRunner.parseReplArgs(additionalArgs ++ replInitScriptFileArgs))
+
+    def ammoniteAdditionalArgs(parsedReplArgs: JShellRunner.ParsedReplArgs) = {
       val pythonPredef =
         if (setupPython)
           """import me.shadaj.scalapy.py
@@ -358,10 +366,16 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
             |""".stripMargin
         else
           ""
-      val predefArgs =
+      val pythonPredefArgs =
         if (pythonPredef.isEmpty) Nil
         else Seq("--predef-code", pythonPredef)
-      predefArgs ++ options.notForBloopOptions.replOptions.ammoniteArgs
+      val replInitScriptPredefArgs =
+        parsedReplArgs.initScriptOpt.toSeq.flatMap(script => Seq("--predef-code", script))
+      val replQuitAfterInitArgs =
+        if (parsedReplArgs.quitAfterInit) Seq("--code", "")
+        else Nil
+      pythonPredefArgs ++ replInitScriptPredefArgs ++ replQuitAfterInitArgs ++
+        options.notForBloopOptions.replOptions.ammoniteArgs
     }
 
     // TODO Warn if some entries of artifacts.classPath were evicted in replArtifacts.replClassPath
@@ -497,7 +511,6 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
 
     replBackend match {
       case ReplBackend.JShell =>
-        val parsedReplArgs = JShellRunner.parseReplArgs(additionalArgs)
         if (parsedReplArgs.remainingArgs.nonEmpty)
           logger.message(
             s"Warning: JShell ignores Scala REPL options (${parsedReplArgs.remainingArgs.mkString(" ")})."
@@ -529,7 +542,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         runMode match {
           case RunMode.Default =>
             val replArtifacts = value(ammoniteArtifacts())
-            val replArgs      = ammoniteAdditionalArgs() ++ programArgs
+            val replArgs      = ammoniteAdditionalArgs(parsedReplArgs) ++ programArgs
             maybeRunRepl(replArtifacts, replArgs)
         }
 
@@ -537,10 +550,55 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         runMode match {
           case RunMode.Default =>
             val replArtifacts = value(defaultArtifacts())
-            val replArgs      = additionalArgs ++ programArgs
+            val replArgs      =
+              value(defaultReplArgs(
+                additionalArgs,
+                options.notForBloopOptions.replOptions.replInitScriptFileOpt
+              )) ++ programArgs
             maybeRunRepl(replArtifacts, replArgs)
         }
     }
+  }
+
+  private[commands] def defaultReplArgs(
+    additionalArgs: Seq[String],
+    replInitScriptFileOpt: Option[String]
+  ): Either[BuildException, Seq[String]] = {
+    val b                                = Seq.newBuilder[String]
+    var idx                              = 0
+    var errorOpt: Option[BuildException] = None
+    while (idx < additionalArgs.length) {
+      val arg = additionalArgs(idx)
+      if (arg == "--repl-init-script-file" || arg == "-repl-init-script-file")
+        if (idx + 1 < additionalArgs.length) {
+          JShellRunner.readInitScriptFile(additionalArgs(idx + 1)) match {
+            case Right(initScript) =>
+              b += "--repl-init-script"
+              b += initScript
+            case Left(e) => errorOpt = Some(e)
+          }
+          idx += 1
+        }
+        else b += arg
+      else if (
+        arg.startsWith("--repl-init-script-file:") || arg.startsWith("-repl-init-script-file:")
+      )
+        JShellRunner.readInitScriptFile(arg.dropWhile(_ != ':').drop(1)) match {
+          case Right(initScript) =>
+            b += "--repl-init-script"
+            b += initScript
+          case Left(e) => errorOpt = Some(e)
+        }
+      else b += arg
+      idx += 1
+    }
+    for {
+      args                <- errorOpt.toLeft(b.result())
+      sharedInitScriptOpt <- replInitScriptFileOpt match {
+        case Some(path) => JShellRunner.readInitScriptFile(path).map(Some(_))
+        case None       => Right(None)
+      }
+    } yield args ++ sharedInitScriptOpt.toSeq.flatMap(script => Seq("--repl-init-script", script))
   }
 
   private enum ReplBackend {

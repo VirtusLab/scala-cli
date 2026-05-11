@@ -1293,6 +1293,10 @@ Aliases: `-a`
 [Internal]
 Provide arguments for ammonite repl
 
+### `--repl-init-script-file`
+
+Read the REPL init script from a file. Mutually exclusive with --repl-init-script.
+
 ### `--repl-dry-run`
 
 [Internal]

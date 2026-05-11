@@ -49,6 +49,13 @@ final case class SharedReplOptions(
     ammoniteArg: List[String] = Nil,
 
   @Group(HelpGroup.Repl.toString)
+  @Tag(tags.experimental)
+  @Tag(tags.inShortHelp)
+  @ValueDescription("path")
+  @HelpMessage("Read the REPL init script from a file. Mutually exclusive with --repl-init-script.")
+    replInitScriptFile: Option[String] = None,
+
+  @Group(HelpGroup.Repl.toString)
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Don't actually run the REPL, just fetch it")
