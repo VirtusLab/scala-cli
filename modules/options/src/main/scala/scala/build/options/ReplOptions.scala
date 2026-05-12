@@ -7,8 +7,7 @@ final case class ReplOptions(
   useJshellOpt: Option[Boolean] = None,
   useAmmoniteOpt: Option[Boolean] = None,
   ammoniteVersionOpt: Option[String] = None,
-  ammoniteArgs: Seq[String] = Nil,
-  replInitScriptFileOpt: Option[String] = None
+  ammoniteArgs: Seq[String] = Nil
 ) {
   def useJshell: Boolean =
     useJshellOpt.getOrElse(false)

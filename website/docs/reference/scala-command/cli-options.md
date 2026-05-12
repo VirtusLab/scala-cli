@@ -728,6 +728,26 @@ Available in commands:
 
 *This section was automatically generated and may be empty if no options were available.*
 
+## Repl options
+
+Available in commands:
+
+[`repl` , `console`](./commands.md#repl)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--repl-init-script-file`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Read the REPL init script from a file. Mutually exclusive with --repl-init-script.
+
+### `--repl-dry-run`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Don't actually run the REPL, just fetch it
+
 ## Run options
 
 Available in commands:
@@ -1615,20 +1635,6 @@ Print the update to `env` variable
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Binary directory
-
-### Repl options
-
-Available in commands:
-
-[`repl` , `console`](./commands.md#repl)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--repl-dry-run`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Don't actually run the REPL, just fetch it
 
 ### Semantic db options
 

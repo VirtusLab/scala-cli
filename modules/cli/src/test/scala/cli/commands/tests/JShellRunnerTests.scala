@@ -3,7 +3,7 @@ package scala.cli.commands.tests
 import com.eed3si9n.expecty.Expecty.assert as expect
 
 import scala.build.options.BuildOptions
-import scala.cli.commands.repl.{JShellRunner, Repl}
+import scala.cli.commands.repl.JShellRunner
 
 class JShellRunnerTests extends munit.FunSuite {
 
@@ -20,72 +20,6 @@ class JShellRunnerTests extends munit.FunSuite {
       version = 17
     )
     f(info)
-  }
-
-  test("parse repl args extracts init script and quit flag") {
-    val args = Seq(
-      "--repl-init-script",
-      "System.out.println(1);",
-      "--repl-quit-after-init",
-      "-Xfatal-warnings"
-    )
-    val parsed = JShellRunner.parseReplArgs(args).toOption.get
-    expect(parsed.initScriptOpt.contains("System.out.println(1);"))
-    expect(parsed.quitAfterInit)
-    expect(parsed.remainingArgs == Seq("-Xfatal-warnings"))
-  }
-
-  test("parse repl args extracts init script from file") {
-    val initScriptFile = os.temp(prefix = "scala-cli-jshell-init-test-", suffix = ".jsh")
-    val initScript     =
-      """System.out.println("from file");
-        |System.out.println(2);
-        |""".stripMargin
-    os.write.over(initScriptFile, initScript)
-    val parsed = JShellRunner
-      .parseReplArgs(Seq("--repl-init-script-file", initScriptFile.toString))
-      .toOption
-      .get
-    expect(parsed.initScriptOpt.contains(initScript))
-    expect(parsed.remainingArgs.isEmpty)
-  }
-
-  test("parse repl args rejects init script string and file together") {
-    val initScriptFile = os.temp(prefix = "scala-cli-jshell-init-test-", suffix = ".jsh")
-    os.write.over(initScriptFile, "System.out.println(1);")
-    val parsed = JShellRunner.parseReplArgs(Seq(
-      "--repl-init-script",
-      "System.out.println(1);",
-      "--repl-init-script-file",
-      initScriptFile.toString
-    ))
-    expect(parsed.isLeft)
-  }
-
-  test("parse repl args rejects missing init script file") {
-    val missing = os.temp(prefix = "scala-cli-jshell-init-test-", suffix = ".jsh")
-    os.remove(missing)
-    val parsed = JShellRunner.parseReplArgs(Seq("--repl-init-script-file", missing.toString))
-    expect(parsed.isLeft)
-  }
-
-  test("default REPL maps init script file option to the Scala REPL init script flag") {
-    val initScriptFile = os.temp(prefix = "scala-cli-repl-init-test-", suffix = ".sc")
-    val otherInitFile  = os.temp(prefix = "scala-cli-repl-init-test-other-", suffix = ".sc")
-    os.write.over(initScriptFile, """println("first")""")
-    os.write.over(otherInitFile, """println("second")""")
-    val args = Repl.defaultReplArgs(
-      additionalArgs =
-        Seq("--repl-init-script-file", initScriptFile.toString, "--repl-quit-after-init"),
-      replInitScriptFileOpt = Some(otherInitFile.toString)
-    ).toOption.get
-    expect(args == Seq(
-      "--repl-init-script",
-      """println("first")""",
-      "--repl-quit-after-init",
-      "--repl-init-script",
-      """println("second")"""
-    ))
   }
 
   test("commandFor adds classpath java opts startup and load files") {

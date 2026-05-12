@@ -2106,6 +2106,10 @@ Add java properties. Note that options equal `-Dproperty=value` are assumed to b
 
 Aliases: `--java-prop`
 
+**--repl-init-script-file**
+
+Read the REPL init script from a file. Mutually exclusive with --repl-init-script.
+
 **--repl-dry-run**
 
 Don't actually run the REPL, just fetch it

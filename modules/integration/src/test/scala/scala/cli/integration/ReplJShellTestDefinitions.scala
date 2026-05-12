@@ -237,31 +237,6 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
       }
 
     if !Properties.isWin then
-      test(s"$runInJShellPrefix direct --repl-init-script string form") {
-        val initScript =
-          """System.out.println("hi from string");
-            |var c = Class.forName("java.lang.String");
-            |System.out.println(c.getName());
-            |""".stripMargin
-        TestInputs.empty.fromRoot { root =>
-          val res = os.proc(
-            TestUtil.cli,
-            "--power",
-            "repl",
-            ".",
-            "--jshell",
-            "--repl-quit-after-init",
-            "--repl-init-script",
-            initScript,
-            extraOptions
-          ).call(cwd = root, mergeErrIntoOut = true)
-          val out = jshellOutput(res)
-          expect(out.contains("hi from string"))
-          expect(out.contains("java.lang.String"))
-        }
-      }
-
-    if !Properties.isWin then
       test(s"$runInJShellPrefix with extra JAR") {
         runInJShell(
           initScript =

@@ -18,13 +18,14 @@ import scala.build.errors.{
 }
 import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
-import scala.build.options.ScalacOpt.noDashPrefixes
+import scala.build.options.ScalacOpt.{filterScalacOptionKeys, noDashPrefixes}
 import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, ScalaVersionUtil, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.run.Run.{createPythonInstance, orPythonDetectionError, pythonPathEnv}
 import scala.cli.commands.run.RunMode
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, ScalacOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
+import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.Keys
 import scala.cli.packaging.Library
@@ -108,8 +109,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           useJshellOpt = jshell,
           useAmmoniteOpt = ammonite,
           ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty),
-          ammoniteArgs = ammoniteArg,
-          replInitScriptFileOpt = replInitScriptFile.map(_.trim).filter(_.nonEmpty)
+          ammoniteArgs = ammoniteArg
         ),
         addRunnerDependencyOpt = baseOptions.notForBloopOptions.addRunnerDependencyOpt
           .orElse(Some(false))
@@ -122,7 +122,17 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
 
   override def runCommand(options: ReplOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
-    def default             = Inputs.default().getOrElse {
+    val initScriptOpt       =
+      options.sharedRepl.replInitScriptFile
+        .map(_.trim)
+        .filter(_.nonEmpty)
+        .map(path => readInitScriptFile(path).orExit(logger))
+    val quitAfterInit =
+      options.shared.scalac.scalacOption
+        .toScalacOptShadowingSeq
+        .filterScalacOptionKeys(_.noDashPrefixes == ScalacOptions.replQuitAfterInit)
+        .keys.nonEmpty
+    def default = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd, options.shared.markdown.enableMarkdown)
     }
     val inputs =
@@ -136,6 +146,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
 
     def doRunRepl(
       buildOptions: BuildOptions,
+      initScriptOpt: Option[String],
+      quitAfterInit: Boolean,
       allArtifacts: Seq[Artifacts],
       mainJarsOrClassDirs: Seq[os.Path],
       allowExit: Boolean,
@@ -144,6 +156,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     ): Unit = {
       val res = runRepl(
         options = buildOptions,
+        initScriptOpt = initScriptOpt,
+        quitAfterInit = quitAfterInit,
         programArgs = programArgs,
         allArtifacts = allArtifacts,
         mainJarsOrClassDirs = mainJarsOrClassDirs,
@@ -162,6 +176,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     }
     def doRunReplFromBuild(
       builds: Seq[Build.Successful],
+      initScriptOpt: Option[String],
+      quitAfterInit: Boolean,
       allowExit: Boolean,
       runMode: RunMode.HasRepl,
       asJar: Boolean
@@ -170,6 +186,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         // build options should be the same for both scopes
         // combining them may cause for ammonite args to be duplicated, so we're using the main scope's opts
         buildOptions = builds.head.options,
+        initScriptOpt = initScriptOpt,
+        quitAfterInit = quitAfterInit,
         allArtifacts = builds.map(_.artifacts),
         mainJarsOrClassDirs =
           if asJar then Seq(Library.libraryJar(builds)) else builds.map(_.output),
@@ -199,6 +217,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       def runThing() = lock.synchronized {
         doRunRepl(
           buildOptions = initialBuildOptions,
+          initScriptOpt = initScriptOpt,
+          quitAfterInit = quitAfterInit,
           allArtifacts = allArtifacts,
           mainJarsOrClassDirs = Seq.empty,
           allowExit = !options.sharedRepl.watch.watchMode,
@@ -231,6 +251,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
             successfulBuilds =>
               doRunReplFromBuild(
                 successfulBuilds,
+                initScriptOpt = initScriptOpt,
+                quitAfterInit = quitAfterInit,
                 allowExit = false,
                 runMode = runMode(options),
                 asJar = options.shared.asJar
@@ -258,6 +280,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         successfulBuilds =>
           doRunReplFromBuild(
             successfulBuilds,
+            initScriptOpt = initScriptOpt,
+            quitAfterInit = quitAfterInit,
             allowExit = true,
             runMode = runMode(options),
             asJar = options.shared.asJar
@@ -287,8 +311,34 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     else
       args
 
+  private[commands] def readInitScriptFile(file: String): Either[BuildException, String] = {
+    val pathEither: Either[BuildException, os.Path] =
+      try Right(os.Path(file, os.pwd))
+      catch {
+        case e: IllegalArgumentException =>
+          Left(ReplInitScriptError(s"Invalid REPL init script file path: $file", e))
+      }
+    pathEither.flatMap { path =>
+      if !os.exists(path) then
+        Left(ReplInitScriptError(s"REPL init script file not found: $path"))
+      else if os.isDir(path) then
+        Left(ReplInitScriptError(s"REPL init script file is a directory: $path"))
+      else
+        try Right(os.read(path))
+        catch {
+          case e: Exception =>
+            Left(ReplInitScriptError(
+              s"Error reading REPL init script file $path: ${e.getMessage}",
+              e
+            ))
+        }
+    }
+  }
+
   private def runRepl(
     options: BuildOptions,
+    initScriptOpt: Option[String],
+    quitAfterInit: Boolean,
     programArgs: Seq[String],
     allArtifacts: Seq[Artifacts],
     mainJarsOrClassDirs: Seq[os.Path],
@@ -342,23 +392,15 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       else
         (Nil, Map.empty[String, String])
 
-    def additionalArgs = {
-      val pythonArgs =
-        if (setupPython && scalaParams.scalaVersion.startsWith("2.13."))
-          Seq("-Yimports:java.lang,scala,scala.Predef,me.shadaj.scalapy")
-        else
-          Nil
-      pythonArgs ++ options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
-    }
+    val pythonReplArgs =
+      if (setupPython && scalaParams.scalaVersion.startsWith("2.13."))
+        Seq("-Yimports:java.lang,scala,scala.Predef,me.shadaj.scalapy")
+      else
+        Nil
+    val additionalArgs =
+      pythonReplArgs ++ options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
 
-    val replInitScriptFileArgs =
-      options.notForBloopOptions.replOptions.replInitScriptFileOpt.toSeq.flatMap { path =>
-        Seq("--repl-init-script-file", path)
-      }
-
-    val parsedReplArgs = value(JShellRunner.parseReplArgs(additionalArgs ++ replInitScriptFileArgs))
-
-    def ammoniteAdditionalArgs(parsedReplArgs: JShellRunner.ParsedReplArgs) = {
+    def ammoniteAdditionalArgs() = {
       val pythonPredef =
         if (setupPython)
           """import me.shadaj.scalapy.py
@@ -370,9 +412,9 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         if (pythonPredef.isEmpty) Nil
         else Seq("--predef-code", pythonPredef)
       val replInitScriptPredefArgs =
-        parsedReplArgs.initScriptOpt.toSeq.flatMap(script => Seq("--predef-code", script))
+        initScriptOpt.toSeq.flatMap(script => Seq("--predef-code", script))
       val replQuitAfterInitArgs =
-        if (parsedReplArgs.quitAfterInit) Seq("--code", "")
+        if (quitAfterInit) Seq("--code", "")
         else Nil
       pythonPredefArgs ++ replInitScriptPredefArgs ++ replQuitAfterInitArgs ++
         options.notForBloopOptions.replOptions.ammoniteArgs
@@ -511,10 +553,6 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
 
     replBackend match {
       case ReplBackend.JShell =>
-        if (parsedReplArgs.remainingArgs.nonEmpty)
-          logger.message(
-            s"Warning: JShell ignores Scala REPL options (${parsedReplArgs.remainingArgs.mkString(" ")})."
-          )
         val javaHomeInfo   = options.javaHome().value
         val jshellCommand0 = value(
           JShellRunner.commandFor(
@@ -522,8 +560,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
             javaOpts = scalapyJavaOpts ++ options.javaOptions.javaOpts.toSeq.map(_.value.value),
             classPath = mainJarsOrClassDirs ++ allArtifacts.flatMap(_.classPath).distinct,
             programArgs = programArgs,
-            initScriptOpt = parsedReplArgs.initScriptOpt,
-            quitAfterInit = parsedReplArgs.quitAfterInit,
+            initScriptOpt = initScriptOpt,
+            quitAfterInit = quitAfterInit,
             currentEnv = sys.env
           )
         )
@@ -542,63 +580,22 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         runMode match {
           case RunMode.Default =>
             val replArtifacts = value(ammoniteArtifacts())
-            val replArgs      = ammoniteAdditionalArgs(parsedReplArgs) ++ programArgs
-            maybeRunRepl(replArtifacts, replArgs)
+            val ammoniteArgs  = ammoniteAdditionalArgs() ++ programArgs
+            maybeRunRepl(replArtifacts, ammoniteArgs)
         }
 
       case ReplBackend.Default =>
         runMode match {
           case RunMode.Default =>
-            val replArtifacts = value(defaultArtifacts())
-            val replArgs      =
-              value(defaultReplArgs(
-                additionalArgs,
-                options.notForBloopOptions.replOptions.replInitScriptFileOpt
-              )) ++ programArgs
-            maybeRunRepl(replArtifacts, replArgs)
+            val replArtifacts  = value(defaultArtifacts())
+            val initScriptArgs =
+              initScriptOpt.toSeq.flatMap(script =>
+                Seq(s"--${ScalacOptions.replInitScript}", script)
+              )
+            val defaultArgs = additionalArgs ++ initScriptArgs ++ programArgs
+            maybeRunRepl(replArtifacts, defaultArgs)
         }
     }
-  }
-
-  private[commands] def defaultReplArgs(
-    additionalArgs: Seq[String],
-    replInitScriptFileOpt: Option[String]
-  ): Either[BuildException, Seq[String]] = {
-    val b                                = Seq.newBuilder[String]
-    var idx                              = 0
-    var errorOpt: Option[BuildException] = None
-    while (idx < additionalArgs.length) {
-      val arg = additionalArgs(idx)
-      if (arg == "--repl-init-script-file" || arg == "-repl-init-script-file")
-        if (idx + 1 < additionalArgs.length) {
-          JShellRunner.readInitScriptFile(additionalArgs(idx + 1)) match {
-            case Right(initScript) =>
-              b += "--repl-init-script"
-              b += initScript
-            case Left(e) => errorOpt = Some(e)
-          }
-          idx += 1
-        }
-        else b += arg
-      else if (
-        arg.startsWith("--repl-init-script-file:") || arg.startsWith("-repl-init-script-file:")
-      )
-        JShellRunner.readInitScriptFile(arg.dropWhile(_ != ':').drop(1)) match {
-          case Right(initScript) =>
-            b += "--repl-init-script"
-            b += initScript
-          case Left(e) => errorOpt = Some(e)
-        }
-      else b += arg
-      idx += 1
-    }
-    for {
-      args                <- errorOpt.toLeft(b.result())
-      sharedInitScriptOpt <- replInitScriptFileOpt match {
-        case Some(path) => JShellRunner.readInitScriptFile(path).map(Some(_))
-        case None       => Right(None)
-      }
-    } yield args ++ sharedInitScriptOpt.toSeq.flatMap(script => Seq("--repl-init-script", script))
   }
 
   private enum ReplBackend {
@@ -606,6 +603,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
   }
 
   final class ConflictingReplBackendsError(message0: String) extends BuildException(message0)
+  final class ReplInitScriptError(message0: String, cause0: Throwable = null)
+      extends BuildException(message0, cause = cause0)
   final class ReplError(retCode: Int)
       extends BuildException(s"Failed to run REPL (exit code: $retCode)")
 }

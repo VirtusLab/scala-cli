@@ -42,14 +42,12 @@ class ReplOptionsTests extends munit.FunSuite {
     expect(buildOptions.notForBloopOptions.replOptions.useJshellOpt.contains(true))
   }
 
-  test("Propagate --repl-init-script-file to build options") {
-    val replOptions = ReplOptions(
-      sharedRepl = SharedReplOptions(
-        replInitScriptFile = Some("init.sc")
-      )
-    )
-    val buildOptions = Repl.buildOptions(replOptions).value
-    expect(buildOptions.notForBloopOptions.replOptions.replInitScriptFileOpt.contains("init.sc"))
+  test("Read --repl-init-script-file contents") {
+    val initScriptFile = os.temp(prefix = "scala-cli-repl-options-init-", suffix = ".sc")
+    val initScript     = """println("from shared repl options")"""
+    os.write.over(initScriptFile, initScript)
+    val resolved = Repl.readInitScriptFile(initScriptFile.toString).toOption.get
+    expect(resolved == initScript)
   }
 
   test("Reject --jshell with --ammonite") {
