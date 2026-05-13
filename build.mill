@@ -4,7 +4,7 @@
 //| - io.github.alexarchambault.mill::mill-native-image-upload:0.2.4
 //| - com.goyeau::mill-scalafix::0.6.0
 //| - com.lumidion::sonatype-central-client-requests:0.6.0
-//| - io.get-coursier:coursier-launcher_2.13:2.1.25-M24
+//| - io.get-coursier:coursier-launcher_2.13:2.1.25-M25
 //| - org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r
 package build
 
