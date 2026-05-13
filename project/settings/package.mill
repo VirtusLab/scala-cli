@@ -807,13 +807,13 @@ trait ScalaCliScalafixModule extends ScalafixModule {
     if (scalaVersion().startsWith("2.")) super.scalafixConfig()
     else Some(BuildCtx.workspaceRoot / ".scalafix3.conf")
   }
-  def scalacPluginMvnDeps: T[Seq[Dep]] = super.scalacPluginMvnDeps() ++ {
+  override def scalacPluginMvnDeps: T[Seq[Dep]] = super.scalacPluginMvnDeps() ++ {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
     else Nil
   }
   // Explicitly setting sourceroot, so that Scala CLI doesn't use a wrong one.
   // Using BuildCtx.workspaceRoot is more or less required, for scalafix stuff to work fine.
-  def scalacOptions: T[Seq[String]] = Task {
+  override def scalacOptions: T[Seq[String]] = Task {
     val sv            = scalaVersion()
     val isScala2      = sv.startsWith("2.")
     val sourceRoot    = BuildCtx.workspaceRoot
@@ -845,11 +845,11 @@ trait ScalaCliScalafixModule extends ScalafixModule {
 trait ScalaCliCrossSbtModule extends CrossSbtModule with ScalaCliModule
 
 trait ScalaCliModule extends ScalaModule {
-  def javacOptions: T[Seq[String]] = super.javacOptions() ++ Seq(
+  override def javacOptions: T[Seq[String]] = super.javacOptions() ++ Seq(
     "--release",
     "16"
   )
-  def scalacOptions: T[Seq[String]] = Task {
+  override def scalacOptions: T[Seq[String]] = Task {
     val sv           = scalaVersion()
     val isScala213   = sv.startsWith("2.13.")
     val extraOptions =
