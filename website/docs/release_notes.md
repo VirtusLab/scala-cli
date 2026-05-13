@@ -8,6 +8,146 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.14.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.14.0)
+
+### Change default Scala Native version to 0.5.11
+This Scala CLI version switches the default Scala Native version to 0.5.11.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4253](https://github.com/VirtusLab/scala-cli/pull/4253)
+
+### Support for `.test.java`
+`*.test.java` files are now picked up as test-scope sources automatically, mirroring `*.test.scala`.
+Under the hood, Scala CLI generates a matching `.java` source (so `Example.test.java` generates a matching `Example.java` source), so that `javac` accepts the public class.
+
+```java title=java-junit-example/ExampleTest.test.java
+//> using test.dep junit:junit:4.13.2
+//> using test.dep com.novocode:junit-interface:0.11
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+
+public class ExampleTest {
+  @Test public void foo() { assertEquals(4, 2 + 2); }
+}
+```
+
+```bash
+scala-cli test java-junit-example
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4261](https://github.com/VirtusLab/scala-cli/pull/4261)
+
+### A toggle to turn auto-IDE-setup off
+Build commands (such as `compile`, `run`, `test`) automatically write the BSP configuration under `.bsp/` to keep IDE integration in sync.
+This behavior can now be disabled per-invocation via `--auto-setup-ide=false`, or globally via the `ide.auto-setup` `config` key.
+
+```bash
+scala-cli compile java-junit-example --auto-setup-ide=false
+# Compile without generating .bsp/ configuration
+```
+
+```bash ignore
+scala-cli config ide.auto-setup false
+# Disable auto-setup-ide globally for all build commands
+```
+
+Added by [@Gedochao*](https://github.com/Gedochao*) in [#4258](https://github.com/VirtusLab/scala-cli/pull/4258)
+
+### New `directives-parser` module
+The legacy Java `using_directives` parser has been replaced with a Scala-rewritten `directives-parser` module.
+This is transparent to users, but resolves long-standing directive parsing issues
+([#2443](https://github.com/VirtusLab/scala-cli/issues/2443),
+[#3019](https://github.com/VirtusLab/scala-cli/issues/3019),
+[#2382](https://github.com/VirtusLab/scala-cli/issues/2382))
+and unblocks future improvements to directive handling.
+
+The directives parser can be used as a standalone library, so you can now parse using directives in your own tools and applications with the same logic as Scala CLI.
+```scala 
+//> using scala 3
+//> using dep org.virtuslab.scala-cli::directives-parser:latest.integration
+import scala.cli.parse.UsingDirectivesParser
+
+@main def parseDirectives(): Unit =
+  val source =
+    """//> using scala 3.8.3
+      |//> using dep com.lihaoyi::os-lib:0.11.9-M7
+      |//> using options -Wunused:all -deprecation
+      |
+      |@main def hello() = println("Hello")
+      |""".stripMargin
+      
+  val result = UsingDirectivesParser.parse(source.toCharArray)
+
+  for d <- result.directives do
+    val values = d.values.map(_.stringValue).mkString(", ")
+    println(s"${d.key} = $values  (line ${d.keyPosition.line})")
+    
+  if result.diagnostics.nonEmpty then
+    println("Diagnostics:")
+    result.diagnostics.foreach(println)
+```
+
+```text
+scala = 3.8.3  (line 0)
+dep = com.lihaoyi::os-lib:0.11.9-M7  (line 1)
+options = -Wunused:all, -deprecation  (line 2)
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4192](https://github.com/VirtusLab/scala-cli/pull/4192)
+
+### Typelevel Toolkit 0.2.0 (with Scala Native)
+The Typelevel Toolkit dependency has been bumped to 0.2.0 and is now compatible with Scala Native 0.5.x.
+It's worth mentioning that its test framework has been swapped from MUnit to Weaver.
+
+```scala compile title=HelloSuite.test.scala
+//> using toolkit typelevel:default
+//> using platform native
+
+import cats.effect.*
+import weaver.*
+
+object HelloSuite extends SimpleIOSuite:
+  test("hello") {
+    IO("Hello").map(expect.eql(_, "Hello"))
+  }
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4244](https://github.com/VirtusLab/scala-cli/pull/4244)
+
+### Features
+* Migrate from old `using_directives` to Scala-rewritten `directives-parser` module by [@Gedochao](https://github.com/Gedochao) in [#4192](https://github.com/VirtusLab/scala-cli/pull/4192)
+* Allow to disable auto-setup-ide in build commands with a command line option & config by [@Gedochao](https://github.com/Gedochao) in [#4258](https://github.com/VirtusLab/scala-cli/pull/4258)
+* Support for `.test.java` by [@Gedochao](https://github.com/Gedochao) in [#4261](https://github.com/VirtusLab/scala-cli/pull/4261)
+
+### Fixes
+* Prevent duplicate `publish.credentials` and `repositories.credentials` from being saved to the config database by [@Gedochao](https://github.com/Gedochao) in [#4257](https://github.com/VirtusLab/scala-cli/pull/4257)
+
+### Build and internal changes
+* Fix `scala-cli-archive-keyring.gpg` generation; auto generate `KEY.gpg` for `scala-cli-packages` by [@Gedochao](https://github.com/Gedochao) in [#4238](https://github.com/VirtusLab/scala-cli/pull/4238)
+* Fix `sclicheck.GifTests.complete-install` timing out by [@Gedochao](https://github.com/Gedochao) in [#4236](https://github.com/VirtusLab/scala-cli/pull/4236)
+* Split the `update-packages` CI job down into individual targets by [@Gedochao](https://github.com/Gedochao) in [#4259](https://github.com/VirtusLab/scala-cli/pull/4259)
+* Add explicit overrides in ScalaCliScalafixModule by [@Gedochao](https://github.com/Gedochao) in [#4267](https://github.com/VirtusLab/scala-cli/pull/4267)
+
+### Documentation changes
+* Fix docs & add tests for `repositories.mirrors` & `repositories.default` by [@Gedochao](https://github.com/Gedochao) in [#4235](https://github.com/VirtusLab/scala-cli/pull/4235)
+
+### Updates
+* Update scala-cli.sh launcher for 1.13.0 by @github-actions[bot] in [#4232](https://github.com/VirtusLab/scala-cli/pull/4232)
+* Bump @algolia/client-search from 5.50.1 to 5.50.2 in /website in the npm-dependencies group by @dependabot[bot] in [#4242](https://github.com/VirtusLab/scala-cli/pull/4242)
+* Bump @algolia/client-search from 5.50.2 to 5.51.0 in /website in the npm-dependencies group by @dependabot[bot] in [#4247](https://github.com/VirtusLab/scala-cli/pull/4247)
+* Bump postcss from 8.5.6 to 8.5.12 in /website by @dependabot[bot] in [#4248](https://github.com/VirtusLab/scala-cli/pull/4248)
+* Bump the npm-dependencies group in /website with 5 updates by @dependabot[bot] in [#4251](https://github.com/VirtusLab/scala-cli/pull/4251)
+* Bump Mill to 1.1.6 (was 1.1.5) by [@Gedochao](https://github.com/Gedochao) in [#4254](https://github.com/VirtusLab/scala-cli/pull/4254)
+* Bump Scala Native to 0.5.11 (was 0.5.10) by [@Gedochao](https://github.com/Gedochao) in [#4253](https://github.com/VirtusLab/scala-cli/pull/4253)
+* Bump Scala 3 Next RC to 3.8.4-RC2 by [@Gedochao](https://github.com/Gedochao) in [#4243](https://github.com/VirtusLab/scala-cli/pull/4243)
+* Bump fast-uri from 3.1.0 to 3.1.2 in /website by @dependabot[bot] in [#4263](https://github.com/VirtusLab/scala-cli/pull/4263)
+* Bump @babel/plugin-transform-modules-systemjs from 7.28.5 to 7.29.4 in /website by @dependabot[bot] in [#4264](https://github.com/VirtusLab/scala-cli/pull/4264)
+* Bump the npm-dependencies group in /website with 3 updates by @dependabot[bot] in [#4265](https://github.com/VirtusLab/scala-cli/pull/4265)
+* Bump Typelevel Toolkit to 0.2.0 and enable it for Scala Native 0.5.* by [@Gedochao](https://github.com/Gedochao) in [#4244](https://github.com/VirtusLab/scala-cli/pull/4244)
+* Bump Scala toolkit to 0.9.2 (was 0.8.0) by [@Gedochao](https://github.com/Gedochao) in [#4268](https://github.com/VirtusLab/scala-cli/pull/4268)
+* Bump coursier to 2.1.25-M25 by [@Gedochao](https://github.com/Gedochao) in [#4266](https://github.com/VirtusLab/scala-cli/pull/4266)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.13.0...v1.14.0
+
 ## [v1.13.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.13.0)
 
 ### Change default Scala version to 3.8.3
