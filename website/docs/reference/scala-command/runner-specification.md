@@ -642,7 +642,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.2.0
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.9.2, 'default' version for typelevel toolkit: 0.2.0
 
 Aliases: `--toolkit`
 
@@ -1451,7 +1451,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.2.0
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.9.2, 'default' version for typelevel toolkit: 0.2.0
 
 Aliases: `--toolkit`
 
@@ -2076,7 +2076,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.2.0
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.9.2, 'default' version for typelevel toolkit: 0.2.0
 
 Aliases: `--toolkit`
 
@@ -2731,7 +2731,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.2.0
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.9.2, 'default' version for typelevel toolkit: 0.2.0
 
 Aliases: `--toolkit`
 
@@ -3395,7 +3395,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.2.0
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.9.2, 'default' version for typelevel toolkit: 0.2.0
 
 Aliases: `--toolkit`
 
@@ -4017,7 +4017,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.2.0
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.9.2, 'default' version for typelevel toolkit: 0.2.0
 
 Aliases: `--toolkit`
 
@@ -4717,7 +4717,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.2.0
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.9.2, 'default' version for typelevel toolkit: 0.2.0
 
 Aliases: `--toolkit`
 
@@ -5427,7 +5427,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.2.0
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.9.2, 'default' version for typelevel toolkit: 0.2.0
 
 Aliases: `--toolkit`
 
@@ -6420,7 +6420,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.8.0, 'default' version for typelevel toolkit: 0.2.0
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.9.2, 'default' version for typelevel toolkit: 0.2.0
 
 Aliases: `--toolkit`
 
