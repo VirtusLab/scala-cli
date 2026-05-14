@@ -3,10 +3,10 @@ package scala.build.preprocessing.directives
 import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.{BuildException, UnrecognizedWasmRuntimeError}
-import scala.build.options.{BuildOptions, Platform, ScalaOptions, WasmOptions, WasmRuntime}
+import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaOptions, WasmRuntime}
 import scala.cli.commands.SpecificationLevel
 
-@DirectiveGroupName("WASM options")
+@DirectiveGroupName("Wasm options")
 @DirectiveExamples("//> using wasm")
 @DirectiveExamples("//> using wasmRuntime node")
 @DirectiveExamples("//> using wasmRuntime deno")
@@ -37,17 +37,16 @@ final case class Wasm(
       }
     parsedRuntime.map { runtime =>
       val wasmEnabled = wasm.getOrElse(false) || wasmRuntime.isDefined
-      val wasmOptions = WasmOptions(
-        enabled = wasmEnabled,
-        runtime = runtime
-      )
-      // When WASM is enabled, force Platform.JS (Scala.js WASM backend requires JS compilation)
+      // When Wasm is enabled, force Platform.JS (Scala.js Wasm backend requires JS compilation)
       val scalaOptions =
         if (wasmEnabled)
           ScalaOptions(platform = Some(Positioned.none(Platform.JS)))
         else
           ScalaOptions()
-      BuildOptions(scalaOptions = scalaOptions, wasmOptions = wasmOptions)
+      BuildOptions(
+        scalaOptions = scalaOptions,
+        scalaJsOptions = ScalaJsOptions(jsEmitWasm = wasmEnabled, wasmRuntime = runtime)
+      )
     }
   }
 }

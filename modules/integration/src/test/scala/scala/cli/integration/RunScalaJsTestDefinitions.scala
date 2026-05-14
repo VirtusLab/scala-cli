@@ -328,7 +328,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  test("Run with --wasm flag") {
+  test("Run with --js-emit-wasm flag") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
         """object Hello {
@@ -342,8 +342,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--power",
         "run",
         "Hello.scala",
-        "--wasm",
-        "--wasm-runtime",
+        "--js-emit-wasm",
+        "--js-wasm-runtime",
         "node",
         extraOptions
       ).call(cwd = root).out.trim()
@@ -351,7 +351,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  test("Run with --wasm uses Node.js by default") {
+  test("Run with --js-emit-wasm uses Node.js by default") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
         """object Hello {
@@ -365,7 +365,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--power",
         "run",
         "Hello.scala",
-        "--wasm",
+        "--js-emit-wasm",
         extraOptions
       ).call(cwd = root).out.trim()
       expect(output == "Hello default WASM!")
@@ -394,7 +394,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  test("WASM passes arguments to program") {
+  test("Wasm passes arguments to program") {
     // Scala.js always passes an empty Array[String] to main(args),
     // so we must read process.argv directly via JS interop.
     val inputs = TestInputs(
@@ -415,8 +415,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--power",
         "run",
         "Hello.scala",
-        "--wasm",
-        "--wasm-runtime",
+        "--js-emit-wasm",
+        "--js-wasm-runtime",
         "node",
         extraOptions,
         "--",
@@ -429,7 +429,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
   }
 
   if (TestUtil.fromPath("deno").isDefined)
-    test("Run with --wasm-runtime deno") {
+    test("Run with --js-wasm-runtime deno") {
       val inputs = TestInputs(
         os.rel / "Hello.scala" ->
           """object Hello {
@@ -443,8 +443,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           "--power",
           "run",
           "Hello.scala",
-          "--wasm",
-          "--wasm-runtime",
+          "--js-emit-wasm",
+          "--js-wasm-runtime",
           "deno",
           extraOptions
         ).call(cwd = root).out.trim()
@@ -453,7 +453,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
 
   if (TestUtil.fromPath("bun").isDefined)
-    test("Run with --wasm-runtime bun") {
+    test("Run with --js-wasm-runtime bun") {
       val inputs = TestInputs(
         os.rel / "Hello.scala" ->
           """object Hello {
@@ -467,8 +467,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           "--power",
           "run",
           "Hello.scala",
-          "--wasm",
-          "--wasm-runtime",
+          "--js-emit-wasm",
+          "--js-wasm-runtime",
           "bun",
           extraOptions
         ).call(cwd = root).out.trim()
@@ -476,7 +476,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       }
     }
 
-  test("WASM multiple source files") {
+  test("Wasm multiple source files") {
     val inputs = TestInputs(
       os.rel / "Greeter.scala" ->
         """trait Greeter {
@@ -502,8 +502,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "run",
         "Main.scala",
         "Greeter.scala",
-        "--wasm",
-        "--wasm-runtime",
+        "--js-emit-wasm",
+        "--js-wasm-runtime",
         "node",
         extraOptions
       ).call(cwd = root).out.trim()
@@ -511,7 +511,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  test("WASM exception handling") {
+  test("Wasm exception handling") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
         """object Hello {
@@ -534,8 +534,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--power",
         "run",
         "Hello.scala",
-        "--wasm",
-        "--wasm-runtime",
+        "--js-emit-wasm",
+        "--js-wasm-runtime",
         "node",
         extraOptions
       ).call(cwd = root).out.trim()
@@ -545,7 +545,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  test("WASM collections and higher-order functions") {
+  test("Wasm collections and higher-order functions") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
         """object Hello {
@@ -566,8 +566,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--power",
         "run",
         "Hello.scala",
-        "--wasm",
-        "--wasm-runtime",
+        "--js-emit-wasm",
+        "--js-wasm-runtime",
         "node",
         extraOptions
       ).call(cwd = root).out.trim()
@@ -579,7 +579,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
   }
 
   if (!actualScalaVersion.startsWith("2"))
-    test("WASM @main annotation (Scala 3)") {
+    test("Wasm @main annotation (Scala 3)") {
       // Scala.js always passes empty args to main, so @main with parameters won't work.
       // Test @main without parameters instead.
       val inputs = TestInputs(
@@ -594,8 +594,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           "--power",
           "run",
           "Hello.scala",
-          "--wasm",
-          "--wasm-runtime",
+          "--js-emit-wasm",
+          "--js-wasm-runtime",
           "node",
           extraOptions
         ).call(cwd = root).out.trim()

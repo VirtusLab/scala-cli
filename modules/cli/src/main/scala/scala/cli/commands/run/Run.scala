@@ -474,12 +474,12 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         if shouldLogCrossInfo then logger.debug(s"Running build for ${crossBuildParams.asString}")
         val build = builds.head
         either {
-          val wasmOpts = build.options.wasmOptions
+          val jsOpts = build.options.scalaJsOptions
 
-          // Check if WASM mode is requested
-          if wasmOpts.enabled then {
-            val runtime  = wasmOpts.runtime
-            val esModule = true // WASM backend uses ES modules
+          // Check if Wasm mode is requested
+          if jsOpts.jsEmitWasm then {
+            val runtime  = jsOpts.wasmRuntime
+            val esModule = true // Wasm backend uses ES modules
             scratchDirOpt.foreach(os.makeDir.all(_))
             val jsDest = os.temp(
               dir = scratchDirOpt.orNull,
@@ -488,8 +488,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               deleteOnExit = scratchDirOpt.isEmpty
             )
 
-            val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-              .copy(emitWasm = true, moduleKind = ScalaJsLinkerConfig.ModuleKind.ESModule)
+            val linkerConfig = jsOpts.linkerConfig(logger)
 
             val res = Package.linkJs(
               builds = builds,
@@ -497,8 +496,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               mainClassOpt = Some(mainClass),
               addTestInitializer = false,
               config = linkerConfig,
-              fullOpt = value(build.options.scalaJsOptions.fullOpt),
-              noOpt = build.options.scalaJsOptions.noOpt.getOrElse(false),
+              fullOpt = value(jsOpts.fullOpt),
+              noOpt = jsOpts.noOpt.getOrElse(false),
               logger = logger,
               scratchDirOpt = scratchDirOpt
             ).map { outputPath =>
@@ -529,7 +528,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                         logger,
                         allowExecve = effectiveAllowExecve,
                         jsDom = false,
-                        sourceMap = build.options.scalaJsOptions.emitSourceMaps,
+                        sourceMap = jsOpts.emitSourceMaps,
                         esModule = esModule,
                         emitWasm = true
                       )
