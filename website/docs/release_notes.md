@@ -11,7 +11,7 @@ import ReactPlayer from 'react-player'
 ## [v1.14.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.14.0)
 
 ### Change default Scala Native version to 0.5.11
-This Scala CLI version switches the default Scala Native version to 0.5.11.
+This Scala CLI version switches the default Scala Native version to [0.5.11](https://github.com/scala-native/scala-native/releases/tag/v0.5.11).
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#4253](https://github.com/VirtusLab/scala-cli/pull/4253)
 
@@ -60,7 +60,7 @@ This is transparent to users, but resolves long-standing directive parsing issue
 [#2382](https://github.com/VirtusLab/scala-cli/issues/2382))
 and unblocks future improvements to directive handling.
 
-The directives parser can be used as a standalone library, so you can now parse using directives in your own tools and applications with the same logic as Scala CLI.
+The directives parser can be used as a standalone library, so you can now parse `using` directives in your own tools and applications with the same logic as Scala CLI.
 ```scala 
 //> using scala 3
 //> using dep org.virtuslab.scala-cli::directives-parser:latest.integration
