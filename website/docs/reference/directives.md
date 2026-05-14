@@ -707,7 +707,7 @@ Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for
 
 `//> using test.toolkit default`
 
-### WASM options
+### Wasm options
 
 Add WebAssembly options
 

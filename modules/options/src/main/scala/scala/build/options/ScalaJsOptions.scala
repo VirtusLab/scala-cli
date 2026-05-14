@@ -26,7 +26,8 @@ final case class ScalaJsOptions(
   smallModuleForPackage: List[String] = Nil,
   esVersionStr: Option[String] = None,
   noOpt: Option[Boolean] = None,
-  jsEmitWasm: Boolean = false
+  jsEmitWasm: Boolean = false,
+  wasmRuntime: WasmRuntime = WasmRuntime.default
 ) {
   def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] =
     if (mode.isValid)
@@ -155,7 +156,8 @@ final case class ScalaJsOptions(
     )
 
     ScalaJsLinkerConfig(
-      moduleKind = moduleKind(logger),
+      moduleKind =
+        if (jsEmitWasm) ScalaJsLinkerConfig.ModuleKind.ESModule else moduleKind(logger),
       checkIR = checkIr.getOrElse(false), // meh
       sourceMap = emitSourceMaps,
       moduleSplitStyle = moduleSplitStyle(logger),

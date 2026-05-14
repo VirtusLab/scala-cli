@@ -4,7 +4,7 @@ import java.util.Locale
 
 /** Represents available WebAssembly runtimes for execution.
   *
-  * JS-based runtimes (work now with Scala.js WASM backend):
+  * JS-based runtimes (work now with Scala.js Wasm backend):
   *   - Node: Uses Node.js (V8 engine) with JavaScript loader
   *   - Deno: Uses Deno (V8 engine) with ES module support
   *   - Bun: Uses Bun (JavaScriptCore engine) with ES module support

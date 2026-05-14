@@ -210,33 +210,15 @@ object Runner {
       case _: Exception => None
     }
 
-  // Pre-V8 13.x runtimes need --experimental-wasm-exnref for the Scala.js WASM exception model.
-  // V8 13.x ships in Node 25+ (Node 24 is still on V8 12.x where exnref is gated behind the flag),
-  // so until the default flips we always pass the flag when emitWasm is true.
-  private def nodeNeedsWasmFlag: Boolean = true
+  // Pre-V8 13.x runtimes need --experimental-wasm-exnref for the Scala.js Wasm exception model.
+  // V8 13.x ships in Node 25+ (Node 24 is still on V8 12.x where exnref is gated behind the flag).
+  // In Node 26+, the flag may be removed from the CLI. Only pass it when Node < 25.
+  // None.forall(_ < 25) == true — safe fallback when version detection fails.
+  private def nodeNeedsWasmFlag: Boolean = nodeMajorVersion.forall(_ < 25)
 
   // Deno 2.x bundles V8 12.x where wasm-exnref is gated behind a flag; symmetrical reasoning to Node.
-  // We always set DENO_V8_FLAGS=--experimental-wasm-exnref on emitWasm until V8 13.x lands in Deno.
+  // We always set DENO_V8_FLAGS=--experimental-wasm-exnref on Wasm output until V8 13.x lands in Deno.
   private def denoNeedsWasmFlag: Boolean = true
-
-  // Detects the major version of Bun on PATH; cached for the JVM lifetime (lazy val).
-  // Returns None if bun is not found or version cannot be parsed.
-  private lazy val bunMajorVersion: Option[Int] =
-    try {
-      val process = new ProcessBuilder("bun", "--version")
-        .redirectErrorStream(true)
-        .start()
-      val output = new String(process.getInputStream.readAllBytes()).trim
-      process.waitFor()
-      // Bun version format: "1.1.30" -> extract 1
-      output.takeWhile(_.isDigit) match {
-        case s if s.nonEmpty => Some(s.toInt)
-        case _               => None
-      }
-    }
-    catch {
-      case _: Exception => None
-    }
 
   private def endsWithCaseInsensitive(s: String, suffix: String): Boolean =
     s.length >= suffix.length &&
@@ -300,10 +282,6 @@ object Runner {
       value(findInPath("node")
         .map(_.toString)
         .toRight(NodeNotFoundError()))
-    if (emitWasm)
-      nodeMajorVersion.foreach { v =>
-        if (v < 22) value(Left(new NodeVersionTooOldForWasmError(v)))
-      }
     val nodeFlags = if (emitWasm && nodeNeedsWasmFlag) List("--experimental-wasm-exnref") else Nil
     if !jsDom && allowExecve && Execve.available() then {
       val command = Seq(nodePath) ++ nodeFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
@@ -323,8 +301,10 @@ object Runner {
       sys.error("should not happen")
     }
     else if (emitWasm) {
-      // For WASM mode with ES modules, run node directly instead of NodeJSEnv.
-      // NodeJSEnv's stdin piping with "-" doesn't work with Input.ESModule.
+      // Wasm output always uses ESModule. NodeJSEnv prepends "-" to user args when they are
+      // non-empty (to enable Node's stdin-pipe mode for Script inputs), but "-" before the
+      // entrypoint tells Node to read from stdin instead of running the ESModule file.
+      // Using ProcessBuilder directly places args after the entrypoint, which is correct.
       val command = Seq(nodePath) ++ nodeFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
 
       logger.log(
@@ -333,7 +313,9 @@ object Runner {
           command.iterator.map(_ + System.lineSeparator()).mkString
       )
 
-      new ProcessBuilder(command: _*).inheritIO().start()
+      new ProcessBuilder(command*)
+        .inheritIO()
+        .start()
     }
     else {
       val nodeArgs =
@@ -455,10 +437,6 @@ object Runner {
       value(findInPath("bun")
         .map(_.toString)
         .toRight(BunNotFoundError()))
-    bunMajorVersion.foreach { v =>
-      if (v < 1) value(Left(new BunVersionTooOldForWasmError(v)))
-    }
-
     val command = Seq(bunPath, "run", entrypoint.getAbsolutePath) ++ args
 
     if (allowExecve && Execve.available()) {

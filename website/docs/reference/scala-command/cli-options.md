@@ -1467,16 +1467,6 @@ A github token used to access GitHub. Not needed in most cases.
 
 Don't check for the newest available Scala CLI version upstream
 
-## Wasm options
-
-Available in commands:
-
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-*This section was automatically generated and may be empty if no options were available.*
-
 ## Watch options
 
 Available in commands:
