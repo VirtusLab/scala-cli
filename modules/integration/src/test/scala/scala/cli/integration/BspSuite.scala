@@ -22,9 +22,12 @@ import scala.util.{Failure, Success, Try}
 
 trait BspSuite { this: ScalaCliSuite =>
   protected def extraOptions: Seq[String]
-  def initParams(root: os.Path): b.InitializeBuildParams =
+  def initParams(
+    root: os.Path,
+    clientName: String = "Scala CLI ITs"
+  ): b.InitializeBuildParams =
     new b.InitializeBuildParams(
-      "Scala CLI ITs",
+      clientName,
       "0",
       Constants.bspVersion,
       root.toNIO.toUri.toASCIIString,
@@ -74,7 +77,8 @@ trait BspSuite { this: ScalaCliSuite =>
     bspEnvs: Map[String, String] = Map.empty,
     reuseRoot: Option[os.Path] = None,
     stdErrOpt: Option[os.RelPath] = None,
-    extraOptionsOverride: Seq[String] = extraOptions
+    extraOptionsOverride: Seq[String] = extraOptions,
+    bspClientName: String = "Scala CLI ITs"
   )(
     f: (
       os.Path,
@@ -91,7 +95,8 @@ trait BspSuite { this: ScalaCliSuite =>
     bspEnvs,
     reuseRoot,
     stdErrOpt,
-    extraOptionsOverride
+    extraOptionsOverride,
+    bspClientName
   )((root, client, server, _: b.InitializeBuildResult) => f(root, client, server))
 
   def withBspInitResults[T](
@@ -103,7 +108,8 @@ trait BspSuite { this: ScalaCliSuite =>
     bspEnvs: Map[String, String] = Map.empty,
     reuseRoot: Option[os.Path] = None,
     stdErrOpt: Option[os.RelPath] = None,
-    extraOptionsOverride: Seq[String] = extraOptions
+    extraOptionsOverride: Seq[String] = extraOptions,
+    bspClientName: String = "Scala CLI ITs"
   )(
     f: (
       os.Path,
@@ -151,7 +157,9 @@ trait BspSuite { this: ScalaCliSuite =>
           TestBspClient.connect(proc.stdout, proc.stdin, pool)
         remoteServer = remoteServer0
         val initRes: b.InitializeBuildResult = Await.result(
-          whileBspServerIsRunning(remoteServer.buildInitialize(initParams(root)).asScala),
+          whileBspServerIsRunning(
+            remoteServer.buildInitialize(initParams(root, bspClientName)).asScala
+          ),
           Duration.Inf
         )
         Await.result(

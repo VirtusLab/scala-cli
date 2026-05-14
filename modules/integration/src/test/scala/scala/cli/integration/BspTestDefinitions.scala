@@ -2445,4 +2445,71 @@ abstract class BspTestDefinitions extends ScalaCliSuite
       }
     }
   }
+
+  for {
+    isIntelliJ <- Seq(false, true)
+    clientDescription = if isIntelliJ then "IntelliJ" else "any client"
+    bspClientName     = if isIntelliJ then "IntelliJ" else "test"
+  } {
+    def baseDirectoryOfMainTarget(
+      remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+        TestBspClient.WrappedSourcesBuildServer
+    ): os.Path = {
+      val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+      val targets          = buildTargetsResp.getTargets.asScala.toSeq
+      val mainTarget       = targets.find(t => !t.getId.getUri.contains("-test")).getOrElse {
+        sys.error(s"No main build target found in ${targets.map(_.getId.getUri)}")
+      }
+      os.Path(Paths.get(new URI(mainTarget.getBaseDirectory)))
+    }
+
+    test(s"workspaceBuildTargets baseDirectory: default workspace ($clientDescription)") {
+      withBsp(
+        inputs = TestInputs(
+          os.rel / "Hello.scala" ->
+            """object Hello {
+              |  def main(args: Array[String]): Unit = println("Hello")
+              |}
+              |""".stripMargin
+        ),
+        args = Seq("."),
+        bspClientName = bspClientName
+      ) { (root, _, remoteServer) =>
+        Future {
+          val baseDir = baseDirectoryOfMainTarget(remoteServer)
+          if isIntelliJ then expect(baseDir == root)
+          else expect(baseDir == root / Constants.workspaceDirName)
+        }
+      }
+    }
+
+    if !Properties.isWin then
+      test(s"workspaceBuildTargets baseDirectory: non-writable workspace ($clientDescription)") {
+        val simpleHelloInputsInDir = TestInputs(
+          os.rel / "dir" / "Hello.scala" ->
+            """object Hello {
+              |  def main(args: Array[String]): Unit = println("Hello")
+              |}
+              |""".stripMargin
+        )
+        simpleHelloInputsInDir.fromRoot { root =>
+          os.perms.set(root / "dir", "r-xr-xr-x")
+          try
+            withBsp(
+              simpleHelloInputsInDir,
+              Seq("dir"),
+              reuseRoot = Some(root),
+              bspClientName = bspClientName
+            ) {
+              (_, _, remoteServer) =>
+                Future {
+                  val baseDir         = baseDirectoryOfMainTarget(remoteServer)
+                  val expectedBaseDir = root / "dir"
+                  expect(baseDir == expectedBaseDir)
+                }
+            }
+          finally os.perms.set(root / "dir", "rwxr-xr-x")
+        }
+      }
+  }
 }
