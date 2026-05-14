@@ -15,6 +15,7 @@ import scala.build.errors.{
   NoScalaVersionProvidedError,
   UnsupportedGradleModuleVariantError
 }
+import scala.build.internal.Constants
 import scala.build.{Os, Positioned}
 
 object Util {
@@ -93,6 +94,8 @@ object Util {
     }
   }
   implicit class ScalaDependencyOps(private val dep: dependency.AnyDependency) extends AnyVal {
+    def isScalaLangOrganization: Boolean =
+      dep.module.organization == Constants.toolkitOrganization
     def toCs(params: dependency.ScalaParameters): coursier.Dependency =
       dep.applyParams(params).toCs
     def toCs(paramsOpt: Option[dependency.ScalaParameters])

@@ -277,7 +277,16 @@ final case class BuildOptions(
   private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
   private val scala3NightlyRepo = Seq(RepositoryUtils.scala3NightlyRepository.root)
 
-  def finalRepositories: Either[BuildException, Seq[Repository]] = either {
+  def finalRepositories: Either[BuildException, Seq[Repository]] =
+    finalRepositories(includeUserExtraRepositories = true)
+
+  /** @param includeUserExtraRepositories
+    *   when false, repositories from `//> using repository` are omitted (nightly, internal local,
+    *   and snapshot repositories are kept).
+    */
+  def finalRepositories(
+    includeUserExtraRepositories: Boolean
+  ): Either[BuildException, Seq[Repository]] = either {
     val maybeSv = scalaOptions.scalaVersion
       .map(_.asString)
       .orElse(scalaOptions.defaultScalaVersion)
@@ -293,7 +302,10 @@ final case class BuildOptions(
           RepositoryUtils.scala3NightlyRepository
         )
       else Nil
-    val extraRepositories = classPathOptions.extraRepositories.filterNot(_ == "snapshots")
+    val userExtraRepositories = classPathOptions.extraRepositories.filterNot(_ == "snapshots")
+    val extraRepositories     =
+      if includeUserExtraRepositories then userExtraRepositories
+      else Nil
 
     val repositories = nightlyRepos ++
       extraRepositories ++
