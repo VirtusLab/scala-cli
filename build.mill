@@ -2006,6 +2006,7 @@ object ci extends Module {
     val cmd = Seq[os.Shellable](
       "docker",
       "run",
+      "-t",
       "-v",
       s"$packagesDir:/packages",
       "-w",
