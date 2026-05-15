@@ -61,9 +61,9 @@ This is transparent to users, but resolves long-standing directive parsing issue
 and unblocks future improvements to directive handling.
 
 The directives parser can be used as a standalone library, so you can now parse `using` directives in your own tools and applications with the same logic as Scala CLI.
-```scala 
+```scala compile
 //> using scala 3
-//> using dep org.virtuslab.scala-cli::directives-parser:latest.integration
+//> using dep org.virtuslab.scala-cli::directives-parser:1.14.0
 import scala.cli.parse.UsingDirectivesParser
 
 @main def parseDirectives(): Unit =
