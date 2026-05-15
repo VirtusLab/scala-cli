@@ -303,7 +303,10 @@ object Build {
             workspace = inputs.workspace,
             updateSemanticDbs = true,
             scalaVersion = sv,
-            buildOptions = build.options
+            buildOptions =
+              inputs.originalWorkspaceOpt.fold(build.options)(
+                build.options.withResolvedSemanticDbSourceRoot
+              )
           ).left.foreach(_.foreach(logger.message(_)))
       case _ =>
     }
@@ -942,7 +945,8 @@ object Build {
       options.scalaOptions.semanticDbOptions.generateSemanticDbs.getOrElse(false)
     val semanticDbTargetRoot = options.scalaOptions.semanticDbOptions.semanticDbTargetRoot
     val semanticDbSourceRoot =
-      options.scalaOptions.semanticDbOptions.semanticDbSourceRoot.getOrElse(inputs.workspace)
+      options.scalaOptions.semanticDbOptions.semanticDbSourceRoot
+        .getOrElse(inputs.originalWorkspaceOpt.getOrElse(inputs.workspace))
 
     val scalaCompilerParamsOpt = artifacts.scalaOpt match {
       case Some(scalaArtifacts) =>

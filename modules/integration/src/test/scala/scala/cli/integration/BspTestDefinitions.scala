@@ -2451,17 +2451,24 @@ abstract class BspTestDefinitions extends ScalaCliSuite
     clientDescription = if isIntelliJ then "IntelliJ" else "any client"
     bspClientName     = if isIntelliJ then "IntelliJ" else "test"
   } {
-    def baseDirectoryOfMainTarget(
+    def mainTargetOf(
       remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
         TestBspClient.WrappedSourcesBuildServer
-    ): os.Path = {
+    ): b.BuildTarget = {
       val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
       val targets          = buildTargetsResp.getTargets.asScala.toSeq
-      val mainTarget       = targets.find(t => !t.getId.getUri.contains("-test")).getOrElse {
+      targets.find(t => !t.getId.getUri.contains("-test")).getOrElse {
         sys.error(s"No main build target found in ${targets.map(_.getId.getUri)}")
       }
-      os.Path(Paths.get(new URI(mainTarget.getBaseDirectory)))
     }
+
+    def baseDirectoryOf(target: b.BuildTarget): os.Path =
+      os.Path(Paths.get(new URI(target.getBaseDirectory)))
+
+    def collectSemDbFiles(root: os.Path): Seq[os.Path] =
+      os.walk(root)
+        .filter(_.last.endsWith(".semanticdb"))
+        .filter(p => !p.segments.exists(_ == "bloop-internal-classes"))
 
     test(s"workspaceBuildTargets baseDirectory: default workspace ($clientDescription)") {
       withBsp(
@@ -2476,9 +2483,21 @@ abstract class BspTestDefinitions extends ScalaCliSuite
         bspClientName = bspClientName
       ) { (root, _, remoteServer) =>
         Future {
-          val baseDir = baseDirectoryOfMainTarget(remoteServer)
+          val mainTarget = mainTargetOf(remoteServer)
+          val baseDir    = baseDirectoryOf(mainTarget)
           if isIntelliJ then expect(baseDir == root)
           else expect(baseDir == root / Constants.workspaceDirName)
+
+          val compileResp =
+            remoteServer
+              .buildTargetCompile(new b.CompileParams(List(mainTarget.getId).asJava))
+              .asScala
+              .await
+          expect(compileResp.getStatusCode == b.StatusCode.OK)
+
+          val semDbFiles = collectSemDbFiles(root)
+          expect(semDbFiles.nonEmpty)
+          expect(semDbFiles.forall(_.segments.contains(Constants.workspaceDirName)))
         }
       }
     }
@@ -2503,9 +2522,20 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             ) {
               (_, _, remoteServer) =>
                 Future {
-                  val baseDir         = baseDirectoryOfMainTarget(remoteServer)
+                  val mainTarget      = mainTargetOf(remoteServer)
+                  val baseDir         = baseDirectoryOf(mainTarget)
                   val expectedBaseDir = root / "dir"
                   expect(baseDir == expectedBaseDir)
+
+                  val compileResp =
+                    remoteServer
+                      .buildTargetCompile(new b.CompileParams(List(mainTarget.getId).asJava))
+                      .asScala
+                      .await
+                  expect(compileResp.getStatusCode == b.StatusCode.OK)
+
+                  val semDbFilesUnderRoot = collectSemDbFiles(root)
+                  expect(semDbFilesUnderRoot.isEmpty)
                 }
             }
           finally os.perms.set(root / "dir", "rwxr-xr-x")
