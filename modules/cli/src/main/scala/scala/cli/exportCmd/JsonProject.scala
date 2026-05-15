@@ -65,6 +65,7 @@ extension (s: ScopedBuildInfo) {
     s.scalaCompilerPlugins.sorted(using JsonProject.ordering),
     s.dependencies.sorted(using JsonProject.ordering),
     s.compileOnlyDependencies.sorted(using JsonProject.ordering),
+    s.injectedDependencies.sorted(using JsonProject.ordering),
     s.resolvers.sorted,
     s.resourceDirs.sorted,
     s.customJarsDecls.sorted
