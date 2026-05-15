@@ -52,8 +52,6 @@ final case class JsonProject(buildInfo: BuildInfo) extends Project {
 
 extension (n: NativeOptionsInfo) {
   def sorted(using ord: Ordering[String]) = n.copy(
-    compilerPlugins = n.compilerPlugins.sorted(using JsonProject.ordering),
-    runtimeDependencies = n.runtimeDependencies.sorted(using JsonProject.ordering),
     toolingDependencies = n.toolingDependencies.sorted(using JsonProject.ordering)
   )
 }

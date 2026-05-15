@@ -8,8 +8,6 @@ import scala.build.options.*
 
 final case class NativeOptionsInfo(
   scalaNativeVersion: String,
-  compilerPlugins: Seq[ExportDependencyFormat] = Nil,
-  runtimeDependencies: Seq[ExportDependencyFormat] = Nil,
   toolingDependencies: Seq[ExportDependencyFormat] = Nil
 )
 
@@ -161,18 +159,8 @@ object BuildInfo {
   }
 
   private def scalaNativeSettings(options: BuildOptions): BuildInfo = {
-    val nativeOptions  = options.scalaNativeOptions
-    val nativeVersion  = nativeOptions.finalVersion
-    val scalaParamsOpt = options.scalaParams.getOrElse(None)
-    val sv             = scalaParamsOpt.map(_.scalaVersion)
-      .orElse(options.scalaOptions.defaultScalaVersion)
-      .getOrElse(Constants.defaultScalaVersion)
-
-    val runtimeDeps = nativeOptions.nativeDependencies(sv)
-      .map(ExportDependencyFormat(_, scalaParamsOpt))
-    val compilerPluginDeps = nativeOptions.compilerPlugins
-      .map(ExportDependencyFormat(_, scalaParamsOpt))
-    val toolingDeps = Seq(ExportDependencyFormat(
+    val nativeVersion = options.scalaNativeOptions.finalVersion
+    val toolingDeps   = Seq(ExportDependencyFormat(
       "org.scala-native",
       ArtifactId("scala-native-cli", "scala-native-cli_2.12"),
       nativeVersion
@@ -183,8 +171,6 @@ object BuildInfo {
       scalaNativeVersion = Some(nativeVersion),
       nativeOptions = Some(NativeOptionsInfo(
         scalaNativeVersion = nativeVersion,
-        compilerPlugins = compilerPluginDeps,
-        runtimeDependencies = runtimeDeps,
         toolingDependencies = toolingDeps
       ))
     )

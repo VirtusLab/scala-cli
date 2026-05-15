@@ -115,25 +115,6 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
            |"scalaNativeVersion":"$nativeVersion",
            |"nativeOptions": {
            |  "scalaNativeVersion":"$nativeVersion",
-           |  "compilerPlugins": [
-           |    {
-           |      "groupId":"org.scala-native",
-           |      "artifactId":{"name":"nscplugin","fullName":"nscplugin_3.2.2"},
-           |      "version":"$nativeVersion"
-           |    }
-           |  ],
-           |  "runtimeDependencies": [
-           |    {
-           |      "groupId":"org.scala-native",
-           |      "artifactId":{"name":"javalib_native0.5","fullName":"javalib_native0.5_3"},
-           |      "version":"$nativeVersion"
-           |    },
-           |    {
-           |      "groupId":"org.scala-native",
-           |      "artifactId":{"name":"scala3lib_native0.5","fullName":"scala3lib_native0.5_3"},
-           |      "version":"3.2.2+$nativeVersion"
-           |    }
-           |  ],
            |  "toolingDependencies": [
            |    {
            |      "groupId":"org.scala-native",
