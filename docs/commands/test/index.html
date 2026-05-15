@@ -2,10 +2,10 @@
 <html lang="en" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-commands/test" data-has-hydrated="false">
 <head>
 <meta charset="UTF-8">
-<meta name="generator" content="Docusaurus v3.10.0">
+<meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Test | Scala CLI</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" name="twitter:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" property="og:url" content="https://scala-cli.virtuslab.org/docs/commands/test"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Test | Scala CLI"><meta data-rh="true" name="description" content="The test command runs test suites in the test sources."><meta data-rh="true" property="og:description" content="The test command runs test suites in the test sources."><link data-rh="true" rel="icon" href="/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://scala-cli.virtuslab.org/docs/commands/test"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/commands/test" hreflang="en"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/commands/test" hreflang="x-default"><script data-rh="true">!function(e,t,a,n){e[n]=e[n]||[],e[n].push({"gtm.start":(new Date).getTime(),event:"gtm.js"});var g=t.getElementsByTagName(a)[0],m=t.createElement(a);m.async=!0,m.src="https://www.googletagmanager.com/gtm.js?id=GTM-5TZTCGF",g.parentNode.insertBefore(m,g)}(window,document,"script","dataLayer")</script><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Test","item":"https://scala-cli.virtuslab.org/docs/commands/test"}]}</script><link rel="stylesheet" href="/assets/css/styles.99751194.css">
-<script src="/assets/js/runtime~main.65107e40.js" defer="defer"></script>
-<script src="/assets/js/main.814434e5.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.4c8e2347.js" defer="defer"></script>
+<script src="/assets/js/main.58179ec5.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -19,7 +19,7 @@ so <a class="" href="/docs/guides/introduction/using-directives">using directive
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="test-sources">Test sources<a href="#test-sources" class="hash-link" aria-label="Direct link to Test sources" title="Direct link to Test sources" translate="no">​</a></h2>
 <p>A source file is treated as test source if:</p>
 <ul>
-<li class="">the file name ends with <code>.test.scala</code>, or</li>
+<li class="">the file name ends with <code>.test.scala</code> or <code>.test.java</code>, or</li>
 <li class="">the file comes from a directory that is provided as input, and the relative path from that file to its original
 directory contains a <code>test</code> directory, or</li>
 <li class="">it contains the <code>//&gt; using target.scope test</code> directive</li>
@@ -30,7 +30,7 @@ directory contains a <code>test</code> directory, or</li>
 <p>Given that directory structure, let&#x27;s analyze what file(s) will be treated as tests based on the provided inputs.</p>
 <p><code>scala-cli example</code> results in the following files being treated as test sources:</p>
 <ul>
-<li class=""><code>a.test.scala</code>, since it ends with <code>.test.scala</code></li>
+<li class=""><code>a.test.scala</code>, since it ends with <code>.test.scala</code> (the same applies to <code>.test.java</code> for Java sources)</li>
 <li class=""><code>src/test/scala/b.scala</code>, since the path to that directory contains a directory named <code>test</code></li>
 </ul>
 <p>Note that <code>e.scala</code> is not treated as a test source since it lacks a parent directory in its relative path that is
@@ -42,7 +42,7 @@ path (<code>test/scala/b.scala</code>) contains a directory named <code>test</co
 contain <code>test</code> (the fact that the directory provided as input is named <code>test</code> does not make its content a test source).</p>
 <p>Directives take precedence over file or path names, so <code>using target.scope main</code> can be used to force <code>test/a.scala</code>
 or <code>a.test.scala</code> to not be treated as tests.</p>
-<p>As a rule of thumb, we recommend naming all of your test files with the <code>.test.scala</code> suffix.</p>
+<p>As a rule of thumb, we recommend naming all of your test files with the <code>.test.scala</code> (or <code>.test.java</code> for Java sources) suffix.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="test-directives">Test directives<a href="#test-directives" class="hash-link" aria-label="Direct link to Test directives" title="Direct link to Test directives" translate="no">​</a></h2>
 <p>When configuring your tests with <code>using</code> directives, it&#x27;s usually advised to use their test scope equivalents, so that
 only tests are affected.</p>
