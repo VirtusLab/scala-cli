@@ -2016,8 +2016,6 @@ object ci extends Module {
       "PGP_PASSPHRASE",
       "--env",
       "GPG_EMAIL",
-      "--env",
-      "KEYGRIP",
       "--privileged",
       "fedora:40",
       "sh",

@@ -2205,7 +2205,6 @@ jobs:
       - run: ./mill -i ci.updateCentOsPackages
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-          KEYGRIP: ${{ secrets.KEYGRIP }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
 
