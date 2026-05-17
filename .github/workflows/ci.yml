@@ -2080,6 +2080,9 @@ jobs:
       - launchers
       - publish
     runs-on: ubuntu-24.04
+    concurrency:
+      group: scala-cli-packages-${{ github.ref }}
+      cancel-in-progress: false
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
       - uses: actions/checkout@v6
@@ -2136,6 +2139,9 @@ jobs:
       - launchers
       - publish
     runs-on: ubuntu-24.04
+    concurrency:
+      group: scala-cli-packages-${{ github.ref }}
+      cancel-in-progress: false
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
       - uses: actions/checkout@v6
@@ -2175,6 +2181,9 @@ jobs:
       - launchers
       - publish
     runs-on: ubuntu-24.04
+    concurrency:
+      group: scala-cli-packages-${{ github.ref }}
+      cancel-in-progress: false
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
       - uses: actions/checkout@v6
