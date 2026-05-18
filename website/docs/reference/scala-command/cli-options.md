@@ -748,7 +748,7 @@ Use JShell as the REPL (default for pure-Java projects). Requires JDK >= 9.
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Read the REPL init script from a file. Mutually exclusive with --repl-init-script.
+Read the REPL init script (--repl-init-script) from a file. Mutually exclusive with --repl-init-script.
 
 ### `--repl-dry-run`
 

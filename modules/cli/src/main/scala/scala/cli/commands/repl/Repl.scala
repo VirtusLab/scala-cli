@@ -61,8 +61,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     import ops.sharedRepl.*
 
     val logger = ops.shared.logger
-    if (jshell.contains(true) && ammonite.contains(true))
-      throw new ConflictingReplBackendsError("--jshell cannot be used together with --ammonite")
+    if jshell.contains(true) && ammonite.contains(true)
+    then throw new ConflictingReplBackendsError("--jshell cannot be used together with --ammonite")
 
     val ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
     val baseOptions        = shared.buildOptions(watchOptions = watch).orExit(logger)
@@ -589,9 +589,9 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           case RunMode.Default =>
             val replArtifacts  = value(defaultArtifacts())
             val initScriptArgs =
-              initScriptOpt.toSeq.flatMap(script =>
-                Seq(s"--${ScalacOptions.replInitScript}", script)
-              )
+              initScriptOpt.toSeq.map { script =>
+                s"--${ScalacOptions.replInitScript}:$script"
+              }
             val defaultArgs = additionalArgs ++ initScriptArgs ++ programArgs
             maybeRunRepl(replArtifacts, defaultArgs)
         }

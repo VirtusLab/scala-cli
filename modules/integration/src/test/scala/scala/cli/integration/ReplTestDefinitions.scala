@@ -157,6 +157,24 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       )(r => expect(r.out.trim().linesIterator.exists(_.trim == "hello from file")))
     }
 
+    test(
+      s"$runInReplPrefix init script file preserves line numbers and does not trigger argfile parsing"
+    ) {
+      runInRepl(
+        codeToRunInRepl = """@nonExistentAnnotation""",
+        initScriptFromFile = true,
+        check = false,
+        shouldPipeStdErr = true
+      ) { r =>
+        val combined = r.out.text() + r.err.text()
+        expect(!combined.contains("Argument file"))
+        expect(!combined.contains("missing argument for option -repl-init-script"))
+        val firstErrorLine = combined.linesIterator
+          .find(l => l.contains("error") && l.contains(":"))
+        expect(firstErrorLine.forall(!_.contains(":2:")))
+      }
+    }
+
     test(s"$runInReplPrefix verify Scala version from the REPL") {
       val opts = if actualScalaVersion.startsWith("3") && !isScala38OrNewer then
         Seq("--with-compiler")

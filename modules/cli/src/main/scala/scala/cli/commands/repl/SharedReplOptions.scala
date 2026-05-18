@@ -52,7 +52,7 @@ final case class SharedReplOptions(
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   @ValueDescription("path")
-  @HelpMessage("Read the REPL init script from a file. Mutually exclusive with --repl-init-script.")
+  @HelpMessage("Read the REPL init script (--repl-init-script) from a file. Mutually exclusive with --repl-init-script.")
     replInitScriptFile: Option[String] = None,
 
   @Group(HelpGroup.Repl.toString)

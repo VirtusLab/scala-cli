@@ -2,29 +2,12 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.util.{Properties, Try}
+import scala.util.Properties
 
 trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
   protected val jshellDryRunPrefix: String = "JShell dry run:"
   protected val runInJShellPrefix: String  = "Running in JShell:"
 
-  /** JShell integration tests need a JDK (resolved via JAVA_HOME, then the test JVM) with
-    * `bin/jshell` and spec version >= 9.
-    */
-  protected lazy val jshellAvailable: Boolean = {
-    val javaHomeOpt: Option[os.Path] =
-      sys.env.get("JAVA_HOME").filter(_.nonEmpty).map(os.Path(_, os.pwd))
-        .orElse(Option(sys.props("java.home")).filter(_.nonEmpty).map(os.Path(_, os.pwd)))
-    val jshellExe          = if Properties.isWin then "jshell.exe" else "jshell"
-    val jshellExists       = javaHomeOpt.exists(h => os.exists(h / "bin" / jshellExe))
-    val javaSpecVersionOpt =
-      Try(sys.props("java.specification.version").toInt).toOption.orElse {
-        Try(sys.props("java.specification.version").stripPrefix("1.").toInt).toOption
-      }
-    jshellExists && javaSpecVersionOpt.exists(_ >= 9)
-  }
-
-  /** Dry-run `repl` with `--jshell` (mirrors [[dryRun]] for the JShell backend). */
   protected def dryRunJshell(
     testInputs: TestInputs = TestInputs.empty,
     cliOptions: Seq[String] = Seq.empty,
@@ -46,14 +29,6 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
   protected def jshellOutput(res: os.CommandResult): String =
     TestUtil.removeAnsiColors(res.out.text())
 
-  /** Run JShell via `repl --jshell` with `--repl-init-script-file` + `--repl-quit-after-init`.
-    *
-    * @param replCliOptions
-    *   forwarded after [[initScript]] (defaults to [[extraOptions]]). Use [[TestUtil.extraOptions]]
-    *   alone when inputs compile Scala 2.x sources: Scala 2 scalac rejects `--repl-quit-after-init`
-    *   / `--repl-init-script-file`, while default Scala (see launcher) accepts them for JShell
-    *   mapping.
-    */
   protected def runInJShell(
     initScript: String,
     testInputs: TestInputs = TestInputs.empty,
@@ -207,115 +182,112 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
     }
   }
 
-  // --Xshow-phases / ScalaPy / Ammonite-specific scenarios do not apply to JShell (Java REPL).
-  if jshellAvailable then {
-    test(s"$runInJShellPrefix simple") {
-      val expectedMessage = "1337"
-      runInJShell(s"""System.out.println("$expectedMessage");""")(res =>
-        expect(jshellOutput(res).contains(expectedMessage))
+  test(s"$runInJShellPrefix simple") {
+    val expectedMessage = "1337"
+    runInJShell(s"""System.out.println("$expectedMessage");""")(res =>
+      expect(jshellOutput(res).contains(expectedMessage))
+    )
+  }
+
+  for javaVersion <- Constants.allJavaVersions.filter(_ >= 11) do
+    test(s"$runInJShellPrefix simple on JDK $javaVersion") {
+      val versionSpecific = javaVersion match {
+        case v if v >= 23 =>
+          """System.out.println(javax.print.attribute.standard.OutputBin.LEFT);"""
+        case v if v >= 21 =>
+          """System.out.println(Thread.ofVirtual().unstarted(() -> {}).getClass().getName());"""
+        case v if v >= 17 =>
+          """System.out.println(java.util.HexFormat.of().toHexDigits(255));"""
+        case v if v >= 16 =>
+          """System.out.println(java.util.stream.Stream.of(1, 2, 3).toList());"""
+        case _ =>
+          """System.out.println(java.util.Optional.of(1).isEmpty());"""
+      }
+      runInJShellOnJvm(javaVersion, extraInitScript = versionSpecific)(_ => ())
+    }
+
+  if !Properties.isWin then
+    test(s"$runInJShellPrefix with extra JAR") {
+      runInJShell(
+        initScript =
+          """System.out.println(Class.forName("org.slf4j.Logger").getName());"""
+      )(
+        runBeforeReplAndGetExtraCliOpts = () => {
+          val jar =
+            os.proc(TestUtil.cs, "fetch", "--intransitive", "org.slf4j:slf4j-api:2.0.13")
+              .call()
+              .out
+              .text()
+              .trim
+          Seq("--jar", jar)
+        },
+        runAfterRepl = res =>
+          expect(jshellOutput(res).contains("org.slf4j.Logger"))
       )
     }
 
-    for javaVersion <- Constants.allJavaVersions.filter(_ >= 11) do
-      test(s"$runInJShellPrefix simple on JDK $javaVersion") {
-        val versionSpecific = javaVersion match {
-          case v if v >= 23 =>
-            """System.out.println(javax.print.attribute.standard.OutputBin.LEFT);"""
-          case v if v >= 21 =>
-            """System.out.println(Thread.ofVirtual().unstarted(() -> {}).getClass().getName());"""
-          case v if v >= 17 =>
-            """System.out.println(java.util.HexFormat.of().toHexDigits(255));"""
-          case v if v >= 16 =>
-            """System.out.println(java.util.stream.Stream.of(1, 2, 3).toList());"""
-          case _ =>
-            """System.out.println(java.util.Optional.of(1).isEmpty());"""
-        }
-        runInJShellOnJvm(javaVersion, extraInitScript = versionSpecific)(_ => ())
-      }
+  test(s"$runInJShellPrefix pure Java project") {
+    runInJShell(
+      initScript = """System.out.println(demo.Demo.greet());""",
+      testInputs = TestInputs(
+        os.rel / "Demo.java" ->
+          """package demo;
+            |public class Demo {
+            |  public static String greet() { return "hi-java"; }
+            |}
+            |""".stripMargin
+      )
+    )(res => expect(jshellOutput(res).contains("hi-java")))
+  }
 
-    if !Properties.isWin then
-      test(s"$runInJShellPrefix with extra JAR") {
-        runInJShell(
-          initScript =
-            """System.out.println(Class.forName("org.slf4j.Logger").getName());"""
-        )(
-          runBeforeReplAndGetExtraCliOpts = () => {
-            val jar =
-              os.proc(TestUtil.cs, "fetch", "--intransitive", "org.slf4j:slf4j-api:2.0.13")
-                .call()
-                .out
-                .text()
-                .trim
-            Seq("--jar", jar)
-          },
-          runAfterRepl = res =>
-            expect(jshellOutput(res).contains("org.slf4j.Logger"))
-        )
-      }
-
-    test(s"$runInJShellPrefix pure Java project") {
-      runInJShell(
-        initScript = """System.out.println(demo.Demo.greet());""",
-        testInputs = TestInputs(
-          os.rel / "Demo.java" ->
-            """package demo;
-              |public class Demo {
-              |  public static String greet() { return "hi-java"; }
-              |}
-              |""".stripMargin
-        )
-      )(res => expect(jshellOutput(res).contains("hi-java")))
-    }
-
-    test(s"$runInJShellPrefix mixed Java/Scala project, JShell sees both") {
-      runInJShell(
-        initScript =
-          """System.out.println(demo.JavaPart.hello());
-            |var c = Class.forName("demo.ScalaPart$");
-            |var inst = c.getField("MODULE$").get(null);
-            |System.out.println(c.getMethod("hello").invoke(inst));
+  test(s"$runInJShellPrefix mixed Java/Scala project, JShell sees both") {
+    runInJShell(
+      initScript =
+        """System.out.println(demo.JavaPart.hello());
+          |var c = Class.forName("demo.ScalaPart$");
+          |var inst = c.getField("MODULE$").get(null);
+          |System.out.println(c.getMethod("hello").invoke(inst));
+          |""".stripMargin,
+      replCliOptions = TestUtil.extraOptions,
+      testInputs = TestInputs(
+        os.rel / "demo" / "JavaPart.java" ->
+          """package demo;
+            |public class JavaPart {
+            |  public static String hello() { return "hi-java"; }
+            |}
             |""".stripMargin,
-        replCliOptions = TestUtil.extraOptions,
-        testInputs = TestInputs(
-          os.rel / "demo" / "JavaPart.java" ->
-            """package demo;
-              |public class JavaPart {
-              |  public static String hello() { return "hi-java"; }
-              |}
-              |""".stripMargin,
-          os.rel / "demo" / "ScalaPart.scala" ->
-            """package demo
-              |
-              |object ScalaPart {
-              |  def hello: String = "hi-scala"
-              |}
-              |""".stripMargin
-        )
-      ) { res =>
-        val out = jshellOutput(res)
-        expect(out.contains("hi-java"))
-        expect(out.contains("hi-scala"))
-      }
+        os.rel / "demo" / "ScalaPart.scala" ->
+          """package demo
+            |
+            |object ScalaPart {
+            |  def hello: String = "hi-scala"
+            |}
+            |""".stripMargin
+      )
+    ) { res =>
+      val out = jshellOutput(res)
+      expect(out.contains("hi-java"))
+      expect(out.contains("hi-scala"))
     }
+  }
 
-    test(s"$runInJShellPrefix Scala project exposed to JShell via reflection") {
-      runInJShell(
-        initScript =
-          """var c = Class.forName("demo.Smth$");
-            |var inst = c.getField("MODULE$").get(null);
-            |System.out.println(c.getMethod("smth").invoke(inst));
-            |""".stripMargin,
-        replCliOptions = TestUtil.extraOptions,
-        testInputs = TestInputs(
-          os.rel / "Smth.scala" ->
-            """package demo
-              |
-              |object Smth {
-              |  def smth: String = "haha"
-              |}
-              |""".stripMargin
-        )
-      )(res => expect(jshellOutput(res).contains("haha")))
-    }
+  test(s"$runInJShellPrefix Scala project exposed to JShell via reflection") {
+    runInJShell(
+      initScript =
+        """var c = Class.forName("demo.Smth$");
+          |var inst = c.getField("MODULE$").get(null);
+          |System.out.println(c.getMethod("smth").invoke(inst));
+          |""".stripMargin,
+      replCliOptions = TestUtil.extraOptions,
+      testInputs = TestInputs(
+        os.rel / "Smth.scala" ->
+          """package demo
+            |
+            |object Smth {
+            |  def smth: String = "haha"
+            |}
+            |""".stripMargin
+      )
+    )(res => expect(jshellOutput(res).contains("haha")))
   }
 }
