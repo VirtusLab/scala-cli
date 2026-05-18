@@ -24,7 +24,8 @@ final case class Inputs(
   mayAppendHash: Boolean,
   workspaceOrigin: Option[WorkspaceOrigin],
   enableMarkdown: Boolean,
-  allowRestrictedFeatures: Boolean
+  allowRestrictedFeatures: Boolean,
+  originalWorkspaceOpt: Option[os.Path]
 ) {
 
   def isEmpty: Boolean = elements.isEmpty
@@ -75,7 +76,8 @@ final case class Inputs(
     copy(
       workspace = elements.homeWorkspace(directories),
       mayAppendHash = false,
-      workspaceOrigin = Some(WorkspaceOrigin.HomeDir)
+      workspaceOrigin = Some(WorkspaceOrigin.HomeDir),
+      originalWorkspaceOpt = originalWorkspaceOpt.orElse(Some(workspace))
     )
   def avoid(forbidden: Seq[os.Path], directories: Directories): Inputs =
     if forbidden.exists(workspace.startsWith) then inHomeDir(directories) else this
@@ -159,7 +161,8 @@ object Inputs {
       mayAppendHash = needsHash,
       workspaceOrigin = Some(workspaceOrigin),
       enableMarkdown = enableMarkdown,
-      allowRestrictedFeatures = allowRestrictedFeatures
+      allowRestrictedFeatures = allowRestrictedFeatures,
+      originalWorkspaceOpt = None
     )
   }
 
@@ -476,11 +479,12 @@ object Inputs {
       mayAppendHash = true,
       workspaceOrigin = None,
       enableMarkdown = enableMarkdown,
-      allowRestrictedFeatures = false
+      allowRestrictedFeatures = false,
+      originalWorkspaceOpt = None
     )
 
   def empty(projectName: String): Inputs =
-    Inputs(Nil, None, os.pwd, projectName, false, None, true, false)
+    Inputs(Nil, None, os.pwd, projectName, false, None, true, false, None)
 
   def baseName(p: os.Path) = if (p == os.root || p.lastOpt.isEmpty) "" else p.baseName
 

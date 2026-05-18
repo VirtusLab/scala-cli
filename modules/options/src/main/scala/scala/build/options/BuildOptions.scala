@@ -53,6 +53,22 @@ final case class BuildOptions(
 
   import BuildOptions.JavaHomeInfo
 
+  /** When the build workspace was moved to a virtual directory (e.g. after
+    * [[scala.build.input.Inputs.checkAttributes]] fallback) and the user did not set an explicit
+    * semanticdb source root, use the given original workspace so semanticdb paths stay relative to
+    * the user's project root.
+    */
+  def withResolvedSemanticDbSourceRoot(originalWorkspace: os.Path): BuildOptions =
+    if scalaOptions.semanticDbOptions.semanticDbSourceRoot.isEmpty then
+      copy(scalaOptions =
+        scalaOptions.copy(
+          semanticDbOptions = scalaOptions.semanticDbOptions.copy(
+            semanticDbSourceRoot = Some(originalWorkspace)
+          )
+        )
+      )
+    else this
+
   lazy val platform: Positioned[Platform] =
     scalaOptions.platform.getOrElse(Positioned(List(Position.Custom("DEFAULT")), Platform.JVM))
 

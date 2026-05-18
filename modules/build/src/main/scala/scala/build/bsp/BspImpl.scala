@@ -363,7 +363,10 @@ final class BspImpl(
                 currentBloopSession.inputs.workspace,
                 updateSemanticDbs = true,
                 scalaVersion = sv,
-                buildOptions = data.buildOptions
+                buildOptions =
+                  currentBloopSession.inputs.originalWorkspaceOpt.fold(data.buildOptions)(
+                    data.buildOptions.withResolvedSemanticDbSourceRoot
+                  )
               ).left.foreach(_.foreach(showGlobalWarningOnce))
 
           if (res.getStatusCode == b.StatusCode.OK)

@@ -2445,4 +2445,101 @@ abstract class BspTestDefinitions extends ScalaCliSuite
       }
     }
   }
+
+  for {
+    isIntelliJ <- Seq(false, true)
+    clientDescription = if isIntelliJ then "IntelliJ" else "any client"
+    bspClientName     = if isIntelliJ then "IntelliJ" else "test"
+  } {
+    def mainTargetOf(
+      remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer &
+        TestBspClient.WrappedSourcesBuildServer
+    ): b.BuildTarget = {
+      val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
+      val targets          = buildTargetsResp.getTargets.asScala.toSeq
+      targets.find(t => !t.getId.getUri.contains("-test")).getOrElse {
+        sys.error(s"No main build target found in ${targets.map(_.getId.getUri)}")
+      }
+    }
+
+    def baseDirectoryOf(target: b.BuildTarget): os.Path =
+      os.Path(Paths.get(new URI(target.getBaseDirectory)))
+
+    def collectSemDbFiles(root: os.Path): Seq[os.Path] =
+      os.walk(root)
+        .filter(_.last.endsWith(".semanticdb"))
+        .filter(p => !p.segments.exists(_ == "bloop-internal-classes"))
+
+    test(s"workspaceBuildTargets baseDirectory: default workspace ($clientDescription)") {
+      withBsp(
+        inputs = TestInputs(
+          os.rel / "Hello.scala" ->
+            """object Hello {
+              |  def main(args: Array[String]): Unit = println("Hello")
+              |}
+              |""".stripMargin
+        ),
+        args = Seq("."),
+        bspClientName = bspClientName
+      ) { (root, _, remoteServer) =>
+        Future {
+          val mainTarget = mainTargetOf(remoteServer)
+          val baseDir    = baseDirectoryOf(mainTarget)
+          if isIntelliJ then expect(baseDir == root)
+          else expect(baseDir == root / Constants.workspaceDirName)
+
+          val compileResp =
+            remoteServer
+              .buildTargetCompile(new b.CompileParams(List(mainTarget.getId).asJava))
+              .asScala
+              .await
+          expect(compileResp.getStatusCode == b.StatusCode.OK)
+
+          val semDbFiles = collectSemDbFiles(root)
+          expect(semDbFiles.nonEmpty)
+          expect(semDbFiles.forall(_.segments.contains(Constants.workspaceDirName)))
+        }
+      }
+    }
+
+    if !Properties.isWin then
+      test(s"workspaceBuildTargets baseDirectory: non-writable workspace ($clientDescription)") {
+        val simpleHelloInputsInDir = TestInputs(
+          os.rel / "dir" / "Hello.scala" ->
+            """object Hello {
+              |  def main(args: Array[String]): Unit = println("Hello")
+              |}
+              |""".stripMargin
+        )
+        simpleHelloInputsInDir.fromRoot { root =>
+          os.perms.set(root / "dir", "r-xr-xr-x")
+          try
+            withBsp(
+              simpleHelloInputsInDir,
+              Seq("dir"),
+              reuseRoot = Some(root),
+              bspClientName = bspClientName
+            ) {
+              (_, _, remoteServer) =>
+                Future {
+                  val mainTarget      = mainTargetOf(remoteServer)
+                  val baseDir         = baseDirectoryOf(mainTarget)
+                  val expectedBaseDir = root / "dir"
+                  expect(baseDir == expectedBaseDir)
+
+                  val compileResp =
+                    remoteServer
+                      .buildTargetCompile(new b.CompileParams(List(mainTarget.getId).asJava))
+                      .asScala
+                      .await
+                  expect(compileResp.getStatusCode == b.StatusCode.OK)
+
+                  val semDbFilesUnderRoot = collectSemDbFiles(root)
+                  expect(semDbFilesUnderRoot.isEmpty)
+                }
+            }
+          finally os.perms.set(root / "dir", "rwxr-xr-x")
+        }
+      }
+  }
 }

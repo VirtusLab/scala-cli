@@ -9,6 +9,7 @@ import java.util as ju
 import java.util.concurrent.{CompletableFuture, TimeUnit}
 
 import scala.build.Logger
+import scala.build.input.Inputs
 import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.concurrent.{Future, Promise}
@@ -30,6 +31,13 @@ class BspServer(
 
   @volatile private var intelliJ: Boolean = presetIntelliJ
   def isIntelliJ: Boolean                 = intelliJ
+
+  @volatile private var bspBaseDirectoryOverride: Option[os.Path] = None
+
+  override def newInputs(inputs: Inputs): Unit = {
+    super.newInputs(inputs)
+    bspBaseDirectoryOverride = inputs.originalWorkspaceOpt
+  }
 
   def clientOpt: Option[BuildClient] = client
 
@@ -276,16 +284,16 @@ class BspServer(
       val res0 = res.duplicate()
       stripInvalidTargets(res0)
       for (target <- res0.getTargets.asScala) {
-        val capabilities = target.getCapabilities
-        capabilities.setCanDebug(true)
+        target.getCapabilities.setCanDebug(true)
         val baseDirectory = new File(new URI(target.getBaseDirectory))
-        if (
-          isIntelliJ && baseDirectory.getName == Constants.workspaceDirName &&
-          baseDirectory
-            .getParentFile != null
-        ) {
-          val newBaseDirectory = baseDirectory.getParentFile.toPath.toUri.toASCIIString
-          target.setBaseDirectory(newBaseDirectory)
+        bspBaseDirectoryOverride match {
+          case Some(originalWs) =>
+            target.setBaseDirectory(originalWs.toNIO.toUri.toASCIIString)
+          case None
+              if isIntelliJ && baseDirectory.getName == Constants.workspaceDirName
+              && baseDirectory.getParentFile != null =>
+            target.setBaseDirectory(baseDirectory.getParentFile.toPath.toUri.toASCIIString)
+          case _ => // leave Bloop's value untouched
         }
       }
       res0
