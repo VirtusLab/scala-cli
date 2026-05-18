@@ -290,4 +290,40 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
       )
     )(res => expect(jshellOutput(res).contains("haha")))
   }
+
+  if !Properties.isWin && canRunInRepl then
+    test(s"$runInReplPrefix Running in default Scala REPL: pure Java sources with --jshell=false") {
+      val inputs = TestInputs(
+        os.rel / "demo" / "Demo.java" ->
+          """package demo;
+            |public class Demo {
+            |  public static String greet() { return "hi-default"; }
+            |}
+            |""".stripMargin
+      )
+      // Dry-run: JShell prints "JShell command: …"; the Scala REPL backend does not.
+      inputs.fromRoot { root =>
+        val dryOut = os
+          .proc(TestUtil.cli, "repl", ".", "--jshell=false", "--repl-dry-run", extraOptions)
+          .call(cwd = root, mergeErrIntoOut = true)
+          .out
+          .text()
+        expect(!dryOut.contains("JShell command:"))
+        expect(dryOut.contains("using the default Scala REPL instead of JShell"))
+      }
+      // Run with a Scala-only init script (string interpolation would be rejected by JShell).
+      runInRepl(
+        codeToRunInRepl =
+          """import demo.Demo
+            |val greeting = Demo.greet()
+            |println(s"scala-says:$greeting")
+            |""".stripMargin,
+        testInputs = inputs,
+        cliOptions = Seq("--jshell=false"),
+        shouldPipeStdErr = true
+      ) { res =>
+        val combined = res.out.text() + res.err.text()
+        expect(combined.contains("scala-says:hi-default"))
+      }
+    }
 }

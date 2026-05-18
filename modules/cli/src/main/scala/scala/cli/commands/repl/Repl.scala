@@ -357,11 +357,18 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       successfulBuilds.nonEmpty &&
       successfulBuilds.exists(_.sources.hasJava) &&
       !successfulBuilds.exists(_.sources.hasScala)
-    val shouldUseJshell = explicitJshellOpt.getOrElse(isPureJavaProject && !shouldUseAmmonite)
-    val replBackend     =
+    val pureJavaInDefaultRepl =
+      isPureJavaProject && explicitJshellOpt.contains(false) && !shouldUseAmmonite
+    val shouldUseJshell =
+      explicitJshellOpt.getOrElse(isPureJavaProject && !shouldUseAmmonite)
+    val replBackend =
       if (shouldUseJshell) ReplBackend.JShell
       else if (shouldUseAmmonite) ReplBackend.Ammonite
       else ReplBackend.Default
+    if pureJavaInDefaultRepl then
+      logger.message(
+        "Detected a pure-Java project, but --jshell=false was passed; using the default Scala REPL instead of JShell."
+      )
 
     val scalaParams: ScalaParameters = value {
       val distinctScalaParams = allArtifacts.flatMap(_.scalaOpt).map(_.params).distinct
@@ -478,7 +485,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       if dryRun then logger.message("Dry run, not running REPL.")
       else {
         val depClassPathArgs: Seq[String] =
-          if replArtifacts.depsClassPath.nonEmpty && !isAmmonite then
+          if !isAmmonite && (mainJarsOrClassDirs.nonEmpty || replArtifacts.depsClassPath.nonEmpty)
+          then
             Seq(
               "-classpath",
               (mainJarsOrClassDirs ++ replArtifacts.depsClassPath)
