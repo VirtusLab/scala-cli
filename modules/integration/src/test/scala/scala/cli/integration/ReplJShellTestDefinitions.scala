@@ -24,7 +24,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
     jshellExists && javaSpecVersionOpt.exists(_ >= 9)
   }
 
-  /** Dry-run `repl` with `--power --jshell` (mirrors [[dryRun]] for the JShell backend). */
+  /** Dry-run `repl` with `--jshell` (mirrors [[dryRun]] for the JShell backend). */
   protected def dryRunJshell(
     testInputs: TestInputs = TestInputs.empty,
     cliOptions: Seq[String] = Seq.empty,
@@ -34,7 +34,6 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
     testInputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
         "repl",
         ".",
         "--jshell",
@@ -73,7 +72,6 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
       runAfterRepl(
         os.proc(
           TestUtil.cli,
-          "--power",
           "repl",
           ".",
           "--jshell",
@@ -156,7 +154,6 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
       val jshellRes = os
         .proc(
           TestUtil.cli,
-          "--power",
           "repl",
           ".",
           "--jshell",
@@ -183,7 +180,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
             |  public static void main(String[] args) {}
             |}
             |""".stripMargin,
-        os.rel / "Main.test.java" -> "public class MainTest {}"
+        os.rel / "MainTest.test.java" -> "public class MainTest {}"
       ),
       cliOptions = Seq("--test")
     )

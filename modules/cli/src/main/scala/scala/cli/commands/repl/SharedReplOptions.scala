@@ -16,7 +16,7 @@ final case class SharedReplOptions(
     compileCross: CrossOptions = CrossOptions(),
 
   @Group(HelpGroup.Repl.toString)
-  @Tag(tags.experimental)
+  @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   @HelpMessage("Use JShell as the REPL (default for pure-Java projects). Requires JDK >= 9.")
   @Name("jsh")

@@ -736,6 +736,14 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
+### `--jshell`
+
+Aliases: `--jsh`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Use JShell as the REPL (default for pure-Java projects). Requires JDK >= 9.
+
 ### `--repl-init-script-file`
 
 `IMPLEMENTATION specific` per Scala Runner specification

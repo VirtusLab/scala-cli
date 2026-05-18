@@ -2106,6 +2106,12 @@ Add java properties. Note that options equal `-Dproperty=value` are assumed to b
 
 Aliases: `--java-prop`
 
+**--jshell**
+
+Use JShell as the REPL (default for pure-Java projects). Requires JDK >= 9.
+
+Aliases: `--jsh`
+
 **--repl-init-script-file**
 
 Read the REPL init script from a file. Mutually exclusive with --repl-init-script.

@@ -28,17 +28,10 @@ Scala CLI uses the Scala REPL by default, except for pure-Java projects where it
 
 You can force JShell as the REPL backend with `--jshell` (`--jsh`), including in mixed Scala/Java or pure Scala projects.
 
-:::caution
-The JShell integration is experimental and currently requires `--power`.
-You can pass it explicitly or set it globally:
-
-    scala-cli config power true
-:::
-
 <ChainedSnippets>
 
 ```bash ignore
-scala-cli --power repl --jshell
+scala-cli repl --jshell
 ```
 
 ```text
