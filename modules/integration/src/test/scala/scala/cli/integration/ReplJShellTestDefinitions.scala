@@ -172,7 +172,12 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
     }
   }
 
-  for javaVersion <- Constants.allJavaVersions.filter(_ >= 11) do
+  private def minJdkForCurrentScala: Int =
+    if actualScalaVersion.startsWith("3.8") || actualScalaVersion.startsWith("3.9")
+    then Constants.scala38MinJavaVersion
+    else 11
+
+  for javaVersion <- Constants.allJavaVersions.filter(_ >= minJdkForCurrentScala) do
     test(s"$runInJShellPrefix simple on JDK $javaVersion") {
       val versionSpecific = javaVersion match {
         case v if v >= 23 =>
