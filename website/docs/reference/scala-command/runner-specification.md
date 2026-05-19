@@ -1484,7 +1484,7 @@ Aliases: `--deprecated-test-alias`
 
 Aliases: `console`
 
-Fire-up a Scala REPL.
+Fire-up a REPL (Scala REPL by default, JShell for pure-Java projects).
 
 The entire Scala CLI project's classpath is loaded to the repl.
 
@@ -2105,6 +2105,16 @@ Aliases: `--deprecated-test-alias`
 Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
 
 Aliases: `--java-prop`
+
+**--jshell**
+
+Use JShell as the REPL (default for pure-Java projects). Requires JDK >= 9.
+
+Aliases: `--jsh`
+
+**--repl-init-script-file**
+
+Read the REPL init script (--repl-init-script) from a file. Mutually exclusive with --repl-init-script.
 
 **--repl-dry-run**
 

@@ -25,21 +25,28 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     shouldPipeStdErr: Boolean = false,
     check: Boolean = true,
     skipScalaVersionArgs: Boolean = false,
-    env: Map[String, String] = Map.empty
+    env: Map[String, String] = Map.empty,
+    initScriptFromFile: Boolean = false
   )(
     runAfterRepl: os.CommandResult => Unit,
     runBeforeReplAndGetExtraCliOpts: () => Seq[os.Shellable] = () => Seq.empty
   ): Unit = {
     testInputs.fromRoot { root =>
       val potentiallyExtraCliOpts = runBeforeReplAndGetExtraCliOpts()
+      val initScriptArgs          =
+        if initScriptFromFile then {
+          val initScriptFile = root / ".scala-cli-repl-init.sc"
+          os.write.over(initScriptFile, codeToRunInRepl)
+          Seq("--repl-init-script-file", initScriptFile.toString)
+        }
+        else Seq("--repl-init-script", codeToRunInRepl)
       runAfterRepl(
         os.proc(
           TestUtil.cli,
           "repl",
           ".",
           "--repl-quit-after-init",
-          "--repl-init-script",
-          codeToRunInRepl,
+          initScriptArgs,
           if skipScalaVersionArgs then TestUtil.extraOptions else extraOptions,
           cliOptions,
           potentiallyExtraCliOpts
@@ -138,6 +145,34 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       runInRepl(s"""println($expectedMessage)""")(r =>
         expect(r.out.trim() == expectedMessage)
       )
+    }
+
+    test(s"$runInReplPrefix init script file with quotes and newlines") {
+      runInRepl(
+        codeToRunInRepl =
+          """val message = "hello from file"
+            |println(message)
+            |""".stripMargin,
+        initScriptFromFile = true
+      )(r => expect(r.out.trim().linesIterator.exists(_.trim == "hello from file")))
+    }
+
+    test(
+      s"$runInReplPrefix init script file preserves line numbers and does not trigger argfile parsing"
+    ) {
+      runInRepl(
+        codeToRunInRepl = """@nonExistentAnnotation""",
+        initScriptFromFile = true,
+        check = false,
+        shouldPipeStdErr = true
+      ) { r =>
+        val combined = r.out.text() + r.err.text()
+        expect(!combined.contains("Argument file"))
+        expect(!combined.contains("missing argument for option -repl-init-script"))
+        val firstErrorLine = combined.linesIterator
+          .find(l => l.contains("error") && l.contains(":"))
+        expect(firstErrorLine.forall(!_.contains(":2:")))
+      }
     }
 
     test(s"$runInReplPrefix verify Scala version from the REPL") {

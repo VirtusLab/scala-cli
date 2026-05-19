@@ -31,4 +31,34 @@ class ReplOptionsTests extends munit.FunSuite {
     val buildOptions  = Repl.buildOptions0(replOptions, maxVersion, maxLtsVersion)
     expect(buildOptions.scalaOptions.scalaVersion.flatMap(_.versionOpt).contains(maxVersion))
   }
+
+  test("Propagate --jshell to build options") {
+    val replOptions = ReplOptions(
+      sharedRepl = SharedReplOptions(
+        jshell = Some(true)
+      )
+    )
+    val buildOptions = Repl.buildOptions(replOptions).value
+    expect(buildOptions.notForBloopOptions.replOptions.useJshellOpt.contains(true))
+  }
+
+  test("Read --repl-init-script-file contents") {
+    val initScriptFile = os.temp(prefix = "scala-cli-repl-options-init-", suffix = ".sc")
+    val initScript     = """println("from shared repl options")"""
+    os.write.over(initScriptFile, initScript)
+    val resolved = Repl.readInitScriptFile(initScriptFile.toString).toOption.get
+    expect(resolved == initScript)
+  }
+
+  test("Reject --jshell with --ammonite") {
+    val replOptions = ReplOptions(
+      sharedRepl = SharedReplOptions(
+        jshell = Some(true),
+        ammonite = Some(true)
+      )
+    )
+    intercept[Repl.ConflictingReplBackendsError] {
+      Repl.buildOptions(replOptions)
+    }
+  }
 }

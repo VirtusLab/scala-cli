@@ -1,3 +1,3 @@
 package scala.cli.integration
 
-class ReplTests3NextRc extends ReplTestDefinitions with Test3NextRc
+class ReplTests3NextRc extends ReplTestDefinitions with ReplJShellTestDefinitions with Test3NextRc

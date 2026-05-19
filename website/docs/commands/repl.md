@@ -22,7 +22,24 @@ scala> :exit
 
 </ChainedSnippets>
 
-Scala CLI by default uses the normal Scala REPL.
+Scala CLI uses the Scala REPL by default, except for pure-Java projects where it defaults to JShell.
+
+## JShell backend (experimental)
+
+You can force JShell as the REPL backend with `--jshell` (`--jsh`), including in mixed Scala/Java or pure Scala projects.
+
+<ChainedSnippets>
+
+```bash ignore
+scala-cli repl --jshell
+```
+
+```text
+|  Welcome to JShell ...
+jshell>
+```
+
+</ChainedSnippets>
 
 If you prefer to use the [Ammonite REPL](https://ammonite.io/#Ammonite-REPL), specify `--amm` to launch it rather than the default REPL:
 

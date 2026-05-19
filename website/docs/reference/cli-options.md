@@ -1262,6 +1262,12 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
+### `--jshell`
+
+Aliases: `--jsh`
+
+Use JShell as the REPL (default for pure-Java projects). Requires JDK >= 9.
+
 ### [deprecated] `--ammonite`
 
 Aliases: `-A`, `--amm`
@@ -1286,6 +1292,10 @@ Aliases: `-a`
 
 [Internal]
 Provide arguments for ammonite repl
+
+### `--repl-init-script-file`
+
+Read the REPL init script (--repl-init-script) from a file. Mutually exclusive with --repl-init-script.
 
 ### `--repl-dry-run`
 

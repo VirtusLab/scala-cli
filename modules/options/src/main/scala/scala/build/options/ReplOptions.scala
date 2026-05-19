@@ -4,10 +4,13 @@ import scala.build.Logger
 import scala.build.internal.Constants
 
 final case class ReplOptions(
+  useJshellOpt: Option[Boolean] = None,
   useAmmoniteOpt: Option[Boolean] = None,
   ammoniteVersionOpt: Option[String] = None,
   ammoniteArgs: Seq[String] = Nil
 ) {
+  def useJshell: Boolean =
+    useJshellOpt.getOrElse(false)
   def useAmmonite: Boolean =
     useAmmoniteOpt.getOrElse(false)
   def ammoniteVersion(scalaVersion: String, logger: Logger): String =

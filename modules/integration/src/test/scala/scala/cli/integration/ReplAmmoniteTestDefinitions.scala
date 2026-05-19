@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.cli.integration.TestUtil.{normalizeArgsForWindows, removeAnsiColors}
+import scala.cli.integration.TestUtil.normalizeArgsForWindows
 
 trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
   protected val ammonitePrefix: String        = "Running in Ammonite REPL:"
@@ -185,12 +185,37 @@ trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
     else s" with Scala $actualMaxAmmoniteScalaVersion (the latest supported version)"
 
   test(s"$ammonitePrefix simple $ammoniteMaxVersionString")(ammoniteTest())
+  test(s"$ammonitePrefix init script file with quotes and newlines$ammoniteMaxVersionString") {
+    TestInputs.empty.fromRoot { root =>
+      val initScriptFile = root / ".scala-cli-ammonite-init.sc"
+      os.write.over(
+        initScriptFile,
+        """val message = "hello from ammonite file"
+          |""".stripMargin
+      )
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "repl",
+        ".",
+        "--ammonite",
+        "--repl-init-script-file",
+        initScriptFile.toString,
+        "--ammonite-arg",
+        "-c",
+        "--ammonite-arg",
+        "println(message)",
+        ammoniteExtraOptions
+      ).call(cwd = root, stderr = os.Pipe)
+      expect(res.out.trim() == "hello from ammonite file")
+    }
+  }
   test(s"$ammonitePrefix scalapy$ammoniteMaxVersionString")(ammoniteScalapyTest())
   test(s"$ammonitePrefix with test scope sources$ammoniteMaxVersionString")(ammoniteTestScope())
 
   test(s"$ammonitePrefix ammonite version in help$ammoniteMaxVersionString") {
     runInAmmoniteRepl(cliOptions = Seq("--help")) { res =>
-      val lines          = removeAnsiColors(res.out.trim()).linesIterator.toVector
+      val lines          = TestUtil.removeAnsiColors(res.out.trim()).linesIterator.toVector
       val ammVersionHelp = lines.find(_.contains("--ammonite-ver")).getOrElse("")
       expect(ammVersionHelp.contains(s"(${Constants.ammoniteVersion} by default)"))
     }

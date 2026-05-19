@@ -143,6 +143,17 @@ object Artifacts {
   ): Either[BuildException, Artifacts] = either {
     val dependencies = defaultDependencies ++ extraDependencies
 
+    val scalaParamsForDepResolution =
+      scalaArtifactsParamsOpt.map(_.params).orElse(Some {
+        // default Scala params for dependency resolution
+        // used in projects with no Scala configuration (i.e. pure Java projects)
+        ScalaParameters(
+          Constants.defaultScalaVersion,
+          ScalaVersion.binary(Constants.defaultScalaVersion),
+          None
+        )
+      })
+
     val scalaVersion = (for {
       scalaArtifactsParams <- scalaArtifactsParamsOpt
       scalaParams  = scalaArtifactsParams.params
@@ -453,7 +464,7 @@ object Artifacts {
       fetchAnyDependenciesWithResult(
         allUpdatedDependencies,
         allExtraRepositories,
-        scalaArtifactsParamsOpt.map(_.params),
+        scalaParamsForDepResolution,
         logger,
         cache.withMessage(updatedDependenciesMessage),
         classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty)),
@@ -464,7 +475,7 @@ object Artifacts {
     val updatedDependencies0 = value {
       coursierDeps(
         updatedDependencies,
-        scalaArtifactsParamsOpt.map(_.params),
+        scalaParamsForDepResolution,
         maybeRecoverOnError
       )
     }
@@ -541,7 +552,7 @@ object Artifacts {
                   dep"$runnerOrganization::$runnerModuleName:$runnerVersion0,intransitive"
                 )),
                 extraRepositories ++ maybeSnapshotRepo,
-                scalaArtifactsParamsOpt.map(_.params),
+                scalaParamsForDepResolution,
                 logger,
                 cache.withMessage("Downloading runner dependency")
               ).map(_.map(_._2))
@@ -562,7 +573,7 @@ object Artifacts {
           artifacts(
             Seq(posDep),
             allExtraRepositories,
-            scalaArtifactsParamsOpt.map(_.params),
+            scalaParamsForDepResolution,
             logger,
             cache0
           )
