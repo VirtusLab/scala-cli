@@ -37,7 +37,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
     check: Boolean = true,
     env: Map[String, String] = Map.empty
   )(
-    runAfterRepl: os.CommandResult => Unit,
+    runAfterRepl: (os.CommandResult, os.Path) => Unit,
     runBeforeReplAndGetExtraCliOpts: () => Seq[os.Shellable] = () => Seq.empty
   ): Unit = {
     testInputs.fromRoot { root =>
@@ -61,7 +61,8 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
           mergeErrIntoOut = true,
           env = env,
           check = check
-        )
+        ),
+        root
       )
     }
   }
@@ -80,10 +81,11 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
          |  System.out.println("$sentinel");
          |}
          |""".stripMargin
-    runInJShell(initScript = initScript, cliOptions = Seq("--jvm", javaVersion.toString)) { res =>
-      val out = jshellOutput(res)
-      expect(out.contains(sentinel))
-      check(res)
+    runInJShell(initScript = initScript, cliOptions = Seq("--jvm", javaVersion.toString)) {
+      (res, _) =>
+        val out = jshellOutput(res)
+        expect(out.contains(sentinel))
+        check(res)
     }
   }
 
@@ -184,9 +186,9 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
 
   test(s"$runInJShellPrefix simple") {
     val expectedMessage = "1337"
-    runInJShell(s"""System.out.println("$expectedMessage");""")(res =>
+    runInJShell(s"""System.out.println("$expectedMessage");""") { (res, _) =>
       expect(jshellOutput(res).contains(expectedMessage))
-    )
+    }
   }
 
   for javaVersion <- Constants.allJavaVersions.filter(_ >= 11) do
@@ -221,7 +223,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
               .trim
           Seq("--jar", jar)
         },
-        runAfterRepl = res =>
+        runAfterRepl = (res, _) =>
           expect(jshellOutput(res).contains("org.slf4j.Logger"))
       )
     }
@@ -237,7 +239,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
             |}
             |""".stripMargin
       )
-    )(res => expect(jshellOutput(res).contains("hi-java")))
+    )((res, _) => expect(jshellOutput(res).contains("hi-java")))
   }
 
   test(s"$runInJShellPrefix mixed Java/Scala project, JShell sees both") {
@@ -264,7 +266,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
             |}
             |""".stripMargin
       )
-    ) { res =>
+    ) { (res, _) =>
       val out = jshellOutput(res)
       expect(out.contains("hi-java"))
       expect(out.contains("hi-scala"))
@@ -288,7 +290,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
             |}
             |""".stripMargin
       )
-    )(res => expect(jshellOutput(res).contains("haha")))
+    )((res, _) => expect(jshellOutput(res).contains("haha")))
   }
 
   if !Properties.isWin && canRunInRepl then
@@ -326,4 +328,70 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
         expect(combined.contains("scala-says:hi-default"))
       }
     }
+
+  for {
+    (kind, inputs: TestInputs) <- Seq(
+      (
+        "pure Java",
+        TestInputs(
+          os.rel / "Demo.java" ->
+            """public class Demo {
+              |  public static String hi() { return "hi-java"; }
+              |}
+              |""".stripMargin
+        )
+      ),
+      (
+        "pure Scala",
+        TestInputs(
+          os.rel / "Greet.scala" ->
+            """object Greet {
+              |  def hi: String = "hi-scala"
+              |}
+              |""".stripMargin
+        )
+      ),
+      (
+        "mixed Java/Scala",
+        TestInputs(
+          os.rel / "Demo.java" ->
+            """public class Demo {
+              |  public static String hi() { return "hi-java"; }
+              |}
+              |""".stripMargin,
+          os.rel / "Greet.scala" ->
+            """object Greet {
+              |  def hi: String = "hi-scala"
+              |}
+              |""".stripMargin
+        )
+      )
+    )
+    osPwdInitScript = """var __pwd = os.package$.MODULE$.pwd();
+                        |System.out.println("PWD-MARKER:" + __pwd.toString());
+                        |""".stripMargin
+    directiveExtension  = if kind == "pure Java" then ".java" else ".scala"
+    inputsWithDirective =
+      inputs.add((os.rel / s"build$directiveExtension", "//> using dep com.lihaoyi::os-lib:0.9.1"))
+    if actualScalaVersion.startsWith("3")
+  } {
+    test(s"$runInJShellPrefix $kind with dependency via directive") {
+      runInJShell(
+        initScript = osPwdInitScript,
+        testInputs = inputsWithDirective
+      ) { (res, root) =>
+        expect(jshellOutput(res).contains(s"PWD-MARKER:${root.toString}"))
+      }
+    }
+
+    test(s"$runInJShellPrefix $kind with Scala Toolkit") {
+      runInJShell(
+        initScript = osPwdInitScript,
+        testInputs = inputs,
+        cliOptions = Seq("--toolkit", "default")
+      ) { (res, root) =>
+        expect(jshellOutput(res).contains(s"PWD-MARKER:${root.toString}"))
+      }
+    }
+  }
 }
