@@ -1,7 +1,15 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
+import com.sun.net.httpserver.HttpServer
+import coursier.cache.FileCache
+import coursier.util.Task
 import coursier.version.Version
+
+import java.net.InetSocketAddress
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{ConcurrentLinkedQueue, Executors}
 
 import scala.build.Ops.*
 import scala.build.Position.File
@@ -9,6 +17,7 @@ import scala.build.actionable.ActionableDiagnostic.*
 import scala.build.actionable.ActionablePreprocessor
 import scala.build.options.{BuildOptions, InternalOptions, SuppressWarningOptions}
 import scala.build.{BuildThreads, Directories, LocalRepo}
+import scala.jdk.CollectionConverters.*
 
 class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
 
@@ -22,6 +31,50 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
   val buildThreads: BuildThreads = BuildThreads.create()
 
   def path2url(p: os.Path): String = p.toIO.toURI.toURL.toString
+
+  /** Minimal HTTP Maven repo: records every request path, then optional delay on
+    * `maven-metadata.xml` when `delayWhen()` is true, then serves a body from `responses` or 404.
+    */
+  def withRecordingMavenRepo(
+    responses: Map[String, Array[Byte]],
+    delayOnMetadataMs: Long = 0,
+    delayWhen: () => Boolean = () => false
+  )(body: (String, ConcurrentLinkedQueue[String]) => Unit): Unit =
+    val recorded = new ConcurrentLinkedQueue[String]()
+    val address  = "127.0.0.1"
+    val server   = HttpServer.create(new InetSocketAddress(address, 0), 0)
+    server.setExecutor(Executors.newCachedThreadPool())
+    server.createContext(
+      "/",
+      ex => {
+        val path = ex.getRequestURI.getPath
+        recorded.offer(path)
+        if delayOnMetadataMs > 0 && delayWhen() && path.endsWith("maven-metadata.xml") then
+          Thread.sleep(delayOnMetadataMs)
+        responses.get(path) match
+          case Some(bytes) =>
+            ex.getResponseHeaders.set("Content-Type", "application/xml")
+            ex.sendResponseHeaders(200, bytes.length)
+            ex.getResponseBody.write(bytes)
+            ex.getResponseBody.close()
+          case None =>
+            ex.sendResponseHeaders(404, -1)
+        ex.close()
+      }
+    )
+    server.start()
+    try
+      val base = s"http://$address:${server.getAddress.getPort}/"
+      body(base, recorded)
+    finally server.stop(0)
+
+  def buildOptionsWithEmptyCoursierCache(opts: BuildOptions): BuildOptions =
+    val dir = os.temp.dir(prefix = "scala-cli-actionable-diagnostic-coursier-")
+    opts.copy(internal =
+      opts.internal.copy(
+        cache = Some(FileCache[Task]().withLocation(dir.toString))
+      )
+    )
 
   test("using outdated os-lib") {
     val dependencyOsLib = "com.lihaoyi::os-lib:0.7.8"
@@ -262,5 +315,224 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
         }
         expect(testLibDiagnosticOpt.isEmpty)
     }
+  }
+
+  test("actionable outdated check for toolkit skips user repository metadata") {
+    val meta =
+      """<?xml version="1.0" encoding="UTF-8"?>
+        |<metadata>
+        |  <groupId>org.scala-lang</groupId>
+        |  <artifactId>toolkit_3</artifactId>
+        |  <versioning>
+        |    <latest>99.0.0</latest>
+        |    <release>99.0.0</release>
+        |    <versions>
+        |      <version>0.3.0</version>
+        |      <version>99.0.0</version>
+        |    </versions>
+        |  </versioning>
+        |</metadata>
+        |""".stripMargin.getBytes("UTF-8")
+    val responses = Map("/org/scala-lang/toolkit_3/maven-metadata.xml" -> meta)
+    withRecordingMavenRepo(responses)((repoUrl, recorded) =>
+      val testInputs = TestInputs(
+        os.rel / "Foo.scala" ->
+          """//> using toolkit 0.3.0
+            |
+            |object Hello extends App {
+            |  println("Hello")
+            |}
+            |""".stripMargin
+      )
+      val withRepo = baseOptions.copy(
+        classPathOptions =
+          baseOptions.classPathOptions.copy(extraRepositories = Seq(repoUrl))
+      )
+      testInputs.withBuild(withRepo, buildThreads, None, actionableDiagnostics = true) {
+        (_, _, maybeBuild) =>
+          val build = maybeBuild.orThrow
+          ActionablePreprocessor
+            .generateActionableDiagnostics(buildOptionsWithEmptyCoursierCache(build.options))
+            .orThrow
+          val paths = recorded.asScala.toSeq
+          expect(!paths.exists(_.contains("toolkit_3/maven-metadata.xml")))
+      }
+    )
+  }
+
+  test("actionable outdated check for org.scala-lang skips user repository metadata") {
+    val u    = UUID.randomUUID().toString.replace("-", "")
+    val art  = s"scala_cli_fake_$u"
+    val meta =
+      s"""<?xml version="1.0" encoding="UTF-8"?>
+         |<metadata>
+         |  <groupId>org.scala-lang</groupId>
+         |  <artifactId>${art}_3</artifactId>
+         |  <versioning>
+         |    <latest>99.0.0</latest>
+         |    <release>99.0.0</release>
+         |    <versions>
+         |      <version>0.1.0</version>
+         |      <version>99.0.0</version>
+         |    </versions>
+         |  </versioning>
+         |</metadata>
+         |""".stripMargin.getBytes("UTF-8")
+    val pom =
+      s"""<?xml version='1.0' encoding='UTF-8'?>
+         |<project>
+         |    <groupId>org.scala-lang</groupId>
+         |    <artifactId>${art}_3</artifactId>
+         |    <version>0.1.0</version>
+         |</project>""".stripMargin.getBytes("UTF-8")
+    val responses = Map(
+      s"/org/scala-lang/${art}_3/maven-metadata.xml"       -> meta,
+      s"/org/scala-lang/${art}_3/0.1.0/${art}_3-0.1.0.pom" -> pom
+    )
+    withRecordingMavenRepo(responses)((repoUrl, recorded) =>
+      val testInputs = TestInputs(
+        os.rel / "Foo.scala" ->
+          s"""//> using dep org.scala-lang::$art:0.1.0
+             |
+             |object Hello extends App {
+             |  println("Hello")
+             |}
+             |""".stripMargin
+      )
+      val withRepo = baseOptions.copy(
+        classPathOptions =
+          baseOptions.classPathOptions.copy(extraRepositories = Seq(repoUrl))
+      )
+      testInputs.withBuild(withRepo, buildThreads, None, actionableDiagnostics = true) {
+        (_, _, maybeBuild) =>
+          val build = maybeBuild.orThrow
+          ActionablePreprocessor
+            .generateActionableDiagnostics(buildOptionsWithEmptyCoursierCache(build.options))
+            .orThrow
+          val paths = recorded.asScala.toSeq
+          expect(!paths.exists(p => p.contains(s"${art}_3/") && p.contains("maven-metadata.xml")))
+      }
+    )
+  }
+
+  test("actionable outdated check still consults user repository for other organizations") {
+    val u    = UUID.randomUUID().toString.replace("-", "")
+    val art  = s"scala_cli_fake_$u"
+    val meta =
+      s"""<?xml version="1.0" encoding="UTF-8"?>
+         |<metadata>
+         |  <groupId>test-org</groupId>
+         |  <artifactId>${art}_3</artifactId>
+         |  <versioning>
+         |    <latest>99.0.0</latest>
+         |    <release>99.0.0</release>
+         |    <versions>
+         |      <version>0.1.0</version>
+         |      <version>99.0.0</version>
+         |    </versions>
+         |  </versioning>
+         |</metadata>
+         |""".stripMargin.getBytes("UTF-8")
+    val pom =
+      s"""<?xml version='1.0' encoding='UTF-8'?>
+         |<project>
+         |    <groupId>test-org</groupId>
+         |    <artifactId>${art}_3</artifactId>
+         |    <version>0.1.0</version>
+         |</project>""".stripMargin.getBytes("UTF-8")
+    val responses = Map(
+      s"/test-org/${art}_3/maven-metadata.xml"       -> meta,
+      s"/test-org/${art}_3/0.1.0/${art}_3-0.1.0.pom" -> pom
+    )
+    withRecordingMavenRepo(responses)((repoUrl, recorded) =>
+      val testInputs = TestInputs(
+        os.rel / "Foo.scala" ->
+          s"""//> using dep test-org::$art:0.1.0
+             |
+             |object Hello extends App {
+             |  println("Hello")
+             |}
+             |""".stripMargin
+      )
+      val withRepo = baseOptions.copy(
+        classPathOptions =
+          baseOptions.classPathOptions.copy(extraRepositories = Seq(repoUrl))
+      )
+      testInputs.withBuild(withRepo, buildThreads, None, actionableDiagnostics = true) {
+        (_, _, maybeBuild) =>
+          val build = maybeBuild.orThrow
+          val paths = recorded.asScala.toSeq
+          expect(paths.exists(p => p.contains(s"${art}_3/") && p.contains("maven-metadata.xml")))
+          val updateDiagnostics =
+            ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
+          val dOpt = updateDiagnostics.collectFirst {
+            case diagnostic: ActionableDependencyUpdateDiagnostic => diagnostic
+          }
+          expect(dOpt.nonEmpty)
+          expect(dOpt.get.newVersion == "99.0.0")
+      }
+    )
+  }
+
+  test("actionable outdated check times out slow user repository") {
+    val u    = UUID.randomUUID().toString.replace("-", "")
+    val art  = s"scala_cli_fake_$u"
+    val meta =
+      s"""<?xml version="1.0" encoding="UTF-8"?>
+         |<metadata>
+         |  <groupId>test-org</groupId>
+         |  <artifactId>${art}_3</artifactId>
+         |  <versioning>
+         |    <latest>0.2.0</latest>
+         |    <release>0.2.0</release>
+         |    <versions>
+         |      <version>0.1.0</version>
+         |      <version>0.2.0</version>
+         |    </versions>
+         |  </versioning>
+         |</metadata>
+         |""".stripMargin.getBytes("UTF-8")
+    val pom =
+      s"""<?xml version='1.0' encoding='UTF-8'?>
+         |<project>
+         |    <groupId>test-org</groupId>
+         |    <artifactId>${art}_3</artifactId>
+         |    <version>0.1.0</version>
+         |</project>""".stripMargin.getBytes("UTF-8")
+    val responses = Map(
+      s"/test-org/${art}_3/maven-metadata.xml"       -> meta,
+      s"/test-org/${art}_3/0.1.0/${art}_3-0.1.0.pom" -> pom
+    )
+    val slowAfterClear = new AtomicBoolean(false)
+    withRecordingMavenRepo(
+      responses,
+      delayOnMetadataMs = 30_000L,
+      delayWhen = () => slowAfterClear.get()
+    )((repoUrl, _) =>
+      val testInputs = TestInputs(
+        os.rel / "Foo.scala" ->
+          s"""//> using dep test-org::$art:0.1.0
+             |
+             |object Hello extends App {
+             |  println("Hello")
+             |}
+             |""".stripMargin
+      )
+      val withRepo = baseOptions.copy(
+        classPathOptions =
+          baseOptions.classPathOptions.copy(extraRepositories = Seq(repoUrl))
+      )
+      testInputs.withBuild(withRepo, buildThreads, None, actionableDiagnostics = true) {
+        (_, _, maybeBuild) =>
+          val build = maybeBuild.orThrow
+          slowAfterClear.set(true)
+          val t0 = System.nanoTime()
+          ActionablePreprocessor
+            .generateActionableDiagnostics(buildOptionsWithEmptyCoursierCache(build.options))
+            .orThrow
+          val elapsedMs = (System.nanoTime() - t0) / 1_000_000
+          expect(elapsedMs < 15_000)
+      }
+    )
   }
 }

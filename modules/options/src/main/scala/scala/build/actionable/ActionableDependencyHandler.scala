@@ -1,6 +1,7 @@
 package scala.build.actionable
+import coursier.Versions
 import coursier.cache.FileCache
-import coursier.core.Repository
+import coursier.core.{Repository, Versions as CoreVersions}
 import coursier.util.Task
 import coursier.version.{Latest, Version}
 import dependency.*
@@ -11,8 +12,10 @@ import scala.build.errors.{BuildException, Severity}
 import scala.build.internal.Constants
 import scala.build.internal.Util.*
 import scala.build.options.BuildOptions
-import scala.build.options.ScalaVersionUtil.versions
 import scala.build.{Logger, Positioned}
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.concurrent.{Await, ExecutionContext, Future, TimeoutException}
+import scala.util.control.NonFatal
 
 case object ActionableDependencyHandler
     extends ActionableHandler[ActionableDependencyUpdateDiagnostic] {
@@ -44,7 +47,7 @@ case object ActionableDependencyHandler
       if dependency.userParams.exists(_._1 == Constants.toolkitName)
       then
         val toolkitSuggestion =
-          if dependency.module.organization == Constants.toolkitOrganization then latestVersion
+          if dependency.isScalaLangOrganization then latestVersion
           else if dependency.module.organization == Constants.typelevelOrganization then
             s"typelevel:$latestVersion"
           else s"${dependency.module.organization}:$latestVersion"
@@ -68,6 +71,13 @@ case object ActionableDependencyHandler
   /** Versions like 'latest.*': 'latest.release', 'latest.integration', 'latest.stable'
     */
   private def isLatestSyntaxVersion(version: String): Boolean = Latest(version).nonEmpty
+
+  private val perRepoVersionsTimeout: FiniteDuration = 5.seconds
+
+  private def mergeCoreVersions(parts: Seq[CoreVersions]): CoreVersions =
+    val mergedAvailable = parts.flatMap(_.available0).distinctBy(_.asString).toList
+    CoreVersions.empty.withAvailable0(mergedAvailable)
+
   private def findLatestVersion(
     buildOptions: BuildOptions,
     setting: Positioned[AnyDependency],
@@ -77,13 +87,50 @@ case object ActionableDependencyHandler
     val scalaParams: Option[ScalaParameters] = value(buildOptions.scalaParams)
     val cache: FileCache[Task]               = buildOptions.finalCache
     val csModule: coursier.core.Module       = value(dependency.toCs(scalaParams)).module
-    val repositories: Seq[Repository]        = value(buildOptions.finalRepositories)
+    val includeUserExtraRepositories         = !dependency.isScalaLangOrganization
+    val repositories: Seq[Repository]        =
+      value(buildOptions.finalRepositories(includeUserExtraRepositories))
 
-    val latestVersionOpt = cache.versions(csModule, repositories)
-      .versions
-      .latest(Latest.Stable)
+    given ExecutionContext = cache.ec
 
-    if (latestVersionOpt.isEmpty)
+    val perRepoFutures: Seq[Future[CoreVersions]] = repositories.map { repo =>
+      val label                         = repo.toString.take(200)
+      val listing: Future[CoreVersions] =
+        Versions(cache)
+          .withModule(csModule)
+          .addRepositories(repo)
+          .result()
+          .future()
+          .map(_.versions)
+      listing.recover {
+        case NonFatal(e) =>
+          loggerOpt.foreach(_.debug(
+            s"Failed listing versions for ${dependency.render} from repository $label: ${e.getMessage}"
+          ))
+          CoreVersions.empty
+      }
+    }
+
+    val perRepoParts: Seq[CoreVersions] = perRepoFutures.map { f =>
+      try Await.result(f, perRepoVersionsTimeout)
+      catch {
+        case _: TimeoutException =>
+          loggerOpt.foreach(_.debug(
+            s"Timeout listing versions for ${dependency.render} (after $perRepoVersionsTimeout)"
+          ))
+          CoreVersions.empty
+        case NonFatal(e) =>
+          loggerOpt.foreach(_.debug(
+            s"Failed listing versions for ${dependency.render}: ${e.getMessage}"
+          ))
+          CoreVersions.empty
+      }
+    }
+
+    val mergedVersions   = mergeCoreVersions(perRepoParts)
+    val latestVersionOpt = mergedVersions.latest(Latest.Stable)
+
+    if latestVersionOpt.isEmpty then
       loggerOpt.foreach(_.diagnostic(
         s"No latest version found for ${dependency.render}",
         Severity.Warning,
