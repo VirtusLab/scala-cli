@@ -168,9 +168,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         successfulBuilds = successfulBuilds
       )
       res match {
-        case Left(ex) =>
-          if (allowExit) logger.exit(ex)
-          else logger.log(ex)
+        case Left(ex)  => if allowExit then logger.exit(ex) else logger.log(ex)
         case Right(()) =>
       }
     }
@@ -205,7 +203,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       )
 
     val shouldBuildTestScope = options.shared.scope.test.getOrElse(false)
-    if (inputs.isEmpty) {
+    if inputs.isEmpty then {
       val allArtifacts =
         Seq(initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)) ++
           (if shouldBuildTestScope
@@ -227,13 +225,13 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         )
       }
       runThing()
-      if (options.sharedRepl.watch.watchMode) {
+      if options.sharedRepl.watch.watchMode then {
         // nothing to watch, just wait for Ctrl+C
         WatchUtil.printWatchMessage()
         WatchUtil.waitForCtrlC(() => runThing())
       }
     }
-    else if (options.sharedRepl.watch.watchMode) {
+    else if options.sharedRepl.watch.watchMode then {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
@@ -303,9 +301,10 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
   }
 
   private def maybeAdaptForWindows(args: Seq[String]): Seq[String] =
-    if (Properties.isWin)
+    if Properties.isWin then
       args.map { a =>
-        if (a.exists(c => c.isWhitespace || c == '"')) "\"" + a.replace("\"", "\\\"") + "\""
+        if a.exists(c => c.isWhitespace || c == '"')
+        then "\"" + a.replace("\"", "\\\"") + "\""
         else a
       }
     else
@@ -362,8 +361,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     val shouldUseJshell =
       explicitJshellOpt.getOrElse(isPureJavaProject && !shouldUseAmmonite)
     val replBackend =
-      if (shouldUseJshell) ReplBackend.JShell
-      else if (shouldUseAmmonite) ReplBackend.Ammonite
+      if shouldUseJshell then ReplBackend.JShell
+      else if shouldUseAmmonite then ReplBackend.Ammonite
       else ReplBackend.Default
     if pureJavaInDefaultRepl then
       logger.message(
@@ -380,7 +379,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     }
 
     val (scalapyJavaOpts, scalapyExtraEnv) =
-      if (setupPython) {
+      if setupPython then {
         val props = value {
           val python       = value(createPythonInstance().orPythonDetectionError)
           val propsOrError = python.scalapyProperties
@@ -400,28 +399,29 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         (Nil, Map.empty[String, String])
 
     val pythonReplArgs =
-      if (setupPython && scalaParams.scalaVersion.startsWith("2.13."))
-        Seq("-Yimports:java.lang,scala,scala.Predef,me.shadaj.scalapy")
-      else
-        Nil
+      if setupPython && scalaParams.scalaVersion.startsWith("2.13.")
+      then Seq("-Yimports:java.lang,scala,scala.Predef,me.shadaj.scalapy")
+      else Nil
     val additionalArgs =
       pythonReplArgs ++ options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
 
     def ammoniteAdditionalArgs() = {
       val pythonPredef =
-        if (setupPython)
+        if setupPython then
           """import me.shadaj.scalapy.py
             |import me.shadaj.scalapy.py.PyQuote
             |""".stripMargin
         else
           ""
       val pythonPredefArgs =
-        if (pythonPredef.isEmpty) Nil
+        if pythonPredef.isEmpty
+        then Nil
         else Seq("--predef-code", pythonPredef)
       val replInitScriptPredefArgs =
         initScriptOpt.toSeq.flatMap(script => Seq("--predef-code", script))
       val replQuitAfterInitArgs =
-        if (quitAfterInit) Seq("--code", "")
+        if quitAfterInit
+        then Seq("--code", "")
         else Nil
       pythonPredefArgs ++ replInitScriptPredefArgs ++ replQuitAfterInitArgs ++
         options.notForBloopOptions.replOptions.ammoniteArgs
@@ -454,13 +454,11 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
             .toVector
             .sorted
         }
-        finally
-          if (zf != null)
-            zf.close()
+        finally if zf != null then zf.close()
     }
     val warnRootClasses = rootClasses.nonEmpty &&
       options.notForBloopOptions.replOptions.useAmmoniteOpt.contains(true)
-    if (warnRootClasses)
+    if warnRootClasses then
       logger.message(
         s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")})." +
           " These will not be accessible from the REPL."
@@ -509,8 +507,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           allowExecve = allowExit,
           extraEnv = scalapyExtraEnv ++ extraEnv
         ).waitFor()
-        if (retCode != 0)
-          value(Left(new ReplError(retCode)))
+        if retCode != 0 then value(Left(new ReplError(retCode)))
       }
     }
 
@@ -524,8 +521,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           cache = cache,
           repositories = value(options.finalRepositories),
           addScalapy =
-            if setupPython then
-              Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
+            if setupPython
+            then Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
             else None,
           javaVersion = options.javaHome().value.version
         )
@@ -543,8 +540,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         logger = logger,
         cache = cache,
         addScalapy =
-          if (setupPython)
-            Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
+          if setupPython
+          then Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
           else None
       ).left.map {
         case FetchingDependenciesError(e: ResolutionError.CantDownloadModule, positions)

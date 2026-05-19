@@ -367,8 +367,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
         )
       )
     )
-    osPwdInitScript = """var __pwd = os.package$.MODULE$.pwd();
-                        |System.out.println("PWD-MARKER:" + __pwd.toString());
+    osPwdInitScript = """System.out.println("PWD-MARKER:" + os.package$.MODULE$.pwd());
                         |""".stripMargin
     directiveExtension  = if kind == "pure Java" then ".java" else ".scala"
     inputsWithDirective =
