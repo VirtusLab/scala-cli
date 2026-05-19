@@ -210,14 +210,19 @@ object Test extends ScalaCommand[TestOptions] {
             esModule
           ) { js =>
             Runner.testJs(
-              build.fullClassPath.map(_.toNIO),
-              js.toIO,
-              requireTests,
-              args,
-              predefinedTestFrameworks.map(_.value),
-              logger,
-              build.options.scalaJsOptions.dom.getOrElse(false),
-              esModule
+              classPath = build.fullClassPath.map(_.toNIO),
+              entrypoint = js.toIO,
+              requireTests = requireTests,
+              args = args,
+              predefinedTestFrameworks = predefinedTestFrameworks.map(_.value),
+              logger = logger,
+              jsDom = build.options.scalaJsOptions.dom.getOrElse(false),
+              esModule = esModule,
+              scalaBinaryVersion = build.scalaParams.map(_.scalaBinaryVersion).getOrElse("3"),
+              platformSuffix = build.scalaParams.flatMap(_.platform).getOrElse("sjs1"),
+              userDeclaredDepNames =
+                build.options.classPathOptions.allExtraDependencies.toSeq.iterator
+                  .map(_.value.name).toSet
             )
           }.flatten
         }
@@ -229,12 +234,17 @@ object Test extends ScalaCommand[TestOptions] {
             logger
           ) { launcher =>
             Runner.testNative(
-              build.fullClassPath.map(_.toNIO),
-              launcher.toIO,
-              predefinedTestFrameworks.map(_.value),
-              requireTests,
-              args,
-              logger
+              classPath = build.fullClassPath.map(_.toNIO),
+              launcher = launcher.toIO,
+              predefinedTestFrameworks = predefinedTestFrameworks.map(_.value),
+              requireTests = requireTests,
+              args = args,
+              logger = logger,
+              scalaBinaryVersion = build.scalaParams.map(_.scalaBinaryVersion).getOrElse("3"),
+              platformSuffix = build.scalaParams.flatMap(_.platform).getOrElse("native0.5"),
+              userDeclaredDepNames =
+                build.options.classPathOptions.allExtraDependencies.toSeq.iterator
+                  .map(_.value.name).toSet
             )
           }.flatten
         }

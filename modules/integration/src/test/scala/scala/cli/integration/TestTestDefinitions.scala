@@ -518,6 +518,37 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     TestUtil.retryOnCi()(utestNative())
   }
 
+  for {
+    (platformArgs, platformName) <- Seq(
+      (Seq("--native"), "Scala Native"),
+      (Seq("--js"), "Scala.js")
+    )
+  } test(s"utest on $platformName with JVM-only dep syntax produces an informative error") {
+    TestUtil.retryOnCi() {
+      TestInputs(
+        os.rel / "MyTests.test.scala" ->
+          s"""//> using dep com.lihaoyi::utest:$utestVersion
+             |import utest._
+             |
+             |object MyTests extends TestSuite {
+             |  val tests = Tests {
+             |    test("foo") { assert(2 + 2 == 4) }
+             |  }
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "test", extraOptions, ".", platformArgs)
+          .call(cwd = root, check = false, mergeErrIntoOut = true)
+        expect(res.exitCode != 0)
+        val out = res.out.text()
+        expect(out.contains(s"No framework found by $platformName test bridge"))
+        expect(out.contains("JVM-only Scala dependencies"))
+        expect(out.contains("utest"))
+        expect(out.contains("::"))
+      }
+    }
+  }
+
   test("junit") {
     successfulJunitInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
