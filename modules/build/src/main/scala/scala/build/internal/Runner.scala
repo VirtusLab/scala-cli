@@ -413,6 +413,25 @@ object Runner {
     if frameworks.nonEmpty then Right(frameworks) else Left(new NoTestFrameworkFoundError)
   }
 
+  private def jvmOnlyScalaJarsOnPlatformClassPath(
+    classPath: Seq[Path],
+    scalaBinaryVersion: String,
+    platformSuffix: String,
+    userDeclaredDepNames: Set[String]
+  ): Seq[String] =
+    if userDeclaredDepNames.isEmpty then Nil
+    else {
+      val jvmSuffix      = s"_$scalaBinaryVersion"
+      val platformMarker = s"_${platformSuffix}_"
+      val prefixes       = userDeclaredDepNames.map(n => s"$n$jvmSuffix")
+      classPath.iterator
+        .map(_.getFileName.toString)
+        .filter(_.endsWith(".jar"))
+        .filterNot(_.contains(platformMarker))
+        .filter(name => prefixes.exists(p => name.startsWith(s"$p-") || name.startsWith(s"$p.")))
+        .toList
+    }
+
   def testJs(
     classPath: Seq[Path],
     entrypoint: File,
@@ -421,7 +440,10 @@ object Runner {
     predefinedTestFrameworks: Seq[String],
     logger: Logger,
     jsDom: Boolean,
-    esModule: Boolean
+    esModule: Boolean,
+    scalaBinaryVersion: String,
+    platformSuffix: String,
+    userDeclaredDepNames: Set[String]
   ): Either[TestError, Int] = either {
     import org.scalajs.jsenv.Input
     import org.scalajs.jsenv.nodejs.NodeJSEnv
@@ -485,7 +507,15 @@ object Runner {
                |""".stripMargin
           )
 
-        if finalTestFrameworks.isEmpty then Left(new NoFrameworkFoundByBridgeError)
+        if finalTestFrameworks.isEmpty then
+          Left(new NoFrameworkFoundByBridgeError(
+            jvmOnlyScalaJarsOnPlatformClassPath(
+              classPath,
+              scalaBinaryVersion,
+              platformSuffix,
+              userDeclaredDepNames
+            )
+          ))
         else runTests(classPath, finalTestFrameworks, requireTests, args, parentInspector, logger)
       }
       finally if adapter != null then adapter.close()
@@ -499,7 +529,10 @@ object Runner {
     predefinedTestFrameworks: Seq[String],
     requireTests: Boolean,
     args: Seq[String],
-    logger: Logger
+    logger: Logger,
+    scalaBinaryVersion: String,
+    platformSuffix: String,
+    userDeclaredDepNames: Set[String]
   ): Either[TestError, Int] = either {
     logger.debug("Preparing to run tests with Scala Native...")
     logger.debug(s"Native tests class path: $classPath")
@@ -551,7 +584,15 @@ object Runner {
                |""".stripMargin
           )
 
-        if finalTestFrameworks.isEmpty then Left(new NoFrameworkFoundByNativeBridgeError)
+        if finalTestFrameworks.isEmpty then
+          Left(new NoFrameworkFoundByNativeBridgeError(
+            jvmOnlyScalaJarsOnPlatformClassPath(
+              classPath,
+              scalaBinaryVersion,
+              platformSuffix,
+              userDeclaredDepNames
+            )
+          ))
         else runTests(classPath, finalTestFrameworks, requireTests, args, parentInspector, logger)
       }
       finally if adapter != null then adapter.close()
