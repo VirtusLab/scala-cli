@@ -25,7 +25,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
   }
   test("running scala-cli with args should not accept repl-only options") {
     TestInputs(os.rel / "Hello.sc" -> """println("Hello")""").fromRoot { root =>
-      val replSpecificOption = "--ammonite"
+      val replSpecificOption = "--repl-dry-run"
       val res                = os.proc(TestUtil.cli, "--power", ".", replSpecificOption).call(
         cwd = root,
         mergeErrIntoOut = true,

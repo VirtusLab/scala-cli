@@ -291,7 +291,7 @@ class SipScalaTests extends ScalaCliSuite
       os.proc(TestUtil.cli, powerArgs(isPowerMode), "repl", "--help-full").call(cwd =
         root
       ).out.trim()
-    val restrictedFeaturesMentioned   = output.contains("--amm")
+    val restrictedFeaturesMentioned   = output.contains("compute-version")
     val experimentalFeaturesMentioned = output.contains("--python")
     if (!isPowerMode) expect(!restrictedFeaturesMentioned && !experimentalFeaturesMentioned)
     else expect(restrictedFeaturesMentioned && experimentalFeaturesMentioned)

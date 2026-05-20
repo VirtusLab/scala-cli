@@ -1268,31 +1268,6 @@ Aliases: `--jsh`
 
 Use JShell as the REPL (default for pure-Java projects). Requires JDK >= 9.
 
-### [deprecated] `--ammonite`
-
-Aliases: `-A`, `--amm`
-
-**Deprecated**: Ammonite integration is deprecated. Use the default Scala REPL instead.
-
-Use Ammonite (instead of the default Scala REPL)
-
-### [deprecated] `--ammonite-version`
-
-Aliases: `--ammonite-ver`
-
-**Deprecated**: Ammonite integration is deprecated. Use the default Scala REPL instead.
-
-Set the Ammonite version (3.0.9 by default)
-
-### [deprecated] `--ammonite-arg`
-
-Aliases: `-a`
-
-**Deprecated**: Ammonite integration is deprecated. Use the default Scala REPL instead.
-
-[Internal]
-Provide arguments for ammonite repl
-
 ### `--repl-init-script-file`
 
 Read the REPL init script (--repl-init-script) from a file. Mutually exclusive with --repl-init-script.

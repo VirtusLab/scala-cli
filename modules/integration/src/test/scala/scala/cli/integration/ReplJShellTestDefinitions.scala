@@ -165,25 +165,6 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
     expect(res.out.text().toLowerCase.contains("jshell"))
   }
 
-  test("JShell rejects --ammonite combination") {
-    TestInputs.empty.fromRoot { root =>
-      val res = os
-        .proc(
-          TestUtil.cli,
-          "--power",
-          "repl",
-          ".",
-          "--jshell",
-          "--ammonite",
-          "--repl-dry-run",
-          extraOptions
-        )
-        .call(cwd = root, mergeErrIntoOut = true, check = false)
-      expect(res.exitCode != 0)
-      expect(res.out.text().contains("--jshell cannot be used together with --ammonite"))
-    }
-  }
-
   test(s"$runInJShellPrefix simple") {
     val expectedMessage = "1337"
     runInJShell(s"""System.out.println("$expectedMessage");""") { (res, _) =>

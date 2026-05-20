@@ -133,7 +133,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("dependencies in .scala - using URL with query parameters") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """| //> using file http://github.com/VirtusLab/scala-cli/blob/main/modules/dummy/amm/src/main/scala/AmmDummy.scala?version=3
+        """| //> using file http://github.com/VirtusLab/scala-cli/blob/main/modules/core/src/main/scala/scala/build/internals/Name.scala?version=3
            |
            |object Main {
            |}
@@ -159,7 +159,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
 
       expect(sources.paths.length == 1)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.head.generatedRelPath.last == "AmmDummy.scala")
+      expect(sources.inMemory.head.generatedRelPath.last == "Name.scala")
     }
   }
 

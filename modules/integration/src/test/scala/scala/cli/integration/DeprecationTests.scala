@@ -88,23 +88,6 @@ class DeprecationTests extends ScalaCliSuite {
     }
   }
 
-  test("--ammonite deprecation warning includes the exact alias used") {
-    TestInputs.empty.fromRoot { root =>
-      val res = os.proc(
-        TestUtil.cli,
-        "--power",
-        "repl",
-        TestUtil.extraOptions,
-        "--amm",
-        "--repl-dry-run"
-      ).call(cwd = root, stderr = os.Pipe)
-      val err = res.err.trim()
-      expect(err.contains("--amm"))
-      expect(err.contains("is deprecated."))
-      expect(err.contains("Use the default Scala REPL instead."))
-    }
-  }
-
   test("multiple deprecated features produce a single consolidated warning") {
     val inputPath = os.rel / "example.sc"
     TestInputs(inputPath -> """println("hello")""").fromRoot { root =>

@@ -4,7 +4,7 @@ import caseapp.*
 import caseapp.core.help.Help
 
 import scala.cli.commands.shared.{CrossOptions, HelpGroup, SharedJavaOptions, SharedWatchOptions}
-import scala.cli.commands.{Constants, tags}
+import scala.cli.commands.tags
 
 // format: off
 final case class SharedReplOptions(
@@ -21,32 +21,6 @@ final case class SharedReplOptions(
   @HelpMessage("Use JShell as the REPL (default for pure-Java projects). Requires JDK >= 9.")
   @Name("jsh")
     jshell: Option[Boolean] = None,
-
-  @Group(HelpGroup.Repl.toString)
-  @Tag(tags.restricted)
-  @Tag(tags.inShortHelp)
-  @Tag(tags.deprecatedOption("Ammonite integration is deprecated. Use the default Scala REPL instead."))
-  @HelpMessage("Use Ammonite (instead of the default Scala REPL)")
-  @Name("A")
-  @Name("amm")
-    ammonite: Option[Boolean] = None,
-
-  @Group(HelpGroup.Repl.toString)
-  @Tag(tags.restricted)
-  @Tag(tags.deprecatedOption("Ammonite integration is deprecated. Use the default Scala REPL instead."))
-  @HelpMessage(s"Set the Ammonite version (${Constants.ammoniteVersion} by default)")
-  @Name("ammoniteVer")
-  @Tag(tags.inShortHelp)
-    ammoniteVersion: Option[String] = None,
-
-  @Group(HelpGroup.Repl.toString)
-  @Name("a")
-  @Tag(tags.restricted)
-  @Tag(tags.inShortHelp)
-  @Tag(tags.deprecatedOption("Ammonite integration is deprecated. Use the default Scala REPL instead."))
-  @HelpMessage("Provide arguments for ammonite repl")
-  @Hidden
-    ammoniteArg: List[String] = Nil,
 
   @Group(HelpGroup.Repl.toString)
   @Tag(tags.implementation)

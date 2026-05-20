@@ -266,19 +266,7 @@ trait GenerateReferenceDoc extends CrossSbtModule
 }
 
 object dummy extends LocatedInModules {
-  // dummy projects to get scala steward updates for Ammonite and scalafmt, whose
-  // versions are used in the fmt and repl commands, and ensure Ammonite is available
-  // for all Scala versions we support.
-  object amm extends Cross[Amm](Scala.listMaxAmmoniteScalaVersion)
-  trait Amm  extends Cross.Module[String] with CrossScalaModule {
-    override def crossScalaVersion: String = crossValue
-    override def mvnDeps: T[Seq[Dep]]      = {
-      val ammoniteDep =
-        if (crossValue == Scala.scala3Lts) Deps.ammoniteForScala3Lts
-        else Deps.ammonite
-      Seq(ammoniteDep)
-    }
-  }
+  // dummy project to get scala-steward updates for scalafmt, whose version is used in the fmt command
   object scalafmt extends ScalaModule {
     override def scalaVersion: T[String] = Scala.defaultInternal
     override def mvnDeps: T[Seq[Dep]]    = Seq(
@@ -516,8 +504,6 @@ trait Core extends ScalaCliCrossSbtModule
          |  def jmhCoreModule = "${Deps.jmhCore.dep.module.name.value}"
          |  def jmhGeneratorBytecodeModule = "${Deps.jmhGeneratorBytecode.dep.module.name.value}"
          |
-         |  def ammoniteVersion = "${Deps.Versions.ammonite}"
-         |  def ammoniteVersionForScala3Lts = "${Deps.Versions.ammoniteForScala3Lts}"
          |  def millVersion = "${BuildInfo.millVersion}"
          |  def maxScalaNativeForMillExport = "${Deps.Versions.maxScalaNativeForMillExport}"
          |
@@ -858,8 +844,6 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |  def pythonInterfaceVersion      = "${Deps.pythonInterface.dep.versionConstraint.asString}"
          |  def launcherTypeResourcePath    = "${launcherTypeResourcePath.toString}"
          |  def defaultFilesResourcePath    = "$defaultFilesResourcePath"
-         |  def maxAmmoniteScala3Version    = "${Scala.maxAmmoniteScala3Version}"
-         |  def maxAmmoniteScala3LtsVersion = "${Scala.maxAmmoniteScala3LtsVersion}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -881,8 +865,6 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |  def scalaJsVersion = "${Scala.scalaJs}"
          |  def scalaJsCliVersion = "${Scala.scalaJsCli}"
          |  def scalaNativeVersion = "${Deps.nativeTools.dep.versionConstraint.asString}"
-         |  def ammoniteVersion = "${Deps.Versions.ammonite}"
-         |  def ammoniteVersionForScala3Lts = "${Deps.Versions.ammoniteForScala3Lts}"
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.versionConstraint.asString}"
          |  def defaultGraalVMJavaVersion = "${deps.graalVmJavaVersion}"
          |  def defaultGraalVMVersion = "${deps.graalVmCommunityVersion}"
@@ -1095,10 +1077,6 @@ trait CliIntegration extends SbtModule
             .mkString(", ")})
            |  def scala38MinJavaVersion        = ${Java.minimumScala38Java}
            |  def defaultScalafmtVersion       = "${Deps.scalafmtCli.dep.versionConstraint.asString}"
-           |  def maxAmmoniteScala212Version   = "${Scala.maxAmmoniteScala212Version}"
-           |  def maxAmmoniteScala213Version   = "${Scala.maxAmmoniteScala213Version}"
-           |  def maxAmmoniteScala3Version     = "${Scala.maxAmmoniteScala3Version}"
-           |  def maxAmmoniteScala3LtsVersion  = "${Scala.maxAmmoniteScala3LtsVersion}"
            |  def legacyScala3Versions         = Seq(${Scala.legacyScala3Versions.map(p =>
             s"\"$p\""
           ).mkString(", ")})
@@ -1108,7 +1086,6 @@ trait CliIntegration extends SbtModule
            |  def scalaNativeVersion04         = "${Deps.Versions.scalaNative04}"
            |  def scalaNativeVersion05         = "${Deps.Versions.scalaNative05}"
            |  def semanticDbJavacPluginVersion = "${Deps.semanticDbJavac.dep.versionConstraint.asString}"
-           |  def ammoniteVersion              = "${Deps.ammonite.dep.versionConstraint.asString}"
            |  def defaultGraalVMJavaVersion    = "${deps.graalVmJavaVersion}"
            |  def defaultGraalVMVersion        = "${deps.graalVmCommunityVersion}"
            |  def runnerScala30LegacyVersion   = "${Cli.runnerScala30LegacyVersion}"
