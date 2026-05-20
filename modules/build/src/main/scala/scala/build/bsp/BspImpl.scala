@@ -578,7 +578,7 @@ final class BspImpl(
         )
       case Right(preBuildProject) =>
         lazy val projectJavaHome = preBuildProject.mainScope.buildOptions
-          .javaHome()
+          .checkAndResolveJavaHome(reloadableOptions.logger)
           .value
 
         val finalBloopSession =

@@ -11,6 +11,7 @@ import scala.build.Ops.*
 import scala.build.errors.{
   InvalidBinaryScalaVersionError,
   NoValidScalaVersionFoundError,
+  ScalaJvmIncompatibleError,
   ScalaVersionError,
   UnsupportedScalaVersionError
 }
@@ -449,6 +450,19 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
 
     val semanticDbVersion = buildOptions.findSemanticDbVersion(scalaVersion, TestLogger())
     expect(semanticDbVersion == "4.8.4")
+  }
+
+  test("explicit too-old JVM for Scala 3.8+ fails with a clear error") {
+    val scalaVersion =
+      if defaultScalaVersion.startsWith("3.8") then defaultScalaVersion
+      else "3.8.3"
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(scalaVersion = Some(MaybeScalaVersion(scalaVersion))),
+      javaOptions = JavaOptions(jvmIdOpt = Some(Positioned.none("11")))
+    )
+    val ex = intercept[Exception](options.checkAndResolveJavaHome(TestLogger())).getCause
+      .asInstanceOf[ScalaJvmIncompatibleError]
+    expect(ex.getMessage.contains("requires at least Java 17"))
   }
 
   test("skip setting release option when -release or -java-output-version is set by user") {
