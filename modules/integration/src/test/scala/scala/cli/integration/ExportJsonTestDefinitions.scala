@@ -107,11 +107,22 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
 
       val jsonContents = readJson(exportJsonProc.out.text())
 
+      val nativeVersion        = Constants.scalaNativeVersion
       val expectedJsonContents =
         s"""{
            |"scalaVersion":"3.2.2",
            |"platform":"Native",
-           |"scalaNativeVersion":"${Constants.scalaNativeVersion}",
+           |"scalaNativeVersion":"$nativeVersion",
+           |"nativeOptions": {
+           |  "scalaNativeVersion":"$nativeVersion",
+           |  "toolingDependencies": [
+           |    {
+           |      "groupId":"org.scala-native",
+           |      "artifactId":{"name":"scala-native-cli","fullName":"scala-native-cli_2.12"},
+           |      "version":"$nativeVersion"
+           |    }
+           |  ]
+           |},
            |"scopes": {
            | "main": {
            |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
@@ -134,6 +145,23 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
            |         "fullName": "os-lib_3"
            |       },
            |       "version":"0.7.8"
+           |     }
+           |   ],
+           |   "injectedDependencies": [
+           |     {
+           |       "groupId":"org.scala-native",
+           |       "artifactId":{"name":"javalib_native0.5","fullName":"javalib_native0.5_3"},
+           |       "version":"$nativeVersion"
+           |     },
+           |     {
+           |       "groupId":"org.scala-native",
+           |       "artifactId":{"name":"nscplugin","fullName":"nscplugin_3.2.2"},
+           |       "version":"$nativeVersion"
+           |     },
+           |     {
+           |       "groupId":"org.scala-native",
+           |       "artifactId":{"name":"scala3lib_native0.5","fullName":"scala3lib_native0.5_3"},
+           |       "version":"3.2.2+$nativeVersion"
            |     }
            |   ],
            |   "resolvers": [
@@ -165,6 +193,28 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
            |       "version": "0.7.8"
            |     }
            |   ],
+           |   "injectedDependencies": [
+           |     {
+           |       "groupId":"org.scala-native",
+           |       "artifactId":{"name":"javalib_native0.5","fullName":"javalib_native0.5_3"},
+           |       "version":"$nativeVersion"
+           |     },
+           |     {
+           |       "groupId":"org.scala-native",
+           |       "artifactId":{"name":"nscplugin","fullName":"nscplugin_3.2.2"},
+           |       "version":"$nativeVersion"
+           |     },
+           |     {
+           |       "groupId":"org.scala-native",
+           |       "artifactId":{"name":"scala3lib_native0.5","fullName":"scala3lib_native0.5_3"},
+           |       "version":"3.2.2+$nativeVersion"
+           |     },
+           |     {
+           |       "groupId":"org.scala-native",
+           |       "artifactId":{"name":"test-interface_native0.5","fullName":"test-interface_native0.5_3"},
+           |       "version":"$nativeVersion"
+           |     }
+           |   ],
            |   "resolvers": [
            |     "https://oss.sonatype.org/content/repositories/snapshots",
            |     "https://repo1.maven.org/maven2",
@@ -179,6 +229,168 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
            |}
            |""".replaceAll("\\s|\\|", "")
       expect(jsonContents == expectedJsonContents)
+    }
+  }
+
+  test("export json injects JVM test-runner into test scope") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("hi")
+          |}
+          |""".stripMargin,
+      os.rel / "unit.test.scala" ->
+        s"""//> using dep org.scalameta::munit::${Constants.munitVersion}
+           |
+           |class MyTest extends munit.FunSuite { test("ok") { assert(true) } }
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val exportJsonProc =
+        os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--jvm", "temurin:17")
+          .call(cwd = root)
+      val jsonContents     = readJson(exportJsonProc.out.text())
+      val expectedFullName = s"test-runner_${Constants.scala3NextPrefix.split('.').head}"
+      // The test scope should include both munit and the scala-cli test-runner.
+      expect(jsonContents.contains("\"name\":\"test-runner\""))
+      expect(jsonContents.contains(s"\"fullName\":\"$expectedFullName\""))
+      expect(jsonContents.contains("\"groupId\":\"org.virtuslab.scala-cli\""))
+      expect(jsonContents.contains("\"name\":\"munit\""))
+    }
+  }
+
+  test("export json includes JVM test-runner even when no test framework dep is declared") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("hi")
+          |}
+          |""".stripMargin,
+      os.rel / "unit.test.scala" ->
+        """class MyTest { def foo() = () }
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val exportJsonProc =
+        os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--jvm", "temurin:17")
+          .call(cwd = root)
+      val jsonContents = readJson(exportJsonProc.out.text())
+      expect(jsonContents.contains("\"name\":\"test-runner\""))
+      expect(jsonContents.contains("\"groupId\":\"org.virtuslab.scala-cli\""))
+    }
+  }
+
+  test("export json includes legacy JVM test-runner for Scala 2.12") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("hi")
+          |}
+          |""".stripMargin,
+      os.rel / "unit.test.scala" ->
+        """class MyTest { def foo() = () }
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val exportJsonProc =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "export",
+          "--json",
+          ".",
+          "--jvm",
+          "temurin:17",
+          "--scala",
+          Constants.scala212
+        )
+          .call(cwd = root)
+      val jsonContents = readJson(exportJsonProc.out.text())
+      expect(jsonContents.contains("\"fullName\":\"test-runner_2.12\""))
+      expect(jsonContents.contains("\"groupId\":\"org.virtuslab.scala-cli\""))
+      expect(jsonContents.contains(s"\"version\":\"${Constants.runnerScala2LegacyVersion}\""))
+    }
+  }
+
+  test("export json includes legacy JVM test-runner for Scala 2.13") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("hi")
+          |}
+          |""".stripMargin,
+      os.rel / "unit.test.scala" ->
+        """class MyTest { def foo() = () }
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val exportJsonProc =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "export",
+          "--json",
+          ".",
+          "--jvm",
+          "temurin:17",
+          "--scala",
+          Constants.scala213
+        )
+          .call(cwd = root)
+      val jsonContents = readJson(exportJsonProc.out.text())
+      expect(jsonContents.contains("\"fullName\":\"test-runner_2.13\""))
+      expect(jsonContents.contains("\"groupId\":\"org.virtuslab.scala-cli\""))
+      expect(jsonContents.contains(s"\"version\":\"${Constants.runnerScala2LegacyVersion}\""))
+    }
+  }
+
+  test("export json does not inject JVM test-runner for Native target") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("hi")
+          |}
+          |""".stripMargin,
+      os.rel / "unit.test.scala" ->
+        """class MyTest { def foo() = () }
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val exportJsonProc =
+        os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--native")
+          .call(cwd = root)
+      val jsonContents = readJson(exportJsonProc.out.text())
+      // The JVM test-runner is JVM-only; Native targets get a Scala Native
+      // test-interface dep instead (verified by a separate test below).
+      expect(!jsonContents.contains("\"name\":\"test-runner\""))
+      expect(!jsonContents.contains("org.virtuslab.scala-cli"))
+    }
+  }
+
+  test("export json injects Scala Native test-interface into test scope of Native target") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("hi")
+          |}
+          |""".stripMargin,
+      os.rel / "unit.test.scala" ->
+        """class MyTest { def foo() = () }
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val exportJsonProc =
+        os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--native")
+          .call(cwd = root)
+      val jsonContents     = readJson(exportJsonProc.out.text())
+      val snBinary         = Constants.scalaNativeVersion.split('.').take(2).mkString(".")
+      val expectedFullName =
+        s"test-interface_native${snBinary}_${Constants.scala3NextPrefix.split('.').head}"
+      // The test scope's injectedDependencies should include the Scala Native test-interface
+      // module pinned at scala-cli's bundled Scala Native version.
+      expect(jsonContents.contains("\"name\":\"test-interface_native" + snBinary + "\""))
+      expect(jsonContents.contains(s"\"fullName\":\"$expectedFullName\""))
+      expect(jsonContents.contains(s"\"version\":\"${Constants.scalaNativeVersion}\""))
     }
   }
 
@@ -243,6 +455,13 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
            |         "fullName": "os-lib_3"
            |       },
            |       "version": "0.7.8"
+           |     }
+           |   ],
+           |   "injectedDependencies": [
+           |     {
+           |       "groupId":"org.scala-js",
+           |       "artifactId":{"name":"scalajs-library","fullName":"scalajs-library_2.13"},
+           |       "version":"${Constants.scalaJsVersion}"
            |     }
            |   ],
            |   "resolvers": [

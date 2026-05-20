@@ -90,7 +90,7 @@ final case class ScopedSources(
         Sources.InMemory(
           Left("build-info"),
           os.rel / "BuildInfo.scala",
-          value(buildInfo(combinedOptions, workspace)).generateContents().getBytes(
+          value(buildInfo(combinedOptions, workspace, logger)).generateContents().getBytes(
             StandardCharsets.UTF_8
           ),
           None
@@ -123,7 +123,11 @@ final case class ScopedSources(
     buildOptionsFor(scope)
       .foldRight(baseOptions)(_.orElse(_))
 
-  def buildInfo(baseOptions: BuildOptions, workspace: os.Path): Either[BuildException, BuildInfo] =
+  def buildInfo(
+    baseOptions: BuildOptions,
+    workspace: os.Path,
+    logger: Logger
+  ): Either[BuildException, BuildInfo] =
     either {
       def getScopedBuildInfo(scope: Scope): ScopedBuildInfo =
         val combinedOptions = combinedBuildOptions(scope, baseOptions)
@@ -133,7 +137,7 @@ final case class ScopedSources(
             unwrappedScripts.flatMap(_.valueFor(scope).toSeq).flatMap(_.originalPath.toOption))
             .map(_._2.toString)
 
-        ScopedBuildInfo(combinedOptions, sourcePaths ++ inMemoryPaths)
+        ScopedBuildInfo.forScope(combinedOptions, sourcePaths ++ inMemoryPaths, scope, logger)
 
       val baseBuildInfo = value(BuildInfo(combinedBuildOptions(Scope.Main, baseOptions), workspace))
 

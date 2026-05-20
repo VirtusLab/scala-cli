@@ -16,16 +16,22 @@ final case class JsonProjectDescriptor(
     sourcesMain: Sources,
     sourcesTest: Sources
   ): Either[BuildException, JsonProject] = {
-    def getScopedBuildInfo(options: BuildOptions, sources: Sources) =
+    def getScopedBuildInfo(options: BuildOptions, sources: Sources, scope: Scope) =
       val sourcePaths   = sources.paths.map(_._1.toString)
       val inMemoryPaths = sources.inMemory.flatMap(_.originalPath.toSeq.map(_._2.toString))
 
-      ScopedBuildInfo(options, sourcePaths ++ inMemoryPaths)
+      ScopedBuildInfo.forScope(
+        options,
+        sourcePaths ++ inMemoryPaths,
+        scope,
+        logger,
+        injectTestRunner = true
+      )
 
     for {
       baseBuildInfo <- BuildInfo(optionsMain, workspace)
-      mainBuildInfo = getScopedBuildInfo(optionsMain, sourcesMain)
-      testBuildInfo = getScopedBuildInfo(optionsTest, sourcesTest)
+      mainBuildInfo = getScopedBuildInfo(optionsMain, sourcesMain, Scope.Main)
+      testBuildInfo = getScopedBuildInfo(optionsTest, sourcesTest, Scope.Test)
     } yield JsonProject(baseBuildInfo
       .withScope(Scope.Main.name, mainBuildInfo)
       .withScope(Scope.Test.name, testBuildInfo))
