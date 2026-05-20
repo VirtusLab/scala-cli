@@ -41,36 +41,6 @@ jshell>
 
 </ChainedSnippets>
 
-If you prefer to use the [Ammonite REPL](https://ammonite.io/#Ammonite-REPL), specify `--amm` to launch it rather than the default REPL:
-
-:::warning
-The Ammonite integration (`--ammonite` / `--amm` / `-A` and related options) is **deprecated** and will be removed in a future version. Use the default Scala REPL instead.
-:::
-
-:::caution
-Using the Ammonite REPL is restricted and requires setting the `--power` option to be used.
-You can pass it explicitly or set it globally by running:
-
-    scala-cli config power true
-:::
-
-<ChainedSnippets>
-
-```bash ignore
-scala-cli --power repl --amm
-```
-
-```text
-Loading...
-Welcome to the Ammonite Repl 2.4.0-23-76673f7f (Scala 3.0.2 Java 11.0.11)
-@ println("Hello ammonite")
-Hello ammonite
-@ exit
-Bye!
-```
-
-</ChainedSnippets>
-
 The `repl` command accepts the same arguments as the [compile](compile.md) command. It first compiles any provided sources, and then exposes those results and any provided dependencies to the REPL session:
 
 ```scala title=mylibrary/Messages.scala

@@ -63,7 +63,7 @@ There are several reasons that we believe `using` directives are a good solution
 
 - One of the main Scala CLI use cases is prototyping, and the ability to ship one or more source code files with a
   complete configuration is a game-changer for this use case.
-- Defining dependencies and other settings is common in Ammonite scripts as well.
+- Defining dependencies and other settings is common in script-based workflows as well.
 - From a teaching perspective, the ability to provide pre-configured pieces of code that fit into one slide is also
   beneficial.
 - Having configuration close to the code is beneficial, since often — especially in small programs — the given

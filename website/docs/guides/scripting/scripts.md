@@ -304,19 +304,3 @@ The wrapper type used according to the configuration used ((platform + forced ty
 | `>// using platform native` | App Wrapper | App Wrapper | Class Wrapper  |
 | `>// using platform js`     | App Wrapper | App Wrapper | Object Wrapper |
 | `>// using objectWrapper`   | App Wrapper | App Wrapper | Object Wrapper |
-
-## Differences with Ammonite scripts
-
-[Ammonite](http://ammonite.io) is a popular REPL for Scala that can also compile and run `.sc` files.
-
-Scala CLI and Ammonite are similar, but differ significantly when your code is split in multiple scripts:
-
-- In Ammonite, a script needs to use `import $file` directives to use values defined in another script
-- With Scala CLI, all scripts passed can reference each other without such directives
-
-On the other hand:
-
-- You can pass a single "entry point" script as input to Ammonite, and Ammonite finds the scripts it depends on via
-  the `import $file` directives
-- Scala CLI requires all scripts to be added with `//> using file ...` or to be passed beforehand, either one-by-one, or by putting them in a directory, and
-  passing the directory to Scala CLI

@@ -31,58 +31,6 @@ final case class ReplArtifacts(
 }
 
 object ReplArtifacts {
-  // TODO In order to isolate more Ammonite dependencies, we'd need to get two class paths:
-  //      - a shared one, with ammonite-repl-api, ammonite-compiler, and dependencies
-  //      - an Ammonite-specific one, with the other ammonite JARs
-  // Then, use the coursier-bootstrap library to generate a launcher creating to class loaders,
-  // with each of those class paths, and run Ammonite with this launcher.
-  // This requires to change this line in Ammonite, https://github.com/com-lihaoyi/Ammonite/blob/0f0d597f04e62e86cbf76d3bd16deb6965331470/amm/src/main/scala/ammonite/Main.scala#L99,
-  // to
-  //     val contextClassLoader = classOf[ammonite.repl.api.ReplAPI].getClassLoader
-  // so that only the first loader is exposed to users in Ammonite.
-  def ammonite(
-    scalaParams: ScalaParameters,
-    ammoniteVersion: String,
-    dependencies: Seq[AnyDependency],
-    extraClassPath: Seq[os.Path],
-    extraSourceJars: Seq[os.Path],
-    extraRepositories: Seq[Repository],
-    logger: Logger,
-    cache: FileCache[Task],
-    addScalapy: Option[String]
-  ): Either[BuildException, ReplArtifacts] = either {
-    val scalapyDeps =
-      addScalapy.map(ver => dep"${Artifacts.scalaPyOrganization(ver)}::scalapy-core::$ver").toSeq
-    val allDeps = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion") ++ scalapyDeps
-    val replArtifacts = Artifacts.artifacts(
-      allDeps.map(Positioned.none),
-      extraRepositories,
-      Some(scalaParams),
-      logger,
-      cache.withMessage(s"Downloading Ammonite $ammoniteVersion")
-    )
-    val replSourceArtifacts = Artifacts.artifacts(
-      allDeps.map(Positioned.none),
-      extraRepositories,
-      Some(scalaParams),
-      logger,
-      cache.withMessage(s"Downloading Ammonite $ammoniteVersion sources"),
-      classifiersOpt = Some(Set("sources"))
-    )
-    ReplArtifacts(
-      replArtifacts = value(replArtifacts) ++ value(replSourceArtifacts),
-      depArtifacts =
-        Nil, // amm does not support a -cp option, deps are passed directly to Ammonite cp
-      extraClassPath = extraClassPath,
-      extraSourceJars = extraSourceJars,
-      replMainClass = "ammonite.Main",
-      replJavaOpts = Nil,
-      addSourceJars = true,
-      includeExtraCpOnReplCp =
-        true // extra cp & source jars have to be passed directly to Ammonite cp
-    )
-  }
-
   def default(
     scalaParams: ScalaParameters,
     dependencies: Seq[AnyDependency],

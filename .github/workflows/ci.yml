@@ -1717,9 +1717,6 @@ jobs:
     - name: Check native-image config format
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i __.checkNativeImageConfFormat
-    - name: Check Ammonite availability
-      if: env.SHOULD_RUN == 'true'
-      run: ./mill -i 'dummy.amm[_].resolvedRunMvnDeps'
     - name: Check for cross Scala version conflicts
       if: env.SHOULD_RUN == 'true'
       run: .github/scripts/check-cross-version-deps.sc

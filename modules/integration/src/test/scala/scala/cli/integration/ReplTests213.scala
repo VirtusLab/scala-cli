@@ -2,7 +2,6 @@ package scala.cli.integration
 
 class ReplTests213
     extends ReplTestDefinitions
-    with ReplAmmoniteTestDefinitions
     with ReplJShellTestDefinitions
     with Test213 {
   for {
