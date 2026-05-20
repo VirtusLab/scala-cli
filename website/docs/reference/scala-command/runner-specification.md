@@ -636,6 +636,12 @@ Show options for Scalafmt
 
 Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
+**--help-wasm**
+
+Show options for WebAssembly
+
+Aliases: `--wasm-help`
+
 **--strict-bloop-json-check**
 
 
@@ -1445,6 +1451,12 @@ Show options for Scalafmt
 
 Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
+**--help-wasm**
+
+Show options for WebAssembly
+
+Aliases: `--wasm-help`
+
 **--strict-bloop-json-check**
 
 
@@ -2069,6 +2081,12 @@ Aliases: `--repl-help`
 Show options for Scalafmt
 
 Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
+
+**--help-wasm**
+
+Show options for WebAssembly
+
+Aliases: `--wasm-help`
 
 **--strict-bloop-json-check**
 
@@ -2735,6 +2753,12 @@ Show options for Scalafmt
 
 Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
+**--help-wasm**
+
+Show options for WebAssembly
+
+Aliases: `--wasm-help`
+
 **--strict-bloop-json-check**
 
 
@@ -3399,6 +3423,12 @@ Show options for Scalafmt
 
 Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
+**--help-wasm**
+
+Show options for WebAssembly
+
+Aliases: `--wasm-help`
+
 **--strict-bloop-json-check**
 
 
@@ -4020,6 +4050,12 @@ Aliases: `--repl-help`
 Show options for Scalafmt
 
 Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
+
+**--help-wasm**
+
+Show options for WebAssembly
+
+Aliases: `--wasm-help`
 
 **--strict-bloop-json-check**
 
@@ -4720,6 +4756,12 @@ Aliases: `--repl-help`
 Show options for Scalafmt
 
 Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
+
+**--help-wasm**
+
+Show options for WebAssembly
+
+Aliases: `--wasm-help`
 
 **--strict-bloop-json-check**
 
@@ -5430,6 +5472,12 @@ Aliases: `--repl-help`
 Show options for Scalafmt
 
 Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
+
+**--help-wasm**
+
+Show options for WebAssembly
+
+Aliases: `--wasm-help`
 
 **--strict-bloop-json-check**
 
@@ -6423,6 +6471,12 @@ Aliases: `--repl-help`
 Show options for Scalafmt
 
 Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
+
+**--help-wasm**
+
+Show options for WebAssembly
+
+Aliases: `--wasm-help`
 
 **--strict-bloop-json-check**
 

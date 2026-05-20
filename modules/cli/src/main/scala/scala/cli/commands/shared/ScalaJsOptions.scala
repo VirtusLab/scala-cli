@@ -59,10 +59,15 @@ final case class ScalaJsOptions(
   @HelpMessage("Enable jsdom")
     jsDom: Option[Boolean] = None,
 
-  @Group(HelpGroup.ScalaJs.toString)
+  @Group(HelpGroup.Wasm.toString)
   @Tag(tags.experimental)
-  @HelpMessage("Emit WASM")
+  @HelpMessage("Enable Wasm output (Scala.js Wasm backend). Uses Node.js by default. To show more options for Wasm pass `--help-wasm`")
     jsEmitWasm: Option[Boolean] = None,
+
+  @Group(HelpGroup.Wasm.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Wasm runtime to use: node (default), deno, bun")
+    jsWasmRuntime: Option[String] = None,
 
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.should)

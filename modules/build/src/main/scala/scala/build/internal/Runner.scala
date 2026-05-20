@@ -189,6 +189,37 @@ object Runner {
       run(command, logger, cwd = cwd, extraEnv = extraEnv)
   }
 
+  // Detects the major version of Node.js on PATH; cached for the JVM lifetime (lazy val).
+  // Returns None if node is not found or version cannot be parsed.
+  private lazy val nodeMajorVersion: Option[Int] =
+    try {
+      val process = new ProcessBuilder("node", "--version")
+        .redirectErrorStream(true)
+        .start()
+      val output = new String(process.getInputStream.readAllBytes()).trim
+      process.waitFor()
+      // Node version format: "v22.5.0" -> extract 22
+      if (output.startsWith("v"))
+        output.drop(1).takeWhile(_.isDigit) match {
+          case s if s.nonEmpty => Some(s.toInt)
+          case _               => None
+        }
+      else None
+    }
+    catch {
+      case _: Exception => None
+    }
+
+  // Pre-V8 13.x runtimes need --experimental-wasm-exnref for the Scala.js Wasm exception model.
+  // V8 13.x ships in Node 25+ (Node 24 is still on V8 12.x where exnref is gated behind the flag).
+  // In Node 26+, the flag may be removed from the CLI. Only pass it when Node < 25.
+  // None.forall(_ < 25) == true — safe fallback when version detection fails.
+  private def nodeNeedsWasmFlag: Boolean = nodeMajorVersion.forall(_ < 25)
+
+  // Deno 2.x bundles V8 12.x where wasm-exnref is gated behind a flag; symmetrical reasoning to Node.
+  // We always set DENO_V8_FLAGS=--experimental-wasm-exnref on Wasm output until V8 13.x lands in Deno.
+  private def denoNeedsWasmFlag: Boolean = true
+
   private def endsWithCaseInsensitive(s: String, suffix: String): Boolean =
     s.length >= suffix.length &&
     s.regionMatches(true, s.length - suffix.length, suffix, 0, suffix.length)
@@ -221,11 +252,13 @@ object Runner {
   def jsCommand(
     entrypoint: File,
     args: Seq[String],
-    jsDom: Boolean = false
+    jsDom: Boolean = false,
+    emitWasm: Boolean = false
   ): Seq[String] = {
 
-    val nodePath = findInPath("node").fold("node")(_.toString)
-    val command  = Seq(nodePath, entrypoint.getAbsolutePath) ++ args
+    val nodePath  = findInPath("node").fold("node")(_.toString)
+    val nodeFlags = if (emitWasm && nodeNeedsWasmFlag) List("--experimental-wasm-exnref") else Nil
+    val command   = Seq(nodePath) ++ nodeFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
 
     if (jsDom)
       // FIXME We'd need to replicate what JSDOMNodeJSEnv does under-the-hood to get the command in that case.
@@ -242,14 +275,16 @@ object Runner {
     allowExecve: Boolean = false,
     jsDom: Boolean = false,
     sourceMap: Boolean = false,
-    esModule: Boolean = false
+    esModule: Boolean = false,
+    emitWasm: Boolean = false
   ): Either[BuildException, Process] = either {
     val nodePath: String =
       value(findInPath("node")
         .map(_.toString)
         .toRight(NodeNotFoundError()))
+    val nodeFlags = if (emitWasm && nodeNeedsWasmFlag) List("--experimental-wasm-exnref") else Nil
     if !jsDom && allowExecve && Execve.available() then {
-      val command = Seq(nodePath, entrypoint.getAbsolutePath) ++ args
+      val command = Seq(nodePath) ++ nodeFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
 
       logger.log(
         s"Running ${command.mkString(" ")}",
@@ -265,12 +300,29 @@ object Runner {
       )
       sys.error("should not happen")
     }
+    else if (emitWasm) {
+      // Wasm output always uses ESModule. NodeJSEnv prepends "-" to user args when they are
+      // non-empty (to enable Node's stdin-pipe mode for Script inputs), but "-" before the
+      // entrypoint tells Node to read from stdin instead of running the ESModule file.
+      // Using ProcessBuilder directly places args after the entrypoint, which is correct.
+      val command = Seq(nodePath) ++ nodeFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
+
+      logger.log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
+      new ProcessBuilder(command*)
+        .inheritIO()
+        .start()
+    }
     else {
       val nodeArgs =
         // Scala.js runs apps by piping JS to node.
         // If we need to pass arguments, we must first make the piped input explicit
         // with "-", and we pass the user's arguments after that.
-        if args.isEmpty then Nil else "-" :: args.toList
+        nodeFlags ++ (if args.isEmpty then Nil else "-" :: args.toList)
       val envJs =
         if jsDom then
           new JSDOMNodeJSEnv(
@@ -304,6 +356,114 @@ object Runner {
       processField.setAccessible(true)
       val process = processField.get(processJs).asInstanceOf[Process]
       process
+    }
+  }
+
+  def denoCommand(
+    entrypoint: File,
+    args: Seq[String]
+  ): Seq[String] = {
+    val denoPath  = findInPath("deno").fold("deno")(_.toString)
+    val denoFlags = Seq("run", "--allow-read")
+    Seq(denoPath) ++ denoFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
+  }
+
+  def runDeno(
+    entrypoint: File,
+    args: Seq[String],
+    logger: Logger,
+    allowExecve: Boolean = false,
+    emitWasm: Boolean = false
+  ): Either[BuildException, Process] = either {
+    val denoPath: String =
+      value(findInPath("deno")
+        .map(_.toString)
+        .toRight(DenoNotFoundError()))
+    val denoFlags = Seq("run", "--allow-read")
+    val extraEnv  =
+      if (emitWasm && denoNeedsWasmFlag) Map("DENO_V8_FLAGS" -> "--experimental-wasm-exnref")
+      else Map.empty
+
+    if (allowExecve && Execve.available()) {
+      val command = Seq(denoPath) ++ denoFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
+
+      logger.log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
+      logger.debug("execve available")
+      Execve.execve(
+        command.head,
+        "deno" +: command.tail.toArray,
+        (sys.env ++ extraEnv).toArray.sorted.map { case (k, v) => s"$k=$v" }
+      )
+      sys.error("should not happen")
+    }
+    else {
+      val command = Seq(denoPath) ++ denoFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
+
+      logger.log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
+      val builder = new ProcessBuilder(command*)
+        .inheritIO()
+      val env = builder.environment()
+      for ((k, v) <- extraEnv)
+        env.put(k, v)
+      builder.start()
+    }
+  }
+
+  def bunCommand(
+    entrypoint: File,
+    args: Seq[String]
+  ): Seq[String] = {
+    val bunPath = findInPath("bun").fold("bun")(_.toString)
+    Seq(bunPath, "run", entrypoint.getAbsolutePath) ++ args
+  }
+
+  def runBun(
+    entrypoint: File,
+    args: Seq[String],
+    logger: Logger,
+    allowExecve: Boolean = false
+  ): Either[BuildException, Process] = either {
+    val bunPath: String =
+      value(findInPath("bun")
+        .map(_.toString)
+        .toRight(BunNotFoundError()))
+    val command = Seq(bunPath, "run", entrypoint.getAbsolutePath) ++ args
+
+    if (allowExecve && Execve.available()) {
+      logger.log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
+      logger.debug("execve available")
+      Execve.execve(
+        command.head,
+        "bun" +: command.tail.toArray,
+        sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" }
+      )
+      sys.error("should not happen")
+    }
+    else {
+      logger.log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
+      new ProcessBuilder(command*)
+        .inheritIO()
+        .start()
     }
   }
 
