@@ -185,6 +185,92 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
     expect(actualResult == expectedResult)
   }
 
+  test("a simple Java code block is extracted correctly from markdown") {
+    val code =
+      """public class Main {
+        |  public static void main(String[] args) {
+        |    System.out.println("Hello");
+        |  }
+        |}""".stripMargin
+    val markdown =
+      s"""# Some snippet
+         |
+         |```java
+         |$code
+         |```
+         |""".stripMargin
+    val expectedResult =
+      MarkdownCodeBlock(
+        info = PlainJavaInfo,
+        body = code,
+        startLine = 3,
+        endLine = 7
+      )
+    val path         = os.sub / "Example.md"
+    val actualResult =
+      MarkdownCodeBlock.findCodeBlocks(path, markdown)
+        .getOrElse(sys.error("failed while finding code blocks"))
+        .head
+    expect(actualResult == expectedResult)
+  }
+
+  test("a test Java snippet is extracted correctly from markdown") {
+    val code =
+      """public class MyTest {
+        |  public void test() {}
+        |}""".stripMargin
+    val markdown =
+      s"""# Some snippet
+         |
+         |```java test
+         |$code
+         |```
+         |""".stripMargin
+    val expectedResult =
+      MarkdownCodeBlock(
+        info = TestJavaInfo,
+        body = code,
+        startLine = 3,
+        endLine = 5
+      )
+    val path         = os.sub / "Example.md"
+    val actualResult =
+      MarkdownCodeBlock.findCodeBlocks(path, markdown)
+        .getOrElse(sys.error("failed while finding code blocks"))
+        .head
+    expect(actualResult == expectedResult)
+  }
+
+  test("a Java code block is skipped when it's tagged as `ignore` in markdown") {
+    val code =
+      """public class Main {
+        |  public static void main(String[] args) {
+        |    System.out.println("Hello");
+        |  }
+        |}""".stripMargin
+    val markdown =
+      s"""# Some snippet
+         |
+         |```java ignore
+         |$code
+         |```
+         |""".stripMargin
+    val path = os.sub / "Example.md"
+    expect(MarkdownCodeBlock.findCodeBlocks(path, markdown) == Right(Seq.empty))
+  }
+
+  test("non-Scala/Java code blocks are ignored in markdown") {
+    val markdown =
+      """# Some snippet
+        |
+        |```python
+        |print("Hello")
+        |```
+        |""".stripMargin
+    val path = os.sub / "Example.md"
+    expect(MarkdownCodeBlock.findCodeBlocks(path, markdown) == Right(Seq.empty))
+  }
+
   test("a Scala code block is skipped when it's tagged as `ignore` in markdown") {
     val code     = """println("Hello")"""
     val markdown =

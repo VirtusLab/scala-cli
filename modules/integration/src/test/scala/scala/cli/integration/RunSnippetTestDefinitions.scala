@@ -75,6 +75,32 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
+  test("correctly run a markdown snippet with a java code block") {
+    emptyInputs.fromRoot { root =>
+      val msg       = "Hello world"
+      val quotation = TestUtil.argQuotationMark
+      val res       =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "--markdown-snippet",
+          s"""# A Markdown snippet
+             |With some Java code
+             |```java
+             |public class Main {
+             |  public static void main(String[] args) {
+             |    System.out.println($quotation$msg$quotation);
+             |  }
+             |}
+             |```""".stripMargin,
+          extraOptions
+        )
+          .call(cwd = root)
+      expect(res.out.trim() == msg)
+    }
+  }
+
   test("correctly run multiple snippets") {
     emptyInputs.fromRoot { root =>
       val quotation = TestUtil.argQuotationMark

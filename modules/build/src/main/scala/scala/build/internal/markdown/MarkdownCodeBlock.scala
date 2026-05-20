@@ -22,15 +22,28 @@ case class MarkdownCodeBlock(
   endLine: Int
 ) {
 
+  private def supportedLanguage: Boolean =
+    info.headOption.exists(lang => lang == "scala" || lang == "java")
+
   /** @return
     *   `true` if this snippet should be ignored, `false` otherwise
     */
-  def shouldIgnore: Boolean = info.head != "scala" || info.contains("ignore")
+  def shouldIgnore: Boolean = !supportedLanguage || info.contains("ignore")
+
+  /** @return
+    *   `true` if this snippet is a Scala snippet, `false` otherwise
+    */
+  def isScala: Boolean = info.headOption.contains("scala")
+
+  /** @return
+    *   `true` if this snippet is a Java snippet, `false` otherwise
+    */
+  def isJava: Boolean = info.headOption.contains("java")
 
   /** @return
     *   `true` if this snippet should have its scope reset, `false` otherwise
     */
-  def resetScope: Boolean = info.contains("reset")
+  def resetScope: Boolean = isScala && info.contains("reset")
 
   /** @return
     *   `true` if this snippet is a test snippet, `false` otherwise
@@ -38,9 +51,10 @@ case class MarkdownCodeBlock(
   def isTest: Boolean = info.contains("test")
 
   /** @return
-    *   `true` if this snippet is a raw snippet, `false` otherwise
+    *   `true` if this snippet is a raw snippet, `false` otherwise. Only meaningful for Scala
+    *   snippets; Java snippets are always emitted as raw `.java` sources.
     */
-  def isRaw: Boolean = info.contains("raw")
+  def isRaw: Boolean = isScala && info.contains("raw")
 }
 
 object MarkdownCodeBlock {

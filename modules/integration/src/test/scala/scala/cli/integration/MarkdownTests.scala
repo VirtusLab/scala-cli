@@ -284,6 +284,119 @@ class MarkdownTests extends ScalaCliSuite {
       expect(result.out.trim() == expectedOutput)
     }
   }
+  test("run a simple .md file with a java snippet") {
+    val expectedOutput = "Hello from Java"
+    TestInputs(
+      os.rel / "sample.md" ->
+        s"""# Sample Markdown file
+           |A simple Java snippet.
+           |```java
+           |public class Main {
+           |  public static void main(String[] args) {
+           |    System.out.println("$expectedOutput");
+           |  }
+           |}
+           |```
+           |""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      expect(result.out.trim() == expectedOutput)
+    }
+  }
+
+  test("run a .md file with scala and java snippets") {
+    val expectedOutput = "Hello world"
+    TestInputs(
+      os.rel / "sample.md" ->
+        s"""# Sample Markdown file
+           |```java
+           |public class Greeter {
+           |  public static String greet() { return "world"; }
+           |}
+           |```
+           |
+           |```scala
+           |println("Hello " + Greeter.greet())
+           |```
+           |""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      expect(result.out.trim() == expectedOutput)
+    }
+  }
+
+  test("run a .md file with scala and java snippets, both with main methods, main by directive") {
+    val expectedOutput  = "Hello from Java"
+    val mainClassToPick = "JavaMain"
+    TestInputs(
+      os.rel / "sample.md" ->
+        s"""# Sample Markdown file
+           |```java
+           |//> using mainClass $mainClassToPick
+           |public class $mainClassToPick {
+           |  public static void main(String[] args) {
+           |    System.out.println("$expectedOutput");
+           |  }
+           |}
+           |```
+           |
+           |```scala raw
+           |@main def main() = println("Hello from Scala")
+           |```
+           |""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      println(result.out.trim())
+      expect(result.out.trim() == expectedOutput)
+    }
+  }
+
+  test("test a .md file with a java test snippet") {
+    TestInputs(
+      os.rel / "sample.md" ->
+        """# Sample Markdown file
+          |```java test
+          |//> using test.dep junit:junit:4.13.2
+          |//> using test.dep com.novocode:junit-interface:0.11
+          |import org.junit.Test;
+          |import static org.junit.Assert.assertEquals;
+          |
+          |public class ExampleTest {
+          |  @Test public void foo() { assertEquals(4, 2 + 2); }
+          |}
+          |```""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "test", "sample.md").call(cwd = root)
+      val output = result.out.text()
+      expect(output.contains("ExampleTest"))
+      expect(output.contains("foo"))
+      expect(output.contains("0 failed"))
+    }
+  }
+
+  test("run a .md file with an ignored java snippet") {
+    val expectedOutput = "Hello"
+    TestInputs(
+      os.rel / "sample.md" ->
+        s"""# Sample Markdown file
+           |```java ignore
+           |public class Ignored {
+           |  public static void main(String[] args) {
+           |    System.out.println("ignored");
+           |  }
+           |}
+           |```
+           |
+           |```scala
+           |println("$expectedOutput")
+           |```
+           |""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      expect(result.out.trim() == expectedOutput)
+    }
+  }
+
   test("source file name start with a number") {
     val fileNameWithNumber = "01-intro.md"
     TestInputs(

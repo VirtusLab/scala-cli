@@ -15,7 +15,9 @@ object PreprocessedMarkdownCodeBlocks {
 case class PreprocessedMarkdown(
   scriptCodeBlocks: PreprocessedMarkdownCodeBlocks = PreprocessedMarkdownCodeBlocks.empty,
   rawCodeBlocks: PreprocessedMarkdownCodeBlocks = PreprocessedMarkdownCodeBlocks.empty,
-  testCodeBlocks: PreprocessedMarkdownCodeBlocks = PreprocessedMarkdownCodeBlocks.empty
+  testCodeBlocks: PreprocessedMarkdownCodeBlocks = PreprocessedMarkdownCodeBlocks.empty,
+  javaCodeBlocks: PreprocessedMarkdownCodeBlocks = PreprocessedMarkdownCodeBlocks.empty,
+  javaTestCodeBlocks: PreprocessedMarkdownCodeBlocks = PreprocessedMarkdownCodeBlocks.empty
 )
 
 object PreprocessedMarkdown {
