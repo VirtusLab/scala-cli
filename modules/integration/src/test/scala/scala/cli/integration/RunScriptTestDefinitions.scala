@@ -270,6 +270,56 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
       }
     }
 
+  test("warn when script name shadows a dependency top-level package") {
+    val inputs = TestInputs(
+      os.rel / "os.sc" ->
+        s"""//> using dep com.lihaoyi::os-lib:0.11.8
+           |println("hi")
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, extraOptions, "os.sc")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output = res.out.trim()
+      expect(output.contains("shadows the 'os' package"))
+      expect(res.exitCode == 0)
+    }
+  }
+
+  test("warn with multiple JARs when script name shadows a shared package root") {
+    val inputs = TestInputs(
+      os.rel / "cats.sc" ->
+        s"""//> using dep org.typelevel::cats-core:2.12.0
+           |println("hi")
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, extraOptions, "cats.sc")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output = res.out.trim()
+      expect(output.contains("shadows the 'cats' package from dependencies:"))
+      expect(output.contains("cats-core"))
+      expect(output.contains("cats-kernel"))
+      expect(res.exitCode == 0)
+    }
+  }
+
+  test("do not warn when script name does not shadow a dependency top-level package") {
+    val inputs = TestInputs(
+      os.rel / "safe.sc" ->
+        s"""//> using dep com.lihaoyi::os-lib:0.11.8
+           |println("hi")
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, extraOptions, "safe.sc")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output = res.out.trim()
+      expect(!output.contains("shadows the 'os' package"))
+      expect(res.exitCode == 0)
+    }
+  }
+
   test("Directory") {
     val message = "Hello"
     val inputs  = TestInputs(

@@ -2,6 +2,7 @@ package scala.build.internal.util
 
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.Constants
+import scala.build.internal.ScriptUtils.ScriptDescriptor
 import scala.build.internals.FeatureType
 import scala.build.preprocessing.directives.{DirectiveHandler, ScopedDirective}
 import scala.cli.commands.SpecificationLevel
@@ -129,6 +130,17 @@ object WarningMessages {
 
   val mainScriptNameClashesWithAppWrapper =
     "Script file named 'main.sc' detected, keep in mind that accessing it from other scripts is impossible due to a clash of `main` symbols"
+
+  def scriptNameShadowsDependencyPackage(shadowed: ScriptDescriptor): String =
+    val name       = shadowed.name
+    val depsClause = shadowed.shadowedDependencyJars match {
+      case Nil    => "from an unknown dependency"
+      case Seq(j) => s"from dependency '$j'"
+      case js     => s"from dependencies: ${js.map(j => s"'$j'").mkString(", ")}"
+    }
+    s"""Script '${shadowed.subPath}' generates a top-level symbol '$name' that shadows the '$name' package $depsClause.
+       |Imports of '$name.*' from the dependency will not resolve.
+       |Consider renaming the script (e.g. to '${name}1.sc') or moving it into a subdirectory.""".stripMargin
 
   private val deprecationNote =
     "Deprecated features may be removed in a future version."

@@ -16,7 +16,8 @@ import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
 import scala.build.input.*
 import scala.build.internal.resource.ResourceMapper
-import scala.build.internal.{Constants, MainClass, Name, Util}
+import scala.build.internal.util.WarningMessages
+import scala.build.internal.{Constants, MainClass, Name, ScriptUtils, Util}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
@@ -1128,6 +1129,18 @@ object Build {
       val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
 
       val artifacts = value(options0.artifacts(logger, scope, maybeRecoverOnError))
+
+      for shadowed <- ScriptUtils.findShadowedDependencyPackages(
+          sources = sources,
+          classPath = artifacts.compileClassPath,
+          logger = logger
+        )
+      do
+        logger.diagnostic(
+          message = WarningMessages.scriptNameShadowsDependencyPackage(shadowed),
+          severity = Severity.Warning,
+          positions = Seq(Position.File(Right(shadowed.filePath), (0, 0), (0, 0)))
+        )
 
       value(validate(logger, options0))
 
