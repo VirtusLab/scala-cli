@@ -3,12 +3,14 @@ package scala.cli.tests
 import bloop.rifle.BloopRifleConfig
 import cli.tests.TestUtil
 import com.eed3si9n.expecty.Expecty.assert as expect
+import coursier.cache.FileCache
+import coursier.util.Task
 import os.Path
 
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
 import scala.build.tests.{TestInputs, TestLogger}
-import scala.build.{Build, BuildThreads, Directories, LocalRepo}
+import scala.build.{Build, BuildThreads, LocalRepo}
 import scala.cli.internal.CachedBinary
 import scala.util.{Properties, Random}
 
@@ -31,12 +33,14 @@ class CachedBinaryTests extends TestUtil.ScalaCliSuite {
          |""".stripMargin
   )
 
-  val extraRepoTmpDir: Path    = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories: Directories = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: Path      = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val testCache: FileCache[Task] =
+    FileCache().withLocation((extraRepoTmpDir / "cache").toIO)
 
   val defaultOptions: BuildOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
+      cache = Some(testCache),
+      localRepository = LocalRepo.localRepo(testCache, TestLogger())
     )
   )
 

@@ -1,6 +1,8 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
+import coursier.cache.FileCache
+import coursier.util.Task
 
 import java.util.concurrent.TimeUnit
 
@@ -14,16 +16,18 @@ import scala.build.bsp.{
   WrappedSourcesResult
 }
 import scala.build.options.{BuildOptions, InternalOptions, Scope}
-import scala.build.{Build, BuildThreads, Directories, GeneratedSource, LocalRepo}
+import scala.build.{Build, BuildThreads, GeneratedSource, LocalRepo}
 import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters.*
 
 class BspServerTests extends TestUtil.ScalaCliBuildSuite {
-  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-bsp-server-")
-  val directories: Directories = Directories.under(extraRepoTmpDir)
-  val baseOptions              = BuildOptions(
+  val extraRepoTmpDir: os.Path   = os.temp.dir(prefix = "scala-cli-tests-bsp-server-")
+  val testCache: FileCache[Task] =
+    FileCache().withLocation((extraRepoTmpDir / "cache").toIO)
+  val baseOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
+      cache = Some(testCache),
+      localRepository = LocalRepo.localRepo(testCache, TestLogger())
     )
   )
   val buildThreads: BuildThreads = BuildThreads.create()

@@ -457,7 +457,7 @@ final case class SharedOptions(
         ),
         internal = scala.build.options.InternalOptions(
           cache = Some(coursierCache),
-          localRepository = LocalRepo.localRepo(Directories.directories.localRepoDir, logger),
+          localRepository = LocalRepo.localRepo(coursierCache, logger),
           verbosity = Some(logging.verbosity),
           strictBloopJsonCheck = strictBloopJsonCheck,
           interactive = Some(() => interactive),

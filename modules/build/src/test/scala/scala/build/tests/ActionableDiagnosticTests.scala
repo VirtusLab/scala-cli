@@ -16,16 +16,18 @@ import scala.build.Position.File
 import scala.build.actionable.ActionableDiagnostic.*
 import scala.build.actionable.ActionablePreprocessor
 import scala.build.options.{BuildOptions, InternalOptions, SuppressWarningOptions}
-import scala.build.{BuildThreads, Directories, LocalRepo}
+import scala.build.{BuildThreads, LocalRepo}
 import scala.jdk.CollectionConverters.*
 
 class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
 
-  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-actionable-diagnostic-")
-  val directories: Directories = Directories.under(extraRepoTmpDir)
-  val baseOptions              = BuildOptions(
+  val extraRepoTmpDir: os.Path   = os.temp.dir(prefix = "scala-cli-tests-actionable-diagnostic-")
+  val testCache: FileCache[Task] =
+    FileCache().withLocation((extraRepoTmpDir / "cache").toIO)
+  val baseOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
+      cache = Some(testCache),
+      localRepository = LocalRepo.localRepo(testCache, TestLogger())
     )
   )
   val buildThreads: BuildThreads = BuildThreads.create()

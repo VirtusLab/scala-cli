@@ -2,6 +2,8 @@ package scala.build.tests
 
 import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
+import coursier.cache.FileCache
+import coursier.util.Task
 
 import scala.build.Ops.EitherThrowOps
 import scala.build.options.{
@@ -13,7 +15,7 @@ import scala.build.options.{
   ScriptOptions
 }
 import scala.build.tests.util.BloopServer
-import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
+import scala.build.{Build, BuildThreads, LocalRepo, Position, Positioned}
 
 class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
 
@@ -59,8 +61,9 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
   val buildThreads: BuildThreads               = BuildThreads.create()
   def bloopConfigOpt: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
 
-  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories: Directories = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: os.Path   = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val testCache: FileCache[Task] =
+    FileCache().withLocation((extraRepoTmpDir / "cache").toIO)
 
   override def afterAll(): Unit = {
     TestInputs.tryRemoveAll(extraRepoTmpDir)
@@ -69,7 +72,8 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
 
   val baseOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger()),
+      cache = Some(testCache),
+      localRepository = LocalRepo.localRepo(testCache, TestLogger()),
       keepDiagnostics = true
     )
   )

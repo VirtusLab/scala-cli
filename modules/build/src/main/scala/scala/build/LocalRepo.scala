@@ -1,5 +1,7 @@
 package scala.build
+import coursier.cache.FileCache
 import coursier.paths.Util
+import coursier.util.Task
 
 import java.io.{BufferedInputStream, Closeable}
 import java.nio.channels.{FileChannel, FileLock}
@@ -11,6 +13,9 @@ import scala.build.internal.zip.WrappedZipInputStream
 object LocalRepo {
 
   private def resourcePath = Constants.localRepoResourcePath
+
+  private[build] def localRepoBaseDir(cache: FileCache[Task]): os.Path =
+    os.Path(cache.location, os.pwd) / "scalacli-local-repo"
 
   private def using[S <: Closeable, T](is: => S)(f: S => T): T = {
     var is0 = Option.empty[S]
@@ -51,10 +56,11 @@ object LocalRepo {
   }
 
   def localRepo(
-    baseDir: os.Path,
+    cache: FileCache[Task],
     logger: Logger,
     loader: ClassLoader = Thread.currentThread().getContextClassLoader
   ): Option[String] = {
+    val baseDir    = localRepoBaseDir(cache)
     val archiveUrl = loader.getResource(resourcePath)
     logger.debug(s"archive url: $archiveUrl")
 

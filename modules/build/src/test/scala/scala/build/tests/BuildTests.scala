@@ -5,6 +5,8 @@ import bloop.rifle.BloopRifleConfig
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.Gson
+import coursier.cache.FileCache
+import coursier.util.Task
 import dependency.parser.DependencyParser
 
 import java.io.IOException
@@ -19,7 +21,7 @@ import scala.build.options.*
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil.*
 import scala.build.tests.util.BloopServer
-import scala.build.{Build, BuildThreads, Directories, LocalRepo, Positioned}
+import scala.build.{Build, BuildThreads, LocalRepo, Positioned}
 import scala.jdk.CollectionConverters.*
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
@@ -31,8 +33,9 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   def bloopConfigOpt: Option[BloopRifleConfig] =
     if server then Some(BloopServer.bloopConfig) else None
 
-  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories: Directories = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: os.Path   = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val testCache: FileCache[Task] =
+    FileCache().withLocation((extraRepoTmpDir / "cache").toIO)
 
   override def afterAll(): Unit = {
     TestInputs.tryRemoveAll(extraRepoTmpDir)
@@ -41,7 +44,8 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
 
   val baseOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger()),
+      cache = Some(testCache),
+      localRepository = LocalRepo.localRepo(testCache, TestLogger()),
       keepDiagnostics = true
     )
   )

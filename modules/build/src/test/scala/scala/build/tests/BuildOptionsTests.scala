@@ -4,6 +4,7 @@ import com.eed3si9n.expecty.Expecty.assert as expect
 import coursier.Repositories
 import coursier.cache.FileCache
 import coursier.maven.MavenRepository
+import coursier.util.Task
 import coursier.version.Version
 import dependency.ScalaParameters
 
@@ -18,17 +19,19 @@ import scala.build.internal.Constants.*
 import scala.build.internal.Regexes.{scala2NightlyRegex, scala3LtsRegex}
 import scala.build.options.*
 import scala.build.tests.util.BloopServer
-import scala.build.{Build, BuildThreads, Directories, LocalRepo, Positioned, RepositoryUtils}
+import scala.build.{Build, BuildThreads, LocalRepo, Positioned, RepositoryUtils}
 import scala.concurrent.duration.DurationInt
 
 class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
   override def munitFlakyOK: Boolean = TestUtil.isCI
   val extraRepoTmpDir: os.Path       = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories: Directories       = Directories.under(extraRepoTmpDir)
-  val buildThreads: BuildThreads     = BuildThreads.create()
-  val baseOptions                    = BuildOptions(
+  val testCache: FileCache[Task]     =
+    FileCache().withLocation((extraRepoTmpDir / "cache").toIO)
+  val buildThreads: BuildThreads = BuildThreads.create()
+  val baseOptions                = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger()),
+      cache = Some(testCache),
+      localRepository = LocalRepo.localRepo(testCache, TestLogger()),
       keepDiagnostics = true
     )
   )
@@ -374,7 +377,8 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
   test("User scalac options shadow internal ones") {
     val defaultOptions = BuildOptions(
       internal = InternalOptions(
-        localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
+        cache = Some(testCache),
+        localRepository = LocalRepo.localRepo(testCache, TestLogger())
       )
     )
 
