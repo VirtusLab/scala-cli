@@ -162,6 +162,44 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
 
   def stringPrep(s: String): String = AmmUtil.normalizeNewlines(s)
 
+  test("markdown with only Java snippets produces no wrapped Scala code") {
+    val code =
+      """public class Main {
+        |  public static void main(String[] args) {
+        |    System.out.println("Hello");
+        |  }
+        |}""".stripMargin
+    val codeBlock              = MarkdownCodeBlock(PlainJavaInfo, code, 3, 7)
+    val preprocessedCodeBlocks = PreprocessedMarkdownCodeBlocks(Seq(codeBlock))
+    val markdown               = PreprocessedMarkdown(javaCodeBlocks = preprocessedCodeBlocks)
+    val result                 = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    expect(result == (None, None, None))
+  }
+
+  test("markdown with Scala and Java snippets wraps only Scala code") {
+    val scalaSnippet = """println("Hello")"""
+    val scalaBlock   = MarkdownCodeBlock(PlainScalaInfo, scalaSnippet, 3, 3)
+    val javaCode     =
+      """public class Helper {
+        |  public static String msg() { return "world"; }
+        |}""".stripMargin
+    val javaBlock         = MarkdownCodeBlock(PlainJavaInfo, javaCode, 8, 10)
+    val preprocessedScala = PreprocessedMarkdownCodeBlocks(Seq(scalaBlock))
+    val preprocessedJava  = PreprocessedMarkdownCodeBlocks(Seq(javaBlock))
+    val markdown          =
+      PreprocessedMarkdown(scriptCodeBlocks = preprocessedScala, javaCodeBlocks = preprocessedJava)
+    val expectedScala = MarkdownCodeWrapper.WrappedMarkdownCode(
+      s"""object Example_md { @annotation.nowarn("msg=pure expression does nothing") def main(args: Array[String]): Unit = { Scope; }
+         |
+         |object Scope {
+         |$scalaSnippet
+         |}}""".stripMargin
+    )
+    val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
+    expect(result == (Some(expectedScala), None, None))
+  }
+
   test("multiple test Scala snippets are glued together correctly") {
     val snippet1 = stringPrep(
       """//> using dep org.scalameta::munit:0.7.29

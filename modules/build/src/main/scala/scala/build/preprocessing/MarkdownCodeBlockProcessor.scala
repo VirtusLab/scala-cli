@@ -14,7 +14,9 @@ object MarkdownCodeBlockProcessor {
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, PreprocessedMarkdown] = either {
-    val (rawCodeBlocks, remaining)         = codeBlocks.partition(_.isRaw)
+    val (javaBlocks, scalaBlocks)          = codeBlocks.partition(_.isJava)
+    val (javaTestBlocks, javaMainBlocks)   = javaBlocks.partition(_.isTest)
+    val (rawCodeBlocks, remaining)         = scalaBlocks.partition(_.isRaw)
     val (testCodeBlocks, scriptCodeBlocks) = remaining.partition(_.isTest)
     def preprocessCodeBlocks(cbs: Seq[MarkdownCodeBlock])
       : Either[BuildException, PreprocessedMarkdownCodeBlocks] = either {
@@ -39,7 +41,9 @@ object MarkdownCodeBlockProcessor {
     PreprocessedMarkdown(
       value(preprocessCodeBlocks(scriptCodeBlocks)),
       value(preprocessCodeBlocks(rawCodeBlocks)),
-      value(preprocessCodeBlocks(testCodeBlocks))
+      value(preprocessCodeBlocks(testCodeBlocks)),
+      value(preprocessCodeBlocks(javaMainBlocks)),
+      value(preprocessCodeBlocks(javaTestBlocks))
     )
   }
 }

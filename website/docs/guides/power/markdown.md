@@ -262,6 +262,70 @@ Hello from Markdown
 
 </ChainedSnippets>
 
+### `java` snippets
+
+You can include Java code in Markdown with `java` code blocks. They are treated as `.java` inputs: the snippet body is
+emitted as Java source without any script-like wrapping.).
+
+````markdown title=JavaExample.md
+# Java snippet
+
+```java compile
+public class Main {
+  public static void main(String[] args) {
+    System.out.println("Hello from Java");
+  }
+}
+```
+````
+
+<ChainedSnippets>
+
+```bash
+scala-cli --power JavaExample.md
+```
+
+```text
+Hello from Java
+```
+
+</ChainedSnippets>
+
+You can combine `java` snippets with `scala` snippets in the same Markdown file. Scala snippets can reference classes
+from Java snippets in the same project.
+
+### `java test` snippets
+
+Java test snippets are marked with `java test`. They are emitted into the test scope, similarly to `scala test`
+snippets and `.test.java` files.
+
+````markdown title=JavaTestExample.md
+# Java test snippet
+
+```java test
+//> using test.dep junit:junit:4.13.2
+//> using test.dep com.novocode:junit-interface:0.11
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+
+public class ExampleTest {
+  @Test public void foo() { assertEquals(4, 2 + 2); }
+}
+```
+````
+
+<ChainedSnippets>
+
+```bash
+scala-cli --power test JavaTestExample.md
+```
+
+</ChainedSnippets>
+
+### `java ignore` snippets
+
+Java snippets can be skipped with the `ignore` keyword, similarly to `scala ignore`.
+
 ### `scala test` snippets
 
 It is possible to run tests from `scala` code blocks marked as `test`. This is similar to `raw` snippets in that the
