@@ -63,6 +63,18 @@ class FmtTests extends ScalaCliSuite {
     os.rel / "Foo.scala" -> simpleInputsUnformattedContent
   )
 
+  val simpleInputsWithoutConf: TestInputs = TestInputs(
+    os.rel / "Foo.scala" -> simpleInputsUnformattedContent
+  )
+
+  private def workspaceConfPath(root: os.Path): os.Path =
+    root / Constants.workspaceDirName / confFileName
+
+  private def expectNoWorkspaceScalafmtConf(root: os.Path): Unit = {
+    expect(!os.exists(workspaceConfPath(root)))
+    expect(!os.exists(root / Constants.workspaceDirName))
+  }
+
   private def noCrLf(input: String): String =
     input.replaceAll("\r\n", "\n")
 
@@ -175,12 +187,73 @@ class FmtTests extends ScalaCliSuite {
     }
   }
 
+  test("complete .scalafmt.conf is not duplicated under .scala-build") {
+    simpleInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Foo.scala"))
+      expect(updatedContent == expectedSimpleInputsFormattedContent)
+      expectNoWorkspaceScalafmtConf(root)
+    }
+  }
+
+  test("complete .scalafmt.conf + matching --scalafmt-version still avoids .scala-build") {
+    simpleInputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "fmt",
+        ".",
+        "--scalafmt-version",
+        Constants.defaultScalafmtVersion
+      ).call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Foo.scala"))
+      expect(updatedContent == expectedSimpleInputsFormattedContent)
+      expectNoWorkspaceScalafmtConf(root)
+    }
+  }
+
+  test("complete .scalafmt.conf + matching --scalafmt-dialect still avoids .scala-build") {
+    simpleInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "fmt", ".", "--scalafmt-dialect", "scala213").call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Foo.scala"))
+      expect(updatedContent == expectedSimpleInputsFormattedContent)
+      expectNoWorkspaceScalafmtConf(root)
+    }
+  }
+
+  test("complete .scalafmt.conf in git root is used in place") {
+    simpleInputs.fromRoot { root =>
+      TestUtil.initializeGit(root)
+      val subdir = root / "subdir"
+      os.makeDir.all(subdir)
+      os.move(root / "Foo.scala", subdir / "Foo.scala")
+      os.proc(TestUtil.cli, "fmt", ".").call(cwd = subdir)
+      val updatedContent = noCrLf(os.read(subdir / "Foo.scala"))
+      expect(updatedContent == expectedSimpleInputsFormattedContent)
+      expectNoWorkspaceScalafmtConf(subdir)
+      expectNoWorkspaceScalafmtConf(root)
+    }
+  }
+
+  test("no .scalafmt.conf still triggers .scala-build") {
+    simpleInputsWithoutConf.fromRoot { root =>
+      // Isolate from the enclosing scala-cli git repo
+      // (whose .scalafmt.conf would otherwise be discovered)
+      TestUtil.initializeGit(root)
+      val confPath = workspaceConfPath(root)
+      expect(!os.exists(confPath))
+      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+      expect(os.exists(confPath))
+      val updatedContent = noCrLf(os.read(root / "Foo.scala"))
+      expect(updatedContent == expectedSimpleInputsFormattedContent)
+    }
+  }
+
   test("creating workspace conf file") {
     simpleInputsWithDialectOnly.fromRoot { root =>
-      val workspaceConfPath = root / Constants.workspaceDirName / confFileName
-      expect(!os.exists(workspaceConfPath))
+      val confPath = workspaceConfPath(root)
+      expect(!os.exists(confPath))
       os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
-      expect(os.exists(workspaceConfPath))
+      expect(os.exists(confPath))
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == expectedSimpleInputsFormattedContent)
     }

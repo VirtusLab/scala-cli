@@ -76,19 +76,29 @@ object Fmt extends ScalaCommand[FmtOptions] {
           case _                          => "default"
       }
 
-      val entry = {
-        val dialect       = ScalafmtDialect.fromString(dialectString)
-        val prevConfMaybe = pathMaybe.map(p => os.read(p))
-        scalafmtConfigWithFields(prevConfMaybe.getOrElse(""), Some(version), dialect)
-      }
-      val scalaFmtConfPath = {
-        val confFileName = ".scalafmt.conf"
-        val path         =
-          if (options.saveScalafmtConf) pathMaybe.getOrElse(workspace / confFileName)
-          else workspace / Constants.workspaceDirName / confFileName
-        os.write.over(path, entry, createFolders = true)
-        path
-      }
+      val dialect       = ScalafmtDialect.fromString(dialectString)
+      val prevConfMaybe = pathMaybe.map(os.read(_))
+      val entry = scalafmtConfigWithFields(prevConfMaybe.getOrElse(""), Some(version), dialect)
+
+      val confFileName            = ".scalafmt.conf"
+      val canUseDiscoveredInPlace =
+        !options.saveScalafmtConf
+        && options.scalafmtConfStr.isEmpty
+        && options.scalafmtConf.isEmpty
+        && pathMaybe.isDefined
+        && versionMaybe.isDefined
+        && dialectMaybe.isDefined
+        && options.scalafmtVersion.forall(versionMaybe.contains)
+        && options.scalafmtDialect.forall(dialectMaybe.contains)
+
+      val scalaFmtConfPath =
+        if canUseDiscoveredInPlace then pathMaybe.get
+        else
+          val path =
+            if options.saveScalafmtConf then pathMaybe.getOrElse(workspace / confFileName)
+            else workspace / Constants.workspaceDirName / confFileName
+          os.write.over(path, entry, createFolders = true)
+          path
 
       val fmtCommand = options.scalafmtLauncher.filter(_.nonEmpty) match {
         case Some(launcher) =>
