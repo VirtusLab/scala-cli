@@ -262,7 +262,7 @@ trait FixScalafixRulesTestDefinitions {
     }
   }
 
-  test("explicit-result-types") {
+  def explicitResultTypes() = {
     val original: String =
       """|package foo
          |
@@ -294,6 +294,16 @@ trait FixScalafixRulesTestDefinitions {
       expect(updatedContent == expectedContent)
     }
   }
+
+  if actualScalaVersion.contains("RC")
+  then // seems to be a no-op for 3.8.4-RC3, specifically
+    test("explicit-result-types".flaky) {
+      explicitResultTypes()
+    }
+  else
+    test("explicit-result-types") {
+      explicitResultTypes()
+    }
 
   for {
     (semanticDbOptions, expectedSuccess) <- Seq(

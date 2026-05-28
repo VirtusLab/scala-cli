@@ -6,7 +6,7 @@ import scala.Console.println
 import scala.build.Ops.EitherThrowOps
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
-import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position}
+import scala.build.{Build, BuildThreads, Directories, LocalRepo}
 
 class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
 
