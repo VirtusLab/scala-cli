@@ -367,9 +367,18 @@ object Runner {
         .map(_.toString)
         .toRight(DenoNotFoundError()))
     val denoFlags = Seq("run", "--allow-read")
+    val wasmFlag  = "--experimental-wasm-exnref"
     val extraEnv  =
-      if (emitWasm && denoNeedsWasmFlag) Map("DENO_V8_FLAGS" -> "--experimental-wasm-exnref")
-      else Map.empty
+      if (emitWasm && denoNeedsWasmFlag) {
+        // Append to any existing DENO_V8_FLAGS rather than replacing them.
+        val existing = sys.env.get("DENO_V8_FLAGS").filter(_.nonEmpty)
+        val merged   = existing.fold(wasmFlag)(f => s"$f $wasmFlag")
+        logger.log(
+          s"Wasm: setting DENO_V8_FLAGS=$merged (required for Wasm exception handling)"
+        )
+        Map("DENO_V8_FLAGS" -> merged)
+      }
+      else Map.empty[String, String]
 
     if (allowExecve && Execve.available()) {
       val command = Seq(denoPath) ++ denoFlags ++ Seq(entrypoint.getAbsolutePath) ++ args

@@ -155,6 +155,10 @@ final case class ScalaJsOptions(
       esVersion = esVersion(logger)
     )
 
+    if (jsEmitWasm && moduleKindStr.isDefined)
+      logger.message(
+        s"[${Console.YELLOW}warn${Console.RESET}] Wasm mode forces ES module output; --js-module-kind is ignored"
+      )
     ScalaJsLinkerConfig(
       moduleKind =
         if (jsEmitWasm) ScalaJsLinkerConfig.ModuleKind.ESModule else moduleKind(logger),
