@@ -480,6 +480,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           if jsOpts.jsEmitWasm then {
             val runtime  = jsOpts.wasmRuntime
             val esModule = true // Wasm backend uses ES modules
+            logger.log("Wasm mode enabled: using ES module output on JS platform")
             scratchDirOpt.foreach(os.makeDir.all(_))
             val jsDest = os.temp(
               dir = scratchDirOpt.orNull,

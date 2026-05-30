@@ -283,6 +283,10 @@ object Runner {
         .map(_.toString)
         .toRight(NodeNotFoundError()))
     val nodeFlags = if (emitWasm && nodeNeedsWasmFlag) List("--experimental-wasm-exnref") else Nil
+    if (emitWasm && nodeFlags.nonEmpty)
+      logger.log(
+        s"Wasm: adding ${nodeFlags.mkString(" ")} (required for Wasm exception handling on Node.js < 25)"
+      )
     if !jsDom && allowExecve && Execve.available() then {
       val command = Seq(nodePath) ++ nodeFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
 

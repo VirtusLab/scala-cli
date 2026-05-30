@@ -37,7 +37,8 @@ final case class Wasm(
       }
     parsedRuntime.map { runtime =>
       val wasmEnabled = wasm.getOrElse(false) || wasmRuntime.isDefined
-      // When Wasm is enabled, force Platform.JS (Scala.js Wasm backend requires JS compilation)
+      // Scala.js Wasm backend requires JS platform. When --platform native is also
+      // specified alongside --wasm, an AmbiguousPlatformError is raised in platform resolution.
       val scalaOptions =
         if (wasmEnabled)
           ScalaOptions(platform = Some(Positioned.none(Platform.JS)))
