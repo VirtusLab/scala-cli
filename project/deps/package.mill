@@ -220,7 +220,7 @@ object Deps {
       .exclude("org.scala-js" -> "scalajs-env-nodejs_2.13")
       .exclude("org.scala-js" -> "scalajs-js-envs_2.13")
   // Force using of 2.13 - is there a better way?
-  def scalaJsEnvNodeJs = mvn"org.scala-js::scalajs-env-nodejs:1.5.0"
+  def scalaJsEnvNodeJs = mvn"org.scala-js::scalajs-env-nodejs:1.6.0"
   def scalaJsLogging   = mvn"org.scala-js::scalajs-logging:1.2.0"
   // Force using of 2.13 - is there a better way?
   def scalaJsTestAdapter = mvn"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
