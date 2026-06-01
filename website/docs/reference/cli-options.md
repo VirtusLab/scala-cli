@@ -396,7 +396,7 @@ Version of Maven Compiler Plugin to be used for the export (3.8.1 by default)
 
 ### `--mvn-scala-version`
 
-Version of Maven Scala Plugin to be used for the export (4.9.1 by default)
+Version of Maven Scala Plugin to be used for the export (4.9.10 by default)
 
 ### `--mvn-exec-plugin-version`
 

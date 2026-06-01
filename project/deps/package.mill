@@ -142,7 +142,7 @@ object Deps {
     def mill012Version                    = "0.12.17"
     def mill1Version                      = BuildInfo.millVersion
     def mavenVersion                      = "3.8.1"
-    def mavenScalaCompilerPluginVersion   = "4.9.1"
+    def mavenScalaCompilerPluginVersion   = "4.9.10"
     def mavenExecPluginVersion            = "3.3.0"
     def mavenAppArtifactId                = "maven-app"
     def mavenAppGroupId                   = "com.example"
