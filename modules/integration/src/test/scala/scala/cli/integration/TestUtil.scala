@@ -199,33 +199,35 @@ object TestUtil {
     user: String,
     password: String,
     realm: String
-  )(f: (String, Int) => T): T = {
+  )(f: (String, Int) => T)(using suite: ScalaCliSuite): T = {
     val host = "127.0.0.1"
     val port = {
       val s = new ServerSocket(0)
       try s.getLocalPort()
       finally s.close()
     }
-    val proc = os.proc(
-      cs,
-      "launch",
-      "io.get-coursier:http-server_2.12:1.0.1",
-      "--",
-      "--user",
-      user,
-      "--password",
-      password,
-      "--realm",
-      realm,
-      "--directory",
-      ".",
-      "--host",
-      host,
-      "--port",
-      port,
-      "-v"
+    val proc = suite.trackSubprocess(
+      os.proc(
+        cs,
+        "launch",
+        "io.get-coursier:http-server_2.12:1.0.1",
+        "--",
+        "--user",
+        user,
+        "--password",
+        password,
+        "--realm",
+        realm,
+        "--directory",
+        ".",
+        "--host",
+        host,
+        "--port",
+        port,
+        "-v"
+      )
+        .spawn(cwd = path, mergeErrIntoOut = true)
     )
-      .spawn(cwd = path, mergeErrIntoOut = true)
     try {
 
       // a timeout around this would be great…
@@ -245,19 +247,21 @@ object TestUtil {
       System.err.println(s"Waiting $waitFor")
       Thread.sleep(waitFor.toMillis)
 
-      val t = new Thread("test-http-server-output") {
-        setDaemon(true)
-        override def run(): Unit = {
-          var line = ""
-          while (
-            proc.isAlive() && {
-              line = proc.stdout.readLine()
-              line != null
-            }
-          )
-            System.err.println(line)
+      val t = suite.trackThread(
+        new Thread("test-http-server-output") {
+          setDaemon(true)
+          override def run(): Unit = {
+            var line = ""
+            while (
+              proc.isAlive() && {
+                line = proc.stdout.readLine()
+                line != null
+              }
+            )
+              System.err.println(line)
+          }
         }
-      }
+      )
       t.start()
       f(host, port)
     }
@@ -376,7 +380,8 @@ object TestUtil {
     threadName: String = UUID.randomUUID().toString,
     poolSize: Int = 2,
     timeout: Duration = 90.seconds
-  )(f: (os.SubProcess, Duration, ExecutionContext) => Unit): Unit =
+  )(f: (os.SubProcess, Duration, ExecutionContext) => Unit)(using suite: ScalaCliSuite): Unit =
+    suite.trackSubprocess(proc)
     try withThreadPool(threadName, poolSize) { pool =>
         f(proc, timeout, ExecutionContext.fromExecutorService(pool))
       }

@@ -2,10 +2,24 @@ package scala.cli.integration
 
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.Future
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.Properties
 
 abstract class ScalaCliSuite extends munit.FunSuite {
+  given scalaCliSuite: ScalaCliSuite = this
+
+  private val resourceTracker = new ResourceTracker
+
+  private[integration] def trackSubprocess[P <: os.SubProcess](proc: P): P =
+    resourceTracker.trackSubprocess(proc)
+
+  private[integration] def trackThread[T <: Thread](thread: T): T =
+    resourceTracker.trackThread(thread)
+
+  private[integration] def trackFuture[F <: Future[?]](future: F): F =
+    resourceTracker.trackFuture(future)
+
   implicit class BeforeEachOpts(munitContext: BeforeEach) {
     def locationAbsolutePath: os.Path = os.Path(munitContext.test.location.path)
   }
@@ -17,6 +31,7 @@ abstract class ScalaCliSuite extends munit.FunSuite {
     def apply(): Unit = ()
 
     override def beforeEach(context: BeforeEach): Unit = {
+      resourceTracker.clear()
       val fileName = context.locationAbsolutePath.baseName
       System.err.println(
         s">==== ${Console.CYAN}Running '${context.test.name}' from $fileName${Console.RESET}"
@@ -24,6 +39,9 @@ abstract class ScalaCliSuite extends munit.FunSuite {
     }
 
     override def afterEach(context: AfterEach): Unit = {
+      resourceTracker.drain()
+      System.out.flush()
+      System.err.flush()
       val fileName = context.locationAbsolutePath.baseName
       System.err.println(
         s"X==== ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
