@@ -9,8 +9,9 @@ import coursier.cache.FileCache
 import coursier.core.Version as Ver
 import coursier.util.Task
 
-import java.io.File
-import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files, Paths}
+import java.nio.file.{
+  AtomicMoveNotSupportedException, FileAlreadyExistsException, Files, Path, Paths
+}
 import java.util.Random
 
 import scala.build.internal.Util
@@ -131,7 +132,7 @@ final case class SharedCompilationServerOptions(
     dir
   }
 
-  private def bspSocketFile(directories: => scala.build.Directories): File = {
+  private def bspSocketFile(directories: => scala.build.Directories): Path = {
     val (socket, deleteOnExit) = bloopBspSocket match {
       case Some(path) =>
         (os.Path(path, Os.pwd), false)
@@ -153,7 +154,7 @@ final case class SharedCompilationServerOptions(
             Files.deleteIfExists(socket.toNIO)
         }
       )
-    socket.toIO.getCanonicalFile
+    socket.toIO.getCanonicalFile.toPath
   }
 
   def defaultBspSocketOrPort(
@@ -261,8 +262,8 @@ final case class SharedCompilationServerOptions(
       .getOrElse(directories.bloopWorkingDir)
     val baseConfig = BloopRifleConfig.default(
       address,
-      v => Bloop.bloopClassPath(logger, cache, v),
-      workingDir.toIO
+      v => Bloop.bloopClassPath(logger, cache, v).map(_.map(_.toPath)),
+      workingDir.toNIO
     )
 
     baseConfig.copy(

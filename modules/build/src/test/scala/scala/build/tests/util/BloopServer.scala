@@ -20,8 +20,8 @@ object BloopServer {
   val bloopConfig = {
     val base = BloopRifleConfig.default(
       bloopAddress,
-      v => Bloop.bloopClassPath(Logger.nop, FileCache(), v),
-      directories.bloopWorkingDir.toIO
+      v => Bloop.bloopClassPath(Logger.nop, FileCache(), v).map(_.map(_.toPath)),
+      directories.bloopWorkingDir.toNIO
     )
     base.copy(
       javaPath =
