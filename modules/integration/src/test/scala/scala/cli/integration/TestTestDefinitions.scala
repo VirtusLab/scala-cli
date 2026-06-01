@@ -406,16 +406,22 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from bar"))
     }
   }
-  def successfulNativeTest(): Unit =
-    successfulTestInputs().fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
-        .call(cwd = root)
-        .out.text()
-      expect(output.contains("Hello from tests"))
+  def successfulNativeTest(usedMunitVersion: String = munitVersion): Unit =
+    successfulTestInputs(s"//> using dep org.scalameta::munit::$usedMunitVersion").fromRoot {
+      root =>
+        val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
+          .call(cwd = root)
+          .out.text()
+        expect(output.contains("Hello from tests"))
     }
 
   test("successful test native") {
     TestUtil.retryOnCi()(successfulNativeTest())
+  }
+
+  // test for MUnit behaviour pre-munit#1092: https://github.com/scalameta/munit/pull/1092
+  test("successful test native (munit 1.3.0, pre-#1092)") {
+    TestUtil.retryOnCi()(successfulNativeTest(usedMunitVersion = "1.3.0"))
   }
 
   test("failing test") {

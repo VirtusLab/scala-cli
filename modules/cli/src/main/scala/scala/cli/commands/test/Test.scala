@@ -3,14 +3,17 @@ package scala.cli.commands.test
 import caseapp.*
 import caseapp.core.help.HelpFormat
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
 import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.internal.{Constants, Runner}
+import scala.build.input.VirtualScalaFile
+import scala.build.internal.{Constants, NativeReflectTestMain, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
 import scala.build.testrunner.{AsmTestRunner, Logger as TestRunnerLogger}
 import scala.cli.CurrentParams
@@ -23,6 +26,7 @@ import scala.cli.config.Keys
 import scala.cli.packaging.Library.fullClassPathMaybeAsJar
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
+import scala.util.control.NonFatal
 
 object Test extends ScalaCommand[TestOptions] {
   override def group: String = HelpCommandGroup.Main.toString
@@ -80,6 +84,77 @@ object Test extends ScalaCommand[TestOptions] {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
+    /** Some test frameworks stopped annotating their suite base classes with
+      * `@EnableReflectiveInstantiation` on Scala Native (e.g. munit 1.3.1, see
+      * [[https://github.com/scalameta/munit/pull/1092]]). Without that annotation the native
+      * runtime cannot reflectively instantiate the user's test suites, so the test binary runs zero
+      * tests.
+      *
+      * To stay robust regardless of whether the framework annotates its suites, we discover the
+      * test suites compiled into the Native test scope, generate a tiny entry point that registers
+      * them with [[scala.scalanative.reflect.Reflect]] and delegates to the regular native test
+      * main, then rebuild so the generated source is linked into the binary.
+      *
+      * @return
+      *   the builds to test (rebuilt with the generated entry point when applicable) and whether
+      *   the generated entry point should be used as the native test main class.
+      */
+    def withNativeReflectionRegistration(builds: Builds): (Builds, Boolean) = {
+      val testBuilds       = builds.map.collect { case (key, s) if key.scope == Scope.Test => s }
+      val nativeTestBuilds =
+        testBuilds.filter(_.options.platform.value == Platform.Native).toVector
+      // Only safe to inject the native-only registration source when every test build is Native;
+      // otherwise the generated `scala.scalanative.*` references would break a JVM/JS test scope.
+      val onlyNativeTestBuilds = nativeTestBuilds.nonEmpty &&
+        nativeTestBuilds.size == testBuilds.size
+      (if onlyNativeTestBuilds then nativeTestBuilds.headOption else None) match {
+        case None        => (builds, false)
+        case Some(build) =>
+          val output             = build.output
+          val trLogger           = TestRunnerLogger(logger.verbosity)
+          val (classes, modules) =
+            try AsmTestRunner.instantiableClasses(Seq(output.toNIO), trLogger)
+            catch {
+              case NonFatal(e) =>
+                logger.debug(s"Could not discover Scala Native test suites: ${e.getMessage}")
+                (Seq.empty[String], Seq.empty[String])
+            }
+          if classes.isEmpty && modules.isEmpty
+          then (builds, false)
+          else {
+            val shimFile = VirtualScalaFile(
+              NativeReflectTestMain.shimSource.getBytes(StandardCharsets.UTF_8),
+              NativeReflectTestMain.shimFileName
+            )
+            val mainFile = VirtualScalaFile(
+              NativeReflectTestMain.mainSource(classes, modules).getBytes(StandardCharsets.UTF_8),
+              NativeReflectTestMain.mainFileName
+            )
+            Build.build(
+              inputs = inputs.add(Seq(shimFile, mainFile)),
+              options = initialBuildOptions,
+              compilerMaker = compilerMaker,
+              docCompilerMakerOpt = None,
+              logger = logger,
+              crossBuilds = cross,
+              buildTests = true,
+              partial = None,
+              actionableDiagnostics = actionableDiagnostics
+            ) match {
+              case Right(rebuilt) if !rebuilt.anyFailed => (rebuilt, true)
+              case other                                =>
+                other.left.foreach(e =>
+                  logger.debug(s"Scala Native test reflection rebuild failed: ${e.getMessage}")
+                )
+                logger.message(
+                  s"$warnPrefix could not register test suites for Scala Native reflective instantiation; tests may not run."
+                )
+                (builds, false)
+            }
+          }
+      }
+    }
+
     /** Runs the tests via [[testOnce]] if build was successful
       * @param builds
       *   build results, checked for failures
@@ -93,9 +168,10 @@ object Test extends ScalaCommand[TestOptions] {
           sys.exit(1)
       }
       else {
-        val optionsKeys = builds.map.keys.toVector.map(_.optionsKey).distinct
+        val (effectiveBuilds, useNativeReflectionMain) = withNativeReflectionRegistration(builds)
+        val optionsKeys = effectiveBuilds.map.keys.toVector.map(_.optionsKey).distinct
         val builds0     = optionsKeys.flatMap { optionsKey =>
-          builds.map.get(CrossKey(optionsKey, Scope.Test))
+          effectiveBuilds.map.get(CrossKey(optionsKey, Scope.Test))
         }
         val buildsLen                = builds0.length
         val printBeforeAfterMessages =
@@ -116,7 +192,8 @@ object Test extends ScalaCommand[TestOptions] {
               args.unparsed,
               logger,
               allowExecve = allowExit && buildsLen <= 1,
-              asJar = options.shared.asJar
+              asJar = options.shared.asJar,
+              nativeReflectionMain = useNativeReflectionMain
             )
             if (printBeforeAfterMessages && idx < buildsLen - 1)
               System.err.println()
@@ -188,7 +265,8 @@ object Test extends ScalaCommand[TestOptions] {
     args: Seq[String],
     logger: Logger,
     asJar: Boolean,
-    allowExecve: Boolean
+    allowExecve: Boolean,
+    nativeReflectionMain: Boolean
   ): Either[BuildException, Int] = either {
 
     val predefinedTestFrameworks = build.options.testOptions.frameworks
@@ -227,10 +305,13 @@ object Test extends ScalaCommand[TestOptions] {
           }.flatten
         }
       case Platform.Native =>
+        val nativeMainClass =
+          if nativeReflectionMain then NativeReflectTestMain.mainClassName
+          else "scala.scalanative.testinterface.TestMain"
         value {
           Run.withNativeLauncher(
             Seq(build),
-            "scala.scalanative.testinterface.TestMain",
+            nativeMainClass,
             logger
           ) { launcher =>
             Runner.testNative(

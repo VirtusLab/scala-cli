@@ -281,16 +281,20 @@ object AsmTestRunner {
   }
 
   private class TestClassChecker extends asm.ClassVisitor(asm.Opcodes.ASM9) {
-    private var nameOpt                 = Option.empty[String]
-    private var publicConstructorCount0 = 0
-    private var isInterfaceOpt          = Option.empty[Boolean]
-    private var isAbstractOpt           = Option.empty[Boolean]
-    private var implements0             = List.empty[String]
-    def name: String                    = nameOpt.getOrElse(sys.error("Class not visited"))
-    def publicConstructorCount: Int     = publicConstructorCount0
-    def implements: Seq[String]         = implements0
-    def isAbstract: Boolean             = isAbstractOpt.getOrElse(sys.error("Class not visited"))
-    def isInterface: Boolean            = isInterfaceOpt.getOrElse(sys.error("Class not visited"))
+    private var nameOpt                    = Option.empty[String]
+    private var publicConstructorCount0    = 0
+    private var isInterfaceOpt             = Option.empty[Boolean]
+    private var isAbstractOpt              = Option.empty[Boolean]
+    private var isPublicOpt                = Option.empty[Boolean]
+    private var hasPublicNoArgConstructor0 = false
+    private var implements0                = List.empty[String]
+    def name: String                       = nameOpt.getOrElse(sys.error("Class not visited"))
+    def publicConstructorCount: Int        = publicConstructorCount0
+    def implements: Seq[String]            = implements0
+    def isAbstract: Boolean                = isAbstractOpt.getOrElse(sys.error("Class not visited"))
+    def isInterface: Boolean = isInterfaceOpt.getOrElse(sys.error("Class not visited"))
+    def isPublic: Boolean    = isPublicOpt.getOrElse(sys.error("Class not visited"))
+    def hasPublicNoArgConstructor: Boolean = hasPublicNoArgConstructor0
     override def visit(
       version: Int,
       access: Int,
@@ -301,6 +305,7 @@ object AsmTestRunner {
     ): Unit = {
       isInterfaceOpt = Some((access & asm.Opcodes.ACC_INTERFACE) != 0)
       isAbstractOpt = Some((access & asm.Opcodes.ACC_ABSTRACT) != 0)
+      isPublicOpt = Some((access & asm.Opcodes.ACC_PUBLIC) != 0)
       nameOpt = Some(name)
       implements0 = Option(superName).toList ::: implements0
       if (interfaces.nonEmpty)
@@ -314,11 +319,84 @@ object AsmTestRunner {
       exceptions: Array[String]
     ): asm.MethodVisitor = {
       def isPublic = (access & asm.Opcodes.ACC_PUBLIC) != 0
-      if (name == "<init>" && isPublic)
+      if name == "<init>" && isPublic then {
         publicConstructorCount0 += 1
+        if descriptor == "()V"
+        then hasPublicNoArgConstructor0 = true
+      }
       null
     }
   }
+
+  /** Names of classes/modules in the given class path that Scala CLI can register for reflective
+    * instantiation on Scala Native, when a test framework's suite base class lacks the
+    * `@EnableReflectiveInstantiation` annotation (e.g. munit 1.3.1, see
+    * [[https://github.com/scalameta/munit/pull/1092]]).
+    *
+    * Only public, top-level, concrete definitions are kept, so the generated registration code is
+    * guaranteed to compile and reference them.
+    *
+    * @return
+    *   a tuple of (instantiable class names, loadable module names), both as dotted fully-qualified
+    *   names (module names without the trailing `$`).
+    */
+  private enum Instantiable:
+    case Cls(name: String)
+    case Mod(name: String)
+
+  /** Reads the bytecode of a single class into a [[TestClassChecker]], closing the stream when
+    * done. IO errors are logged at debug level and yield `None`; other errors propagate.
+    */
+  private def readChecker(
+    openStream: () => InputStream,
+    rawName: String,
+    logger: Logger
+  ): Option[TestClassChecker] =
+    scala.util.Using(openStream()) { stream =>
+      val checker = new TestClassChecker
+      new asm.ClassReader(stream).accept(checker, 0)
+      checker
+    } match {
+      case scala.util.Success(checker)                => Some(checker)
+      case scala.util.Failure(e: java.io.IOException) =>
+        logger.debug(s"Could not read bytecode for $rawName: ${e.getMessage}")
+        None
+      case scala.util.Failure(e) => throw e
+    }
+
+  /** Classifies a visited class as an instantiable class or a loadable module, or discards it. */
+  private def classify(rawName: String, checker: TestClassChecker): Option[Instantiable] =
+    val isModuleName = rawName.endsWith("$")
+    val dottedName   = rawName.replace('/', '.').replace('\\', '.')
+    if !(checker.isPublic && !checker.isAbstract && !checker.isInterface) then None
+    else if isModuleName then Some(Instantiable.Mod(dottedName.stripSuffix("$")))
+    else if checker.hasPublicNoArgConstructor then Some(Instantiable.Cls(dottedName))
+    else None
+
+  def instantiableClasses(
+    classPath: Seq[Path],
+    logger: Logger
+  ): (Seq[String], Seq[String]) =
+    val found =
+      listClassesByteCode(classPath, keepJars = false, logger)
+        .flatMap { (rawName, openStream) =>
+          val baseName = rawName.stripSuffix("$")
+          // skip module-info, inner/anonymous classes and lambdas (they can't be referenced by a
+          // stable name), as well as package objects and Scala 3 top-level holders (`*$package`).
+          val isTopLevel =
+            !rawName.contains("module-info") &&
+            !baseName.contains("$") &&
+            !baseName.endsWith("/package") &&
+            baseName != "package"
+          if isTopLevel then readChecker(openStream, rawName, logger).flatMap(classify(rawName, _))
+          else None
+        }
+        .toVector
+        .distinct
+    (
+      found.collect { case Instantiable.Cls(n) => n },
+      found.collect { case Instantiable.Mod(n) => n }
+    )
 
   def taskDefs(
     classPath: Seq[Path],
