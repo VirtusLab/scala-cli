@@ -26,10 +26,10 @@ if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
     echo "scala-cli is not supported on $arch" 1>&2
     exit 2
   fi
-  CACHE_BASE="$HOME/.cache/coursier/v1"
+  CACHE_BASE="${COURSIER_CACHE:-"$HOME/.cache/coursier/v1"}"
 elif [ "$(uname)" == "Darwin" ]; then
   arch=$(uname -m)
-  CACHE_BASE="$HOME/Library/Caches/Coursier/v1"
+  CACHE_BASE="${COURSIER_CACHE:-"$HOME/Library/Caches/Coursier/v1"}"
   if [[ "$arch" == "x86_64" ]]; then
     SCALA_CLI_URL="https://github.com/$GH_ORG/$GH_NAME/releases/download/$TAG/scala-cli-x86_64-apple-darwin.gz"
   elif [[ "$arch" == "arm64" ]]; then
