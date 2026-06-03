@@ -2,7 +2,7 @@ package scala.build.tests
 
 import bloop.rifle.BloopRifleLogger
 import com.eed3si9n.expecty.Expecty.expect
-import coursier.cache.CacheLogger
+import coursier.cache.{CacheLogger, FileCache}
 import org.scalajs.logging.{Logger as ScalaJsLogger, NullLogger}
 
 import java.io.PrintStream
@@ -61,13 +61,22 @@ class BuildProjectTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("workspace for bsp") {
-    val options = BuildOptions(
-      internal = InternalOptions(localRepository =
-        LocalRepo.localRepo(scala.build.Directories.default().localRepoDir, TestLogger())
+    val cacheDir  = os.temp.dir(prefix = "scala-cli-tests-build-project-")
+    val testCache = FileCache().withLocation(cacheDir.toIO)
+    val options   = BuildOptions(
+      internal = InternalOptions(
+        cache = Some(testCache),
+        localRepository = LocalRepo.localRepo(testCache, TestLogger())
       )
     )
-    val inputs    = Inputs.empty("project")
-    val sources   = Sources(Nil, Nil, None, Nil, options)
+    val inputs  = Inputs.empty("project")
+    val sources = Sources(
+      paths = Nil,
+      inMemory = Nil,
+      defaultMainClass = None,
+      resourceDirs = Nil,
+      buildOptions = options
+    )
     val logger    = new LoggerMock()
     val artifacts = options.artifacts(logger, Scope.Test).orThrow
 
