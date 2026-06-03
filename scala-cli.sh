@@ -39,7 +39,7 @@ elif [ "$(uname)" == "Darwin" ]; then
     exit 2
   fi
 else
-  echo "This standalone scala-cli launcher is supported only in Linux and macOS. If you are using Windows, please use the dedicated launcher scala-cli.bat"
+  echo "This standalone scala-cli launcher is supported only in Linux and macOS. If you are using Windows, please use the dedicated launcher scala-cli.bat" 1>&2
   exit 1
 fi
 
@@ -49,7 +49,7 @@ SCALA_CLI_BIN_PATH=${CACHE_DEST%.gz}
 if [ ! -f "$CACHE_DEST" ]; then
   mkdir -p "$(dirname "$CACHE_DEST")"
   TMP_DEST="$CACHE_DEST.tmp-setup"
-  echo "Downloading $SCALA_CLI_URL"
+  echo "Downloading $SCALA_CLI_URL" 1>&2
   curl -fLo "$TMP_DEST" "$SCALA_CLI_URL"
   mv "$TMP_DEST" "$CACHE_DEST"
 fi
