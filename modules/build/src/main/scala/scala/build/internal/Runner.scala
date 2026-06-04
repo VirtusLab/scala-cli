@@ -189,37 +189,6 @@ object Runner {
       run(command, logger, cwd = cwd, extraEnv = extraEnv)
   }
 
-  // Detects the major version of Node.js on PATH; cached for the JVM lifetime (lazy val).
-  // Returns None if node is not found or version cannot be parsed.
-  private lazy val nodeMajorVersion: Option[Int] =
-    try {
-      val process = new ProcessBuilder("node", "--version")
-        .redirectErrorStream(true)
-        .start()
-      val output = new String(process.getInputStream.readAllBytes()).trim
-      process.waitFor()
-      // Node version format: "v22.5.0" -> extract 22
-      if (output.startsWith("v"))
-        output.drop(1).takeWhile(_.isDigit) match {
-          case s if s.nonEmpty => Some(s.toInt)
-          case _               => None
-        }
-      else None
-    }
-    catch {
-      case _: Exception => None
-    }
-
-  // Pre-V8 13.x runtimes need --experimental-wasm-exnref for the Scala.js Wasm exception model.
-  // V8 13.x ships in Node 25+ (Node 24 is still on V8 12.x where exnref is gated behind the flag).
-  // In Node 26+, the flag may be removed from the CLI. Only pass it when Node < 25.
-  // None.forall(_ < 25) == true — safe fallback when version detection fails.
-  private def nodeNeedsWasmFlag: Boolean = nodeMajorVersion.forall(_ < 25)
-
-  // Deno 2.x bundles V8 12.x where wasm-exnref is gated behind a flag; symmetrical reasoning to Node.
-  // We always set DENO_V8_FLAGS=--experimental-wasm-exnref on Wasm output until V8 13.x lands in Deno.
-  private def denoNeedsWasmFlag: Boolean = true
-
   private def endsWithCaseInsensitive(s: String, suffix: String): Boolean =
     s.length >= suffix.length &&
     s.regionMatches(true, s.length - suffix.length, suffix, 0, suffix.length)
@@ -252,13 +221,11 @@ object Runner {
   def jsCommand(
     entrypoint: File,
     args: Seq[String],
-    jsDom: Boolean = false,
-    emitWasm: Boolean = false
+    jsDom: Boolean = false
   ): Seq[String] = {
 
-    val nodePath  = findInPath("node").fold("node")(_.toString)
-    val nodeFlags = if (emitWasm && nodeNeedsWasmFlag) List("--experimental-wasm-exnref") else Nil
-    val command   = Seq(nodePath) ++ nodeFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
+    val nodePath = findInPath("node").fold("node")(_.toString)
+    val command  = Seq(nodePath) ++ Seq(entrypoint.getAbsolutePath) ++ args
 
     if (jsDom)
       // FIXME We'd need to replicate what JSDOMNodeJSEnv does under-the-hood to get the command in that case.
@@ -275,20 +242,14 @@ object Runner {
     allowExecve: Boolean = false,
     jsDom: Boolean = false,
     sourceMap: Boolean = false,
-    esModule: Boolean = false,
-    emitWasm: Boolean = false
+    esModule: Boolean = false
   ): Either[BuildException, Process] = either {
     val nodePath: String =
       value(findInPath("node")
         .map(_.toString)
         .toRight(NodeNotFoundError()))
-    val nodeFlags = if (emitWasm && nodeNeedsWasmFlag) List("--experimental-wasm-exnref") else Nil
-    if (emitWasm && nodeFlags.nonEmpty)
-      logger.log(
-        s"Wasm: adding ${nodeFlags.mkString(" ")} (required for Wasm exception handling on Node.js < 25)"
-      )
     if !jsDom && allowExecve && Execve.available() then {
-      val command = Seq(nodePath) ++ nodeFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
+      val command = Seq(nodePath) ++ Seq(entrypoint.getAbsolutePath) ++ args
 
       logger.log(
         s"Running ${command.mkString(" ")}",
@@ -309,7 +270,7 @@ object Runner {
         // Scala.js runs apps by piping JS to node.
         // If we need to pass arguments, we must first make the piped input explicit
         // with "-", and we pass the user's arguments after that.
-        nodeFlags ++ (if args.isEmpty then Nil else "-" :: args.toList)
+        if args.isEmpty then Nil else "-" :: args.toList
       val envJs =
         if jsDom then
           new JSDOMNodeJSEnv(
@@ -359,26 +320,13 @@ object Runner {
     entrypoint: File,
     args: Seq[String],
     logger: Logger,
-    allowExecve: Boolean = false,
-    emitWasm: Boolean = false
+    allowExecve: Boolean = false
   ): Either[BuildException, Process] = either {
     val denoPath: String =
       value(findInPath("deno")
         .map(_.toString)
         .toRight(DenoNotFoundError()))
     val denoFlags = Seq("run", "--allow-read")
-    val wasmFlag  = "--experimental-wasm-exnref"
-    val extraEnv  =
-      if (emitWasm && denoNeedsWasmFlag) {
-        // Append to any existing DENO_V8_FLAGS rather than replacing them.
-        val existing = sys.env.get("DENO_V8_FLAGS").filter(_.nonEmpty)
-        val merged   = existing.fold(wasmFlag)(f => s"$f $wasmFlag")
-        logger.log(
-          s"Wasm: setting DENO_V8_FLAGS=$merged (required for Wasm exception handling)"
-        )
-        Map("DENO_V8_FLAGS" -> merged)
-      }
-      else Map.empty[String, String]
 
     if (allowExecve && Execve.available()) {
       val command = Seq(denoPath) ++ denoFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
@@ -393,7 +341,7 @@ object Runner {
       Execve.execve(
         command.head,
         "deno" +: command.tail.toArray,
-        (sys.env ++ extraEnv).toArray.sorted.map { case (k, v) => s"$k=$v" }
+        sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" }
       )
       sys.error("should not happen")
     }
@@ -408,9 +356,6 @@ object Runner {
 
       val builder = new ProcessBuilder(command*)
         .inheritIO()
-      val env = builder.environment()
-      for ((k, v) <- extraEnv)
-        env.put(k, v)
       builder.start()
     }
   }

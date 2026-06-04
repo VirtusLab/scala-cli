@@ -251,15 +251,15 @@ final case class SharedOptions(
     opts: ScalaJsOptions
   ): Either[BuildException, options.ScalaJsOptions] = {
     import opts._
-    val parsedWasmRuntime = jsWasmRuntime.fold(
-      Right(options.WasmRuntime.default): Either[BuildException, options.WasmRuntime]
+    val parsedJSRuntime = jsRuntime.fold(
+      Right(options.JSRuntime.default): Either[BuildException, options.JSRuntime]
     ) { rt =>
-      options.WasmRuntime.parse(rt).toRight {
-        val validValues = options.WasmRuntime.all.map(_.name).mkString(", ")
-        new scala.build.errors.UnrecognizedWasmRuntimeError(rt, validValues)
+      options.JSRuntime.parse(rt).toRight {
+        val validValues = options.JSRuntime.all.map(_.name).mkString(", ")
+        new scala.build.errors.UnrecognizedJSRuntimeError(rt, validValues)
       }
     }
-    parsedWasmRuntime.map(wasmRuntime =>
+    parsedJSRuntime.map(parsedRuntime =>
       options.ScalaJsOptions(
         version = jsVersion,
         mode = options.ScalaJsMode(jsMode),
@@ -279,7 +279,7 @@ final case class SharedOptions(
         remapEsModuleImportMap =
           jsEsModuleImportMap.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
         jsEmitWasm = jsEmitWasm.getOrElse(false),
-        wasmRuntime = wasmRuntime
+        jsRuntime = parsedRuntime
       )
     )
   }
@@ -349,8 +349,9 @@ final case class SharedOptions(
         case _ =>
       }
       val parsedPlatform = platform.map(Platform.normalize).flatMap(Platform.parse)
-      // Wasm mode requires Scala.js platform for compilation
-      val wasmEnabled = js.jsEmitWasm.getOrElse(false) || js.jsWasmRuntime.isDefined
+      // Wasm mode requires Scala.js platform for compilation. Selecting a JS runtime
+      // (--js-runtime) does not by itself enable Wasm.
+      val wasmEnabled = js.jsEmitWasm.getOrElse(false)
       val platformOpt = value {
         (parsedPlatform, js.js, native.native, wasmEnabled) match {
           case (Some(p: Platform.JS.type), _, false, _)          => Right(Some(p))

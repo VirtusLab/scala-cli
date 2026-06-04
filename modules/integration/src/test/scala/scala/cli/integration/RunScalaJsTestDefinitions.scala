@@ -343,7 +343,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "run",
         "Hello.scala",
         "--js-emit-wasm",
-        "--js-wasm-runtime",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
         "node",
         extraOptions
       ).call(cwd = root).out.trim()
@@ -366,9 +368,34 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "run",
         "Hello.scala",
         "--js-emit-wasm",
+        "--js-module-kind",
+        "es",
         extraOptions
       ).call(cwd = root).out.trim()
       expect(output == "Hello default WASM!")
+    }
+  }
+
+  test("Wasm without an ES module kind fails fast") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def main(args: Array[String]): Unit = println("nope")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      // --js-emit-wasm without --js-module-kind es must be rejected with a clear message,
+      // rather than silently overriding the module kind.
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--js-emit-wasm",
+        extraOptions
+      ).call(cwd = root, check = false, mergeErrIntoOut = true).out.trim()
+      expect(output.contains("Wasm output requires ES modules"))
     }
   }
 
@@ -376,7 +403,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
         """//> using wasm
-          |//> using wasmRuntime node
+          |//> using jsRuntime node
+          |//> using jsModuleKind es
           |object Hello {
           |  def main(args: Array[String]): Unit = println("Hello from WASM directive!")
           |}
@@ -416,7 +444,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "run",
         "Hello.scala",
         "--js-emit-wasm",
-        "--js-wasm-runtime",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
         "node",
         extraOptions,
         "--",
@@ -429,7 +459,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
   }
 
   if (TestUtil.fromPath("deno").isDefined)
-    test("Run with --js-wasm-runtime deno") {
+    test("Run Wasm with --js-runtime deno") {
       val inputs = TestInputs(
         os.rel / "Hello.scala" ->
           """object Hello {
@@ -444,7 +474,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           "run",
           "Hello.scala",
           "--js-emit-wasm",
-          "--js-wasm-runtime",
+          "--js-module-kind",
+          "es",
+          "--js-runtime",
           "deno",
           extraOptions
         ).call(cwd = root).out.trim()
@@ -453,7 +485,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
 
   if (TestUtil.fromPath("bun").isDefined)
-    test("Run with --js-wasm-runtime bun") {
+    test("Run Wasm with --js-runtime bun") {
       val inputs = TestInputs(
         os.rel / "Hello.scala" ->
           """object Hello {
@@ -468,12 +500,59 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           "run",
           "Hello.scala",
           "--js-emit-wasm",
-          "--js-wasm-runtime",
+          "--js-module-kind",
+          "es",
+          "--js-runtime",
           "bun",
           extraOptions
         ).call(cwd = root).out.trim()
         expect(output == "Hello from Bun WASM!")
       }
+    }
+
+  // A throwing program (unlike a plain println) exercises the Wasm exnref proposal, so this verifies
+  // exception handling actually runs on deno/bun (the node case is covered by "Wasm exception
+  // handling"). Scala CLI no longer injects any V8 flag; the CI runtimes have exnref enabled by default.
+  def wasmExceptionHandlingTest(runtime: String): Unit = {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def riskyOp(x: Int): Int =
+          |    if (x == 0) throw new IllegalArgumentException("zero!")
+          |    else 100 / x
+          |
+          |  def main(args: Array[String]): Unit = {
+          |    val caught = try riskyOp(0).toString catch { case e: Exception => s"caught: ${e.getMessage}" }
+          |    println(caught)
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--js-emit-wasm",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
+        runtime,
+        extraOptions
+      ).call(cwd = root).out.trim()
+      expect(output.linesIterator.toSeq.contains("caught: zero!"))
+    }
+  }
+
+  if (TestUtil.fromPath("deno").isDefined)
+    test("Wasm exception handling on deno") {
+      wasmExceptionHandlingTest("deno")
+    }
+
+  if (TestUtil.fromPath("bun").isDefined)
+    test("Wasm exception handling on bun") {
+      wasmExceptionHandlingTest("bun")
     }
 
   test("Wasm multiple source files") {
@@ -503,7 +582,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "Main.scala",
         "Greeter.scala",
         "--js-emit-wasm",
-        "--js-wasm-runtime",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
         "node",
         extraOptions
       ).call(cwd = root).out.trim()
@@ -535,7 +616,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "run",
         "Hello.scala",
         "--js-emit-wasm",
-        "--js-wasm-runtime",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
         "node",
         extraOptions
       ).call(cwd = root).out.trim()
@@ -567,7 +650,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "run",
         "Hello.scala",
         "--js-emit-wasm",
-        "--js-wasm-runtime",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
         "node",
         extraOptions
       ).call(cwd = root).out.trim()
@@ -595,7 +680,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           "run",
           "Hello.scala",
           "--js-emit-wasm",
-          "--js-wasm-runtime",
+          "--js-module-kind",
+          "es",
+          "--js-runtime",
           "node",
           extraOptions
         ).call(cwd = root).out.trim()

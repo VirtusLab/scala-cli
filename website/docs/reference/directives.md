@@ -716,17 +716,17 @@ Add WebAssembly options
 
 `//> using wasm`
 
-`//> using wasmRuntime` _node|deno|bun_
+`//> using jsRuntime` _node|deno|bun_
 
 
 #### Examples
 `//> using wasm`
 
-`//> using wasmRuntime node`
+`//> using jsRuntime node`
 
-`//> using wasmRuntime deno`
+`//> using jsRuntime deno`
 
-`//> using wasmRuntime bun`
+`//> using jsRuntime bun`
 
 ### Watch additional inputs
 

@@ -6,7 +6,7 @@ import dependency.*
 import java.util.Locale
 
 import scala.build.Logger
-import scala.build.errors.{BuildException, UnrecognizedJsOptModeError}
+import scala.build.errors.{BuildException, UnrecognizedJsOptModeError, WasmModuleKindError}
 import scala.build.internal.{Constants, ScalaJsLinkerConfig}
 
 final case class ScalaJsOptions(
@@ -27,7 +27,7 @@ final case class ScalaJsOptions(
   esVersionStr: Option[String] = None,
   noOpt: Option[Boolean] = None,
   jsEmitWasm: Boolean = false,
-  wasmRuntime: WasmRuntime = WasmRuntime.default
+  jsRuntime: JSRuntime = JSRuntime.default
 ) {
   def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] =
     if (mode.isValid)
@@ -155,13 +155,8 @@ final case class ScalaJsOptions(
       esVersion = esVersion(logger)
     )
 
-    if (jsEmitWasm && moduleKindStr.isDefined)
-      logger.message(
-        s"[${Console.YELLOW}warn${Console.RESET}] Wasm mode forces ES module output; --js-module-kind is ignored"
-      )
     ScalaJsLinkerConfig(
-      moduleKind =
-        if (jsEmitWasm) ScalaJsLinkerConfig.ModuleKind.ESModule else moduleKind(logger),
+      moduleKind = moduleKind(logger),
       checkIR = checkIr.getOrElse(false), // meh
       sourceMap = emitSourceMaps,
       moduleSplitStyle = moduleSplitStyle(logger),
@@ -172,6 +167,21 @@ final case class ScalaJsOptions(
       emitWasm = jsEmitWasm
     )
   }
+
+  /** Whether the user explicitly selected an ES module kind (the only kind the Scala.js Wasm
+    * backend supports).
+    */
+  def usesEsModuleKind: Boolean =
+    moduleKindStr.exists { k =>
+      val normalized = k.trim.toLowerCase(Locale.ROOT)
+      normalized == "es" || normalized == "esmodule"
+    }
+
+  /** The Scala.js Wasm backend can only emit ES modules. Rather than silently overriding the module
+    * kind, we require the user to set it explicitly and fail fast otherwise.
+    */
+  def validateWasm: Either[BuildException, Unit] =
+    if (jsEmitWasm && !usesEsModuleKind) Left(new WasmModuleKindError) else Right(())
 }
 
 case class ScalaJsMode(nameOpt: Option[String] = None) {

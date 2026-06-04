@@ -18,7 +18,7 @@ import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.EnvVar
-import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, Scope, WasmRuntime}
+import scala.build.options.{BuildOptions, JSRuntime, JavaOpt, PackageType, Platform, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package
 import scala.cli.commands.setupide.SetupIde
@@ -478,9 +478,10 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
 
           // Check if Wasm mode is requested
           if jsOpts.jsEmitWasm then {
-            val runtime  = jsOpts.wasmRuntime
-            val esModule = true // Wasm backend uses ES modules
-            logger.log("Wasm mode enabled: using ES module output on JS platform")
+            // The Scala.js Wasm backend can only emit ES modules; require it explicitly.
+            value(jsOpts.validateWasm)
+            val runtime  = jsOpts.jsRuntime
+            val esModule = true // guaranteed by validateWasm above
             scratchDirOpt.foreach(os.makeDir.all(_))
             val jsDest = os.temp(
               dir = scratchDirOpt.orNull,
@@ -504,25 +505,24 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             ).map { outputPath =>
               if showCommand then
                 runtime match {
-                  case WasmRuntime.Deno =>
+                  case JSRuntime.Deno =>
                     Left(Runner.denoCommand(outputPath.toIO, args))
-                  case WasmRuntime.Node =>
-                    Left(Runner.jsCommand(outputPath.toIO, args, jsDom = false, emitWasm = true))
-                  case WasmRuntime.Bun =>
+                  case JSRuntime.Node =>
+                    Left(Runner.jsCommand(outputPath.toIO, args, jsDom = false))
+                  case JSRuntime.Bun =>
                     Left(Runner.bunCommand(outputPath.toIO, args))
                 }
               else {
                 val process = value {
                   runtime match {
-                    case WasmRuntime.Deno =>
+                    case JSRuntime.Deno =>
                       Runner.runDeno(
                         outputPath.toIO,
                         args,
                         logger,
-                        allowExecve = effectiveAllowExecve,
-                        emitWasm = true
+                        allowExecve = effectiveAllowExecve
                       )
-                    case WasmRuntime.Node =>
+                    case JSRuntime.Node =>
                       Runner.runJs(
                         outputPath.toIO,
                         args,
@@ -530,10 +530,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                         allowExecve = effectiveAllowExecve,
                         jsDom = false,
                         sourceMap = jsOpts.emitSourceMaps,
-                        esModule = esModule,
-                        emitWasm = true
+                        esModule = esModule
                       )
-                    case WasmRuntime.Bun =>
+                    case JSRuntime.Bun =>
                       Runner.runBun(
                         outputPath.toIO,
                         args,
