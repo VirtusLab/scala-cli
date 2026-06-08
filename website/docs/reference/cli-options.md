@@ -1614,7 +1614,7 @@ Available in commands:
 
 Aliases: `-S`, `--scala`
 
-Set the Scala version (3.8.3 by default)
+Set the Scala version (3.8.4 by default)
 
 ### `--scala-binary-version`
 
