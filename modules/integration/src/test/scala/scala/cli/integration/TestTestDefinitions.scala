@@ -611,6 +611,24 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
+  for {
+    (platformArgs, platformName) <- Seq(
+      (Seq("--native"), "Scala Native"),
+      (Seq("--js"), "Scala.js")
+    )
+  } test(s"junit on $platformName does not crash with NotImplementedError") {
+    TestUtil.retryOnCi(maxAttempts = if (platformName.contains("native")) 3 else 1) {
+      successfulJunitInputs.fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "test", extraOptions ++ platformArgs, ".")
+            .call(cwd = root, check = false, mergeErrIntoOut = true)
+        val output = res.out.text()
+        expect(!output.contains("an implementation is missing"))
+        expect(!output.contains("NotImplementedError"))
+      }
+    }
+  }
+
   if actualScalaVersion.coursierVersion >= "3.3.0".coursierVersion then
     for javaVersion <- Constants.allJavaVersions.filter(_ >= 17)
     do
