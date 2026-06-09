@@ -19,7 +19,10 @@ public class JavaTestRunner {
         // Only pure-Java-compatible frameworks belong here.
         // Scala-only frameworks (munit, utest, ScalaCheck, ZIO Test, ScalaTest, weaver)
         // live in the Scala test-runner's TestRunner.commonTestFrameworks instead.
-        return Arrays.asList("com.novocode.junit.JUnitFramework");
+        return Arrays.asList(
+            "com.novocode.junit.JUnitFramework",
+            "com.github.sbt.junit.jupiter.api.JupiterFramework"
+        );
     }
 
     public static List<Path> classPath(ClassLoader loader, JavaTestLogger logger) {

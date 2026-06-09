@@ -16,6 +16,7 @@ object TestRunner {
     "zio.test.sbt.ZTestFramework",
     "org.scalatest.tools.Framework",
     "com.novocode.junit.JUnitFramework",
+    "com.github.sbt.junit.jupiter.api.JupiterFramework",
     "org.scalajs.junit.JUnitFramework",
     "weaver.framework.CatsEffect"
   )

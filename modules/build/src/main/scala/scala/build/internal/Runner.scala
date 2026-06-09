@@ -663,13 +663,10 @@ object Runner {
 
         val finalTestFrameworks =
           loadedFrameworks
-            // .filter(
-            //  _.name() != "Scala Native JUnit test framework" ||
-            //    !loadedFrameworks.exists(_.name() == "munit")
-            // )
-            // TODO: add support for JUnit and then only hardcode filtering it out when passed with munit
-            // https://github.com/VirtusLab/scala-cli/issues/3627
-            .filter(_.name() != "Scala Native JUnit test framework")
+            .filter(
+              !_.name().toLowerCase.contains("junit") ||
+              !loadedFrameworks.exists(_.name().toLowerCase.contains("munit"))
+            )
         if finalTestFrameworks.nonEmpty then
           logger.log(
             s"""Final list of test frameworks found:

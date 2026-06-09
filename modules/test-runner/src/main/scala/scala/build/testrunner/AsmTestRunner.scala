@@ -85,15 +85,8 @@ object AsmTestRunner {
           parentInspector.allParents(checker.name)
             .contains(f.superclassName().replace('.', '/'))
 
-        case _: AnnotatedFingerprint =>
-          // val annotationCls = loader.loadClass(f.annotationName())
-          //   .asInstanceOf[Class[Annotation]]
-          // f.isModule == isModule && (
-          //   cls.isAnnotationPresent(annotationCls) ||
-          //   cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
-          //   cls.getMethods.exists(m => m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers()))
-          // )
-          ??? // TODO: this is necessary to support JUnit, check https://github.com/VirtusLab/scala-cli/issues/3627
+        case f: AnnotatedFingerprint =>
+          f.isModule == isModule && checker.hasAnnotation(annotationDescriptor(f.annotationName()))
       }
   }
 
@@ -280,17 +273,34 @@ object AsmTestRunner {
       .toList
   }
 
+  private def annotationDescriptor(annotationName: String): String =
+    "L" + annotationName.replace('.', '/') + ";"
+
   private class TestClassChecker extends asm.ClassVisitor(asm.Opcodes.ASM9) {
     private var nameOpt                 = Option.empty[String]
     private var publicConstructorCount0 = 0
     private var isInterfaceOpt          = Option.empty[Boolean]
     private var isAbstractOpt           = Option.empty[Boolean]
     private var implements0             = List.empty[String]
-    def name: String                    = nameOpt.getOrElse(sys.error("Class not visited"))
-    def publicConstructorCount: Int     = publicConstructorCount0
-    def implements: Seq[String]         = implements0
-    def isAbstract: Boolean             = isAbstractOpt.getOrElse(sys.error("Class not visited"))
-    def isInterface: Boolean            = isInterfaceOpt.getOrElse(sys.error("Class not visited"))
+    private var classAnnotations0       = List.empty[String]
+    private var methodAnnotations0      = List.empty[String]
+
+    def name: String                   = nameOpt.getOrElse(sys.error("Class not visited"))
+    def publicConstructorCount: Int    = publicConstructorCount0
+    def implements: Seq[String]        = implements0
+    def isAbstract: Boolean            = isAbstractOpt.getOrElse(sys.error("Class not visited"))
+    def isInterface: Boolean           = isInterfaceOpt.getOrElse(sys.error("Class not visited"))
+    def classAnnotations: Seq[String]  = classAnnotations0
+    def methodAnnotations: Seq[String] = methodAnnotations0
+
+    def hasAnnotation(descriptor: String): Boolean =
+      classAnnotations.contains(descriptor) || methodAnnotations.contains(descriptor)
+
+    override def visitAnnotation(descriptor: String, visible: Boolean): asm.AnnotationVisitor = {
+      classAnnotations0 = descriptor :: classAnnotations0
+      null
+    }
+
     override def visit(
       version: Int,
       access: Int,
@@ -306,6 +316,7 @@ object AsmTestRunner {
       if (interfaces.nonEmpty)
         implements0 = interfaces.toList ::: implements0
     }
+
     override def visitMethod(
       access: Int,
       name: String,
@@ -313,10 +324,18 @@ object AsmTestRunner {
       signature: String,
       exceptions: Array[String]
     ): asm.MethodVisitor = {
-      def isPublic = (access & asm.Opcodes.ACC_PUBLIC) != 0
+      val isPublic = (access & asm.Opcodes.ACC_PUBLIC) != 0
       if (name == "<init>" && isPublic)
         publicConstructorCount0 += 1
-      null
+      if (isPublic && name != "<init>" && name != "<clinit>")
+        new asm.MethodVisitor(asm.Opcodes.ASM9) {
+          override def visitAnnotation(desc: String, visible: Boolean): asm.AnnotationVisitor = {
+            methodAnnotations0 = desc :: methodAnnotations0
+            null
+          }
+        }
+      else
+        null
     }
   }
 

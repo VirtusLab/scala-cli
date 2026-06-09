@@ -3,7 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.annotation.tailrec
-import scala.cli.integration.Constants.munitVersion
+import scala.cli.integration.Constants.{jupiterInterfaceVersion, munitVersion}
 import scala.cli.integration.TestUtil.{ProcOps, StringOps}
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
@@ -127,6 +127,61 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         |  }
         |}
         |""".stripMargin
+  )
+
+  val successfulJupiterInputs: TestInputs = TestInputs(
+    os.rel / "MyJupiterTests.test.scala" ->
+      s"""//> using test.dep com.github.sbt.junit:jupiter-interface:$jupiterInterfaceVersion
+         |import org.junit.jupiter.api.Test
+         |import org.junit.jupiter.api.Assertions._
+         |
+         |class MyJupiterTests {
+         |  @Test
+         |  def addition(): Unit = {
+         |    assertEquals(4, 2 + 2)
+         |    println("Hello from Jupiter tests")
+         |  }
+         |}
+         |""".stripMargin
+  )
+
+  val failingJupiterInputs: TestInputs = TestInputs(
+    os.rel / "MyJupiterTests.test.scala" ->
+      s"""//> using test.dep com.github.sbt.junit:jupiter-interface:$jupiterInterfaceVersion
+         |import org.junit.jupiter.api.Test
+         |import org.junit.jupiter.api.Assertions._
+         |
+         |class MyJupiterTests {
+         |  @Test
+         |  def failing(): Unit = assertEquals(5, 2 + 2)
+         |}
+         |""".stripMargin
+  )
+
+  val jupiterTestOnlyInputs: TestInputs = TestInputs(
+    os.rel / "MyJupiterTests.test.scala" ->
+      s"""//> using test.dep com.github.sbt.junit:jupiter-interface:$jupiterInterfaceVersion
+         |import org.junit.jupiter.api.Test
+         |import org.junit.jupiter.api.Assertions._
+         |
+         |class MyJupiterTests {
+         |  @Test
+         |  def failing(): Unit = assertEquals(5, 2 + 2)
+         |}
+         |""".stripMargin,
+    os.rel / "OtherJupiterTests.test.scala" ->
+      s"""//> using test.dep com.github.sbt.junit:jupiter-interface:$jupiterInterfaceVersion
+         |import org.junit.jupiter.api.Test
+         |import org.junit.jupiter.api.Assertions._
+         |
+         |class OtherJupiterTests {
+         |  @Test
+         |  def passing(): Unit = {
+         |    assertEquals(4, 2 + 2)
+         |    println("Hello from other Jupiter tests")
+         |  }
+         |}
+         |""".stripMargin
   )
 
   val severalTestsInputs: TestInputs = TestInputs(
@@ -555,6 +610,117 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from tests"))
     }
   }
+
+  for {
+    (platformArgs, platformName) <- Seq(
+      (Seq("--native"), "Scala Native"),
+      (Seq("--js"), "Scala.js")
+    )
+  } test(s"junit on $platformName does not crash with NotImplementedError") {
+    TestUtil.retryOnCi(maxAttempts = if (platformName.contains("native")) 3 else 1) {
+      successfulJunitInputs.fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "test", extraOptions ++ platformArgs, ".")
+            .call(cwd = root, check = false, mergeErrIntoOut = true)
+        val output = res.out.text()
+        expect(!output.contains("an implementation is missing"))
+        expect(!output.contains("NotImplementedError"))
+      }
+    }
+  }
+
+  if actualScalaVersion.coursierVersion >= "3.3.0".coursierVersion then
+    for javaVersion <- Constants.allJavaVersions.filter(_ >= 17)
+    do
+      test(s"jupiter on Java $javaVersion") {
+        successfulJupiterInputs.fromRoot { root =>
+          val output =
+            os.proc(TestUtil.cli, "test", extraOptions, ".", "--jvm", javaVersion)
+              .call(cwd = root)
+              .out
+              .text()
+          expect(output.contains("Hello from Jupiter tests"))
+        }
+      }
+
+      test(s"failing jupiter on Java $javaVersion") {
+        failingJupiterInputs.fromRoot { root =>
+          val res =
+            os.proc(TestUtil.cli, "test", extraOptions, ".", "--jvm", javaVersion)
+              .call(cwd = root, check = false, mergeErrIntoOut = true)
+          expect(res.exitCode != 0)
+        }
+      }
+
+      test(s"jupiter --test-only on Java $javaVersion") {
+        jupiterTestOnlyInputs.fromRoot { root =>
+          val res =
+            os.proc(
+              TestUtil.cli,
+              "test",
+              extraOptions,
+              ".",
+              "--jvm",
+              javaVersion,
+              "--test-only",
+              "OtherJupiterTests"
+            ).call(cwd = root)
+          val output = res.out.text()
+          expect(res.exitCode == 0)
+          expect(output.contains("Hello from other Jupiter tests"))
+        }
+      }
+
+    for javaVersion <- Constants.allJavaVersions.filter(_ >= 17)
+    do
+      test(s"successful pure Java test with JUnit 5 (Jupiter) on Java $javaVersion") {
+        TestInputs(
+          os.rel / "MyJupiterTests.test.java" ->
+            s"""//> using test.dep com.github.sbt.junit:jupiter-interface:$jupiterInterfaceVersion
+               |import org.junit.jupiter.api.Test;
+               |import static org.junit.jupiter.api.Assertions.assertEquals;
+               |
+               |public class MyJupiterTests {
+               |  @Test
+               |  public void addition() {
+               |    assertEquals(4, 2 + 2);
+               |    System.out.println("Hello from pure Java Jupiter");
+               |  }
+               |}
+               |""".stripMargin
+        ).fromRoot { root =>
+          val res =
+            os.proc(TestUtil.cli, "test", extraOptions, ".", "--jvm", javaVersion)
+              .call(cwd = root)
+          expect(res.out.text().contains("Hello from pure Java Jupiter"))
+        }
+      }
+
+  if scalaVersionOpt.isEmpty then
+    for javaVersion <- Constants.allJavaVersions.filter(_ >= 17)
+    do
+      test(s"pure Java (java-test-runner) JUnit 5 (Jupiter) on Java $javaVersion") {
+        TestInputs(
+          os.rel / "MyJupiterTests.test.java" ->
+            s"""//> using test.dep com.github.sbt.junit:jupiter-interface:$jupiterInterfaceVersion
+               |import org.junit.jupiter.api.Test;
+               |import static org.junit.jupiter.api.Assertions.assertEquals;
+               |
+               |public class MyJupiterTests {
+               |  @Test
+               |  public void addition() {
+               |    assertEquals(4, 2 + 2);
+               |    System.out.println("Hello from pure Java Jupiter");
+               |  }
+               |}
+               |""".stripMargin
+        ).fromRoot { root =>
+          val res =
+            os.proc(TestUtil.cli, "test", TestUtil.extraOptions, ".", "--jvm", javaVersion)
+              .call(cwd = root)
+          expect(res.out.text().contains("Hello from pure Java Jupiter"))
+        }
+      }
 
   test("several tests") {
     severalTestsInputs.fromRoot { root =>
