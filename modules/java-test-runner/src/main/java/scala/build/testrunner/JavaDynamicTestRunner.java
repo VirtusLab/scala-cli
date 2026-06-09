@@ -118,20 +118,29 @@ public class JavaDynamicTestRunner {
                 }
             }
 
-            List<TaskDef> taskDefs = new ArrayList<>();
-            for (Class<?> cls : classes) {
-                Optional<Fingerprint> fp = JavaFrameworkUtils.matchFingerprints(
-                    classLoader, cls, fingerprints, logger
+            final List<TaskDef> taskDefs;
+            if (JavaFrameworkUtils.isJupiterFramework(framework)) {
+                taskDefs = JavaFrameworkUtils.filterTaskDefsByClassName(
+                    JavaFrameworkUtils.jupiterTaskDefs(classPath0, classLoader, logger),
+                    testOnlyFinal,
+                    (pattern, className) -> globPattern(pattern).matcher(className).matches()
                 );
-                if (!fp.isPresent()) continue;
-                String clsName = cls.getName().endsWith("$")
-                    ? cls.getName().substring(0, cls.getName().length() - 1)
-                    : cls.getName();
-                if (testOnlyFinal.isPresent()) {
-                    Pattern pat = globPattern(testOnlyFinal.get());
-                    if (!pat.matcher(clsName).matches()) continue;
+            } else {
+                taskDefs = new ArrayList<>();
+                for (Class<?> cls : classes) {
+                    Optional<Fingerprint> fp = JavaFrameworkUtils.matchFingerprints(
+                        classLoader, cls, fingerprints, logger
+                    );
+                    if (!fp.isPresent()) continue;
+                    String clsName = cls.getName().endsWith("$")
+                        ? cls.getName().substring(0, cls.getName().length() - 1)
+                        : cls.getName();
+                    if (testOnlyFinal.isPresent()) {
+                        Pattern pat = globPattern(testOnlyFinal.get());
+                        if (!pat.matcher(clsName).matches()) continue;
+                    }
+                    taskDefs.add(new TaskDef(clsName, fp.get(), false, new Selector[]{new SuiteSelector()}));
                 }
-                taskDefs.add(new TaskDef(clsName, fp.get(), false, new Selector[]{new SuiteSelector()}));
             }
 
             Task[] initialTasks = runner.tasks(taskDefs.toArray(new TaskDef[0]));

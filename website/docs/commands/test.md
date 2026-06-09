@@ -99,6 +99,8 @@ Some of the most popular test frameworks in Scala are:
 - [ScalaTest](https://www.scalatest.org): `org.scalatest::scalatest::3.2.19`
 - [JUnit 4](https://junit.org/junit4), which can be used via
   a [dedicated interface](https://github.com/sbt/junit-interface): `com.github.sbt:junit-interface:0.13.3`
+- [JUnit 5](https://junit.org/junit5/) (Jupiter), via
+  a [dedicated interface](https://github.com/sbt/junit-interface): `com.github.sbt.junit:jupiter-interface:0.19.0`
 - [Weaver](https://disneystreaming.github.io/weaver-test/): `com.disneystreaming::weaver-cats:0.8.3`. You may need to
   specify weaver's test framework with `//> using testFramework weaver.framework.CatsEffect` if you had other test
   framework in your dependencies.

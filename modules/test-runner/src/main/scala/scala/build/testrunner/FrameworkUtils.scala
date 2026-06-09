@@ -1,15 +1,89 @@
 package scala.build.testrunner
 
-import sbt.testing.{AnnotatedFingerprint, Fingerprint, Framework, SubclassFingerprint}
+import com.github.sbt.junit.jupiter.api.JupiterTestCollector
+import sbt.testing.{AnnotatedFingerprint, Fingerprint, Framework, SubclassFingerprint, TaskDef}
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
+import java.net.URL
 import java.nio.file.{Files, Path}
 import java.util.ServiceLoader
 
 import scala.jdk.CollectionConverters.*
+import scala.util.control.NonFatal
 
 object FrameworkUtils {
+
+  private val JupiterFrameworkClass = "com.github.sbt.junit.jupiter.api.JupiterFramework"
+
+  def isJupiterFramework(framework: Framework): Boolean =
+    framework.getClass.getName == JupiterFrameworkClass || framework.name() == "Jupiter"
+
+  def jupiterTaskDefs(
+    classPath: Seq[Path],
+    loader: ClassLoader,
+    logger: Logger
+  ): Seq[TaskDef] =
+    try
+      val runtimeClasspath = classPathUrls(classPath)
+      val classDirectories = classPath.filter(p => Files.isDirectory(p))
+      val discovered       =
+        for
+          dir  <- classDirectories
+          item <- collectJupiterTests(dir, loader, runtimeClasspath, logger)
+        yield jupiterItemToTaskDef(item)
+      distinctBy(discovered)(td => (td.fullyQualifiedName(), td.fingerprint()))
+    catch
+      case e: LinkageError =>
+        logger.error(s"JUnit 5 test discovery failed: ${e.getMessage}")
+        Nil
+      case NonFatal(t) =>
+        logger.error(s"JUnit 5 test discovery failed: $t")
+        Nil
+
+  private def classPathUrls(classPath: Seq[Path]): Array[URL] =
+    classPath.flatMap { path =>
+      try Iterator(path.toUri.toURL)
+      catch
+        case _: Exception => Iterator.empty
+    }.toArray
+
+  private def collectJupiterTests(
+    classDirectory: Path,
+    loader: ClassLoader,
+    runtimeClasspath: Array[URL],
+    logger: Logger
+  ): Seq[JupiterTestCollector.Item] =
+    try
+      logger.debug(s"Discovering JUnit 5 tests in ${classDirectory.toAbsolutePath}")
+      val collector = new JupiterTestCollector.Builder()
+        .withClassDirectory(classDirectory.toFile)
+        .withClassLoader(loader)
+        .withRuntimeClassPath(runtimeClasspath)
+        .build()
+      collector.collectTests().getDiscoveredTests.asScala.toSeq
+    catch
+      case NonFatal(e) =>
+        logger.log(s"Could not discover JUnit 5 tests in $classDirectory: $e")
+        Nil
+
+  def filterTaskDefsByClassName(
+    taskDefs: Seq[TaskDef],
+    testOnly: Option[String],
+    classNameMatcher: (String, String) => Boolean
+  ): Seq[TaskDef] =
+    taskDefs.filter(td =>
+      testOnly.forall(pattern => classNameMatcher(pattern, td.fullyQualifiedName()))
+    )
+
+  private def jupiterItemToTaskDef(item: JupiterTestCollector.Item): TaskDef =
+    new TaskDef(
+      item.getFullyQualifiedClassName,
+      item.getFingerprint,
+      item.isExplicit,
+      item.getSelectors
+    )
+
   // needed for Scala 2.12
   def distinctBy[A, B](seq: Seq[A])(f: A => B): Seq[A] = {
     @annotation.tailrec

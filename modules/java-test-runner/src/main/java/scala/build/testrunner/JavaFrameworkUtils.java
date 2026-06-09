@@ -1,17 +1,110 @@
 package scala.build.testrunner;
 
+import com.github.sbt.junit.jupiter.api.JupiterTestCollector;
 import sbt.testing.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.stream.Stream;
 
 public class JavaFrameworkUtils {
+
+    private static final String JupiterFrameworkClass =
+        "com.github.sbt.junit.jupiter.api.JupiterFramework";
+
+    public static boolean isJupiterFramework(Framework framework) {
+        return JupiterFrameworkClass.equals(framework.getClass().getName()) ||
+            "Jupiter".equals(framework.name());
+    }
+
+    public static List<TaskDef> jupiterTaskDefs(
+        List<Path> classPath,
+        ClassLoader loader,
+        JavaTestLogger logger
+    ) {
+        try {
+            URL[] runtimeClasspath = classPathUrls(classPath);
+            return classPath.stream()
+                .filter(Files::isDirectory)
+                .flatMap(dir -> collectJupiterTests(dir, loader, runtimeClasspath, logger).stream())
+                .map(JavaFrameworkUtils::jupiterItemToTaskDef)
+                .collect(Collectors.collectingAndThen(
+                    Collectors.toMap(
+                        td -> td.fullyQualifiedName() + "\0" + td.fingerprint(),
+                        td -> td,
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                    ),
+                    m -> new ArrayList<>(m.values())
+                ));
+        } catch (LinkageError e) {
+            logger.error("JUnit 5 test discovery failed: " + e.getMessage());
+            return Collections.emptyList();
+        } catch (Exception t) {
+            logger.error("JUnit 5 test discovery failed: " + t);
+            return Collections.emptyList();
+        }
+    }
+
+    private static URL[] classPathUrls(List<Path> classPath) {
+        return classPath.stream()
+            .map(path -> {
+                try {
+                    return path.toUri().toURL();
+                } catch (Exception e) {
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .toArray(URL[]::new);
+    }
+
+    private static List<JupiterTestCollector.Item> collectJupiterTests(
+        Path classDirectory,
+        ClassLoader loader,
+        URL[] runtimeClasspath,
+        JavaTestLogger logger
+    ) {
+        try {
+            logger.debug("Discovering JUnit 5 tests in " + classDirectory.toAbsolutePath());
+            JupiterTestCollector collector = new JupiterTestCollector.Builder()
+                .withClassDirectory(classDirectory.toFile())
+                .withClassLoader(loader)
+                .withRuntimeClassPath(runtimeClasspath)
+                .build();
+            return new ArrayList<>(collector.collectTests().getDiscoveredTests());
+        } catch (Exception e) {
+            logger.log("Could not discover JUnit 5 tests in " + classDirectory + ": " + e);
+            return Collections.emptyList();
+        }
+    }
+
+    private static TaskDef jupiterItemToTaskDef(JupiterTestCollector.Item item) {
+        return new TaskDef(
+            item.getFullyQualifiedClassName(),
+            item.getFingerprint(),
+            item.isExplicit(),
+            item.getSelectors()
+        );
+    }
+
+    public static List<TaskDef> filterTaskDefsByClassName(
+        List<TaskDef> taskDefs,
+        Optional<String> testOnly,
+        java.util.function.BiPredicate<String, String> classNameMatcher
+    ) {
+        return taskDefs.stream()
+            .filter(td -> testOnly.map(pattern -> classNameMatcher.test(pattern, td.fullyQualifiedName()))
+                .orElse(true))
+            .collect(Collectors.toList());
+    }
 
     public static List<Framework> findFrameworkServices(ClassLoader loader) {
         List<Framework> result = new ArrayList<>();

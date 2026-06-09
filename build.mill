@@ -1095,6 +1095,7 @@ trait CliIntegration extends SbtModule
            |  def bloopVersion                 = "${Deps.bloopRifle.dep.versionConstraint.asString}"
            |  def pprintVersion                = "${TestDeps.pprint.dep.versionConstraint.asString}"
            |  def munitVersion                 = "${TestDeps.munit.dep.versionConstraint.asString}"
+           |  def jupiterInterfaceVersion      = "${Deps.jupiterInterface.dep.versionConstraint.asString}"
            |  def dockerTestImage              = "${Docker.testImage}"
            |  def dockerAlpineTestImage        = "${Docker.alpineTestImage}"
            |  def authProxyTestImage           = "${Docker.authProxyTestImage}"
@@ -1322,6 +1323,9 @@ trait TestRunner extends CrossSbtModule
     Deps.collectionCompat,
     Deps.testInterface
   )
+  override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(
+    Deps.jupiterInterface
+  )
   override def mainClass: T[Option[String]] = Some("scala.build.testrunner.DynamicTestRunner")
 }
 
@@ -1331,6 +1335,9 @@ trait JavaTestRunner extends JavaModule
   override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
     Deps.asm,
     Deps.testInterface
+  )
+  override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(
+    Deps.jupiterInterface
   )
   override def mainClass: T[Option[String]] = Some("scala.build.testrunner.JavaDynamicTestRunner")
 }

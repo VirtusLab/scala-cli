@@ -133,24 +133,28 @@ object DynamicTestRunner {
           val fingerprints = framework.fingerprints()
           val runner       = framework.runner(args0.toArray, Array(), classLoader)
 
-          def clsFingerprints = classes.flatMap { cls =>
-            matchFingerprints(classLoader, cls, fingerprints, logger)
-              .map((cls, _))
-              .iterator
-          }
+          def matchesTestOnly(pattern: String, className: String): Boolean =
+            globPattern(pattern).matcher(className).matches()
 
-          val taskDefs = clsFingerprints
-            .filter {
-              case (cls, _) =>
-                testOnly.forall(pattern =>
-                  globPattern(pattern).matcher(cls.getName.stripSuffix("$")).matches()
-                )
-            }
-            .map {
-              case (cls, fp) =>
-                new TaskDef(cls.getName.stripSuffix("$"), fp, false, Array(new SuiteSelector))
-            }
-            .toVector
+          val taskDefs =
+            if isJupiterFramework(framework) then
+              filterTaskDefsByClassName(
+                jupiterTaskDefs(classPath0, classLoader, logger),
+                testOnly,
+                matchesTestOnly
+              )
+            else
+              classes
+                .flatMap { cls =>
+                  matchFingerprints(classLoader, cls, fingerprints, logger)
+                    .map(fp => (cls.getName.stripSuffix("$"), fp))
+                    .iterator
+                }
+                .filter { case (className, _) => testOnly.forall(matchesTestOnly(_, className)) }
+                .map { case (className, fp) =>
+                  new TaskDef(className, fp, false, Array(new SuiteSelector))
+                }
+                .toVector
           val initialTasks = runner.tasks(taskDefs.toArray).toSeq
           val events       = TestRunner.runTasks(initialTasks, out)
           val failed       = events.exists { ev =>
