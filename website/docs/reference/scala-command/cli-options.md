@@ -498,6 +498,14 @@ Aliases: `--fmt-help`, `--help-fmt`, `--scalafmt-help`
 
 Show options for Scalafmt
 
+### `--help-wasm`
+
+Aliases: `--wasm-help`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Show options for WebAssembly
+
 ## Install completions options
 
 Available in commands:

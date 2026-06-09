@@ -6,7 +6,7 @@ import dependency.*
 import java.util.Locale
 
 import scala.build.Logger
-import scala.build.errors.{BuildException, UnrecognizedJsOptModeError}
+import scala.build.errors.{BuildException, UnrecognizedJsOptModeError, WasmModuleKindError}
 import scala.build.internal.{Constants, ScalaJsLinkerConfig}
 
 final case class ScalaJsOptions(
@@ -26,7 +26,8 @@ final case class ScalaJsOptions(
   smallModuleForPackage: List[String] = Nil,
   esVersionStr: Option[String] = None,
   noOpt: Option[Boolean] = None,
-  jsEmitWasm: Boolean = false
+  jsEmitWasm: Boolean = false,
+  jsRuntime: JSRuntime = JSRuntime.default
 ) {
   def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] =
     if (mode.isValid)
@@ -166,6 +167,21 @@ final case class ScalaJsOptions(
       emitWasm = jsEmitWasm
     )
   }
+
+  /** Whether the user explicitly selected an ES module kind (the only kind the Scala.js Wasm
+    * backend supports).
+    */
+  def usesEsModuleKind: Boolean =
+    moduleKindStr.exists { k =>
+      val normalized = k.trim.toLowerCase(Locale.ROOT)
+      normalized == "es" || normalized == "esmodule"
+    }
+
+  /** The Scala.js Wasm backend can only emit ES modules. Rather than silently overriding the module
+    * kind, we require the user to set it explicitly and fail fast otherwise.
+    */
+  def validateWasm: Either[BuildException, Unit] =
+    if (jsEmitWasm && !usesEsModuleKind) Left(new WasmModuleKindError) else Right(())
 }
 
 case class ScalaJsMode(nameOpt: Option[String] = None) {

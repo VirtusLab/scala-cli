@@ -225,7 +225,7 @@ object Runner {
   ): Seq[String] = {
 
     val nodePath = findInPath("node").fold("node")(_.toString)
-    val command  = Seq(nodePath, entrypoint.getAbsolutePath) ++ args
+    val command  = Seq(nodePath) ++ Seq(entrypoint.getAbsolutePath) ++ args
 
     if (jsDom)
       // FIXME We'd need to replicate what JSDOMNodeJSEnv does under-the-hood to get the command in that case.
@@ -249,7 +249,7 @@ object Runner {
         .map(_.toString)
         .toRight(NodeNotFoundError()))
     if !jsDom && allowExecve && Execve.available() then {
-      val command = Seq(nodePath, entrypoint.getAbsolutePath) ++ args
+      val command = Seq(nodePath) ++ Seq(entrypoint.getAbsolutePath) ++ args
 
       logger.log(
         s"Running ${command.mkString(" ")}",
@@ -304,6 +304,107 @@ object Runner {
       processField.setAccessible(true)
       val process = processField.get(processJs).asInstanceOf[Process]
       process
+    }
+  }
+
+  def denoCommand(
+    entrypoint: File,
+    args: Seq[String]
+  ): Seq[String] = {
+    val denoPath  = findInPath("deno").fold("deno")(_.toString)
+    val denoFlags = Seq("run", "--allow-read")
+    Seq(denoPath) ++ denoFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
+  }
+
+  def runDeno(
+    entrypoint: File,
+    args: Seq[String],
+    logger: Logger,
+    allowExecve: Boolean = false
+  ): Either[BuildException, Process] = either {
+    val denoPath: String =
+      value(findInPath("deno")
+        .map(_.toString)
+        .toRight(DenoNotFoundError()))
+    val denoFlags = Seq("run", "--allow-read")
+
+    if (allowExecve && Execve.available()) {
+      val command = Seq(denoPath) ++ denoFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
+
+      logger.log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
+      logger.debug("execve available")
+      Execve.execve(
+        command.head,
+        "deno" +: command.tail.toArray,
+        sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" }
+      )
+      sys.error("should not happen")
+    }
+    else {
+      val command = Seq(denoPath) ++ denoFlags ++ Seq(entrypoint.getAbsolutePath) ++ args
+
+      logger.log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
+      val builder = new ProcessBuilder(command*)
+        .inheritIO()
+      builder.start()
+    }
+  }
+
+  def bunCommand(
+    entrypoint: File,
+    args: Seq[String]
+  ): Seq[String] = {
+    val bunPath = findInPath("bun").fold("bun")(_.toString)
+    Seq(bunPath, "run", entrypoint.getAbsolutePath) ++ args
+  }
+
+  def runBun(
+    entrypoint: File,
+    args: Seq[String],
+    logger: Logger,
+    allowExecve: Boolean = false
+  ): Either[BuildException, Process] = either {
+    val bunPath: String =
+      value(findInPath("bun")
+        .map(_.toString)
+        .toRight(BunNotFoundError()))
+    val command = Seq(bunPath, "run", entrypoint.getAbsolutePath) ++ args
+
+    if (allowExecve && Execve.available()) {
+      logger.log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
+      logger.debug("execve available")
+      Execve.execve(
+        command.head,
+        "bun" +: command.tail.toArray,
+        sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" }
+      )
+      sys.error("should not happen")
+    }
+    else {
+      logger.log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
+      new ProcessBuilder(command*)
+        .inheritIO()
+        .start()
     }
   }
 

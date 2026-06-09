@@ -325,10 +325,370 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         .call(cwd = root).out.trim()
       val path = absOutDir / "main.wasm"
       expect(os.exists(path))
-
-      // TODO : Run WASM using node. Requires node 22.
     }
   }
+
+  test("Run with --js-emit-wasm flag") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def main(args: Array[String]): Unit = println("Hello from WASM!")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--js-emit-wasm",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
+        "node",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      expect(output == "Hello from WASM!")
+    }
+  }
+
+  test("Run with --js-emit-wasm uses Node.js by default") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def main(args: Array[String]): Unit = println("Hello default WASM!")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--js-emit-wasm",
+        "--js-module-kind",
+        "es",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      expect(output == "Hello default WASM!")
+    }
+  }
+
+  test("Wasm without an ES module kind fails fast") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def main(args: Array[String]): Unit = println("nope")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      // --js-emit-wasm without --js-module-kind es must be rejected with a clear message,
+      // rather than silently overriding the module kind.
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--js-emit-wasm",
+        extraOptions
+      ).call(cwd = root, check = false, mergeErrIntoOut = true).out.trim()
+      expect(output.contains("Wasm output requires ES modules"))
+    }
+  }
+
+  test("Run with //> using wasm directive") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """//> using wasm
+          |//> using jsRuntime node
+          |//> using jsModuleKind es
+          |object Hello {
+          |  def main(args: Array[String]): Unit = println("Hello from WASM directive!")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      expect(output == "Hello from WASM directive!")
+    }
+  }
+
+  test("Wasm passes arguments to program") {
+    // Scala.js always passes an empty Array[String] to main(args),
+    // so we must read process.argv directly via JS interop.
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """import scala.scalajs.js
+          |import scala.scalajs.js.Dynamic.global
+          |object Hello {
+          |  def main(args: Array[String]): Unit = {
+          |    val argv = global.process.argv.asInstanceOf[js.Array[String]].drop(2).toSeq
+          |    println(argv.mkString(" "))
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--js-emit-wasm",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
+        "node",
+        extraOptions,
+        "--",
+        "foo",
+        "bar",
+        "baz"
+      ).call(cwd = root).out.trim()
+      expect(output == "foo bar baz")
+    }
+  }
+
+  if (TestUtil.fromPath("deno").isDefined)
+    test("Run Wasm with --js-runtime deno") {
+      val inputs = TestInputs(
+        os.rel / "Hello.scala" ->
+          """object Hello {
+            |  def main(args: Array[String]): Unit = println("Hello from Deno WASM!")
+            |}
+            |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "Hello.scala",
+          "--js-emit-wasm",
+          "--js-module-kind",
+          "es",
+          "--js-runtime",
+          "deno",
+          extraOptions
+        ).call(cwd = root).out.trim()
+        expect(output == "Hello from Deno WASM!")
+      }
+    }
+
+  if (TestUtil.fromPath("bun").isDefined)
+    test("Run Wasm with --js-runtime bun") {
+      val inputs = TestInputs(
+        os.rel / "Hello.scala" ->
+          """object Hello {
+            |  def main(args: Array[String]): Unit = println("Hello from Bun WASM!")
+            |}
+            |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "Hello.scala",
+          "--js-emit-wasm",
+          "--js-module-kind",
+          "es",
+          "--js-runtime",
+          "bun",
+          extraOptions
+        ).call(cwd = root).out.trim()
+        expect(output == "Hello from Bun WASM!")
+      }
+    }
+
+  // A throwing program (unlike a plain println) exercises the Wasm exnref proposal, so this verifies
+  // exception handling actually runs on deno/bun (the node case is covered by "Wasm exception
+  // handling"). Scala CLI no longer injects any V8 flag; the CI runtimes have exnref enabled by default.
+  def wasmExceptionHandlingTest(runtime: String): Unit = {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def riskyOp(x: Int): Int =
+          |    if (x == 0) throw new IllegalArgumentException("zero!")
+          |    else 100 / x
+          |
+          |  def main(args: Array[String]): Unit = {
+          |    val caught = try riskyOp(0).toString catch { case e: Exception => s"caught: ${e.getMessage}" }
+          |    println(caught)
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--js-emit-wasm",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
+        runtime,
+        extraOptions
+      ).call(cwd = root).out.trim()
+      expect(output.linesIterator.toSeq.contains("caught: zero!"))
+    }
+  }
+
+  if (TestUtil.fromPath("deno").isDefined)
+    test("Wasm exception handling on deno") {
+      wasmExceptionHandlingTest("deno")
+    }
+
+  if (TestUtil.fromPath("bun").isDefined)
+    test("Wasm exception handling on bun") {
+      wasmExceptionHandlingTest("bun")
+    }
+
+  test("Wasm multiple source files") {
+    val inputs = TestInputs(
+      os.rel / "Greeter.scala" ->
+        """trait Greeter {
+          |  def greet(name: String): String
+          |}
+          |
+          |object EnthusiasticGreeter extends Greeter {
+          |  def greet(name: String): String = s"Hello, $name!"
+          |}
+          |""".stripMargin,
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = {
+          |    println(EnthusiasticGreeter.greet("WASM"))
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Main.scala",
+        "Greeter.scala",
+        "--js-emit-wasm",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
+        "node",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      expect(output == "Hello, WASM!")
+    }
+  }
+
+  test("Wasm exception handling") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def riskyOp(x: Int): Int =
+          |    if (x == 0) throw new IllegalArgumentException("zero!")
+          |    else 100 / x
+          |
+          |  def main(args: Array[String]): Unit = {
+          |    val ok = try riskyOp(5).toString catch { case e: Exception => s"err: ${e.getMessage}" }
+          |    val caught = try riskyOp(0).toString catch { case e: Exception => s"caught: ${e.getMessage}" }
+          |    println(ok)
+          |    println(caught)
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--js-emit-wasm",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
+        "node",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      val lines = output.linesIterator.toSeq
+      expect(lines.contains("20"))
+      expect(lines.contains("caught: zero!"))
+    }
+  }
+
+  test("Wasm collections and higher-order functions") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def fib(n: Int): Int = if (n <= 1) n else fib(n - 1) + fib(n - 2)
+          |
+          |  def main(args: Array[String]): Unit = {
+          |    val fibs = (0 to 7).map(fib).toList
+          |    println(fibs.mkString(", "))
+          |    println(fibs.filter(_ % 2 == 0).sum)
+          |    println(fibs.foldLeft(0)(_ + _))
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "Hello.scala",
+        "--js-emit-wasm",
+        "--js-module-kind",
+        "es",
+        "--js-runtime",
+        "node",
+        extraOptions
+      ).call(cwd = root).out.trim()
+      val lines = output.linesIterator.toSeq
+      expect(lines.contains("0, 1, 1, 2, 3, 5, 8, 13"))
+      expect(lines.contains("10")) // 0 + 2 + 8 = 10
+      expect(lines.contains("33")) // sum of first 8 fibs
+    }
+  }
+
+  if (!actualScalaVersion.startsWith("2"))
+    test("Wasm @main annotation (Scala 3)") {
+      // Scala.js always passes empty args to main, so @main with parameters won't work.
+      // Test @main without parameters instead.
+      val inputs = TestInputs(
+        os.rel / "Hello.scala" ->
+          """@main def hello(): Unit =
+            |  println("Hello, Scala3!")
+            |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "Hello.scala",
+          "--js-emit-wasm",
+          "--js-module-kind",
+          "es",
+          "--js-runtime",
+          "node",
+          extraOptions
+        ).call(cwd = root).out.trim()
+        expect(output == "Hello, Scala3!")
+      }
+    }
 
   test("remap imports directive") {
     val importmapFile = "importmap.json"

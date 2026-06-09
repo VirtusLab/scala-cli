@@ -591,6 +591,12 @@ Aliases: `--fmt-help`, `--help-fmt`, `--scalafmt-help`
 
 Show options for Scalafmt
 
+### `--help-wasm`
+
+Aliases: `--wasm-help`
+
+Show options for WebAssembly
+
 ## Install completions options
 
 Available in commands:
@@ -1373,7 +1379,11 @@ Enable jsdom
 
 ### `--js-emit-wasm`
 
-Emit WASM
+Enable Wasm output (Scala.js Wasm backend). Uses Node.js by default. To show more options for Wasm pass `--help-wasm`
+
+### `--js-runtime`
+
+JS runtime to run the output on: node (default), deno, bun
 
 ### `--js-header`
 

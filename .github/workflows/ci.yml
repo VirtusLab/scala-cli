@@ -158,6 +158,9 @@ jobs:
         if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
       - name: JVM integration tests
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.jvmBootstrapped
@@ -196,6 +199,13 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24
+    - uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
+    - uses: oven-sh/setup-bun@v2
     - name: JVM integration tests
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.jvm
@@ -234,6 +244,13 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24
+    - uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
+    - uses: oven-sh/setup-bun@v2
     - name: JVM integration tests
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.jvm
@@ -272,6 +289,13 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24
+    - uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
+    - uses: oven-sh/setup-bun@v2
     - name: JVM integration tests
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.jvm
@@ -310,6 +334,13 @@ jobs:
         if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - uses: oven-sh/setup-bun@v2
       - name: JVM integration tests
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.jvm
@@ -348,6 +379,13 @@ jobs:
         if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - uses: oven-sh/setup-bun@v2
       - name: JVM integration tests
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.jvm
@@ -436,6 +474,9 @@ jobs:
       with:
         name: linux-launchers
         path: artifacts/
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24
     - name: Native integration tests
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i nativeIntegrationTests
@@ -482,6 +523,9 @@ jobs:
       with:
         name: linux-launchers
         path: artifacts/
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24
     - name: Native integration tests
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i nativeIntegrationTests
@@ -528,6 +572,9 @@ jobs:
       with:
         name: linux-launchers
         path: artifacts/
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24
     - name: Native integration tests
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i nativeIntegrationTests
@@ -574,6 +621,9 @@ jobs:
         with:
           name: linux-launchers
           path: artifacts/
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
       - name: Native integration tests
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
@@ -620,6 +670,9 @@ jobs:
         with:
           name: linux-launchers
           path: artifacts/
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
       - name: Native integration tests
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
@@ -713,6 +766,9 @@ jobs:
         with:
           name: linux-aarch64-launchers
           path: artifacts/
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
       - name: Native integration tests
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
@@ -759,6 +815,9 @@ jobs:
         with:
           name: linux-aarch64-launchers
           path: artifacts/
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
       - name: Native integration tests
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i nativeIntegrationTests
@@ -1417,6 +1476,9 @@ jobs:
     - name: Build slim docker image
       if: env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-slim-docker-image.sh
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24
     - name: Native integration tests
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.nativeMostlyStatic
@@ -1475,6 +1537,9 @@ jobs:
         with:
           name: mostly-static-launchers
           path: artifacts/
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
       - name: Native integration tests
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.nativeMostlyStatic
@@ -1563,6 +1628,9 @@ jobs:
     - name: Build docker image
       if: env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-docker-image.sh
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24
     - name: Native integration tests
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.nativeStatic
@@ -1624,6 +1692,9 @@ jobs:
       - name: Build docker image
         if: env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-docker-image.sh
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
       - name: Native integration tests
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.nativeStatic

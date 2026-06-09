@@ -707,6 +707,27 @@ Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for
 
 `//> using test.toolkit default`
 
+### Wasm options
+
+Add WebAssembly options
+
+
+`//> using wasm` _true|false_
+
+`//> using wasm`
+
+`//> using jsRuntime` _node|deno|bun_
+
+
+#### Examples
+`//> using wasm`
+
+`//> using jsRuntime node`
+
+`//> using jsRuntime deno`
+
+`//> using jsRuntime bun`
+
 ### Watch additional inputs
 
 Watch additional files or directories when using watch mode
