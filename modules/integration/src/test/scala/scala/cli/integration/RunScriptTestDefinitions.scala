@@ -270,37 +270,75 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
       }
     }
 
-  test("warn when script name shadows a dependency top-level package") {
+  test("hint when script name shadows a dependency top-level package and import fails") {
     val inputs = TestInputs(
       os.rel / "os.sc" ->
         s"""//> using dep com.lihaoyi::os-lib:0.11.8
-           |println("hi")
+           |import os.Path
+           |println(Path("/tmp"))
            |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, extraOptions, "os.sc")
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       val output = res.out.trim()
-      expect(output.contains("shadows the 'os' package"))
-      expect(res.exitCode == 0)
+      expect(res.exitCode != 0)
+      expect(output.contains("shadows the 'os' package from dependencies:"))
+      expect(output.contains("os-lib"))
+      expect(output.contains("is likely the cause of compilation errors mentioning 'os'"))
     }
   }
 
-  test("warn with multiple JARs when script name shadows a shared package root") {
+  test("hint with multiple JARs when script name shadows a shared package root") {
     val inputs = TestInputs(
       os.rel / "cats.sc" ->
         s"""//> using dep org.typelevel::cats-core:2.12.0
-           |println("hi")
+           |import cats.Show
+           |println(Show[Int])
            |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, extraOptions, "cats.sc")
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       val output = res.out.trim()
+      expect(res.exitCode != 0)
       expect(output.contains("shadows the 'cats' package from dependencies:"))
       expect(output.contains("cats-core"))
       expect(output.contains("cats-kernel"))
-      expect(res.exitCode == 0)
+    }
+  }
+
+  test("hint when script name clashes with a sibling .scala file") {
+    val inputs = TestInputs(
+      os.rel / "foo.sc" ->
+        """println("hi")""",
+      os.rel / "foo.scala" ->
+        """object foo { def hello = "world" }"""
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, extraOptions, "foo.sc", "foo.scala")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output = res.out.trim()
+      expect(res.exitCode != 0)
+      expect(output.contains("foo.sc"))
+      expect(output.contains("local source 'foo.scala'") || output.contains("local sources:"))
+    }
+  }
+
+  test("do not hint when compile fails for an unrelated reason") {
+    val inputs = TestInputs(
+      os.rel / "safe.sc" ->
+        s"""//> using dep com.lihaoyi::os-lib:0.11.8
+           |val x: Int = "not an int"
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, extraOptions, "safe.sc")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output = res.out.trim()
+      expect(res.exitCode != 0)
+      expect(!output.contains("shadows"))
+      expect(!output.contains("is likely the cause"))
     }
   }
 
@@ -315,7 +353,8 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
       val res = os.proc(TestUtil.cli, extraOptions, "safe.sc")
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       val output = res.out.trim()
-      expect(!output.contains("shadows the 'os' package"))
+      expect(!output.contains("shadows"))
+      expect(!output.contains("is likely the cause"))
       expect(res.exitCode == 0)
     }
   }

@@ -1130,18 +1130,6 @@ object Build {
 
       val artifacts = value(options0.artifacts(logger, scope, maybeRecoverOnError))
 
-      for shadowed <- ScriptUtils.findShadowedDependencyPackages(
-          sources = sources,
-          classPath = artifacts.compileClassPath,
-          logger = logger
-        )
-      do
-        logger.diagnostic(
-          message = WarningMessages.scriptNameShadowsDependencyPackage(shadowed),
-          severity = Severity.Warning,
-          positions = Seq(Position.File(Right(shadowed.filePath), (0, 0), (0, 0)))
-        )
-
       value(validate(logger, options0))
 
       val project = value {
@@ -1236,11 +1224,31 @@ object Build {
     buildClient.clear()
     buildClient.setGeneratedSources(scope, generatedSources)
 
+    val scriptNames = sources.scriptTopLevelNames.iterator.map(_.name).toSet
+    buildClient.setSuspectedClashNames(scriptNames)
+
     val partial = partialOpt.getOrElse {
       options.notForBloopOptions.packageOptions.packageTypeOpt.exists(_.sourceBased)
     }
 
     val success = partial || compiler.compile(project, logger)
+
+    if !success && scriptNames.nonEmpty then
+      val matched = buildClient.detectedShadowingCandidates
+      if matched.nonEmpty then
+        for
+          shadowed <- ScriptUtils.findShadowingClashes(
+            sources = sources,
+            classPath = artifacts.compileClassPath,
+            logger = logger
+          )
+          if matched(shadowed.name)
+        do
+          logger.diagnostic(
+            message = WarningMessages.scriptShadowingClashHint(shadowed),
+            severity = Severity.Error,
+            positions = Seq(Position.File(Right(shadowed.filePath), (0, 0), (0, 0)))
+          )
 
     if success then
       Successful(

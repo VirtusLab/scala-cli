@@ -131,15 +131,22 @@ object WarningMessages {
   val mainScriptNameClashesWithAppWrapper =
     "Script file named 'main.sc' detected, keep in mind that accessing it from other scripts is impossible due to a clash of `main` symbols"
 
-  def scriptNameShadowsDependencyPackage(shadowed: ScriptDescriptor): String =
-    val name       = shadowed.name
-    val depsClause = shadowed.shadowedDependencyJars match {
-      case Nil    => "from an unknown dependency"
-      case Seq(j) => s"from dependency '$j'"
-      case js     => s"from dependencies: ${js.map(j => s"'$j'").mkString(", ")}"
+  def scriptShadowingClashHint(shadowed: ScriptDescriptor): String =
+    val name      = shadowed.name
+    val depClause = shadowed.shadowedDependencyJars match {
+      case Nil    => None
+      case Seq(j) => Some(s"the '$name' package from dependency '$j'")
+      case js     =>
+        Some(s"the '$name' package from dependencies: ${js.map(j => s"'$j'").mkString(", ")}")
     }
-    s"""Script '${shadowed.subPath}' generates a top-level symbol '$name' that shadows the '$name' package $depsClause.
-       |Imports of '$name.*' from the dependency will not resolve.
+    val localClause = shadowed.clashingLocalSources match {
+      case Nil    => None
+      case Seq(p) => Some(s"a local source '$p'")
+      case ps     => Some(s"local sources: ${ps.map(p => s"'$p'").mkString(", ")}")
+    }
+    val clashes = Seq(depClause, localClause).flatten.mkString(" and ")
+    s"""Script '${shadowed.subPath}' generates a top-level symbol '$name' that shadows $clashes.
+       |This is likely the cause of compilation errors mentioning '$name'.
        |Consider renaming the script (e.g. to '${name}1.sc') or moving it into a subdirectory.""".stripMargin
 
   private val deprecationNote =
