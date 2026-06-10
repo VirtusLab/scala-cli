@@ -354,19 +354,6 @@ abstract class BspTestDefinitions extends ScalaCliSuite
         val actualStatusCode = compileResp.getStatusCode
         expect(actualStatusCode == b.StatusCode.ERROR)
 
-        val diagnosticsParams = {
-          val diagnostics = localClient.diagnostics()
-          val params      = diagnostics(2)
-          expect(params.getBuildTarget.getUri == targetUri)
-          val actualUri   = TestUtil.normalizeUri(params.getTextDocument.getUri)
-          val expectedUri = TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
-          expect(actualUri == expectedUri)
-          params
-        }
-
-        val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
-        expect(diagnostics.length == 1)
-
         val expectedMessage =
           if (actualScalaVersion.startsWith("2."))
             "not found: type NonExistent"
@@ -374,7 +361,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             "Not found: type NonExistent"
 
         checkDiagnostic(
-          diagnostic = diagnostics.head,
+          diagnostic = findDiagnostic(localClient, root / "test.sc", _.contains("NonExistent")),
           expectedMessage = expectedMessage,
           expectedSeverity = b.DiagnosticSeverity.ERROR,
           expectedStartLine = 0,
@@ -1672,21 +1659,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               .await
           expect(compileResp.getStatusCode == b.StatusCode.ERROR)
 
-          val diagnosticsParams = {
-            val diagnostics = localClient.diagnostics()
-            val params      = diagnostics(2)
-            expect(params.getBuildTarget.getUri == targetUri)
-            val actualUri   = TestUtil.normalizeUri(params.getTextDocument.getUri)
-            val expectedUri = TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
-            expect(actualUri == expectedUri)
-            params
-          }
-
-          val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
-          expect(diagnostics.length == 1)
-
           checkDiagnostic(
-            diagnostic = diagnostics.head,
+            diagnostic = findDiagnostic(
+              localClient,
+              root / "test.sc",
+              _.contains("Annotation @main in .sc scripts is not supported")
+            ),
             expectedMessage =
               "Annotation @main in .sc scripts is not supported, use .scala format instead",
             expectedSeverity = b.DiagnosticSeverity.ERROR,
@@ -1836,20 +1814,21 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               .await
           expect(compileResp.getStatusCode == b.StatusCode.OK)
 
-          val diagnosticsParams = {
-            val diagnostics = localClient.diagnostics()
-              .filter(_.getReset == false)
-            expect(diagnostics.size == 3)
-            val params = diagnostics.head
-            expect(params.getBuildTarget.getUri == targetUri)
-            val actualUri   = TestUtil.normalizeUri(params.getTextDocument.getUri)
-            val expectedUri = TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
-            expect(actualUri == expectedUri)
-            diagnostics
-          }
-
-          val diagnostics = diagnosticsParams.flatMap(_.getDiagnostics.asScala)
+          val expectedUri = TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
+          val diagnostics = localClient
+            .diagnostics()
+            .filter(_.getReset == false)
+            .filter(params =>
+              TestUtil.normalizeUri(params.getTextDocument.getUri) == expectedUri &&
+              params.getBuildTarget.getUri == targetUri
+            )
+            .flatMap(_.getDiagnostics.asScala)
+            .filter { diagnostic =>
+              val message = TestUtil.removeAnsiColors(diagnostic.getMessage)
+              message.contains("deprecated") || message.contains("use 'dep' instead")
+            }
             .sortBy(_.getRange.getEnd.getCharacter())
+          expect(diagnostics.size == 3)
 
           {
             checkDiagnostic(

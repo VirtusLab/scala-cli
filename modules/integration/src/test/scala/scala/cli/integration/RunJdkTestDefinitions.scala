@@ -140,14 +140,29 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
       // TODO: test with Scala installation wrapper when the fix gets propagated there
       test(s"REPL does not warn about restricted java.lang.System API called on JDK $index") {
         TestInputs.empty.fromRoot { root =>
-          TestUtil.withProcessWatching(
-            proc = os.proc(TestUtil.cli, "repl", extraOptions, "--jvm", index)
-              .spawn(cwd = root, stderr = os.Pipe)
-          ) { (proc, _, ec) =>
-            proc.printStderrUntilJlineRevertsToDumbTerminal(proc) { s =>
-              expect(!s.contains("A restricted method in java.lang.System has been called"))
-            }(ec)
-          }
+          if isScala39OrNewer then
+            val res = os.proc(
+              TestUtil.cli,
+              "repl",
+              extraOptions,
+              "--jvm",
+              index,
+              "--repl-quit-after-init",
+              "--repl-init-script",
+              "()"
+            ).call(cwd = root, stderr = os.Pipe, check = false)
+            expect(
+              !res.err.trim().contains("A restricted method in java.lang.System has been called")
+            )
+          else
+            TestUtil.withProcessWatching(
+              proc = os.proc(TestUtil.cli, "repl", extraOptions, "--jvm", index)
+                .spawn(cwd = root, stderr = os.Pipe)
+            ) { (proc, _, ec) =>
+              proc.printStderrUntilJlineRevertsToDumbTerminal(proc) { s =>
+                expect(!s.contains("A restricted method in java.lang.System has been called"))
+              }(ec)
+            }
         }
       }
   }
