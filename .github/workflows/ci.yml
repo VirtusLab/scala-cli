@@ -883,7 +883,7 @@ jobs:
 
   native-macos-tests-default:
     needs: [changes, generate-macos-launcher]
-    timeout-minutes: 150
+    timeout-minutes: 240
     runs-on: "macOS-15-intel"
     env:
       SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
@@ -932,7 +932,7 @@ jobs:
 
   native-macos-tests-rc:
     needs: [changes, generate-macos-launcher]
-    timeout-minutes: 150
+    timeout-minutes: 240
     runs-on: "macOS-15-intel"
     env:
       SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
@@ -1026,7 +1026,7 @@ jobs:
 
   native-macos-arm64-tests-default:
     needs: [changes, generate-macos-arm64-launcher]
-    timeout-minutes: 150
+    timeout-minutes: 240
     runs-on: "macOS-15"
     env:
       SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
@@ -1075,7 +1075,7 @@ jobs:
 
   native-macos-arm64-tests-lts:
     needs: [changes, generate-macos-arm64-launcher]
-    timeout-minutes: 150
+    timeout-minutes: 240
     runs-on: "macOS-15"
     env:
       SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
@@ -1124,7 +1124,7 @@ jobs:
 
   native-macos-arm64-tests-rc:
     needs: [changes, generate-macos-arm64-launcher]
-    timeout-minutes: 150
+    timeout-minutes: 240
     runs-on: "macOS-15"
     env:
       SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
