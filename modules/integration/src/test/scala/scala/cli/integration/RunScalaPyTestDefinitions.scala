@@ -32,7 +32,15 @@ trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
 
     inputs.fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", maybeCliArg).call(cwd = root)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          extraOptions,
+          ".",
+          maybeCliArg
+        ).call(cwd = root)
       val output         = res.out.trim()
       val expectedOutput = "Length is 3"
       expect(output == expectedOutput)
@@ -70,7 +78,15 @@ trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
 
     inputs.fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", maybeCliArg)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          extraOptions,
+          ".",
+          maybeCliArg
+        )
           .call(cwd = root, stderr = os.Pipe)
       val output = res.out.trim()
         .linesIterator
@@ -134,7 +150,15 @@ trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
 
       // Script dir shouldn't be added to PYTHONPATH if PYTHONSAFEPATH is non-empty
-      val errorRes = os.proc(TestUtil.cli, "--power", "run", extraOptions, nativeOpt, "src")
+      val errorRes = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "run",
+        TestUtil.offlineOptions,
+        extraOptions,
+        nativeOpt,
+        "src"
+      )
         .call(
           cwd = root,
           env = Map("PYTHONSAFEPATH" -> "foo"),
@@ -145,7 +169,15 @@ trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
       val errorOutput = errorRes.out.text()
       expect(errorOutput.contains("No module named 'helpers'"))
 
-      val res = os.proc(TestUtil.cli, "--power", "run", extraOptions, nativeOpt, "src")
+      val res = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "run",
+        TestUtil.offlineOptions,
+        extraOptions,
+        nativeOpt,
+        "src"
+      )
         .call(cwd = root)
       val output = res.out.trim()
       if (native)

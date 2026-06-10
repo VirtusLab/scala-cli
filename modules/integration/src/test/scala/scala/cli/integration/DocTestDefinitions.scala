@@ -7,7 +7,8 @@ import scala.jdk.CollectionConverters.*
 
 abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] =
+    scalaVersionArgs ++ TestUtil.extraOptionsWithOffline
 
   for {
     useTestScope <- Seq(true, false)
@@ -95,7 +96,16 @@ abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
              |class RootLoggerConfigurer:
              |  @Autowired var sentryClient: String = uninitialized
              |""".stripMargin
-      ).fromRoot(root => os.proc(TestUtil.cli, "doc", ".", extraOptions).call(cwd = root))
+      ).fromRoot(root =>
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "doc",
+          TestUtil.offlineOptions,
+          ".",
+          extraOptions
+        ).call(cwd = root)
+      )
     }
 
   if actualScalaVersion.startsWith("3") then
@@ -171,7 +181,9 @@ abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     ).fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "doc",
+        TestUtil.offlineOptions,
         "--cross",
         "--power",
         extraOptions,

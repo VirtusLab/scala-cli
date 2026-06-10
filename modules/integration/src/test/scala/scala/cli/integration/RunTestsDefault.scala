@@ -63,7 +63,7 @@ class RunTestsDefault extends RunTestDefinitions
             ".",
             "-S",
             "3.nightly",
-            TestUtil.extraOptions
+            TestUtil.bloopTimeoutOptions
           )
             .call(cwd = root)
         expect(res.out.trim() == "Hello World")
@@ -92,7 +92,15 @@ class RunTestsDefault extends RunTestDefinitions
       val output = res.out.text()
       expect(output.contains("java.lang.AssertionError: assertion failed: Not only files"))
 
-      os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", "--as-jar")
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "run",
+        TestUtil.offlineOptions,
+        extraOptions,
+        ".",
+        "--as-jar"
+      )
         .call(cwd = root)
     }
   }
@@ -104,7 +112,7 @@ class RunTestsDefault extends RunTestDefinitions
         |import tabby.Grid
         |@main def main = println(Grid("a", "b", "c")(1, 2, 3))
         |""".stripMargin).fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath)
+      val res = os.proc(TestUtil.cli, "run", scalaVersionArgs ++ TestUtil.bloopTimeoutOptions, inputPath)
         .call(cwd = root)
       val out = res.out.trim()
       expect(out.contains("a, b, c"))
@@ -181,7 +189,9 @@ class RunTestsDefault extends RunTestDefinitions
           val r =
             os.proc(
               TestUtil.cli,
+              TestUtil.powerOptions,
               "run",
+              TestUtil.offlineOptions,
               ".",
               "--cross",
               "--power",
@@ -203,7 +213,9 @@ class RunTestsDefault extends RunTestDefinitions
           val r =
             os.proc(
               TestUtil.cli,
+              TestUtil.powerOptions,
               "run",
+              TestUtil.offlineOptions,
               ".",
               extraOptions,
               scopeOptions,
@@ -230,7 +242,17 @@ class RunTestsDefault extends RunTestDefinitions
     ) {
       TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""").fromRoot { root =>
         val res =
-          os.proc(TestUtil.cli, "run", ".", "-S", scalaVersion, TestUtil.extraOptions, "--runner")
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            ".",
+            "-S",
+            scalaVersion,
+            TestUtil.extraOptionsWithOffline,
+            "--runner"
+          )
             .call(cwd = root, stderr = os.Pipe)
         expect(res.out.trim() == expectedMessage)
         expect(res.err.trim().contains(expectedWarning))
@@ -258,7 +280,15 @@ class RunTestsDefault extends RunTestDefinitions
             |""".stripMargin
       ).fromRoot { root =>
         val res =
-          os.proc(TestUtil.cli, "run", buildServerOptions, extraOptions, ".").call(cwd = root)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            buildServerOptions,
+            extraOptions,
+            "."
+          ).call(cwd = root)
         expect(res.out.text().contains("No Scala on classpath!"))
       }
     }

@@ -7,7 +7,7 @@ trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
       val res       =
-        os.proc(TestUtil.cli, "-e", s"println($quotation$msg$quotation)", TestUtil.extraOptions)
+        os.proc(TestUtil.cli, "-e", s"println($quotation$msg$quotation)", TestUtil.bloopTimeoutOptions)
           .call(cwd = root)
       expect(res.out.trim() == msg)
     }
@@ -22,7 +22,7 @@ trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
           "-e",
           "println()",
           replSpecificOption,
-          TestUtil.extraOptions
+          TestUtil.bloopTimeoutOptions
         )
           .call(cwd = root, mergeErrIntoOut = true, check = false)
       expect(res.exitCode == 1)
@@ -43,7 +43,7 @@ trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
       (legacyHtrOption, inputFile, root) =>
         Seq("object", "script", "jar", "repl", "guess", "invalid").foreach { htrValue =>
           val res =
-            os.proc(TestUtil.cli, legacyHtrOption, htrValue, inputFile, TestUtil.extraOptions)
+            os.proc(TestUtil.cli, legacyHtrOption, htrValue, inputFile, TestUtil.bloopTimeoutOptions)
               .call(cwd = root, stderr = os.Pipe)
           expect(res.err.trim().contains(deprecatedOptionWarning(legacyHtrOption)))
           expect(res.err.trim().contains(htrValue))
@@ -62,7 +62,7 @@ trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
           legacyOption,
           anotherInputFile,
           "--repl-dry-run",
-          TestUtil.extraOptions
+          TestUtil.bloopTimeoutOptions
         )
           .call(cwd = root, stderr = os.Pipe)
         expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))
@@ -78,7 +78,7 @@ trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
   test("ensure -run works with the default command") {
     legacyOptionBackwardsCompatTest("-run") {
       (legacyOption, inputFile, root) =>
-        val res = os.proc(TestUtil.cli, legacyOption, inputFile, ".", TestUtil.extraOptions)
+        val res = os.proc(TestUtil.cli, legacyOption, inputFile, ".", TestUtil.bloopTimeoutOptions)
           .call(cwd = root, stderr = os.Pipe)
         expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))
         expect(res.err.trim().contains(inputFile))
@@ -96,7 +96,7 @@ trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
                 legacyOption,
                 legacyOptionValue,
                 inputFile,
-                TestUtil.extraOptions
+                TestUtil.bloopTimeoutOptions
               )
                 .call(cwd = root, stderr = os.Pipe)
             expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))
@@ -108,7 +108,7 @@ trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
   private def simpleLegacyOptionBackwardsCompatTest(optionAliases: String*): Unit =
     abstractLegacyOptionBackwardsCompatTest(optionAliases) {
       (legacyOption, expectedMsg, _, root) =>
-        val res = os.proc(TestUtil.cli, legacyOption, "s.sc", TestUtil.extraOptions)
+        val res = os.proc(TestUtil.cli, legacyOption, "s.sc", TestUtil.bloopTimeoutOptions)
           .call(cwd = root, stderr = os.Pipe)
         expect(res.out.trim() == expectedMsg)
         expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))

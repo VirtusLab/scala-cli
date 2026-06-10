@@ -9,7 +9,7 @@ abstract class FixTestDefinitions
     with FixScalafixRulesTestDefinitions { this: TestScalaVersion =>
   val projectFileName           = "project.scala"
   val extraOptions: Seq[String] =
-    scalaVersionArgs ++ TestUtil.extraOptions ++ Seq("--suppress-experimental-feature-warning")
+    scalaVersionArgs ++ TestUtil.extraOptionsWithOffline ++ Seq("--suppress-experimental-feature-warning")
   def enableRulesOptions(
     enableScalafix: Boolean = true,
     enableBuiltIn: Boolean = true
@@ -58,13 +58,28 @@ abstract class FixTestDefinitions
           |]
           |""".stripMargin
     ).fromRoot { root =>
-      os.proc(TestUtil.cli, "fix", ".", extraOptions, "--power").call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fix",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions,
+        "--power"
+      ).call(cwd = root)
       val projectFileContents = os.read(root / projectFileName)
       expect(projectFileContents.contains(mergedDirective1And2))
       expect(projectFileContents.contains(directive3))
       val mainFileContents = os.read(root / mainFileName)
       expect(!mainFileContents.contains(unusedValName))
-      os.proc(TestUtil.cli, "compile", ".", extraOptions).call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      ).call(cwd = root)
     }
   }
 
@@ -84,8 +99,9 @@ abstract class FixTestDefinitions
     ).fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "fix",
+        TestUtil.offlineOptions,
         ".",
         extraOptions
       ).call(cwd = root)

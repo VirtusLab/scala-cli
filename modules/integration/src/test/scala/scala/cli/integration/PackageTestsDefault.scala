@@ -18,13 +18,31 @@ class PackageTestsDefault extends PackageTestDefinitions with TestDefault {
             |""".stripMargin
       )
       inputs.fromRoot { root =>
-        val runRes = os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
+        val runRes = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          "--native",
+          ".",
+          extraOptions
+        )
           .call(cwd = root)
         val runOutput = runRes.out.trim().linesIterator.filter(!_.startsWith("[info] ")).toVector
         expect(runOutput == Seq("Hello"))
 
         val packageRes =
-          os.proc(TestUtil.cli, "--power", "package", "--native", ".", "-o", "hello", extraOptions)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "package",
+            TestUtil.offlineOptions,
+            "--native",
+            ".",
+            "-o",
+            "hello",
+            extraOptions
+          )
             .call(cwd = root, mergeErrIntoOut = true)
         val packageOutput    = packageRes.out.trim()
         val topPackageOutput =
@@ -58,8 +76,9 @@ class PackageTestsDefault extends PackageTestDefinitions with TestDefault {
         ).fromRoot { root =>
           os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "package",
+            TestUtil.offlineOptions,
             "--cross",
             extraOptions,
             ".",
@@ -93,8 +112,9 @@ class PackageTestsDefault extends PackageTestDefinitions with TestDefault {
         ).fromRoot { root =>
           val r = os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "package",
+            TestUtil.offlineOptions,
             extraOptions,
             ".",
             packageOpts

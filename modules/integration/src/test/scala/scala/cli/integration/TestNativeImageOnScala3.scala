@@ -16,8 +16,9 @@ class TestNativeImageOnScala3 extends ScalaCliSuite {
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         ".",
         "--native-image",
         "-o",

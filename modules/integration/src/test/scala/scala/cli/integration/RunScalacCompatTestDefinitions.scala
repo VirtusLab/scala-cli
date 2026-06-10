@@ -174,7 +174,14 @@ trait RunScalacCompatTestDefinitions {
     emptyInputs.fromRoot { root =>
       val res =
         (
-          if (explicitSubcommand) os.proc(TestUtil.cli, "run", printOption, extraOptions)
+          if (explicitSubcommand) os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            printOption,
+            extraOptions
+          )
           else os.proc(TestUtil.cli, printOption, extraOptions)
         ).call(cwd = root, mergeErrIntoOut = true)
       expect(res.exitCode == 0)
@@ -198,7 +205,9 @@ trait RunScalacCompatTestDefinitions {
       // first, precompile to an explicitly specified output directory with -d
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "compile",
+        TestUtil.offlineOptions,
         preCompiledInput,
         "-d",
         preCompileOutputDir.toString,
@@ -208,7 +217,9 @@ trait RunScalacCompatTestDefinitions {
       // next, run while relying on the pre-compiled class, specifying the path with -classpath
       val runRes = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         mainInput,
         "-classpath",
         (os.rel / os.up / preCompileDir / preCompileOutputDir).toString,
@@ -234,7 +245,9 @@ trait RunScalacCompatTestDefinitions {
       // first, precompile to an explicitly specified output directory with -O -d
       val compileRes = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "compile",
+        TestUtil.offlineOptions,
         preCompiledInput,
         "-O",
         "-d",
@@ -247,7 +260,9 @@ trait RunScalacCompatTestDefinitions {
       // next, run while relying on the pre-compiled class, specifying the path with -O -classpath
       val runRes = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         mainInput,
         "-O",
         "-classpath",
@@ -269,7 +284,9 @@ trait RunScalacCompatTestDefinitions {
       // first, precompile to an explicitly specified output directory with -d
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "compile",
+        TestUtil.offlineOptions,
         ".",
         "-d",
         compilationOutputDir,
@@ -279,7 +296,9 @@ trait RunScalacCompatTestDefinitions {
       // next, run while relying on the pre-compiled class instead of passing inputs
       val runRes = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "-classpath",
         (os.rel / compilationOutputDir).toString,
         extraOptions
@@ -310,7 +329,9 @@ trait RunScalacCompatTestDefinitions {
     shutdownBloop()
     val output = os.proc(
       TestUtil.cli,
+      TestUtil.powerOptions,
       "run",
+      TestUtil.offlineOptions,
       "--dep",
       s"software.amazon.smithy:smithy-cli:$smithyVersion",
       "--",
@@ -335,7 +356,9 @@ trait RunScalacCompatTestDefinitions {
       // first, precompile to an explicitly specified output directory with -d
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "compile",
+        TestUtil.offlineOptions,
         "-d",
         compilationOutputDir,
         `lib.scala`,
@@ -348,7 +371,9 @@ trait RunScalacCompatTestDefinitions {
 
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "compile",
+        TestUtil.offlineOptions,
         "-d",
         compilationOutputDir,
         "-cp",
@@ -374,8 +399,9 @@ trait RunScalacCompatTestDefinitions {
       val jarPath = os.rel / "Main.jar"
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         ".",
         "--library",
         "-o",
@@ -386,7 +412,9 @@ trait RunScalacCompatTestDefinitions {
       // next, run while relying on the jar instead of passing inputs
       val runRes = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "-classpath",
         jarPath,
         extraOptions
@@ -405,8 +433,9 @@ trait RunScalacCompatTestDefinitions {
       val jarPath            = jarParentDirectory / "Main.jar"
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         ".",
         "--library",
         "-o",
@@ -417,7 +446,9 @@ trait RunScalacCompatTestDefinitions {
       // next, run while relying on the jar instead of passing inputs
       val runRes = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "-cp",
         jarParentDirectory,
         extraOptions
@@ -431,7 +462,16 @@ trait RunScalacCompatTestDefinitions {
       root =>
         val scala212VersionString = s"2.12.$scalaPatchVersion"
         val res                   =
-          os.proc(TestUtil.cli, "run", ".", "-S", scala212VersionString, TestUtil.extraOptions)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            ".",
+            "-S",
+            scala212VersionString,
+            TestUtil.extraOptionsWithOffline
+          )
             .call(cwd = root)
         expect(res.out.trim() == scala212VersionString)
     }
@@ -454,8 +494,9 @@ trait RunScalacCompatTestDefinitions {
     val inputRelPath   = os.rel / s"$mainClass.scala"
     TestInputs(inputRelPath -> s"""object $mainClass extends App { println("$expectedOutput") }""")
       .fromRoot { root =>
-        val res = os.proc(TestUtil.cli, ".", "--scalac-verbose", extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
+        val res =
+          os.proc(TestUtil.cli, ".", "--scalac-verbose", extraOptions)
+            .call(cwd = root, stderr = os.Pipe)
         val errLines = res.err.trim().lines.toList.asScala
         // there should be a lot of logs, but different stuff is logged depending on the Scala version
         expect(errLines.length > 100)
@@ -602,7 +643,9 @@ trait RunScalacCompatTestDefinitions {
       ).fromRoot { root =>
         val r = os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           ".",
           if (useDirective) Nil else macroSettingOptions,
           "-S",
@@ -644,8 +687,23 @@ trait RunScalacCompatTestDefinitions {
              |}
              |""".stripMargin
       ).fromRoot { root =>
-        os.proc(TestUtil.cli, "--power", "publish", "local", depDir, extraOptions).call(cwd = root)
-        val res = os.proc(TestUtil.cli, "run", mainDir, extraOptions).call(cwd = root)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "publish",
+          TestUtil.offlineOptions,
+          "local",
+          depDir,
+          extraOptions
+        ).call(cwd = root)
+        val res = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          mainDir,
+          extraOptions
+        ).call(cwd = root)
         expect(res.out.trim() == expectedMessage)
       }
     }

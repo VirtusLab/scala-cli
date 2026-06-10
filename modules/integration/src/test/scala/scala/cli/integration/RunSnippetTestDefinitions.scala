@@ -10,7 +10,9 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
       val res       =
         os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           "--script-snippet",
           s"println($quotation$msg$quotation)",
           extraOptions
@@ -27,7 +29,9 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
       val res       =
         os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           "--scala-snippet",
           s"object Hello extends App { println($quotation$msg$quotation) }",
           extraOptions
@@ -43,7 +47,9 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
       val msg       = "Hello world"
       val res       = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "--java-snippet",
         s"public class Main { public static void main(String[] args) { System.out.println($quotation$msg$quotation); } }",
         extraOptions
@@ -60,8 +66,9 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
       val res       =
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           "--markdown-snippet",
           s"""# A Markdown snippet
              |With some scala code
@@ -82,8 +89,9 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
       val res       =
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           "--markdown-snippet",
           s"""# A Markdown snippet
              |With some Java code
@@ -142,7 +150,9 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
 
       val res = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         scriptSnippetOption,
         script0,
         scriptSnippetOption,

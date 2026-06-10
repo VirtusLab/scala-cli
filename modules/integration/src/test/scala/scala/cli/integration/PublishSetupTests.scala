@@ -98,8 +98,9 @@ class PublishSetupTests extends ScalaCliSuite {
       gitInit(root / projDir)
       val res = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "setup",
         "--dummy",
         "-R",
@@ -151,8 +152,9 @@ class PublishSetupTests extends ScalaCliSuite {
       val res =
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "publish",
+          TestUtil.offlineOptions,
           "setup",
           "--ci",
           "--dummy",
@@ -182,7 +184,16 @@ class PublishSetupTests extends ScalaCliSuite {
       configSetup(root / configFile, root)
       gitInit(root / projDir)
       val res =
-        os.proc(TestUtil.cli, "--power", "publish", "setup", "--ci", "--dummy", projDir).call(
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "publish",
+          TestUtil.offlineOptions,
+          "setup",
+          "--ci",
+          "--dummy",
+          projDir
+        ).call(
           cwd = root,
           mergeErrIntoOut = true,
           check = false,
@@ -227,8 +238,9 @@ class PublishSetupTests extends ScalaCliSuite {
         val res =
           os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "publish",
+            TestUtil.offlineOptions,
             "setup",
             "-v",
             "-v",
@@ -271,8 +283,9 @@ class PublishSetupTests extends ScalaCliSuite {
       gitInit(root / projDir)
       val res = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "setup",
         "--dummy",
         "--publish-repository",
@@ -314,8 +327,9 @@ class PublishSetupTests extends ScalaCliSuite {
       gitInit(root / projDir)
       val res = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "setup",
         "--ci",
         "--publish-repository",
@@ -390,8 +404,9 @@ class PublishSetupTests extends ScalaCliSuite {
 
       val res = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "setup",
         "--dummy",
         "-R",
@@ -471,8 +486,9 @@ class PublishSetupTests extends ScalaCliSuite {
 
       val res = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "setup",
         "--dummy",
         "-R",
@@ -499,8 +515,9 @@ class PublishSetupTests extends ScalaCliSuite {
 
       val res2 = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "setup",
         "--dummy",
         "--secret-key-password",
@@ -551,8 +568,9 @@ class PublishSetupTests extends ScalaCliSuite {
 
       val res = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "setup",
         "--dummy",
         "-R",
@@ -589,8 +607,9 @@ class PublishSetupTests extends ScalaCliSuite {
       gitInit(root / projDir)
       val res = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "setup",
         "--dummy",
         "-R",

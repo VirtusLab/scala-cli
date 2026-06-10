@@ -7,8 +7,9 @@ abstract class ExportSbtTestDefinitions extends ScalaCliSuite
   override def exportCommand(args: String*): os.proc =
     os.proc(
       TestUtil.cli,
-      "--power",
+      TestUtil.powerOptions,
       "export",
+      TestUtil.offlineOptions,
       extraOptions,
       "--sbt",
       "-o",

@@ -28,8 +28,9 @@ class InstallHomeTests extends ScalaCliSuite {
   private def packageDummyScalaCli(root: os.Path, dummyScalaCliFileName: String, output: String) = {
     val cmd = Seq[os.Shellable](
       TestUtil.cli,
-      "--power",
+      TestUtil.powerOptions,
       "package",
+      TestUtil.offlineOptions,
       dummyScalaCliFileName,
       "-o",
       output
@@ -49,6 +50,7 @@ class InstallHomeTests extends ScalaCliSuite {
   ) = {
     val cmdInstallVersion = Seq[os.Shellable](
       TestUtil.cli,
+      TestUtil.powerOptions,
       "install-home",
       "--env",
       "--scala-cli-binary-path",
@@ -73,6 +75,7 @@ class InstallHomeTests extends ScalaCliSuite {
   ) = {
     val cmdUninstall = Seq[os.Shellable](
       TestUtil.cli,
+      TestUtil.powerOptions,
       "uninstall",
       "--binary-name",
       dummyScalaCliBinName,

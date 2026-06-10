@@ -32,11 +32,13 @@ class RunTests212 extends RunTestDefinitions with Test212 {
         val res =
           os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "run",
+            TestUtil.offlineOptions,
             ".",
             "-S",
             "2.12.nightly",
-            TestUtil.extraOptions
+            TestUtil.extraOptionsWithOffline
           )
             .call(cwd = root)
         val version = res.out.trim()

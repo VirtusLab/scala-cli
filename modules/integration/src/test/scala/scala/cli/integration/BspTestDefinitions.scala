@@ -21,7 +21,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite
     with ScriptWrapperTestDefinitions
     with CoursierScalaInstallationTestHelper {
   this: TestScalaVersion =>
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] =
+    scalaVersionArgs ++ TestUtil.extraOptionsWithOffline
 
   test("setup-ide") {
     val inputs = TestInputs(
@@ -31,7 +32,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions).call(cwd = root, stdout = os.Inherit)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "setup-ide",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      ).call(cwd = root, stdout = os.Inherit)
       val details = readBspConfig(root)
       expect(details.argv.length >= 2)
       expect(details.argv.dropWhile(_ != TestUtil.cliPath).drop(1).head == "bsp")
@@ -123,7 +131,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite
     importPprintOnlyProject.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "setup-ide",
+        TestUtil.offlineOptions,
         ".",
         extraOptions,
         "--dependency",
@@ -137,7 +147,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
       val p = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "setup-ide",
+        TestUtil.offlineOptions,
         ".",
         extraOptions,
         "--dependency",
@@ -903,7 +915,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "setup-ide",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      )
         .call(
           cwd = root,
           stdout = os.Inherit
@@ -922,7 +941,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             expect(resp.getStatusCode == b.StatusCode.ERROR)
 
             val dependencyOptions = List("--dependency", "com.lihaoyi::os-lib::0.8.0")
-            os.proc(TestUtil.cli, "setup-ide", ".", dependencyOptions ++ extraOptions)
+            os.proc(
+              TestUtil.cli,
+              TestUtil.powerOptions,
+              "setup-ide",
+              TestUtil.offlineOptions,
+              ".",
+              dependencyOptions ++ extraOptions
+            )
               .call(
                 cwd = root,
                 stdout = os.Inherit
@@ -954,7 +980,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "setup-ide",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      )
         .call(
           cwd = root,
           stdout = os.Inherit
@@ -1013,7 +1046,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
       os.rel / dir2 / "MissingCaseClass.scala" -> "case class MissingCaseClass(value: String)"
     )
     extraInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "setup-ide", dir1, extraOptions)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "setup-ide",
+        TestUtil.offlineOptions,
+        dir1,
+        extraOptions
+      )
         .call(
           cwd = root,
           stdout = os.Inherit
@@ -1029,7 +1069,15 @@ abstract class BspTestDefinitions extends ScalaCliSuite
                 .asScala.await
             expect(resp.getStatusCode == b.StatusCode.ERROR)
 
-            os.proc(TestUtil.cli, "setup-ide", dir1, dir2, extraOptions)
+            os.proc(
+              TestUtil.cli,
+              TestUtil.powerOptions,
+              "setup-ide",
+              TestUtil.offlineOptions,
+              dir1,
+              dir2,
+              extraOptions
+            )
               .call(
                 cwd = root,
                 stdout = os.Inherit
@@ -1152,7 +1200,16 @@ abstract class BspTestDefinitions extends ScalaCliSuite
           cwd = root,
           stdout = os.Inherit
         )
-      os.proc(TestUtil.cli, "setup-ide", ".", "--jvm", "11", extraOptions)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "setup-ide",
+        TestUtil.offlineOptions,
+        ".",
+        "--jvm",
+        "11",
+        extraOptions
+      )
         .call(
           cwd = root,
           stdout = os.Inherit
@@ -1178,7 +1235,17 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               "19"
             )
 
-            os.proc(TestUtil.cli, "setup-ide", ".", "--jvm", "19", javacOptions, extraOptions)
+            os.proc(
+              TestUtil.cli,
+              TestUtil.powerOptions,
+              "setup-ide",
+              TestUtil.offlineOptions,
+              ".",
+              "--jvm",
+              "19",
+              javacOptions,
+              extraOptions
+            )
               .call(
                 cwd = root,
                 stdout = os.Inherit
@@ -1220,7 +1287,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
           cwd = root,
           stdout = os.Inherit
         )
-      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "setup-ide",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      )
         .call(
           cwd = root,
           stdout = os.Inherit
@@ -1313,7 +1387,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
           cwd = root,
           stdout = os.Inherit
         )
-      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "setup-ide",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      )
         .call(
           cwd = root,
           stdout = os.Inherit
@@ -1721,8 +1802,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite
       // package the library jar
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         jarSources,
         "--library",
         "-o",
@@ -1733,8 +1815,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite
       // package the sources jar
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         jarSources,
         "--with-sources",
         "-o",
@@ -1942,7 +2025,13 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
             os.pwd
           )
-        os.proc(TestUtil.cli, "setup-ide", "check-java.sc")
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "setup-ide",
+          TestUtil.offlineOptions,
+          "check-java.sc"
+        )
           .call(cwd = root, env = Map("JAVA_HOME" -> java23Home.toString()))
         val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
         expect(ideOptionsPath.toNIO.toFile.exists())
@@ -1982,7 +2071,15 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
             os.pwd
           )
-        os.proc(TestUtil.cli, "setup-ide", "check-java.sc", "--java-home", java22Home.toString())
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "setup-ide",
+          TestUtil.offlineOptions,
+          "check-java.sc",
+          "--java-home",
+          java22Home.toString()
+        )
           .call(cwd = root)
         val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
         expect(ideOptionsPath.toNIO.toFile.exists())
@@ -2096,7 +2193,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
       s"""//> using python
          |println("scalapy is experimental")""".stripMargin)
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "setup-ide", scriptName, extraOptions).call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "setup-ide",
+        TestUtil.offlineOptions,
+        scriptName,
+        extraOptions
+      ).call(cwd = root)
       val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
       expect(ideEnvsPath.toNIO.toFile.exists())
       val jsonOptions = List("--envs-file", ideEnvsPath.toString)
@@ -2114,7 +2218,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             expect(compileBeforeReloadResult.getStatusCode == b.StatusCode.ERROR)
 
             // enable --power mode via env for setup-ide
-            os.proc(TestUtil.cli, "setup-ide", scriptName, extraOptions)
+            os.proc(
+              TestUtil.cli,
+              TestUtil.powerOptions,
+              "setup-ide",
+              TestUtil.offlineOptions,
+              scriptName,
+              extraOptions
+            )
               .call(cwd = root, env = Map("SCALA_CLI_POWER" -> "true"))
 
             // compilation should now succeed
@@ -2142,7 +2253,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
     inputs.fromRoot { root =>
       val configFile = os.rel / "config" / "config.json"
       val configEnvs = Map("SCALA_CLI_CONFIG" -> configFile.toString())
-      os.proc(TestUtil.cli, "setup-ide", scriptName, extraOptions).call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "setup-ide",
+        TestUtil.offlineOptions,
+        scriptName,
+        extraOptions
+      ).call(
         cwd = root,
         env = configEnvs
       )
@@ -2369,7 +2487,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "setup-ide", ".", "-v").call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "setup-ide",
+        TestUtil.offlineOptions,
+        ".",
+        "-v"
+      ).call(cwd = root)
       val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
       val jsonOptions    = List("--json-options", ideOptionsPath.toString)
       withBsp(

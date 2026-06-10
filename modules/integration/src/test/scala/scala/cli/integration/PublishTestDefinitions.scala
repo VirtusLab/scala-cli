@@ -11,7 +11,8 @@ import scala.util.Properties
 
 abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
-  protected def extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  protected def extraOptions: Seq[String] =
+    scalaVersionArgs ++ TestUtil.extraOptionsWithOffline
 
   protected object TestCase {
     val expectedMessage    = "Hello"
@@ -119,8 +120,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
       TestCase.testInputs(useTestScope).fromRoot { root =>
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "publish",
+          TestUtil.offlineOptions,
           extraOptions,
           signingOptions,
           "project",
@@ -179,7 +181,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
         val r = os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           "--dep",
           TestCase.dependency,
           "-r",
@@ -230,8 +234,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
         TestCase.testInputs().fromRoot { root =>
           val publishRes = os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "publish",
+            TestUtil.offlineOptions,
             extraOptions,
             signingOptions,
             "project",
@@ -323,8 +328,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
     TestCase.testInputs().fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         extraOptions,
         "project",
         "--js",
@@ -364,8 +370,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
     TestCase.testInputs().fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         extraOptions,
         "--with-sources=false",
         "--doc=false",
@@ -405,8 +412,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         extraOptions,
         ".",
         "--list-main-classes"
@@ -415,8 +423,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val output   = res.out.trim()
       val resLocal = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "local",
         extraOptions,
         ".",
@@ -468,8 +477,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         extraOptions,
         signingOptions,
         "project",
@@ -559,8 +569,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "publish",
+          TestUtil.offlineOptions,
           extraOptions,
           "--signer",
           "bc",
@@ -661,8 +672,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         extraOptions,
         "--secret-key",
         "value:INCORRECT_KEY",
@@ -727,8 +739,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
       val wrongPasswordProc = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         extraOptions,
         "--secret-key",
         "file:new_key.skr",
@@ -751,8 +764,9 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
       val noPasswordProc = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         extraOptions,
         "--secret-key",
         "file:new_key.skr",

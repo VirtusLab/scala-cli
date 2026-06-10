@@ -8,7 +8,8 @@ import scala.concurrent.duration.Duration
 import scala.util.Properties
 
 class BloopTests extends ScalaCliSuite {
-  def runScalaCli(args: String*): os.proc = os.proc(TestUtil.cli, args)
+  def runScalaCli(args: String*): os.proc =
+    os.proc(TestUtil.cli, args)
 
   private lazy val bloopDaemonDir =
     BloopUtil.bloopDaemonDir(runScalaCli("--power", "directories").call().out.text())
@@ -33,7 +34,7 @@ class BloopTests extends ScalaCliSuite {
       val bloop = BloopUtil.bloop(currentBloopVersion, bloopDaemonDir)
       bloop(Seq("about")).call(cwd = root, stdout = os.Inherit)
 
-      val output = os.proc(TestUtil.cli, "run", ".")
+      val output = os.proc(TestUtil.cli, TestUtil.powerOptions, "run", TestUtil.offlineOptions, ".")
         .call(cwd = root, stderr = os.Pipe, mergeErrIntoOut = true)
         .out.text()
       expect(output.contains("Hello from test"))
@@ -112,7 +113,7 @@ class BloopTests extends ScalaCliSuite {
     )
     inputs.fromRoot { root =>
 
-      os.proc(TestUtil.cli, "compile", ".")
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "compile", TestUtil.offlineOptions, ".")
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
 
       val projRes = os.proc(TestUtil.cli, "--power", "bloop", "projects")
@@ -152,7 +153,15 @@ class BloopTests extends ScalaCliSuite {
           sourcePath -> content("Hello")
         )
         inputs.fromRoot { root =>
-          val proc = os.proc(TestUtil.cli, "run", "--power", "--offline", "-w", ".")
+          val proc = os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            "--offline",
+            "-w",
+            "."
+          )
             .spawn(cwd = root)
           val firstLine = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(firstLine == "Hello")

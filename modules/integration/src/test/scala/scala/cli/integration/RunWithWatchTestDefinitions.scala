@@ -62,7 +62,15 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
       test(s"simple --watch ${inputPath.last}") {
         inputs.fromRoot { root =>
           TestUtil.withProcessWatching(
-            proc = os.proc(TestUtil.cli, "run", inputPath.toString(), "--watch", extraOptions)
+            proc = os.proc(
+              TestUtil.cli,
+              TestUtil.powerOptions,
+              "run",
+              TestUtil.offlineOptions,
+              inputPath.toString(),
+              "--watch",
+              extraOptions
+            )
               .spawn(cwd = root, stderr = os.Pipe),
             timeout = 120.seconds
           ) { (proc, timeout, ec) =>
@@ -97,8 +105,9 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
         TestUtil.withProcessWatching(
           proc = os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "run",
+            TestUtil.offlineOptions,
             ".",
             "--watch",
             "--watching",
@@ -137,7 +146,15 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
         externalFile -> "Hello"
       ).fromRoot { root =>
         TestUtil.withProcessWatching(
-          proc = os.proc(TestUtil.cli, "--power", "run", ".", "--watch", extraOptions)
+          proc = os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            ".",
+            "--watch",
+            extraOptions
+          )
             .spawn(cwd = root, stderr = os.Pipe),
           timeout = 120.seconds
         ) { (proc, timeout, ec) =>
@@ -176,8 +193,9 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
           proc =
             os.proc(
               TestUtil.cli,
-              "--power",
+              TestUtil.powerOptions,
               "run",
+              TestUtil.offlineOptions,
               ".",
               "--watch",
               "--watching",
@@ -231,7 +249,9 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
             proc =
               os.proc(
                 TestUtil.cli,
+                TestUtil.powerOptions,
                 "run",
+                TestUtil.offlineOptions,
                 inputPath.toString(),
                 "--watch",
                 "--test",
@@ -271,7 +291,15 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
       val configEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
 
       TestUtil.withProcessWatching(
-        proc = os.proc(TestUtil.cli, "run", "--watch", "--interactive", fileName)
+        proc = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          "--watch",
+          "--interactive",
+          fileName
+        )
           .spawn(
             cwd = root,
             mergeErrIntoOut = true,
@@ -367,8 +395,9 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
         def publishLib(): Unit =
           os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "publish",
+            TestUtil.offlineOptions,
             "--offline",
             "--publish-repo",
             testRepo,
@@ -381,8 +410,9 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
         TestUtil.withProcessWatching(
           os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "run",
+            TestUtil.offlineOptions,
             "--offline",
             "app",
             "-w",
@@ -414,7 +444,14 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
           |""".stripMargin
     ).fromRoot { root =>
       TestUtil.withProcessWatching(
-        proc = os.proc(TestUtil.cli, "test", "-w", "watch.scala")
+        proc = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "test",
+          TestUtil.offlineOptions,
+          "-w",
+          "watch.scala"
+        )
           .spawn(cwd = root, mergeErrIntoOut = true),
         timeout = 10.seconds
       ) { (proc, timeout, ec) =>
@@ -456,7 +493,15 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
 
       TestInputs(inputPath -> code(includeDirective = true)).fromRoot { root =>
         TestUtil.withProcessWatching(
-          os.proc(TestUtil.cli, "run", ".", "--watch", extraOptions)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            ".",
+            "--watch",
+            extraOptions
+          )
             .spawn(cwd = root, stderr = os.Pipe)
         ) { (proc, timeout, ec) =>
           val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
@@ -497,7 +542,9 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
         TestUtil.withProcessWatching(
           os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "run",
+            TestUtil.offlineOptions,
             "src",
             "--watch",
             resourceOptions,

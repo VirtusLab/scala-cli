@@ -55,7 +55,8 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
   this: TestScalaVersion =>
   import SparkTestDefinitions.*
 
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] =
+    scalaVersionArgs ++ TestUtil.extraOptionsWithOffline
 
   protected def defaultMaster                                                     = "local[4]"
   protected def simpleJobInputs(spark: Spark, withTestScope: Boolean): TestInputs = TestInputs(
@@ -138,8 +139,9 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
       val scopeOptions = if (withTestScope) Seq("--test") else Nil
       val res          = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         extraOptions,
         "--spark-standalone",
         ".",
@@ -195,8 +197,9 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
         val extraEnv = maybeHadoopHomeForWinutils(root / "hadoop-home")
         val res      = os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           extraOptions,
           "--spark-standalone",
           ".",

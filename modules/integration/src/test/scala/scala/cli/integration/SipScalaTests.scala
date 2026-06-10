@@ -29,7 +29,11 @@ class SipScalaTests extends ScalaCliSuite
       newCliPath
     }
   }
-  def powerArgs(isPowerMode: Boolean): Seq[String] = if (isPowerMode) Seq("--power") else Nil
+  def powerArgs(isPowerMode: Boolean): Seq[String]        = if (isPowerMode) Seq("--power") else Nil
+  def powerOfflineArgs(isPowerMode: Boolean): Seq[String] =
+    if (isPowerMode) TestUtil.powerOptions else Nil
+  def offlineAfterSubcommand(isPowerMode: Boolean): Seq[String] =
+    if (isPowerMode) TestUtil.offlineOptions else Nil
   def suppressExperimentalWarningArgs(areWarningsSuppressed: Boolean): Seq[String] =
     if (areWarningsSuppressed) Seq("--suppress-experimental-feature-warning") else Nil
 
@@ -52,7 +56,7 @@ class SipScalaTests extends ScalaCliSuite
 
   def testDirectoriesCommand(isPowerMode: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, powerArgs(isPowerMode), "directories").call(
+      val res = os.proc(TestUtil.cli, powerOfflineArgs(isPowerMode), "directories").call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
@@ -148,7 +152,7 @@ class SipScalaTests extends ScalaCliSuite
 
   def testExportCommandHelp(isPowerMode: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, powerArgs(isPowerMode), "export", "-h").call(
+      val res = os.proc(TestUtil.cli, powerOfflineArgs(isPowerMode), "export", "-h").call(
         cwd = root,
         stderr = os.Pipe
       )
@@ -160,7 +164,7 @@ class SipScalaTests extends ScalaCliSuite
   def testConfigCommandHelp(isPowerMode: Boolean, isFullHelp: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
       val helpParams = if (isFullHelp) Seq("--full-help") else Seq("-h")
-      val helpOutput = os.proc(TestUtil.cli, powerArgs(isPowerMode), "config", helpParams)
+      val helpOutput = os.proc(TestUtil.cli, powerOfflineArgs(isPowerMode), "config", helpParams)
         .call(cwd = root, stderr = os.Pipe)
         .out.trim()
       if (isPowerMode) {
@@ -279,7 +283,9 @@ class SipScalaTests extends ScalaCliSuite
   def testDefaultHelpOutput(isPowerMode: Boolean): Unit = TestInputs.empty.fromRoot { root =>
     for (helpOptions <- HelpTests.variants) {
       val output =
-        os.proc(TestUtil.cli, powerArgs(isPowerMode), helpOptions).call(cwd = root).out.trim()
+        os.proc(TestUtil.cli, powerOfflineArgs(isPowerMode), helpOptions).call(cwd =
+          root
+        ).out.trim()
       val restrictedFeaturesMentioned = output.contains("package")
       if (!isPowerMode) expect(!restrictedFeaturesMentioned)
       else expect(restrictedFeaturesMentioned)
@@ -288,7 +294,7 @@ class SipScalaTests extends ScalaCliSuite
 
   def testReplHelpOutput(isPowerMode: Boolean): Unit = TestInputs.empty.fromRoot { root =>
     val output =
-      os.proc(TestUtil.cli, powerArgs(isPowerMode), "repl", "--help-full").call(cwd =
+      os.proc(TestUtil.cli, powerOfflineArgs(isPowerMode), "repl", "--help-full").call(cwd =
         root
       ).out.trim()
     val restrictedFeaturesMentioned   = output.contains("compute-version")
@@ -370,7 +376,7 @@ class SipScalaTests extends ScalaCliSuite
   test("test global config suppressing warnings for an experimental sub-command") {
     testConfigSuppressingExperimentalFeatureWarnings("`export` sub-command") {
       (root: os.Path, homeEnv: Map[String, String]) =>
-        val res = os.proc(TestUtil.cli, "--power", "export")
+        val res = os.proc(TestUtil.cli, TestUtil.powerOptions, "export", TestUtil.offlineOptions)
           .call(cwd = root, check = false, env = homeEnv, stderr = os.Pipe)
         expect(res.exitCode == 1)
         res
@@ -485,7 +491,9 @@ class SipScalaTests extends ScalaCliSuite
       val continuationsVersion = "1.0.3"
       val res                  = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "compile",
+        TestUtil.offlineOptions,
         sourceFileName,
         "--compiler-plugin",
         s"org.scala-lang.plugins:::scala-continuations-plugin:$continuationsVersion",
@@ -552,7 +560,14 @@ class SipScalaTests extends ScalaCliSuite
     ) {
       TestInputs.empty.fromRoot { root =>
         val r =
-          os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "version", "--scala-version")
+          os.proc(
+            TestUtil.cli,
+            "--cli-default-scala-version",
+            sv,
+            "version",
+            "--offline",
+            "--scala-version"
+          )
             .call(cwd = root)
         expect(r.out.trim() == sv)
       }
@@ -562,7 +577,7 @@ class SipScalaTests extends ScalaCliSuite
       s"default Scala version overridden with $sv by a launcher parameter is respected when printing versions"
     ) {
       TestInputs.empty.fromRoot { root =>
-        val r = os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "version")
+        val r = os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "version", "--offline")
           .call(cwd = root)
         expect(r.out.trim().contains(sv))
       }
@@ -573,7 +588,7 @@ class SipScalaTests extends ScalaCliSuite
     TestInputs.empty.fromRoot { root =>
       val (sv1, sv2)  = (Constants.scala212, Constants.scala213)
       val launcherOpt = "--cli-default-scala-version"
-      val r           = os.proc(TestUtil.cli, launcherOpt, sv1, launcherOpt, sv2, "version")
+      val r = os.proc(TestUtil.cli, launcherOpt, sv1, launcherOpt, sv2, "version", "--offline")
         .call(cwd = root, check = false, stderr = os.Pipe)
       expect(r.exitCode == 1)
       expect(r.err.trim().contains(launcherOpt))
@@ -770,7 +785,9 @@ class SipScalaTests extends ScalaCliSuite
         |""".stripMargin).fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "compile",
+        TestUtil.offlineOptions,
         "example.sc",
         "--with-compiler"
       ).call(cwd = root)

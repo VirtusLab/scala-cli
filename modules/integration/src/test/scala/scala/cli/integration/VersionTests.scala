@@ -11,7 +11,7 @@ class VersionTests extends ScalaCliSuite {
       // tests if the format is correct instead of comparing to a version passed via Constants
       // in order to catch errors in Mill configuration, too
       val versionRegex = ".*\\d+[.]\\d+[.]\\d+.*".r
-      val version      = os.proc(TestUtil.cli, versionOption).call(check = false)
+      val version      = os.proc(TestUtil.cli, versionOption, "--offline").call(check = false)
       assert(
         versionRegex.findFirstMatchIn(version.out.text()).isDefined,
         clues(version.exitCode, version.out.text(), version.err.text())
@@ -22,7 +22,7 @@ class VersionTests extends ScalaCliSuite {
     test(s"$versionOption --offline") {
       TestInputs.empty.fromRoot { root =>
         // TODO: --power should not be necessary here
-        os.proc(TestUtil.cli, versionOption, "--offline", "--power").call(cwd = root)
+        os.proc(TestUtil.cli, versionOption, "--offline").call(cwd = root)
       }
     }
   }

@@ -127,7 +127,14 @@ trait BspSuite { this: ScalaCliSuite =>
       val stderr: os.ProcessOutput                = stdErrPathOpt.getOrElse(os.Inherit)
 
       val proc = trackSubprocess(
-        os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptionsOverride, args)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "bsp",
+          TestUtil.offlineOptions,
+          bspOptions ++ extraOptionsOverride,
+          args
+        )
           .spawn(cwd = root, stderr = stderr, env = bspEnvs)
       )
       var remoteServer

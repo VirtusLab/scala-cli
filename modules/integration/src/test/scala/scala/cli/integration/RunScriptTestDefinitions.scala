@@ -564,7 +564,8 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
   test("CLI args passed to script") {
     val inputs = TestInputs(os.rel / "f.sc" -> "println(args(0))")
     inputs.fromRoot { root =>
-      val p = os.proc(TestUtil.cli, "f.sc", "--", "16").call(cwd = root)
+      val p =
+        os.proc(TestUtil.cli, "f.sc", "--", "16").call(cwd = root)
       expect(p.out.trim() == "16")
     }
   }
@@ -734,8 +735,9 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
           "[warn]  Annotation @main in .sc scripts is not supported, use .scala format instead"
         ))
 
-        val noBloopRes = os.proc(TestUtil.cli, "--server=false", "script.sc")
-          .call(cwd = root, mergeErrIntoOut = true, check = false, stdout = os.Pipe)
+        val noBloopRes =
+          os.proc(TestUtil.cli, "--server=false", "script.sc")
+            .call(cwd = root, mergeErrIntoOut = true, check = false, stdout = os.Pipe)
 
         val noBloopOutputNormalized: String = normalizeConsoleOutput(noBloopRes.out.text())
 
@@ -771,8 +773,9 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         expect(!normalizeConsoleOutput(res.out.text())
           .contains("Annotation @main in .sc scripts is not supported"))
 
-        val noBloopRes = os.proc(TestUtil.cli, "--server=false", "main.scala")
-          .call(cwd = root, mergeErrIntoOut = true, check = false)
+        val noBloopRes =
+          os.proc(TestUtil.cli, "--server=false", "main.scala")
+            .call(cwd = root, mergeErrIntoOut = true, check = false)
 
         expect(!normalizeConsoleOutput(noBloopRes.out.text())
           .contains("Annotation @main in .sc scripts is not supported"))
@@ -828,7 +831,15 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         )
           .fromRoot { root =>
             val wrapperOptions = if (useObjectWrapper) Seq("--power", "--object-wrapper") else Nil
-            val r = os.proc(TestUtil.cli, "run", sourceFileName, wrapperOptions, extraOptions)
+            val r              = os.proc(
+              TestUtil.cli,
+              TestUtil.powerOptions,
+              "run",
+              TestUtil.offlineOptions,
+              sourceFileName,
+              wrapperOptions,
+              extraOptions
+            )
               .call(cwd = root)
             expect(r.out.trim() == expectedMessage)
           }
@@ -857,7 +868,15 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         )
           .fromRoot { root =>
             val wrapperOptions = if (useObjectWrapper) Seq("--power", "--object-wrapper") else Nil
-            val r = os.proc(TestUtil.cli, "run", sourceFileName, wrapperOptions, extraOptions)
+            val r              = os.proc(
+              TestUtil.cli,
+              TestUtil.powerOptions,
+              "run",
+              TestUtil.offlineOptions,
+              sourceFileName,
+              wrapperOptions,
+              extraOptions
+            )
               .call(cwd = root)
             expect(r.out.trim() == expectedMessage)
           }
@@ -896,6 +915,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         printf(
           "TestUtil.cli: [%s]\njavaHome: [%s]\nnewPath: [%s]\n",
           TestUtil.cli,
+          TestUtil.powerOptions,
           javaHome,
           newPath
         )

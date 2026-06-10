@@ -246,8 +246,14 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
 
   test("help js") {
-    val helpJsOption  = "--help-js"
-    val helpJs        = os.proc(TestUtil.cli, "run", helpJsOption).call(check = false)
+    val helpJsOption = "--help-js"
+    val helpJs       = os.proc(
+      TestUtil.cli,
+      TestUtil.powerOptions,
+      "run",
+      TestUtil.offlineOptions,
+      helpJsOption
+    ).call(check = false)
     val lines         = removeAnsiColors(helpJs.out.trim()).linesIterator.toVector
     val jsVersionHelp = lines.find(_.contains("--js-version")).getOrElse("")
     expect(jsVersionHelp.contains(s"(${Constants.scalaJsVersion} by default)"))
@@ -313,8 +319,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
 
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         "run.scala",
         "--js",
         "-o",
@@ -339,8 +346,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "Hello.scala",
         "--js-emit-wasm",
         "--js-module-kind",
@@ -364,8 +372,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "Hello.scala",
         "--js-emit-wasm",
         "--js-module-kind",
@@ -389,8 +398,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       // rather than silently overriding the module kind.
       val output = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "Hello.scala",
         "--js-emit-wasm",
         extraOptions
@@ -413,8 +423,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "Hello.scala",
         extraOptions
       ).call(cwd = root).out.trim()
@@ -440,8 +451,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "Hello.scala",
         "--js-emit-wasm",
         "--js-module-kind",
@@ -470,8 +482,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       inputs.fromRoot { root =>
         val output = os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           "Hello.scala",
           "--js-emit-wasm",
           "--js-module-kind",
@@ -496,8 +509,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       inputs.fromRoot { root =>
         val output = os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           "Hello.scala",
           "--js-emit-wasm",
           "--js-module-kind",
@@ -531,8 +545,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "Hello.scala",
         "--js-emit-wasm",
         "--js-module-kind",
@@ -577,8 +592,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "Main.scala",
         "Greeter.scala",
         "--js-emit-wasm",
@@ -612,8 +628,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "Hello.scala",
         "--js-emit-wasm",
         "--js-module-kind",
@@ -646,8 +663,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "Hello.scala",
         "--js-emit-wasm",
         "--js-module-kind",
@@ -676,8 +694,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       inputs.fromRoot { root =>
         val output = os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           "Hello.scala",
           "--js-emit-wasm",
           "--js-module-kind",
@@ -727,8 +746,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       os.makeDir.all(absOutDir)
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         fileName,
         "--js",
         "--js-module-kind",
@@ -774,8 +794,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       os.makeDir.all(absOutDir)
       val result = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         fileName,
         "--js",
         "--js-module-kind",
@@ -826,8 +847,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       os.makeDir.all(absOutDir)
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         fileName,
         "--js",
         "--js-module-kind",
@@ -866,7 +888,14 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
              |}
              |""".stripMargin
       ).fromRoot { root =>
-        val result = os.proc(TestUtil.cli, "run", "toolkit.scala", extraOptions).call(cwd = root)
+        val result = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          "toolkit.scala",
+          extraOptions
+        ).call(cwd = root)
         expect(result.out.trim() == msg)
       }
     }

@@ -22,7 +22,14 @@ class TestTests212 extends TestTestDefinitions with Test212 {
       val expectedWarning =
         s"Defaulting to a legacy test-runner module version: ${Constants.runnerScala2LegacyVersion}"
       val res =
-        os.proc(TestUtil.cli, "test", ".", extraOptions)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "test",
+          TestUtil.offlineOptions,
+          ".",
+          extraOptions
+        )
           .call(cwd = root, stderr = os.Pipe)
       val out = res.out.trim()
       expect(out.contains(expectedMessage))

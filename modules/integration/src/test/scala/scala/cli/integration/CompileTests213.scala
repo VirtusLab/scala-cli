@@ -44,7 +44,14 @@ class CompileTests213 extends CompileTestDefinitions with Test213 {
            |  }
            |}""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "test", ".", extraOptions).call(
+      val result = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "test",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      ).call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true

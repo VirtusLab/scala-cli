@@ -17,7 +17,9 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
     testInputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "repl",
+        TestUtil.offlineOptions,
         ".",
         "--jshell",
         "--repl-dry-run",
@@ -47,7 +49,9 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
       runAfterRepl(
         os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "repl",
+          TestUtil.offlineOptions,
           ".",
           "--jshell",
           "--repl-quit-after-init",
@@ -131,7 +135,9 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
       val jshellRes = os
         .proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "repl",
+          TestUtil.offlineOptions,
           ".",
           "--jshell",
           "--repl-dry-run",
@@ -231,7 +237,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
           |var inst = c.getField("MODULE$").get(null);
           |System.out.println(c.getMethod("hello").invoke(inst));
           |""".stripMargin,
-      replCliOptions = TestUtil.extraOptions,
+      replCliOptions = TestUtil.extraOptionsWithOffline,
       testInputs = TestInputs(
         os.rel / "demo" / "JavaPart.java" ->
           """package demo;
@@ -261,7 +267,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
           |var inst = c.getField("MODULE$").get(null);
           |System.out.println(c.getMethod("smth").invoke(inst));
           |""".stripMargin,
-      replCliOptions = TestUtil.extraOptions,
+      replCliOptions = TestUtil.extraOptionsWithOffline,
       testInputs = TestInputs(
         os.rel / "Smth.scala" ->
           """package demo

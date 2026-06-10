@@ -10,13 +10,15 @@ class RunTests213 extends RunTestDefinitions with Test213 {
         val res                  =
           os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "run",
+            TestUtil.offlineOptions,
             ".",
             "--repository",
             "https://scala-ci.typesafe.com/artifactory/scala-pr-validation-snapshots",
             "-S",
             snapshotScalaVersion,
-            TestUtil.extraOptions
+            TestUtil.extraOptionsWithOffline
           )
             .call(cwd = root)
         expect(res.out.trim() == "2.13.11-20221128-143922-89f3de5")
@@ -28,11 +30,13 @@ class RunTests213 extends RunTestDefinitions with Test213 {
         val res =
           os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "run",
+            TestUtil.offlineOptions,
             ".",
             "-S",
             "2.13.nightly",
-            TestUtil.extraOptions
+            TestUtil.extraOptionsWithOffline
           )
             .call(cwd = root)
         val version = res.out.trim()

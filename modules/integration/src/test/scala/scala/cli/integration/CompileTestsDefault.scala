@@ -9,7 +9,16 @@ class CompileTestsDefault extends CompileTestDefinitions with CompileTests3Stabl
     simpleInputs
       .add(os.rel / "project.scala" -> s"//> using scala ${crossVersions.mkString(" ")}")
       .fromRoot { root =>
-        os.proc(TestUtil.cli, "compile", ".", "--cross", "--power", extraOptions).call(cwd = root)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "compile",
+          TestUtil.offlineOptions,
+          ".",
+          "--cross",
+          "--power",
+          extraOptions
+        ).call(cwd = root)
       }
   }
 }

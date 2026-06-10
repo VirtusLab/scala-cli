@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
   protected def extraOptions: Seq[String] =
-    scalaVersionArgs ++ TestUtil.extraOptions ++ Seq("--suppress-experimental-feature-warning")
+    scalaVersionArgs ++ TestUtil.extraOptionsWithOffline ++ Seq("--suppress-experimental-feature-warning")
 
   def testedPublishedScalaVersion: String =
     if (actualScalaVersion.startsWith("3"))
@@ -100,8 +100,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
             else Seq.empty
           os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "publish",
+            TestUtil.offlineOptions,
             "local",
             ".",
             "--ivy2-home",
@@ -132,7 +133,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
       def publishLocal(): os.CommandResult =
         os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "publish",
+          TestUtil.offlineOptions,
           "local",
           ".",
           "--ivy2-home",
@@ -175,8 +178,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
       def publishLocal(): os.CommandResult =
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "publish",
+          TestUtil.offlineOptions,
           "local",
           ".",
           "--working-dir",
@@ -210,8 +214,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
       def publishLocal(): os.CommandResult =
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "publish",
+          TestUtil.offlineOptions,
           "local",
           ".",
           "--working-dir",
@@ -246,8 +251,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
         val failPublishAsGenyIsntProvided =
           os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "publish",
+            TestUtil.offlineOptions,
             "local",
             ".",
             extraOptions
@@ -257,8 +263,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
         val genyDep = "com.lihaoyi::geny:1.1.1"
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "publish",
+          TestUtil.offlineOptions,
           "local",
           ".",
           "--compile-dep",
@@ -268,10 +275,26 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           .call(cwd = root)
         val publishedDep =
           s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
-        val failRunAsGenyIsntProvided = os.proc(TestUtil.cli, "run", "--dep", publishedDep)
+        val failRunAsGenyIsntProvided = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          "--dep",
+          publishedDep
+        )
           .call(cwd = root, check = false)
         expect(failRunAsGenyIsntProvided.exitCode == 1)
-        os.proc(TestUtil.cli, "run", "--dep", publishedDep, "--dep", genyDep).call(cwd = root)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          "--dep",
+          publishedDep,
+          "--dep",
+          genyDep
+        ).call(cwd = root)
       }
     }
 
@@ -298,8 +321,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
         .fromRoot { root =>
           os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "publish",
+            TestUtil.offlineOptions,
             "local",
             ".",
             "--ivy2-home",
@@ -333,8 +357,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
         else Nil
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "local",
         ".",
         "--test",
@@ -344,7 +369,15 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
         .call(cwd = root)
       val publishedDep =
         s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
-      val r = os.proc(TestUtil.cli, "run", "--dep", publishedDep, extraOptions).call(cwd = root)
+      val r = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "run",
+        TestUtil.offlineOptions,
+        "--dep",
+        publishedDep,
+        extraOptions
+      ).call(cwd = root)
       expect(r.out.trim() == expectedMessage)
     }
   }
@@ -373,8 +406,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
       .fromRoot { root =>
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "publish",
+          TestUtil.offlineOptions,
           "local",
           ".",
           "--m2",
@@ -410,8 +444,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
       def publishLocal(): os.CommandResult =
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "publish",
+          TestUtil.offlineOptions,
           "local",
           ".",
           "--m2",
@@ -492,8 +527,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
     ).fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "local",
         ".",
         "--ivy2-home",
@@ -556,8 +592,9 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           else Nil
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "publish",
+          TestUtil.offlineOptions,
           "local",
           ".",
           scalaVersionArgs,

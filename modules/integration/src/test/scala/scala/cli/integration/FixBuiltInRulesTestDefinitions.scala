@@ -27,8 +27,9 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
 
       val fixOutput = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "fix",
+        TestUtil.offlineOptions,
         ".",
         "-v",
         "-v",
@@ -68,7 +69,14 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
           |""".stripMargin
       )
 
-      val runProc = os.proc(TestUtil.cli, "--power", "compile", ".", extraOptions)
+      val runProc = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      )
         .call(cwd = root, stderr = os.Pipe)
 
       expect(!runProc.err.trim().contains("Using directives detected in multiple files"))
@@ -96,8 +104,9 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
       val fixOutput =
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "fix",
+          TestUtil.offlineOptions,
           ".",
           "-v",
           "-v",
@@ -135,7 +144,14 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
           |""".stripMargin
       )
 
-      val runProc = os.proc(TestUtil.cli, "--power", "compile", ".", extraOptions)
+      val runProc = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      )
         .call(cwd = root, stderr = os.Pipe)
 
       expect(!runProc.err.trim().contains("Using directives detected in multiple files"))
@@ -181,8 +197,9 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
       val fixOutput =
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "fix",
+          TestUtil.offlineOptions,
           ".",
           "-v",
           "-v",
@@ -242,7 +259,14 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
           |""".stripMargin
       )
 
-      val runProc = os.proc(TestUtil.cli, "--power", "compile", ".", extraOptions)
+      val runProc = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      )
         .call(cwd = root, stderr = os.Pipe)
 
       expect(!runProc.err.trim().contains("Using directives detected in multiple files"))
@@ -323,8 +347,9 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
       inputs.fromRoot { root =>
         val res = os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "fix",
+          TestUtil.offlineOptions,
           ".",
           "--script-snippet",
           "//> using toolkit default",
@@ -440,9 +465,23 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
              |}
              |""".stripMargin
       ).fromRoot { root =>
-        os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "fix",
+          TestUtil.offlineOptions,
+          ".",
+          extraOptions
+        )
           .call(cwd = root, stderr = os.Pipe)
-        val r = os.proc(TestUtil.cli, "--power", "run", ".", extraOptions)
+        val r = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          ".",
+          extraOptions
+        )
           .call(cwd = root, stderr = os.Pipe)
         expect(r.out.trim() == expectedMessage)
       }
@@ -468,14 +507,28 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         s"dont extract directives into project.scala for a single-file project: $inputFileName"
       ) {
         testInputs.fromRoot { root =>
-          val fixResult = os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions)
+          val fixResult = os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "fix",
+            TestUtil.offlineOptions,
+            ".",
+            extraOptions
+          )
             .call(cwd = root, stderr = os.Pipe)
           expect(fixResult.err.trim().contains(
             "No need to migrate directives for a single source file project"
           ))
           expect(!os.exists(root / projectFileName))
           expect(os.read(root / inputFileName) == code)
-          val runResult = os.proc(TestUtil.cli, "run", ".", extraOptions)
+          val runResult = os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            ".",
+            extraOptions
+          )
             .call(cwd = root, stderr = os.Pipe)
           expect(runResult.out.trim() == root.toString)
         }
@@ -512,7 +565,14 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
                            |}
                            |""".stripMargin
       ).fromRoot { root =>
-        os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions).call(cwd = root)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "fix",
+          TestUtil.offlineOptions,
+          ".",
+          extraOptions
+        ).call(cwd = root)
         val expectedProjectFileContents =
           s"""// Test
              |$osLibTestDepDirective
@@ -524,7 +584,14 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         expect(!mainFileContents.contains("//> using"))
         val testFileContents = os.read(root / testFilePath)
         expect(!testFileContents.contains("//> using"))
-        os.proc(TestUtil.cli, "test", ".", extraOptions).call(cwd = root)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "test",
+          TestUtil.offlineOptions,
+          ".",
+          extraOptions
+        ).call(cwd = root)
       }
     }
 }

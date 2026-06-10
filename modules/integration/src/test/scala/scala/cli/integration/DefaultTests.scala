@@ -3,7 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDefinitions {
-  override def warmUpExtraTestOptions: Seq[String] = TestUtil.extraOptions
+  override def warmUpExtraTestOptions: Seq[String] = TestUtil.extraOptionsWithOffline
 
   test("running scala-cli with no args should default to repl") {
     TestInputs.empty.fromRoot { root =>
@@ -45,7 +45,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
           TestUtil.cli,
           "--execute-scala",
           s"@main def main() = println($quotation$msg$quotation)",
-          TestUtil.extraOptions
+          TestUtil.extraOptionsWithOffline
         )
           .call(cwd = root)
       expect(res.out.trim() == msg)
@@ -61,7 +61,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
           TestUtil.cli,
           "--execute-java",
           s"public class Main { public static void main(String[] args) { System.out.println($quotation$msg$quotation); } }",
-          TestUtil.extraOptions
+          TestUtil.extraOptionsWithOffline
         )
           .call(cwd = root)
       expect(res.out.trim() == msg)
@@ -82,7 +82,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
              |```scala
              |println($quotation$msg$quotation)
              |```""".stripMargin,
-          TestUtil.extraOptions
+          TestUtil.bloopTimeoutOptions
         )
           .call(cwd = root)
       expect(res.out.trim() == msg)
@@ -100,6 +100,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
       // first, precompile to an explicitly specified output directory with -d
       os.proc(
         TestUtil.cli,
+        TestUtil.extraOptionsWithOffline,
         ".",
         "-d",
         compilationOutputDir
@@ -108,6 +109,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
       // next, run while relying on the pre-compiled class instead of passing inputs
       val runRes = os.proc(
         TestUtil.cli,
+        TestUtil.extraOptionsWithOffline,
         "--main-class",
         mainClassName,
         "-classpath",
@@ -128,6 +130,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
       // first, precompile to an explicitly specified output directory with -d
       os.proc(
         TestUtil.cli,
+        TestUtil.extraOptionsWithOffline,
         ".",
         "-d",
         compilationOutputDir
@@ -146,14 +149,14 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
 
   test("ensure --help-native works with the default command") {
     TestInputs.empty.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "--help-native").call(cwd = root)
+      val res = os.proc(TestUtil.cli, TestUtil.extraOptionsWithOffline, "--help-native").call(cwd = root)
       expect(res.out.trim().contains("Scala Native options:"))
     }
   }
 
   test("ensure --help-js works with the default command") {
     TestInputs.empty.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "--help-js").call(cwd = root)
+      val res = os.proc(TestUtil.cli, TestUtil.extraOptionsWithOffline, "--help-js").call(cwd = root)
       expect(res.out.trim().contains("Scala.js options:"))
     }
   }

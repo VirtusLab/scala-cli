@@ -13,8 +13,9 @@ class DeprecationTests extends ScalaCliSuite {
     TestInputs(inputPath -> """println("hello")""").fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+
         "run",
-        TestUtil.extraOptions,
+        TestUtil.extraOptionsWithOffline,
         inputPath,
         "--deprecated-test-option"
       ).call(cwd = root, stderr = os.Pipe)
@@ -30,8 +31,9 @@ class DeprecationTests extends ScalaCliSuite {
     TestInputs(inputPath -> """println("hello")""").fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+
         "run",
-        TestUtil.extraOptions,
+        TestUtil.extraOptionsWithOffline,
         inputPath,
         "--deprecated-test-alias"
       ).call(cwd = root, stderr = os.Pipe)
@@ -47,7 +49,7 @@ class DeprecationTests extends ScalaCliSuite {
       """//> using lib "com.lihaoyi::os-lib:0.11.4"
         |println("hello")
         |""".stripMargin).fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", TestUtil.extraOptions, inputPath)
+      val res = os.proc(TestUtil.cli, "run", TestUtil.extraOptionsWithOffline, inputPath)
         .call(cwd = root, stderr = os.Pipe)
       val err = res.err.trim()
       expect(err.contains("deprecated"))
@@ -60,8 +62,9 @@ class DeprecationTests extends ScalaCliSuite {
     TestInputs(inputPath -> """println("hello")""").fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+
         "run",
-        TestUtil.extraOptions,
+        TestUtil.extraOptionsWithOffline,
         inputPath,
         "--deprecated-test-option",
         "--suppress-deprecated-warnings"
@@ -78,8 +81,9 @@ class DeprecationTests extends ScalaCliSuite {
         .call(cwd = root, env = configEnvs)
       val res = os.proc(
         TestUtil.cli,
+
         "run",
-        TestUtil.extraOptions,
+        TestUtil.extraOptionsWithOffline,
         inputPath,
         "--deprecated-test-option"
       ).call(cwd = root, stderr = os.Pipe, env = configEnvs)
@@ -93,8 +97,9 @@ class DeprecationTests extends ScalaCliSuite {
     TestInputs(inputPath -> """println("hello")""").fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+
         "run",
-        TestUtil.extraOptions,
+        TestUtil.extraOptionsWithOffline,
         inputPath,
         "--deprecated-test-option",
         "--deprecated-test-alias"

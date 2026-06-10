@@ -33,8 +33,9 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
       val dest = os.rel / "SparkJob.jar"
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         "--spark",
         "--jvm",
@@ -92,8 +93,9 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
       val scopeOptions = if (withTestScope) Seq("--test") else Nil
       val res          = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         extraOptions,
         "--spark",
         "--jvm",

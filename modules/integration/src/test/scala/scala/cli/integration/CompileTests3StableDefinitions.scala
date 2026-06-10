@@ -9,7 +9,14 @@ trait CompileTests3StableDefinitions { this: CompileTestDefinitions =>
     TestInputs(os.rel / "simple.sc" -> s"""println("Hello")""")
       .fromRoot { root =>
         val result =
-          os.proc(TestUtil.cli, "compile", ".", extraOptions)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "compile",
+            TestUtil.offlineOptions,
+            ".",
+            extraOptions
+          )
             .call(cwd = root, stderr = os.Pipe)
         expect(result.exitCode == 0)
         expect(!result.err.text().contains("cannot post process TASTY files"))
@@ -53,8 +60,9 @@ trait CompileTests3StableDefinitions { this: CompileTestDefinitions =>
 
       val asJarOut = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "compile",
+        TestUtil.offlineOptions,
         extraOptions,
         ".",
         "--print-class-path",

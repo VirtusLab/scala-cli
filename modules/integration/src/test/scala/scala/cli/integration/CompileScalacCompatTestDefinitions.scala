@@ -18,7 +18,13 @@ trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
            |def takesTuple(tpl: Tuple) = ???
            |def withTuple() = takesTuple(1, 2)
            |""".stripMargin).fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "compile", sourceFileName)
+        val res = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "compile",
+          TestUtil.offlineOptions,
+          sourceFileName
+        )
           .call(cwd = root, check = false, stderr = os.Pipe)
         expect(res.exitCode == 1)
         val errOutput                   = res.err.trim()
@@ -99,7 +105,14 @@ trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
            |def takesTuple(tpl: Tuple) = ???
            |def withTuple() = takesTuple(1, 2)
            |""".stripMargin).fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "compile", sourceFileName, cliOpts)
+        val res = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "compile",
+          TestUtil.offlineOptions,
+          sourceFileName,
+          cliOpts
+        )
           .call(cwd = root, check = false, stderr = os.Pipe)
         println(res.err.trim())
         expect(res.exitCode == 1)
@@ -145,7 +158,9 @@ trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
         val cliRes =
           os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "compile",
+            TestUtil.offlineOptions,
             sourceFileName,
             "--server=false",
             if (useDirective) Nil else warningConfOptions
@@ -184,7 +199,9 @@ trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
           val r =
             os.proc(
               TestUtil.cli,
+              TestUtil.powerOptions,
               "compile",
+              TestUtil.offlineOptions,
               sourceFileName,
               if (useDirective) Nil else unusedLintOptions
             )
@@ -219,7 +236,9 @@ trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
            |""".stripMargin).fromRoot { root =>
         os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "compile",
+          TestUtil.offlineOptions,
           file,
           s"$option2:false",
           extraOptions
@@ -250,7 +269,14 @@ trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
              |  Iterator(1)
              |    .map(_ + file.count())
              |""".stripMargin).fromRoot { root =>
-          os.proc(TestUtil.cli, "compile", input, buildServerOpts).call(cwd = root)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "compile",
+            TestUtil.offlineOptions,
+            input,
+            buildServerOpts
+          ).call(cwd = root)
         }
       }
     }

@@ -35,7 +35,15 @@ class TestTestsDefault extends TestTestDefinitions with TestDefault {
     )
 
     inputs.fromRoot { root =>
-      val compileRes = os.proc(TestUtil.cli, "compile", "--print-class-path", extraOptions, ".")
+      val compileRes = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        "--print-class-path",
+        extraOptions,
+        "."
+      )
         .call(cwd = root)
       val cp = compileRes.out.trim().split(File.pathSeparator)
       expect(cp.length == 1) // only class dir, no scala JARs
@@ -89,7 +97,16 @@ class TestTestsDefault extends TestTestDefinitions with TestDefault {
            |}
            |""".stripMargin).fromRoot { root =>
         val res =
-          os.proc(TestUtil.cli, "test", ".", "-S", scalaVersion, TestUtil.extraOptions)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "test",
+            TestUtil.offlineOptions,
+            ".",
+            "-S",
+            scalaVersion,
+            TestUtil.extraOptionsWithOffline
+          )
             .call(cwd = root, stderr = os.Pipe)
         val out = res.out.trim()
         expect(out.contains(expectedMessage))

@@ -10,9 +10,10 @@ import scala.util.Properties
 
 abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
-  private val utestVersion                     = "0.8.3"
-  private val zioTestVersion                   = "2.1.17"
+  protected lazy val extraOptions: Seq[String] =
+    scalaVersionArgs ++ TestUtil.extraOptionsWithOffline
+  private val utestVersion   = "0.8.3"
+  private val zioTestVersion = "2.1.17"
 
   def successfulTestInputs(directivesString: String =
     s"//> using dep org.scalameta::munit::$munitVersion"): TestInputs = TestInputs(
@@ -331,8 +332,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         TestUtil.withProcessWatching(
           proc = os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "test",
+            TestUtil.offlineOptions,
             ".",
             "--watch",
             "--watching",
@@ -359,7 +361,16 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     test("successful test JVM 8") {
       successfulTestInputs().fromRoot { root =>
         val output =
-          os.proc(TestUtil.cli, "test", "--jvm", "8", extraOptions, ".").call(cwd = root).out.text()
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "test",
+            TestUtil.offlineOptions,
+            "--jvm",
+            "8",
+            extraOptions,
+            "."
+          ).call(cwd = root).out.text()
         expect(output.contains("Hello from tests"))
       }
     }
@@ -403,7 +414,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       val res =
         os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "test",
+          TestUtil.offlineOptions,
           ".",
           extraOptions,
           "--test-only",
@@ -450,7 +463,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       val res =
         os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "test",
+          TestUtil.offlineOptions,
           ".",
           extraOptions,
           "--test-only",
@@ -716,7 +731,16 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
                |""".stripMargin
         ).fromRoot { root =>
           val res =
-            os.proc(TestUtil.cli, "test", TestUtil.extraOptions, ".", "--jvm", javaVersion)
+            os.proc(
+              TestUtil.cli,
+              TestUtil.powerOptions,
+              "test",
+              TestUtil.offlineOptions,
+              TestUtil.extraOptionsWithOffline,
+              ".",
+              "--jvm",
+              javaVersion
+            )
               .call(cwd = root)
           expect(res.out.text().contains("Hello from pure Java Jupiter"))
         }
@@ -957,7 +981,15 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       }
       inputs.fromRoot { root =>
         val res =
-          os.proc(TestUtil.cli, "--power", "test", extraOptions, ".", "--cross").call(cwd = root)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "test",
+            TestUtil.offlineOptions,
+            extraOptions,
+            ".",
+            "--cross"
+          ).call(cwd = root)
         val output        = res.out.text()
         val expectedCount = 2 + (if (supportsNative) 1 else 0)
         expect(countSubStrings(output, "Hello from shared") == expectedCount)
@@ -1107,7 +1139,14 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
            |    )
            |}
            |""".stripMargin).fromRoot { root =>
-        val r = os.proc(TestUtil.cli, "test", ".", extraOptions)
+        val r = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "test",
+          TestUtil.offlineOptions,
+          ".",
+          extraOptions
+        )
           .call(cwd = root, check = false, stderr = os.Pipe)
         expect(r.exitCode == 1)
         val expectedWarning =
@@ -1145,7 +1184,15 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
              |    )
              |}
              |""".stripMargin).fromRoot { root =>
-          val r = os.proc(TestUtil.cli, "test", ".", extraOptions, platformOptions).call(cwd = root)
+          val r = os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "test",
+            TestUtil.offlineOptions,
+            ".",
+            extraOptions,
+            platformOptions
+          ).call(cwd = root)
           val output = r.out.trim()
           expect(output.contains(expectedMessage))
           expect(countSubStrings(output, expectedMessage) == 1)
@@ -1306,7 +1353,16 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
            |}
            |""".stripMargin).fromRoot { root =>
         val res =
-          os.proc(TestUtil.cli, "test", ".", extraOptions, "--jvm", javaVersion)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "test",
+            TestUtil.offlineOptions,
+            ".",
+            extraOptions,
+            "--jvm",
+            javaVersion
+          )
             .call(cwd = root, stderr = os.Pipe)
         val out = res.out.trim()
         expect(out.contains(expectedMessage))

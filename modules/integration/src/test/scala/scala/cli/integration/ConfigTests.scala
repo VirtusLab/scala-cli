@@ -58,12 +58,25 @@ class ConfigTests extends ScalaCliSuite {
     ).fromRoot { root =>
       val bspEntry = root / ".bsp" / "scala-cli.json"
 
-      os.proc(TestUtil.cli, "config", "ide.auto-setup", "false").call(cwd = root, env = configEnv)
+      os.proc(TestUtil.cli, "config", "ide.auto-setup", "false").call(
+        cwd = root,
+        env = configEnv
+      )
 
-      os.proc(TestUtil.cli, "compile", ".").call(cwd = root, env = configEnv)
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "compile", TestUtil.offlineOptions, ".").call(
+        cwd = root,
+        env = configEnv
+      )
       assert(!os.exists(bspEntry))
 
-      os.proc(TestUtil.cli, "compile", "--auto-setup-ide=true", ".").call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        "--auto-setup-ide=true",
+        "."
+      ).call(
         cwd = root,
         env = configEnv
       )
@@ -185,8 +198,9 @@ class ConfigTests extends ScalaCliSuite {
       val confFile = confDir / "test-config.json"
       val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
 
-      val res = os.proc(TestUtil.cli, "--power", "config", "httpProxy.address", proxyAddr)
-        .call(cwd = root, env = extraEnv, check = false, mergeErrIntoOut = true)
+      val res =
+        os.proc(TestUtil.cli, "--power", "config", "httpProxy.address", proxyAddr)
+          .call(cwd = root, env = extraEnv, check = false, mergeErrIntoOut = true)
       val output = res.out.trim()
       expect(output.contains(" has wrong permissions"))
     }
@@ -335,8 +349,9 @@ class ConfigTests extends ScalaCliSuite {
       else
         expect(pgpPasswordOpt.isDefined)
 
-      val passwordInConfig = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key-password")
-        .call(cwd = root, env = extraEnv, stderr = os.Pipe)
+      val passwordInConfig =
+        os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key-password")
+          .call(cwd = root, env = extraEnv, stderr = os.Pipe)
       expect(passwordInConfig.out.text().isEmpty())
 
       val secretKey = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key")
@@ -426,8 +441,9 @@ class ConfigTests extends ScalaCliSuite {
       val repoPath = root / "the-repo"
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "--publish-repo",
         repoPath.toNIO.toUri.toASCIIString,
         "messages",
@@ -598,12 +614,13 @@ class ConfigTests extends ScalaCliSuite {
       )
 
       // override some values should throw error without force flag
-      val res = os.proc(TestUtil.cli, "--power", "config", key, props, props2, props3).call(
-        cwd = root,
-        env = configEnv,
-        check = false,
-        mergeErrIntoOut = true
-      )
+      val res =
+        os.proc(TestUtil.cli, "--power", "config", key, props, props2, props3).call(
+          cwd = root,
+          env = configEnv,
+          check = false,
+          mergeErrIntoOut = true
+        )
 
       expect(res.exitCode == 1)
       expect(res.out.trim().contains("pass -f or --force"))
@@ -656,8 +673,9 @@ class ConfigTests extends ScalaCliSuite {
 
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "--publish-repo",
         repoPath.toNIO.toUri.toASCIIString,
         "messages",
@@ -681,7 +699,9 @@ class ConfigTests extends ScalaCliSuite {
 
       val res = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "--repository",
         fakeRepoUrl,
         "hello"
@@ -793,8 +813,9 @@ class ConfigTests extends ScalaCliSuite {
 
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "--publish-repo",
         repoPath.toNIO.toUri.toASCIIString,
         "messages",
@@ -818,7 +839,9 @@ class ConfigTests extends ScalaCliSuite {
 
       val res = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "hello"
       ).call(cwd = root, env = extraEnv)
       expect(res.out.trim() == "Hello World")
@@ -858,8 +881,9 @@ class ConfigTests extends ScalaCliSuite {
 
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "--publish-repo",
         repoPath.toNIO.toUri.toASCIIString,
         "messages",
@@ -892,7 +916,9 @@ class ConfigTests extends ScalaCliSuite {
 
       val res = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "hello"
       ).call(cwd = root, env = extraEnv)
       expect(res.out.trim() == "Hello World")

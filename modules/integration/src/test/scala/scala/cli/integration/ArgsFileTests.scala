@@ -21,11 +21,12 @@ class ArgsFileTests extends ScalaCliSuite {
     )
 
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, serverArgs, "@args.txt", fileName).call(
-        cwd = root,
-        check = false,
-        stderr = os.Pipe
-      )
+      val res =
+        os.proc(TestUtil.cli, serverArgs, "@args.txt", fileName).call(
+          cwd = root,
+          check = false,
+          stderr = os.Pipe
+        )
       assert(res.exitCode == 1)
 
       val compilationError = res.err.text()
@@ -78,7 +79,9 @@ class ArgsFileTests extends ScalaCliSuite {
 
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "compile",
+        TestUtil.offlineOptions,
         "--scala-opt",
         "-d",
         "--scala-opt",
@@ -91,7 +94,9 @@ class ArgsFileTests extends ScalaCliSuite {
       os.makeDir.all(compileOutput)
       val runRes = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         "@args.txt",
         "--server=false",
         "@args2.txt",

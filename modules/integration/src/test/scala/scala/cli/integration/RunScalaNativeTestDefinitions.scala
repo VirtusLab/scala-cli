@@ -259,8 +259,14 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
     }
 
   test("help native") {
-    val helpNativeOption  = "--help-native"
-    val helpNative        = os.proc(TestUtil.cli, "run", helpNativeOption).call(check = false)
+    val helpNativeOption = "--help-native"
+    val helpNative       = os.proc(
+      TestUtil.cli,
+      TestUtil.powerOptions,
+      "run",
+      TestUtil.offlineOptions,
+      helpNativeOption
+    ).call(check = false)
     val lines             = removeAnsiColors(helpNative.out.trim()).linesIterator.toVector
     val nativeVersionHelp = lines.find(_.contains("--native-version")).getOrElse("")
     expect(nativeVersionHelp.contains(s"(${Constants.scalaNativeVersion} by default)"))
@@ -296,11 +302,27 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
         val configEnv = Map("SCALA_CLI_CONFIG" -> (configDir / "config.json").toString)
         os.proc(TestUtil.cli, "config", "interactive", "true")
           .call(cwd = root, env = configEnv)
-        val output1 = os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
+        val output1 = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          "--native",
+          ".",
+          extraOptions
+        )
           .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main1"))
           .out.lines().last
         expect(output1 == "Hello from Main1")
-        val output2 = os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
+        val output2 = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          "--native",
+          ".",
+          extraOptions
+        )
           .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main2"))
           .out.lines().last
         expect(output2 == "Hello from Main2")
@@ -358,7 +380,15 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
                    |}
                    |""".stripMargin
             ).fromRoot { root =>
-              val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
+              val result = os.proc(
+                TestUtil.cli,
+                TestUtil.powerOptions,
+                "run",
+                TestUtil.offlineOptions,
+                "toolkit.scala",
+                cmdLineOpts,
+                extraOptions
+              )
                 .call(cwd = root, stderr = os.Pipe)
               expect(result.out.trim() == expectedMessage)
               if (
@@ -401,7 +431,15 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
                  |}
                  |""".stripMargin
           ).fromRoot { root =>
-            val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
+            val result = os.proc(
+              TestUtil.cli,
+              TestUtil.powerOptions,
+              "run",
+              TestUtil.offlineOptions,
+              "toolkit.scala",
+              cmdLineOpts,
+              extraOptions
+            )
               .call(cwd = root, stderr = os.Pipe)
             expect(result.out.trim() == root.toString)
             if (Constants.scalaNativeVersion != Constants.toolkiMaxScalaNative) {

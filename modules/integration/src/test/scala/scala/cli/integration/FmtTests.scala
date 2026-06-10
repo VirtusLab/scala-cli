@@ -80,7 +80,9 @@ class FmtTests extends ScalaCliSuite {
 
   test("simple") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "fmt", TestUtil.offlineOptions, ".").call(cwd =
+        root
+      )
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == expectedSimpleInputsFormattedContent)
     }
@@ -88,7 +90,7 @@ class FmtTests extends ScalaCliSuite {
 
   test("no inputs") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt").call(cwd = root)
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "fmt", TestUtil.offlineOptions).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == expectedSimpleInputsFormattedContent)
     }
@@ -96,7 +98,13 @@ class FmtTests extends ScalaCliSuite {
 
   test("with --check") {
     simpleInputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "fmt", "--check").call(cwd = root, check = false)
+      val res = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        "--check"
+      ).call(cwd = root, check = false)
       expect(res.exitCode == 1)
       val out            = res.out.text()
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
@@ -107,15 +115,35 @@ class FmtTests extends ScalaCliSuite {
 
   test("filter correctly with --check") {
     simpleInputsWithFilter.fromRoot { root =>
-      val out = os.proc(TestUtil.cli, "fmt", ".", "--check").call(cwd = root).out.trim()
+      val out = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        ".",
+        "--check"
+      ).call(cwd = root).out.trim()
       expect(out == "All files are formatted with scalafmt :)")
     }
   }
 
   test("--scalafmt-help") {
     emptyInputs.fromRoot { root =>
-      val out1 = os.proc(TestUtil.cli, "fmt", "--scalafmt-help").call(cwd = root).out.trim()
-      val out2 = os.proc(TestUtil.cli, "fmt", "-F", "--help").call(cwd = root).out.trim()
+      val out1 = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        "--scalafmt-help"
+      ).call(cwd = root).out.trim()
+      val out2 = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        "-F",
+        "--help"
+      ).call(cwd = root).out.trim()
       expect(out1.nonEmpty)
       expect(out1 == out2)
       val outLines       = out1.linesIterator.toSeq
@@ -128,7 +156,14 @@ class FmtTests extends ScalaCliSuite {
 
   test("--save-scalafmt-conf") {
     simpleInputsWithDialectOnly.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt", ".", "--save-scalafmt-conf").call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        ".",
+        "--save-scalafmt-conf"
+      ).call(cwd = root)
       val confLines      = os.read.lines(root / confFileName)
       val versionInConf  = confLines(0).stripPrefix("version = ")
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
@@ -139,7 +174,15 @@ class FmtTests extends ScalaCliSuite {
 
   test("--scalafmt-dialect") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt", ".", "--scalafmt-dialect", "scala3").call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        ".",
+        "--scalafmt-dialect",
+        "scala3"
+      ).call(cwd = root)
       val confLines      = os.read.lines(root / Constants.workspaceDirName / confFileName)
       val dialectInConf  = confLines(1).stripPrefix("runner.dialect = ").trim
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
@@ -150,7 +193,15 @@ class FmtTests extends ScalaCliSuite {
 
   test("--scalafmt-version") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt", ".", "--scalafmt-version", "3.5.5").call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        ".",
+        "--scalafmt-version",
+        "3.5.5"
+      ).call(cwd = root)
       val confLines      = os.read.lines(root / Constants.workspaceDirName / confFileName)
       val versionInConf  = confLines(0).stripPrefix("version = ").trim
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
@@ -161,7 +212,15 @@ class FmtTests extends ScalaCliSuite {
 
   test("--scalafmt-conf") {
     simpleInputsWithCustomConfLocation.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt", ".", "--scalafmt-conf", "custom.conf").call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        ".",
+        "--scalafmt-conf",
+        "custom.conf"
+      ).call(cwd = root)
       val confLines      = os.read.lines(root / Constants.workspaceDirName / confFileName)
       val versionInConf  = confLines(0).stripPrefix("version = ").trim
       val dialectInConf  = confLines(1).stripPrefix("runner.dialect = ").trim
@@ -176,7 +235,15 @@ class FmtTests extends ScalaCliSuite {
     simpleInputsWithVersionOnly.fromRoot { root =>
       val confStr =
         s"""version = 3.5.7${System.lineSeparator}runner.dialect = scala213${System.lineSeparator}"""
-      os.proc(TestUtil.cli, "fmt", ".", "--scalafmt-conf-str", s"$confStr").call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        ".",
+        "--scalafmt-conf-str",
+        s"$confStr"
+      ).call(cwd = root)
       val confLines      = os.read.lines(root / Constants.workspaceDirName / confFileName)
       val versionInConf  = confLines(0).stripPrefix("version = ")
       val dialectInConf  = confLines(1).stripPrefix("runner.dialect = ")
@@ -189,7 +256,9 @@ class FmtTests extends ScalaCliSuite {
 
   test("complete .scalafmt.conf is not duplicated under .scala-build") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "fmt", TestUtil.offlineOptions, ".").call(cwd =
+        root
+      )
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == expectedSimpleInputsFormattedContent)
       expectNoWorkspaceScalafmtConf(root)
@@ -200,7 +269,9 @@ class FmtTests extends ScalaCliSuite {
     simpleInputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "fmt",
+        TestUtil.offlineOptions,
         ".",
         "--scalafmt-version",
         Constants.defaultScalafmtVersion
@@ -213,7 +284,15 @@ class FmtTests extends ScalaCliSuite {
 
   test("complete .scalafmt.conf + matching --scalafmt-dialect still avoids .scala-build") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt", ".", "--scalafmt-dialect", "scala213").call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        ".",
+        "--scalafmt-dialect",
+        "scala213"
+      ).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == expectedSimpleInputsFormattedContent)
       expectNoWorkspaceScalafmtConf(root)
@@ -226,7 +305,9 @@ class FmtTests extends ScalaCliSuite {
       val subdir = root / "subdir"
       os.makeDir.all(subdir)
       os.move(root / "Foo.scala", subdir / "Foo.scala")
-      os.proc(TestUtil.cli, "fmt", ".").call(cwd = subdir)
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "fmt", TestUtil.offlineOptions, ".").call(cwd =
+        subdir
+      )
       val updatedContent = noCrLf(os.read(subdir / "Foo.scala"))
       expect(updatedContent == expectedSimpleInputsFormattedContent)
       expectNoWorkspaceScalafmtConf(subdir)
@@ -241,7 +322,9 @@ class FmtTests extends ScalaCliSuite {
       TestUtil.initializeGit(root)
       val confPath = workspaceConfPath(root)
       expect(!os.exists(confPath))
-      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "fmt", TestUtil.offlineOptions, ".").call(cwd =
+        root
+      )
       expect(os.exists(confPath))
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == expectedSimpleInputsFormattedContent)
@@ -252,7 +335,9 @@ class FmtTests extends ScalaCliSuite {
     simpleInputsWithDialectOnly.fromRoot { root =>
       val confPath = workspaceConfPath(root)
       expect(!os.exists(confPath))
-      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "fmt", TestUtil.offlineOptions, ".").call(cwd =
+        root
+      )
       expect(os.exists(confPath))
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == expectedSimpleInputsFormattedContent)
@@ -261,7 +346,9 @@ class FmtTests extends ScalaCliSuite {
 
   test("scalafmt conf without version") {
     simpleInputsWithDialectOnly.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "fmt", TestUtil.offlineOptions, ".").call(cwd =
+        root
+      )
       val confLines      = os.read.lines(root / Constants.workspaceDirName / confFileName)
       val versionInConf  = confLines(0).stripPrefix("version = ").trim
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
@@ -272,7 +359,9 @@ class FmtTests extends ScalaCliSuite {
 
   test("scalafmt conf without dialect") {
     simpleInputsWithVersionOnly.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "fmt", TestUtil.offlineOptions, ".").call(cwd =
+        root
+      )
       val confLines      = os.read.lines(root / Constants.workspaceDirName / confFileName)
       val dialectInConf  = confLines(1).stripPrefix("runner.dialect = ")
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
@@ -283,7 +372,13 @@ class FmtTests extends ScalaCliSuite {
 
   test("default values in help") {
     TestInputs.empty.fromRoot { root =>
-      val res            = os.proc(TestUtil.cli, "fmt", "--help").call(cwd = root)
+      val res = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        "--help"
+      ).call(cwd = root)
       val lines          = removeAnsiColors(res.out.trim()).linesIterator.toVector
       val fmtVersionHelp = lines.find(_.contains("--fmt-version")).getOrElse("")
       expect(fmtVersionHelp.contains(s"(${Constants.defaultScalafmtVersion} by default)"))
@@ -300,7 +395,9 @@ class FmtTests extends ScalaCliSuite {
             |""".stripMargin
     )
       .fromRoot { root =>
-        os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+        os.proc(TestUtil.cli, TestUtil.powerOptions, "fmt", TestUtil.offlineOptions, ".").call(cwd =
+          root
+        )
         val updatedContent = noCrLf(os.read(root / projectFileName))
         expect(updatedContent == expectedSimpleInputsFormattedContent)
       }
@@ -323,7 +420,13 @@ class FmtTests extends ScalaCliSuite {
 
   test("sbt file is formatted when passed explicitly") {
     sbtInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt", "build.sbt").call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fmt",
+        TestUtil.offlineOptions,
+        "build.sbt"
+      ).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "build.sbt"))
       expect(updatedContent == expectedSbtFormattedContent)
     }
@@ -331,7 +434,9 @@ class FmtTests extends ScalaCliSuite {
 
   test("sbt file is formatted when directory is passed") {
     sbtInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "fmt", TestUtil.offlineOptions, ".").call(cwd =
+        root
+      )
       val updatedContent = noCrLf(os.read(root / "build.sbt"))
       expect(updatedContent == expectedSbtFormattedContent)
     }

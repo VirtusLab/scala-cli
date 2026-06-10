@@ -15,8 +15,9 @@ import scala.util.{Properties, Using}
 
 abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
-  protected lazy val node: String              = TestUtil.fromPath("node").getOrElse("node")
+  protected lazy val extraOptions: Seq[String] =
+    scalaVersionArgs ++ TestUtil.extraOptionsWithOffline
+  protected lazy val node: String = TestUtil.fromPath("node").getOrElse("node")
 
   test("simple script") {
     val fileName = "simple.sc"
@@ -32,7 +33,14 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       fileName.stripSuffix(".sc") + ext
     }
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, fileName).call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        extraOptions,
+        fileName
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -58,7 +66,14 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".").call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        extraOptions,
+        "."
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -89,7 +104,14 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       os.rel / "input" -> message
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".").call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        extraOptions,
+        "."
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -120,8 +142,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         ".",
         "-o",
@@ -156,7 +179,15 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.asZip { (root, zipPath) =>
       val message = "1,2"
 
-      os.proc(TestUtil.cli, "--power", "package", zipPath, extraOptions, ".").call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        zipPath,
+        extraOptions,
+        "."
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -183,7 +214,15 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     )
     val destName = fileName.stripSuffix(".sc") + ".js"
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, fileName, "--js").call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        extraOptions,
+        fileName,
+        "--js"
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -213,8 +252,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         fileName,
         "--js",
@@ -256,8 +296,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         fileName,
         "--js",
@@ -300,8 +341,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val extraArgs = if (jvm) Seq("--js-cli-on-jvm") else Nil
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         fileName,
         "--js",
@@ -340,8 +382,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         fileName,
         "--js",
@@ -380,8 +423,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         fileName,
         "--js",
@@ -444,7 +488,15 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       fileName.stripSuffix(".sc") + ext
     }
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, fileName, "--native").call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        extraOptions,
+        fileName,
+        "--native"
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -495,7 +547,15 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
 
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, nativeTargetOpts, fileName).call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        extraOptions,
+        nativeTargetOpts,
+        fileName
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -550,7 +610,15 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       )
       val launcherName = fileName.stripSuffix(".sc") + ".jar"
       inputs.fromRoot { root =>
-        os.proc(TestUtil.cli, "--power", "package", extraOptions, "--assembly", fileName).call(
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "package",
+          TestUtil.offlineOptions,
+          extraOptions,
+          "--assembly",
+          fileName
+        ).call(
           cwd = root,
           stdin = os.Inherit,
           stdout = os.Inherit
@@ -600,8 +668,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         "--assembly",
         "-o",
@@ -641,8 +710,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         "--assembly",
         "-o",
@@ -705,8 +775,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         "--main-class",
         "app.Hello",
@@ -753,8 +824,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         "--assembly",
         "-o",
@@ -829,7 +901,14 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
            |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".").call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        extraOptions,
+        "."
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -873,8 +952,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     simpleInputWithScalaAndSc.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         ".",
         "-o",
@@ -916,7 +996,17 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   test("doc JAR") {
     val dest = os.rel / "doc.jar"
     simpleInputWithScalaAndSc.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".", "-o", dest, "--doc").call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        extraOptions,
+        ".",
+        "-o",
+        dest,
+        "--doc"
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -974,8 +1064,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         ".",
         "--native-image",
@@ -1023,8 +1114,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       inputs.fromRoot { root =>
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "package",
+          TestUtil.offlineOptions,
           extraOptions,
           ".",
           "--native-image",
@@ -1063,8 +1155,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         ".",
         "--list-main-classes"
@@ -1097,8 +1190,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         fileName,
         "-o",
         destFile,
@@ -1130,8 +1224,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           "Simple.jar" // the `out` directory doesn't exist and should be created
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         ".",
         "--library",
         "-o",
@@ -1156,8 +1251,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         fileName,
         "--docker",
         "--docker-image-repository",
@@ -1200,8 +1296,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         codePath,
         "--docker",
         "--docker-image-repository",
@@ -1233,7 +1330,14 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
   test("default values in help") {
     TestInputs.empty.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "--power", "package", extraOptions, "--help").call(cwd = root)
+      val res = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        extraOptions,
+        "--help"
+      ).call(cwd = root)
       val lines = removeAnsiColors(res.out.trim()).linesIterator.toVector
 
       val graalVmVersionHelp     = lines.find(_.contains("--graalvm-version")).getOrElse("")
@@ -1268,7 +1372,17 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       else "hello"
 
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", "--python", ".", "-o", dest, extraOptions)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        "--python",
+        ".",
+        "-o",
+        dest,
+        extraOptions
+      )
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
 
       val launcher = root / dest
@@ -1291,8 +1405,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val fatJarPath = root / "OsLibFatJar.jar"
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         "OsLibFatJar.scala",
         "-o",
         fatJarPath,
@@ -1305,8 +1420,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val launcher    = root / outputName
       val packageCmds = Seq[os.Shellable](
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         "Hello.scala",
         "-M",
         "Main",
@@ -1351,8 +1467,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           val outputJarPath = root / "Hello.jar"
           val res           = os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "package",
+            TestUtil.offlineOptions,
             inputPath,
             "-o",
             outputJarPath,
@@ -1384,8 +1501,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         val outputJarPath = root / "Hello.jar"
         val res           = os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "package",
+          TestUtil.offlineOptions,
           inputPath,
           "-o",
           outputJarPath,
@@ -1417,8 +1535,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val outputJarPath = root / "hello.jar"
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         extraOptions,
         "--library",
         s"$mainClass.scala",
@@ -1432,7 +1551,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val res =
         os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           "--jar",
           outputJarPath,
           "--main-class",
@@ -1475,8 +1596,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           ).fromRoot { root =>
             os.proc(
               TestUtil.cli,
-              "--power",
+              TestUtil.powerOptions,
               "package",
+              TestUtil.offlineOptions,
               "--test",
               extraOptions,
               ".",
@@ -1487,7 +1609,13 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
             expect(os.isFile(outputFilePath))
             val output =
               if (packageDescription == libraryArg)
-                os.proc(TestUtil.cli, "run", outputFilePath).call(cwd = root).out.trim()
+                os.proc(
+                  TestUtil.cli,
+                  TestUtil.powerOptions,
+                  "run",
+                  TestUtil.offlineOptions,
+                  outputFilePath
+                ).call(cwd = root).out.trim()
               else if (packageDescription == jsArg)
                 os.proc(node, outputFilePath).call(cwd = root).out.trim()
               else {
@@ -1522,8 +1650,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
             ).fromRoot { root =>
               os.proc(
                 TestUtil.cli,
-                "--power",
+                TestUtil.powerOptions,
                 "package",
+                TestUtil.offlineOptions,
                 "--cross",
                 extraOptions,
                 ".",
@@ -1558,7 +1687,16 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
              |""".stripMargin
       ).fromRoot { root =>
         val res =
-          os.proc(TestUtil.cli, "package", ".", "--js", "--power", extraOptions)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "package",
+            TestUtil.offlineOptions,
+            ".",
+            "--js",
+            "--power",
+            extraOptions
+          )
             .call(cwd = root, mergeErrIntoOut = true, stderr = os.Pipe)
         expect(res.out.trim().contains(s"$moduleName.js"))
       }
@@ -1579,8 +1717,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         TestUtil.withProcessWatching(
           proc = os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "package",
+            TestUtil.offlineOptions,
             ".",
             "--watch",
             "--watching",
@@ -1615,7 +1754,14 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
            |""".stripMargin,
       os.rel / "build.sbt" -> """name := "my-project""""
     ).fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".").call(
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        extraOptions,
+        "."
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit

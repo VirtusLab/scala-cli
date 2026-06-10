@@ -3,7 +3,8 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 class HadoopTests extends munit.FunSuite {
-  protected lazy val extraOptions: Seq[String] = TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] =
+    TestUtil.extraOptionsWithOffline
 
   for {
     withTestScope <- Seq(true, false)
@@ -89,9 +90,10 @@ class HadoopTests extends munit.FunSuite {
         inputs.fromRoot { root =>
           val res = os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "run",
-            TestUtil.extraOptions,
+            TestUtil.offlineOptions,
+            TestUtil.extraOptionsWithOffline,
             ".",
             "--hadoop",
             "--command",

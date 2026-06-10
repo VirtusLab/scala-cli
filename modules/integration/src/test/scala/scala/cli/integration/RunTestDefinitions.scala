@@ -24,8 +24,9 @@ abstract class RunTestDefinitions
     with RunZipTestDefinitions
     with RunJdkTestDefinitions
     with CoursierScalaInstallationTestHelper { this: TestScalaVersion =>
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
-  protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
+  protected lazy val extraOptions: Seq[String] =
+    scalaVersionArgs ++ TestUtil.extraOptionsWithOffline
+  protected val emptyInputs: TestInputs = TestInputs(os.rel / ".placeholder" -> "")
 
   override def warmUpExtraTestOptions: Seq[String] = extraOptions
 
@@ -40,13 +41,15 @@ abstract class RunTestDefinitions
   ): String =
     os.proc(
       TestUtil.cli,
+      TestUtil.powerOptions,
       "run",
+      TestUtil.offlineOptions,
       "-e",
       "println(dotty.tools.dotc.config.Properties.simpleVersionString)",
       "-S",
       scalaVersionIndex,
       "--with-compiler",
-      TestUtil.extraOptions
+      TestUtil.extraOptionsWithOffline
     )
       .call(cwd = root, check = check, mergeErrIntoOut = mergeErrIntoOut)
       .out
@@ -233,7 +236,9 @@ abstract class RunTestDefinitions
   test("setting root dir with virtual input") {
     val url = "https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec"
     emptyInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, extraOptions, escapedUrls(url)).call(cwd = root)
+      os.proc(TestUtil.cli, scalaVersionArgs ++ TestUtil.bloopTimeoutOptions, escapedUrls(url)).call(cwd =
+        root
+      )
       val path = root / ".scala-build"
       expect(!os.exists(path)) // virtual source should not create workspace dir in cwd
     }
@@ -605,7 +610,8 @@ abstract class RunTestDefinitions
   private def forbiddenDirTest(): Unit = {
     simpleDirInputs.fromRoot { root =>
       def run(options: String*): String = {
-        val res = os.proc(TestUtil.cli, "dir", options).call(cwd = root)
+        val res =
+          os.proc(TestUtil.cli, "dir", options).call(cwd = root)
         res.out.trim()
       }
 
@@ -644,7 +650,15 @@ abstract class RunTestDefinitions
   test("resources via command line") {
     val expectedMessage = "hello"
     resourcesInputs(resourceContent = expectedMessage).fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", "src", "--resource-dirs", "./src/proj/resources")
+      val res = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "run",
+        TestUtil.offlineOptions,
+        "src",
+        "--resource-dirs",
+        "./src/proj/resources"
+      )
         .call(cwd = root)
       expect(res.out.trim() == expectedMessage)
     }
@@ -656,7 +670,13 @@ abstract class RunTestDefinitions
       resourceContent = expectedMessage
     )
       .fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "run", ".").call(cwd = root)
+        val res = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          "."
+        ).call(cwd = root)
         expect(res.out.trim() == expectedMessage)
       }
   }
@@ -667,11 +687,18 @@ abstract class RunTestDefinitions
       resourceContent = expectedMessage
     )
       .fromRoot { root =>
-        val err = os.proc(TestUtil.cli, "run", ".")
+        val err = os.proc(TestUtil.cli, TestUtil.powerOptions, "run", TestUtil.offlineOptions, ".")
           .call(cwd = root, check = false, stderr = os.Pipe)
         expect(err.err.trim().contains("java.lang.NullPointerException"))
         expect(err.exitCode == 1)
-        val res = os.proc(TestUtil.cli, "run", ".", "--test")
+        val res = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          ".",
+          "--test"
+        )
           .call(cwd = root)
         expect(res.out.trim() == expectedMessage)
       }
@@ -772,7 +799,10 @@ abstract class RunTestDefinitions
             """object Main extends App { println(System.getProperty("java.version"))}"""
         )
       inputs.fromRoot { root =>
-        val p   = os.proc(TestUtil.cli, "run.scala", "--jvm", jvm).call(cwd = root)
+        val p =
+          os.proc(TestUtil.cli, "run.scala", "--jvm", jvm).call(cwd =
+            root
+          )
         val res = p.out.trim()
         expect(res.startsWith(s"1.$jvm") || res.startsWith(s"$jvm."))
       }
@@ -829,9 +859,10 @@ abstract class RunTestDefinitions
           |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "Hello.scala", "-Dfoo=bar").call(
-        cwd = root
-      )
+      val res =
+        os.proc(TestUtil.cli, "Hello.scala", "-Dfoo=bar").call(
+          cwd = root
+        )
       expect(res.out.trim() == "bar")
     }
   }
@@ -880,11 +911,15 @@ abstract class RunTestDefinitions
         """Using directives detected in multiple files:
           |- Foo.scala:1:1-22
           |- Hello.java:1:1-17""".stripMargin
-      val output1 = os.proc(TestUtil.cli, ".").call(cwd = root, stderr = os.Pipe).err.trim()
-      val output2 = os.proc(TestUtil.cli, "Foo.scala", "Bar.scala").call(
+      val output1 = os.proc(TestUtil.cli, ".").call(
         cwd = root,
         stderr = os.Pipe
       ).err.trim()
+      val output2 =
+        os.proc(TestUtil.cli, "Foo.scala", "Bar.scala").call(
+          cwd = root,
+          stderr = os.Pipe
+        ).err.trim()
       expect(output1.contains(warningMessage))
       expect(!output2.contains("Using directives detected in multiple files"))
     }
@@ -1170,7 +1205,9 @@ abstract class RunTestDefinitions
       inputs.fromRoot { root =>
         val res = os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           ".",
           extraOptions
         )
@@ -1301,12 +1338,23 @@ abstract class RunTestDefinitions
     inputs.fromRoot { root =>
       // build jar
       val helloJarPath = root / "Hello.jar"
-      os.proc(TestUtil.cli, "--power", "package", ".", "--library", "-o", helloJarPath).call(cwd =
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "package",
+        TestUtil.offlineOptions,
+        ".",
+        "--library",
+        "-o",
+        helloJarPath
+      ).call(cwd =
         root
       )
 
       // run jar
-      val output = os.proc(TestUtil.cli, helloJarPath).call(cwd = root).out.trim()
+      val output = os.proc(TestUtil.cli, helloJarPath).call(cwd =
+        root
+      ).out.trim()
       expect(output == "Hello World")
     }
   }
@@ -1380,7 +1428,9 @@ abstract class RunTestDefinitions
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "test",
+        TestUtil.offlineOptions,
         ".",
         "--toolkit",
         s"typelevel:${Constants.typelevelToolkitVersion}"
@@ -1403,14 +1453,30 @@ abstract class RunTestDefinitions
     )
       .fromRoot { root =>
         val resWithColon =
-          os.proc(TestUtil.cli, "run", relPath.toString, extraOptions)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            relPath.toString,
+            extraOptions
+          )
             .call(cwd = root, check = false, stderr = os.Pipe)
         expect(resWithColon.exitCode == 1)
         expect(resWithColon.err.trim().contains(
           "you can force your workspace with the '--workspace' option:"
         ))
         val resFixedWorkspace = // should run fine for a forced workspace with no classpath separator on path
-          os.proc(TestUtil.cli, "run", relPath.toString, "--workspace", ".", extraOptions)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            relPath.toString,
+            "--workspace",
+            ".",
+            extraOptions
+          )
             .call(cwd = root)
         expect(resFixedWorkspace.out.trim() == msg)
       }
@@ -1428,7 +1494,8 @@ abstract class RunTestDefinitions
              |""".stripMargin
       )
       inputs.fromRoot { root =>
-        val proc = if (command == "") os.proc(TestUtil.cli, "print.hehe")
+        val proc = if (command == "")
+          os.proc(TestUtil.cli, "print.hehe")
         else os.proc(TestUtil.cli, command, "print.hehe")
         val output = proc.call(cwd = root, check = false, stderr = os.Pipe)
           .err.trim()
@@ -1444,7 +1511,8 @@ abstract class RunTestDefinitions
              |""".stripMargin
       )
       inputs.fromRoot { root =>
-        val proc = if (command == "") os.proc(TestUtil.cli, "nonexisten.no")
+        val proc = if (command == "")
+          os.proc(TestUtil.cli, "nonexisten.no")
         else os.proc(TestUtil.cli, command, "nonexisten.no")
         val output = proc.call(cwd = root, check = false, stderr = os.Pipe)
           .err.trim()
@@ -1503,15 +1571,36 @@ abstract class RunTestDefinitions
           |""".stripMargin
     ).fromRoot { root =>
       // running `invalidMainFile` should fail, as it's in the main scope and depends on test scope deps
-      val res1 = os.proc(TestUtil.cli, "run", projectFile, invalidMainFile)
+      val res1 = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "run",
+        TestUtil.offlineOptions,
+        projectFile,
+        invalidMainFile
+      )
         .call(cwd = root, check = false)
       expect(res1.exitCode == 1)
       // running `validMainFile` should succeed, since it only depends on main scope deps
-      val res2 = os.proc(TestUtil.cli, "run", projectFile, validMainFile)
+      val res2 = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "run",
+        TestUtil.offlineOptions,
+        projectFile,
+        validMainFile
+      )
         .call(cwd = root)
       expect(res2.out.trim() == root.toString())
       // test scope should have access to both main and test deps
-      os.proc(TestUtil.cli, "test", projectFile, testFile)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "test",
+        TestUtil.offlineOptions,
+        projectFile,
+        testFile
+      )
         .call(cwd = root, stderr = os.Pipe)
     }
   }
@@ -1566,8 +1655,9 @@ abstract class RunTestDefinitions
       for ((jarPath, sourcePath) <- jarPathsWithFiles)
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "package",
+          TestUtil.offlineOptions,
           sourcePath,
           "--library",
           "-o",
@@ -1576,15 +1666,39 @@ abstract class RunTestDefinitions
         )
           .call(cwd = root)
       // running `invalidMainFile` should fail, as it's in the main scope and depends on the test scope jar
-      val res1 = os.proc(TestUtil.cli, "run", projectFile, invalidMainFile, extraOptions)
+      val res1 = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "run",
+        TestUtil.offlineOptions,
+        projectFile,
+        invalidMainFile,
+        extraOptions
+      )
         .call(cwd = root, check = false)
       expect(res1.exitCode == 1)
       // running `validMainFile` should succeed, since it only depends on the main scope jar
-      val res2 = os.proc(TestUtil.cli, "run", projectFile, validMainFile, extraOptions)
+      val res2 = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "run",
+        TestUtil.offlineOptions,
+        projectFile,
+        validMainFile,
+        extraOptions
+      )
         .call(cwd = root)
       expect(res2.out.trim() == expectedMessage1)
       // test scope should have access to both main and test deps
-      val res3 = os.proc(TestUtil.cli, "test", projectFile, testFile, extraOptions)
+      val res3 = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "test",
+        TestUtil.offlineOptions,
+        projectFile,
+        testFile,
+        extraOptions
+      )
         .call(cwd = root, stderr = os.Pipe)
       expect(res3.out.trim().contains(s"$expectedMessage1$expectedMessage2"))
     }
@@ -1629,7 +1743,14 @@ abstract class RunTestDefinitions
 
       val configEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
 
-      val proc = os.proc(TestUtil.cli, "run", "--interactive", fileName)
+      val proc = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "run",
+        TestUtil.offlineOptions,
+        "--interactive",
+        fileName
+      )
         .call(
           cwd = root,
           mergeErrIntoOut = true,
@@ -1798,8 +1919,9 @@ abstract class RunTestDefinitions
       val repoPath = root / "the-repo"
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "--publish-repo",
         repoPath.toNIO.toUri.toASCIIString,
         "messages",
@@ -1817,7 +1939,9 @@ abstract class RunTestDefinitions
         {
           val resWithNoCreds = os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "run",
+            TestUtil.offlineOptions,
             "--repository",
             s"http://$host:$port",
             "hello",
@@ -1840,7 +1964,9 @@ abstract class RunTestDefinitions
         {
           val resWithEnvVar = os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "run",
+            TestUtil.offlineOptions,
             "--repository",
             s"http://$host:$port",
             "hello",
@@ -1871,7 +1997,9 @@ abstract class RunTestDefinitions
           )
           val resWithConfig = os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "run",
+            TestUtil.offlineOptions,
             "--repository",
             s"http://$host:$port",
             "hello",
@@ -1895,7 +2023,9 @@ abstract class RunTestDefinitions
 
           val resWithProps = os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "run",
+            TestUtil.offlineOptions,
             "--repository",
             s"http://$host:$port",
             "hello",
@@ -1941,7 +2071,9 @@ abstract class RunTestDefinitions
     ).fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "compile",
+        TestUtil.offlineOptions,
         "Main.scala",
         "--suppress-directives-in-multiple-files-warning"
       )
@@ -2287,7 +2419,14 @@ abstract class RunTestDefinitions
       // ensure the test will be run on a fresh Bloop instance
       os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
       (0 to 2).foreach { _ =>
-        val res = os.proc(TestUtil.cli, "run", input, extraOptions)
+        val res = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          input,
+          extraOptions
+        )
           .call(cwd = root, stderr = os.Pipe)
         expect(res.out.trim() == msg)
         expect(!res.err.trim().toLowerCase.contains("error"))
@@ -2301,7 +2440,15 @@ abstract class RunTestDefinitions
       .fromRoot { root =>
         val invalidOpt = "--invalid"
         val validOpt   = "-Dfoo=bar"
-        val res        = os.proc(TestUtil.cli, "run", "example.sc", "--server=false", extraOptions)
+        val res        = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          "example.sc",
+          "--server=false",
+          extraOptions
+        )
           .call(cwd = root, env = Map("JAVA_OPTS" -> s"$invalidOpt $validOpt"), stderr = os.Pipe)
         val errOutput = res.err.trim()
         expect(errOutput.contains(
@@ -2325,7 +2472,14 @@ abstract class RunTestDefinitions
            |""".stripMargin
     )
       .fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "run", "example.sc", extraOptions)
+        val res = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          "example.sc",
+          extraOptions
+        )
           .call(cwd = root, stderr = os.Pipe)
         val errOutput = res.err.trim()
         expect(errOutput.contains(s"Only java properties are supported in .scala-jvmopts file"))
@@ -2372,14 +2526,31 @@ abstract class RunTestDefinitions
 
           // pass classpath via -cp
           val res =
-            os.proc(TestUtil.cli, "run", inputPathToCall, extraOptions, "-cp", dependencyJar)
+            os.proc(
+              TestUtil.cli,
+              TestUtil.powerOptions,
+              "run",
+              TestUtil.offlineOptions,
+              inputPathToCall,
+              extraOptions,
+              "-cp",
+              dependencyJar
+            )
               .call(cwd = root)
           expect(res.out.trim() == expectedMessage)
 
           // pass classpath via args file
           val argsFileName = "args.txt"
           os.write(root / argsFileName, s"-cp $dependencyJar")
-          val res2 = os.proc(TestUtil.cli, "run", inputPathToCall, extraOptions, s"@$argsFileName")
+          val res2 = os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            inputPathToCall,
+            extraOptions,
+            s"@$argsFileName"
+          )
             .call(cwd = root)
           expect(res2.out.trim() == expectedMessage)
         }
@@ -2398,7 +2569,14 @@ abstract class RunTestDefinitions
            |@main def $main2() = println("$main2")
            |""".stripMargin
     ).fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", input, extraOptions)
+      val res = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "run",
+        TestUtil.offlineOptions,
+        input,
+        extraOptions
+      )
         .call(cwd = root, stderr = os.Pipe, check = false)
       val err = res.err.trim()
       expect(err.contains("Found several main classes"))
@@ -2435,7 +2613,9 @@ abstract class RunTestDefinitions
             val processes: Seq[(os.SubProcess, Int)] = (0 until parallelInstancesCount).map { i =>
               os.proc(
                 TestUtil.cli,
+                TestUtil.powerOptions,
                 "run",
+                TestUtil.offlineOptions,
                 input.toString(),
                 extraOptions,
                 "--",
@@ -2465,7 +2645,16 @@ abstract class RunTestDefinitions
         os.rel / "example.test.scala" ->
           s"""object Main extends App { println("$expectedMessage") }"""
       ).fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "run", ".", "--test", extraOptions, platformOpts)
+        val res = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          ".",
+          "--test",
+          extraOptions,
+          platformOpts
+        )
           .call(cwd = root)
         expect(res.out.trim().contains(expectedMessage))
       }
@@ -2482,7 +2671,9 @@ abstract class RunTestDefinitions
     ).fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "run",
+        TestUtil.offlineOptions,
         ".",
         "--test",
         "--list-main-classes",
@@ -2507,7 +2698,17 @@ abstract class RunTestDefinitions
       TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""")
         .fromRoot { root =>
           val res =
-            os.proc(TestUtil.cli, "run", ".", "--runner", extraOptions, "--jvm", javaVersion)
+            os.proc(
+              TestUtil.cli,
+              TestUtil.powerOptions,
+              "run",
+              TestUtil.offlineOptions,
+              ".",
+              "--runner",
+              extraOptions,
+              "--jvm",
+              javaVersion
+            )
               .call(cwd = root, stderr = os.Pipe)
           expect(res.out.trim() == expectedMessage)
           val legacyWarningCheck = {
@@ -2536,7 +2737,7 @@ abstract class RunTestDefinitions
         os.remove.all(localRepoPath)
 
         val processes = (0 until parallelInstancesCount).map { _ =>
-          os.proc(TestUtil.cli, "--version")
+          os.proc(TestUtil.cli, "--version", "--offline")
             .spawn(cwd = root)
         }.zipWithIndex
         processes.foreach { case (p, _) => p.waitFor() }

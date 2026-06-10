@@ -35,7 +35,9 @@ trait CompilerPluginTestDefinitions { this: CompileTestDefinitions =>
           // build the compiler plugin
           os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "package",
+            TestUtil.offlineOptions,
             s"$pluginName.scala",
             "--power",
             "--with-compiler",
@@ -49,7 +51,9 @@ trait CompilerPluginTestDefinitions { this: CompileTestDefinitions =>
           // verify the plugin is loaded
           val pluginListResult = os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "compile",
+            TestUtil.offlineOptions,
             s"-Xplugin:$outputJar",
             "-Xplugin-list",
             extraOptions
@@ -59,7 +63,9 @@ trait CompilerPluginTestDefinitions { this: CompileTestDefinitions =>
           // verify the compiler plugin phase is being added correctly
           os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "compile",
+            TestUtil.offlineOptions,
             s"-Xplugin:$outputJar",
             "-Xshow-phases",
             extraOptions
@@ -71,7 +77,9 @@ trait CompilerPluginTestDefinitions { this: CompileTestDefinitions =>
           // TODO: this shouldn't require running with --server=false
           val res = os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "compile",
+            TestUtil.offlineOptions,
             pluginOptions,
             usePluginFile,
             "--server=false",

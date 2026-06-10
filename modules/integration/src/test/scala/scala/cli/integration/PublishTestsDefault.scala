@@ -46,7 +46,16 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
 
     val repoRelPath = os.rel / "test-repo"
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "publish", extraOptions, ".", "-R", repoRelPath)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "publish",
+        TestUtil.offlineOptions,
+        extraOptions,
+        ".",
+        "-R",
+        repoRelPath
+      )
         .call(stdin = os.Inherit, stdout = os.Inherit, cwd = root)
       val repoRoot = root / repoRelPath
       val baseDir  = repoRoot / testOrg.split('.').toSeq / testName / testVersion
@@ -103,8 +112,9 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
       val repoRoot = root / "tmp-repo"
       os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         "--python",
         "--publish-repo",
         repoRoot,
@@ -145,7 +155,15 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
       for (f <- os.list(root))
         os.copy.into(f, tmpDir)
       val publishRepo = root / "the-repo"
-      val res = os.proc(TestUtil.cli, "--power", "publish", "--publish-repo", publishRepo, tmpDir)
+      val res         = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "publish",
+        TestUtil.offlineOptions,
+        "--publish-repo",
+        publishRepo,
+        tmpDir
+      )
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       val output = res.out.text()
       expect(output.contains("Missing organization"))
@@ -193,12 +211,30 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
       )
     inputs.fromRoot { root =>
       val failRes =
-        os.proc(TestUtil.cli, "--power", "publish", "--dummy", "--signer", "none", "messages")
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "publish",
+          TestUtil.offlineOptions,
+          "--dummy",
+          "--signer",
+          "none",
+          "messages"
+        )
           .call(cwd = root, mergeErrIntoOut = true)
       checkWarnings(failRes.out.text(), hasWarnings = true)
       checkCredentialsWarning(failRes.out.text())
 
-      val okRes = os.proc(TestUtil.cli, "--power", "publish", "--dummy", "--signer", "none", ".")
+      val okRes = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "publish",
+        TestUtil.offlineOptions,
+        "--dummy",
+        "--signer",
+        "none",
+        "."
+      )
         .call(cwd = root, mergeErrIntoOut = true)
       checkWarnings(okRes.out.text(), hasWarnings = false)
       checkCredentialsWarning(okRes.out.text())
@@ -225,8 +261,9 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
     TestCase.testInputs().fromRoot { root =>
       val r = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "publish",
+        TestUtil.offlineOptions,
         extraOptions,
         signingOptions,
         "project",

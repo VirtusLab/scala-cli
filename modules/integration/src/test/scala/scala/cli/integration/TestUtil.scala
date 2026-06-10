@@ -50,12 +50,18 @@ object TestUtil {
         case _ => Seq("java", "-Xmx512m", "-Xms128m", "-jar", cliPath)
       }
 
-  val extraOptions: List[String] = List(
+  val bloopTimeoutOptions: List[String] = List(
     "--bloop-startup-timeout",
     "2min",
     "--bloop-bsp-timeout",
     "1min"
   )
+
+  val powerOptions: List[String]   = List("--power")
+  val offlineOptions: List[String] = List("--offline")
+
+  val extraOptionsWithOffline: List[String] =
+    bloopTimeoutOptions ++ powerOptions ++ offlineOptions
 
   def fromPath(app: String): Option[String] = {
 

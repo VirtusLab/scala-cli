@@ -366,7 +366,13 @@ class MarkdownTests extends ScalaCliSuite {
           |}
           |```""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "test", "sample.md").call(cwd = root)
+      val result = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "test",
+        TestUtil.offlineOptions,
+        "sample.md"
+      ).call(cwd = root)
       val output = result.out.text()
       expect(output.contains("ExampleTest"))
       expect(output.contains("foo"))
@@ -410,7 +416,8 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, fileNameWithNumber).call(cwd = root)
+      val result =
+        os.proc(TestUtil.cli, fileNameWithNumber).call(cwd = root)
       expect(result.out.trim() == "Hello")
     }
   }

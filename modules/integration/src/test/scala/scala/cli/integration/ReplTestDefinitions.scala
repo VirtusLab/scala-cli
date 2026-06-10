@@ -7,7 +7,8 @@ import scala.util.Properties
 
 abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] =
+    scalaVersionArgs ++ TestUtil.extraOptionsWithOffline
 
   protected lazy val canRunInRepl: Boolean =
     (actualScalaVersion.startsWith("3.3") &&
@@ -43,11 +44,13 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       runAfterRepl(
         os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "repl",
+          TestUtil.offlineOptions,
           ".",
           "--repl-quit-after-init",
           initScriptArgs,
-          if skipScalaVersionArgs then TestUtil.extraOptions else extraOptions,
+          if skipScalaVersionArgs then TestUtil.extraOptionsWithOffline else extraOptions,
           cliOptions,
           potentiallyExtraCliOpts
         )
@@ -69,7 +72,9 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     testInputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "repl",
+        TestUtil.offlineOptions,
         "--repl-dry-run",
         cliOptions,
         if useExtraOptions then extraOptions else Seq.empty
@@ -127,7 +132,9 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   test("calling repl with -Xshow-phases flag") {
     val cmd = Seq[os.Shellable](
       TestUtil.cli,
+      TestUtil.powerOptions,
       "repl",
+      TestUtil.offlineOptions,
       "-Xshow-phases",
       extraOptions
     )

@@ -4,7 +4,8 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class HelpTests extends ScalaCliSuite {
   for (helpOptions <- HelpTests.variants) {
-    lazy val help         = os.proc(TestUtil.cli, helpOptions).call(check = false)
+    lazy val help =
+      os.proc(TestUtil.cli, helpOptions).call(check = false)
     lazy val helpOutput   = help.out.trim()
     val helpOptionsString = helpOptions.mkString(" ")
     test(s"$helpOptionsString works correctly") {
@@ -41,7 +42,8 @@ class HelpTests extends ScalaCliSuite {
   }
 
   for (fullHelpOptions <- HelpTests.fullHelpVariants) {
-    lazy val fullHelp         = os.proc(TestUtil.cli, fullHelpOptions).call(check = false)
+    lazy val fullHelp =
+      os.proc(TestUtil.cli, fullHelpOptions).call(check = false)
     lazy val fullHelpOutput   = fullHelp.out.trim()
     val fullHelpOptionsString = fullHelpOptions.mkString(" ")
     test(s"$fullHelpOptionsString works correctly") {
@@ -57,7 +59,8 @@ class HelpTests extends ScalaCliSuite {
   }
 
   test("name aliases limited for standard help") {
-    val help       = os.proc(TestUtil.cli, "run", "--help").call()
+    val help =
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "run", TestUtil.offlineOptions, "--help").call()
     val helpOutput = help.out.trim()
 
     expect(TestUtil.removeAnsiColors(helpOutput).contains(
@@ -66,7 +69,13 @@ class HelpTests extends ScalaCliSuite {
   }
 
   test("name aliases not limited for full help") {
-    val help       = os.proc(TestUtil.cli, "run", "--full-help").call()
+    val help = os.proc(
+      TestUtil.cli,
+      TestUtil.powerOptions,
+      "run",
+      TestUtil.offlineOptions,
+      "--full-help"
+    ).call()
     val helpOutput = help.out.trim()
     expect(TestUtil.removeAnsiColors(helpOutput).contains(
       "-cp, --jar, --jars, --class, --classes, -classpath, --extra-jar, --classpath, --extra-jars, --class-path, --extra-class, --extra-classes, --extra-class-path paths"
@@ -92,8 +101,9 @@ class HelpTests extends ScalaCliSuite {
   for (withPower <- Seq(true, false))
     test("envs help" + (if (withPower) " with power" else "")) {
       val powerOptions = if (withPower) Seq("--power") else Nil
-      val help         = os.proc(TestUtil.cli, "--envs-help", powerOptions).call()
-      val helpOutput   = help.out.trim()
+      val help         =
+        os.proc(TestUtil.cli, "--envs-help", powerOptions).call()
+      val helpOutput = help.out.trim()
       if (!withPower) expect(!helpOutput.contains("(power)"))
       expect(helpOutput.nonEmpty)
       expect(helpOutput.contains("environment variables"))

@@ -32,9 +32,10 @@ class NativePackagerTests extends ScalaCliSuite {
         val pkgAppFile = s"$appName.pkg"
         val cmd        = Seq[os.Shellable](
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "package",
-          TestUtil.extraOptions,
+          TestUtil.offlineOptions,
+          TestUtil.extraOptionsWithOffline,
           helloWorldFileName,
           "--pkg",
           "--output",
@@ -76,9 +77,10 @@ class NativePackagerTests extends ScalaCliSuite {
 
         val cmd = Seq[os.Shellable](
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "package",
-          TestUtil.extraOptions,
+          TestUtil.offlineOptions,
+          TestUtil.extraOptionsWithOffline,
           helloWorldFileName,
           "--dmg",
           "--output",
@@ -143,9 +145,10 @@ class NativePackagerTests extends ScalaCliSuite {
 
         val cmd = Seq[os.Shellable](
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "package",
-          TestUtil.extraOptions,
+          TestUtil.offlineOptions,
+          TestUtil.extraOptionsWithOffline,
           helloWorldFileName,
           "--deb",
           "--output",
@@ -218,9 +221,10 @@ class NativePackagerTests extends ScalaCliSuite {
 
         val cmd = Seq[os.Shellable](
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "package",
-          TestUtil.extraOptions,
+          TestUtil.offlineOptions,
+          TestUtil.extraOptionsWithOffline,
           helloWorldFileName,
           "--rpm",
           "--output",
@@ -255,8 +259,9 @@ class NativePackagerTests extends ScalaCliSuite {
 
         val cmd = Seq[os.Shellable](
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "package",
+          TestUtil.offlineOptions,
           helloWorldFileName,
           "--msi",
           "--output",
@@ -291,8 +296,9 @@ class NativePackagerTests extends ScalaCliSuite {
 
       val cmd = Seq[os.Shellable](
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         helloWorldFileName,
         "--docker",
         "--docker-image-repository",
@@ -329,8 +335,9 @@ class NativePackagerTests extends ScalaCliSuite {
 
       val cmd = Seq[os.Shellable](
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         helloWorldFileName,
         "--js",
         "--docker",
@@ -370,8 +377,9 @@ class NativePackagerTests extends ScalaCliSuite {
 
       val cmd = Seq[os.Shellable](
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "package",
+        TestUtil.offlineOptions,
         helloWorldFileName,
         "--native",
         "-S",

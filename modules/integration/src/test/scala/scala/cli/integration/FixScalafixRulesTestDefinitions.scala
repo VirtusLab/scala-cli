@@ -41,7 +41,15 @@ trait FixScalafixRulesTestDefinitions {
 
   test("simple") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fix",
+        TestUtil.offlineOptions,
+        ".",
+        "--power",
+        scalaVersionArgs
+      ).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == expectedContent)
     }
@@ -49,7 +57,15 @@ trait FixScalafixRulesTestDefinitions {
 
   test("with --check") {
     simpleInputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "fix", "--power", "--check", ".", scalaVersionArgs).call(
+      val res = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fix",
+        TestUtil.offlineOptions,
+        "--check",
+        ".",
+        scalaVersionArgs
+      ).call(
         cwd = root,
         check = false
       )
@@ -93,7 +109,14 @@ trait FixScalafixRulesTestDefinitions {
     }
 
     semanticRuleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fix", "--power", ".", scalaVersionArgs).call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fix",
+        TestUtil.offlineOptions,
+        ".",
+        scalaVersionArgs
+      ).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == expectedContent)
     }
@@ -123,7 +146,9 @@ trait FixScalafixRulesTestDefinitions {
     input.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "fix",
+        TestUtil.offlineOptions,
         ".",
         "--scalafix-rules",
         "RedundantSyntax",
@@ -177,7 +202,9 @@ trait FixScalafixRulesTestDefinitions {
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "fix",
+        TestUtil.offlineOptions,
         ".",
         "--scalafix-arg=--settings.RedundantSyntax.finalObject=false",
         "--power",
@@ -218,7 +245,9 @@ trait FixScalafixRulesTestDefinitions {
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "fix",
+        TestUtil.offlineOptions,
         ".",
         s"--scalafix-conf=$confFileName",
         "--power",
@@ -256,7 +285,15 @@ trait FixScalafixRulesTestDefinitions {
     }
 
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fix",
+        TestUtil.offlineOptions,
+        ".",
+        "--power",
+        scalaVersionArgs
+      ).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == expectedContent)
     }
@@ -289,7 +326,15 @@ trait FixScalafixRulesTestDefinitions {
     }
 
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "fix",
+        TestUtil.offlineOptions,
+        ".",
+        "--power",
+        scalaVersionArgs
+      ).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == expectedContent)
     }
@@ -349,7 +394,16 @@ trait FixScalafixRulesTestDefinitions {
             |}
             |""".stripMargin
       ).fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "fix", ".", "--power", semanticDbOptions, extraOptions)
+        val res = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "fix",
+          TestUtil.offlineOptions,
+          ".",
+          "--power",
+          semanticDbOptions,
+          extraOptions
+        )
           .call(cwd = root, check = false, stderr = os.Pipe)
         val successful = res.exitCode == 0
         expect(successful == expectedSuccess)

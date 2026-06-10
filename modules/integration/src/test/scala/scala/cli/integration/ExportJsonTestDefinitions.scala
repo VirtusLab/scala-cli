@@ -43,7 +43,16 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
 
       val exportJsonProc =
         // Test --power placed after subcommand name
-        os.proc(TestUtil.cli, "export", "--power", "--json", ".", "--jvm", "temurin:11")
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "export",
+          TestUtil.offlineOptions,
+          "--json",
+          ".",
+          "--jvm",
+          "temurin:11"
+        )
           .call(cwd = root)
 
       val jsonContents = readJson(exportJsonProc.out.text())
@@ -102,7 +111,15 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
     )
 
     inputs.fromRoot { root =>
-      val exportJsonProc = os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--native")
+      val exportJsonProc = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "export",
+        TestUtil.offlineOptions,
+        "--json",
+        ".",
+        "--native"
+      )
         .call(cwd = root)
 
       val jsonContents = readJson(exportJsonProc.out.text())
@@ -201,8 +218,9 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
     inputs.fromRoot { root =>
       val exportJsonProc = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "export",
+        TestUtil.offlineOptions,
         "--json",
         "--output",
         "json_dir",
@@ -259,8 +277,9 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
 
       val exportToExistingProc = os.proc(
         TestUtil.cli,
-        "--power",
+        TestUtil.powerOptions,
         "export",
+        TestUtil.offlineOptions,
         "--json",
         "--output",
         "json_dir",

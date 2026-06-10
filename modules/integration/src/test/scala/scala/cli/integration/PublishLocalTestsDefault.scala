@@ -12,8 +12,9 @@ class PublishLocalTestsDefault extends PublishLocalTestDefinitions with TestDefa
       .fromRoot { root =>
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "publish",
+          TestUtil.offlineOptions,
           "local",
           ".",
           extraOptions,
@@ -23,11 +24,21 @@ class PublishLocalTestsDefault extends PublishLocalTestDefinitions with TestDefa
         def publishedDep(scalaVersionSuffix: String) =
           s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$scalaVersionSuffix:$testPublishVersion"
         val r3 =
-          os.proc(TestUtil.cli, "run", "--dep", publishedDep("3"), extraOptions).call(cwd = root)
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "run",
+            TestUtil.offlineOptions,
+            "--dep",
+            publishedDep("3"),
+            extraOptions
+          ).call(cwd = root)
         expect(r3.out.trim() == expectedMessage)
         val r213 = os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           "--dep",
           publishedDep("2.13"),
           "-S",
@@ -37,7 +48,9 @@ class PublishLocalTestsDefault extends PublishLocalTestDefinitions with TestDefa
         expect(r213.out.trim() == expectedMessage)
         val r212 = os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "run",
+          TestUtil.offlineOptions,
           "--dep",
           publishedDep("2.12"),
           "-S",

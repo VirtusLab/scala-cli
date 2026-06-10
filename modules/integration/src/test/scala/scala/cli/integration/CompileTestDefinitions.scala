@@ -15,10 +15,16 @@ abstract class CompileTestDefinitions
     with CompilerPluginTestDefinitions
     with CompileScalacCompatTestDefinitions
     with SemanticDbTestDefinitions { this: TestScalaVersion =>
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] =
+    scalaVersionArgs ++ TestUtil.extraOptionsWithOffline
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {
-    os.proc(TestUtil.cli, "--power", "directories").call().out.text()
+    os.proc(
+      TestUtil.cli,
+      TestUtil.powerOptions,
+      "directories",
+      TestUtil.offlineOptions
+    ).call().out.text()
   }
 
   val simpleInputs: TestInputs = TestInputs(
@@ -84,7 +90,15 @@ abstract class CompileTestDefinitions
     test("Pure Java with --server=false: no warning about .java files not being compiled") {
       inputs.fromRoot { root =>
         val warningMessage = ".java files are not compiled to .class files"
-        val output         = os.proc(TestUtil.cli, "compile", "--server=false", extraOptions, ".")
+        val output         = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "compile",
+          TestUtil.offlineOptions,
+          "--server=false",
+          extraOptions,
+          "."
+        )
           .call(cwd = root, stderr = os.Pipe).err.text()
         expect(!output.contains(warningMessage))
       }
@@ -111,7 +125,15 @@ abstract class CompileTestDefinitions
           |""".stripMargin
     ).fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output         = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
+      val output         = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        ".",
+        "--test",
+        extraOptions
+      )
         .call(cwd = root, stderr = os.Pipe).err.trim()
       expect(!output.contains(warningMessage))
     }
@@ -142,7 +164,15 @@ abstract class CompileTestDefinitions
           |""".stripMargin
     ).fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output         = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
+      val output         = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        ".",
+        "--test",
+        extraOptions
+      )
         .call(cwd = root, stderr = os.Pipe).err.trim()
       expect(output.contains(warningMessage))
     }
@@ -166,7 +196,14 @@ abstract class CompileTestDefinitions
 
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output         = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
+      val output         = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        extraOptions,
+        "."
+      )
         .call(cwd = root).err.trim()
       expect(!output.contains(warningMessage))
       expect(!output.contains(".java files are not compiled to .class files"))
@@ -188,7 +225,14 @@ abstract class CompileTestDefinitions
     test("warn about directives in multiple files") {
       inputs.fromRoot { root =>
         val warningMessage = "Using directives detected in multiple files"
-        val output         = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
+        val output         = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "compile",
+          TestUtil.offlineOptions,
+          extraOptions,
+          "."
+        )
           .call(cwd = root, stderr = os.Pipe).err.trim()
         expect(output.contains(warningMessage))
       }
@@ -198,7 +242,15 @@ abstract class CompileTestDefinitions
       inputs.fromRoot { root =>
         val warningMessage = ".java files are not compiled to .class files"
         val output         =
-          os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".", "--server=false")
+          os.proc(
+            TestUtil.cli,
+            TestUtil.powerOptions,
+            "compile",
+            TestUtil.offlineOptions,
+            extraOptions,
+            ".",
+            "--server=false"
+          )
             .call(cwd = root, stderr = os.Pipe).err.trim()
         expect(output.contains(warningMessage))
         expect(output.contains(javaSourceFile))
@@ -267,7 +319,16 @@ abstract class CompileTestDefinitions
   test("copy compile output") {
     mainAndTestInputs.fromRoot { root =>
       val tempOutput = root / "output"
-      os.proc(TestUtil.cli, "compile", "--compile-output", tempOutput, extraOptions, ".").call(cwd =
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        "--compile-output",
+        tempOutput,
+        extraOptions,
+        "."
+      ).call(cwd =
         root
       )
       checkIfCompileOutputIsCopied("Main", tempOutput)
@@ -280,7 +341,9 @@ abstract class CompileTestDefinitions
       val output     =
         os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "compile",
+          TestUtil.offlineOptions,
           "--test",
           "--compile-output",
           tempOutput,
@@ -326,7 +389,15 @@ abstract class CompileTestDefinitions
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "compile", "--test", extraOptions, ".")
+      val res = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        "--test",
+        extraOptions,
+        "."
+      )
         .call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
       expect(res.exitCode == 1)
       val expectedInOutput =
@@ -578,7 +649,9 @@ abstract class CompileTestDefinitions
       val res =
         os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "compile",
+          TestUtil.offlineOptions,
           "--print-class-path",
           extraOptions,
           "."
@@ -625,11 +698,18 @@ abstract class CompileTestDefinitions
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", "--test", ".")
+      os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        "--test",
+        "."
+      )
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
-      os.proc(TestUtil.cli, "run", ".")
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "run", TestUtil.offlineOptions, ".")
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
-      os.proc(TestUtil.cli, "test", ".")
+      os.proc(TestUtil.cli, TestUtil.powerOptions, "test", TestUtil.offlineOptions, ".")
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
     }
   }
@@ -655,8 +735,9 @@ abstract class CompileTestDefinitions
       val res =
         os.proc(
           TestUtil.cli,
-          "--power",
+          TestUtil.powerOptions,
           "compile",
+          TestUtil.offlineOptions,
           "--python",
           "--print-class-path",
           ".",
@@ -682,7 +763,9 @@ abstract class CompileTestDefinitions
       .fromRoot { root =>
         val compileRes = os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "compile",
+          TestUtil.offlineOptions,
           "s.sc",
           "--print-classpath",
           extraOptions
@@ -691,7 +774,9 @@ abstract class CompileTestDefinitions
         expect(!compileRes.out.trim().contains(compilerArtifactName))
         val compileWithCompilerRes = os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "compile",
+          TestUtil.offlineOptions,
           "s.sc",
           "-with-compiler",
           "--print-classpath",
@@ -710,7 +795,9 @@ abstract class CompileTestDefinitions
       .fromRoot { root =>
         val firstRes = os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "compile",
+          TestUtil.offlineOptions,
           "main.scala"
         ).call(cwd = root, mergeErrIntoOut = true)
 
@@ -722,7 +809,9 @@ abstract class CompileTestDefinitions
 
         val differentRes = os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "compile",
+          TestUtil.offlineOptions,
           "main.scala",
           "--jvm",
           Constants.scala38MinJavaVersion.toString
@@ -736,7 +825,9 @@ abstract class CompileTestDefinitions
 
         val secondRes = os.proc(
           TestUtil.cli,
+          TestUtil.powerOptions,
           "compile",
+          TestUtil.offlineOptions,
           "main.scala"
         ).call(cwd = root, mergeErrIntoOut = true)
 
@@ -761,7 +852,9 @@ abstract class CompileTestDefinitions
     inputs.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+        TestUtil.powerOptions,
         "compile",
+        TestUtil.offlineOptions,
         "--scalac-option=-J-XX:MaxHeapSize=1k",
         "--server=false",
         extraOptions,
@@ -845,7 +938,14 @@ abstract class CompileTestDefinitions
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+      val result = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      ).call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
@@ -866,7 +966,14 @@ abstract class CompileTestDefinitions
            |""".stripMargin
       )
 
-      val result2 = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+      val result2 = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      ).call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
@@ -900,7 +1007,14 @@ abstract class CompileTestDefinitions
            |""".stripMargin
       )
 
-      val result3 = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+      val result3 = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      ).call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
@@ -923,7 +1037,14 @@ abstract class CompileTestDefinitions
     )
 
     inputs.fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+      val result = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      ).call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
@@ -947,7 +1068,14 @@ abstract class CompileTestDefinitions
     )
 
     inputs.fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+      val result = os.proc(
+        TestUtil.cli,
+        TestUtil.powerOptions,
+        "compile",
+        TestUtil.offlineOptions,
+        ".",
+        extraOptions
+      ).call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
@@ -977,8 +1105,9 @@ abstract class CompileTestDefinitions
         TestUtil.withProcessWatching(
           proc = os.proc(
             TestUtil.cli,
-            "--power",
+            TestUtil.powerOptions,
             "compile",
+            TestUtil.offlineOptions,
             ".",
             "--watch",
             "--watching",

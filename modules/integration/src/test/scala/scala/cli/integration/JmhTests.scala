@@ -13,7 +13,8 @@ import scala.util.Properties
 
 class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
   override def group: ScalaCliSuite.TestGroup      = ScalaCliSuite.TestGroup.First
-  override protected val extraOptions: Seq[String] = TestUtil.extraOptions
+  override protected val extraOptions: Seq[String] =
+    TestUtil.extraOptionsWithOffline
 
   for {
     useDirective <- Seq(None, Some("//> using jmh"))
@@ -37,14 +38,30 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
 
     test(s"compile ($testMessage)") {
       simpleBenchmarkingInputs(directiveString).fromRoot { root =>
-        os.proc(TestUtil.cli, "compile", "--power", extraOptions, ".", jmhOptions)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "compile",
+          TestUtil.offlineOptions,
+          extraOptions,
+          ".",
+          jmhOptions
+        )
           .call(cwd = root)
       }
     }
 
     test(s"doc ($testMessage)") {
       simpleBenchmarkingInputs(directiveString).fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "doc", "--power", extraOptions, ".", jmhOptions)
+        val res = os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "doc",
+          TestUtil.offlineOptions,
+          extraOptions,
+          ".",
+          jmhOptions
+        )
           .call(cwd = root, stderr = os.Pipe)
         expect(!res.err.trim().contains("Error"))
       }
@@ -53,7 +70,15 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
     test(s"setup-ide ($testMessage)") {
       // TODO fix setting jmh via a reload & add tests for it
       simpleBenchmarkingInputs(directiveString).fromRoot { root =>
-        os.proc(TestUtil.cli, "setup-ide", "--power", extraOptions, ".", jmhOptions)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "setup-ide",
+          TestUtil.offlineOptions,
+          extraOptions,
+          ".",
+          jmhOptions
+        )
           .call(cwd = root)
       }
     }
@@ -77,7 +102,15 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
     test(s"setup-ide + bsp ($testMessage)") {
       val inputs = simpleBenchmarkingInputs(directiveString)
       inputs.fromRoot { root =>
-        os.proc(TestUtil.cli, "setup-ide", "--power", extraOptions, ".", jmhOptions)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "setup-ide",
+          TestUtil.offlineOptions,
+          extraOptions,
+          ".",
+          jmhOptions
+        )
           .call(cwd = root)
         val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
         expect(ideOptionsPath.toNIO.toFile.exists())
@@ -120,9 +153,10 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
           }
           os.proc(
             TestUtil.cli,
+            TestUtil.powerOptions,
             "package",
-            "--power",
-            TestUtil.extraOptions,
+            TestUtil.offlineOptions,
+            TestUtil.extraOptionsWithOffline,
             ".",
             jmhOptions,
             "-o",
@@ -140,7 +174,15 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
     test(s"export ($testMessage)") {
       simpleBenchmarkingInputs(directiveString).fromRoot { root =>
         // TODO add proper support for JMH export, we're checking if it doesn't fail the command for now
-        os.proc(TestUtil.cli, "export", "--power", extraOptions, ".", jmhOptions)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "export",
+          TestUtil.offlineOptions,
+          extraOptions,
+          ".",
+          jmhOptions
+        )
           .call(cwd = root)
       }
     }
@@ -158,7 +200,15 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
   } test(s"should not compile when jmh is explicitly disabled ($testMessage)") {
     simpleBenchmarkingInputs(directiveString).fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "compile", "--power", extraOptions, ".", jmhOptions)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "compile",
+          TestUtil.offlineOptions,
+          extraOptions,
+          ".",
+          jmhOptions
+        )
           .call(cwd = root, check = false)
       expect(res.exitCode == 1)
     }
@@ -184,7 +234,15 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
   } test(s"should use the passed jmh version ($testMessage)") {
     simpleBenchmarkingInputs(directiveString).fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "run", "--power", extraOptions, ".", jmhOptions)
+        os.proc(
+          TestUtil.cli,
+          TestUtil.powerOptions,
+          "run",
+          TestUtil.offlineOptions,
+          extraOptions,
+          ".",
+          jmhOptions
+        )
           .call(cwd = root)
       val output = res.out.trim()
       expect(output.contains(expectedInBenchmarkingOutput))
