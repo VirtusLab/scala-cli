@@ -169,6 +169,8 @@ object integration extends CliIntegration {
 object `docs-tests` extends Cross[DocsTests](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 
+def scalaCliSh = Task.Source("scala-cli.sh")
+
 trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with LocatedInModules
     with HasTests { main =>
   override def mvnDeps: T[Seq[Dep]] = Seq(
@@ -1037,7 +1039,8 @@ trait CliIntegration extends SbtModule
     override def forkEnv: T[Map[String, String]] = super.forkEnv() ++ Seq(
       "SCALA_CLI_TMP"                -> tmpDirBase().path.toString,
       "SCALA_CLI_PRINT_STACK_TRACES" -> "1",
-      "SCALA_CLI_CONFIG"             -> (tmpDirBase().path / "config" / "config.json").toString
+      "SCALA_CLI_CONFIG"             -> (tmpDirBase().path / "config" / "config.json").toString,
+      "SCALA_CLI_SHELL_LAUNCHER"     -> scalaCliSh().path.toString
     )
 
     def constantsFile: T[PathRef] = Task(persistent = true) {
