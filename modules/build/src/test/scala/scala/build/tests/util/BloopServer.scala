@@ -1,27 +1,25 @@
 package scala.build.tests.util
 
-import bloop.rifle.BloopRifleConfig
+import bloop.rifle.{BloopRifle, BloopRifleConfig}
 import coursier.cache.FileCache
 
 import scala.build.internals.EnvVar
 import scala.build.{Bloop, Logger}
 import scala.util.Properties
+import scala.util.control.NonFatal
 
 object BloopServer {
 
-  private def directories = scala.build.Directories.default()
+  private val baseDir = os.temp.dir(prefix = "scli-bloop-")
 
-  // FIXME We could use a test-specific Bloop instance here.
-  // Not sure how to properly shut it down or have it exit after a period
-  // of inactivity, so we keep using our default global Bloop for now.
-  private def bloopAddress =
-    BloopRifleConfig.Address.DomainSocket(directories.bloopDaemonDir.toNIO)
+  private val bloopAddress =
+    BloopRifleConfig.Address.DomainSocket((baseDir / "daemon").toNIO)
 
   val bloopConfig = {
     val base = BloopRifleConfig.default(
       bloopAddress,
       v => Bloop.bloopClassPath(Logger.nop, FileCache(), v).map(_.map(_.toPath)),
-      directories.bloopWorkingDir.toNIO
+      (baseDir / "bloop").toNIO
     )
     base.copy(
       javaPath =
@@ -38,5 +36,20 @@ object BloopServer {
             .getOrElse(base.javaPath)
     )
   }
+
+  Runtime.getRuntime.addShutdownHook(
+    new Thread("scli-bloop-test-shutdown") {
+      setDaemon(true)
+      override def run(): Unit =
+        try
+          if BloopRifle.check(bloopConfig, Logger.nop.bloopRifleLogger) then
+            BloopRifle.exit(bloopConfig, os.pwd.toNIO, Logger.nop.bloopRifleLogger)
+        catch
+          case NonFatal(_) => ()
+        try os.remove.all(baseDir)
+        catch
+          case NonFatal(_) => ()
+    }
+  )
 
 }
