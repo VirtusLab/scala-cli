@@ -540,6 +540,9 @@ trait HasTests extends SbtModule {
     super.scalacOptions() ++ extraOptions
   }
   trait ScalaCliTests extends ScalaCliModule with super.SbtTests with TestModule.Munit {
+    override def testParallelism: T[Boolean]           = !isCI
+    override def testForkGrouping: T[Seq[Seq[String]]] =
+      if isCI then discoveredTestClasses().grouped(1).toSeq else super.testForkGrouping()
     override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
       Deps.expecty,
       Deps.munit
