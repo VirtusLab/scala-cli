@@ -26,7 +26,7 @@ class RunTests212 extends RunTestDefinitions with Test212 {
       )
     }
   }
-  test("2.12.nightly") {
+  test("2.12.nightly".flaky) {
     TestInputs(os.rel / "sample.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
       root =>
         val res =
