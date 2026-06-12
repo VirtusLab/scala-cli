@@ -437,7 +437,10 @@ object TestUtil {
     def printStderrUntilJlineRevertsToDumbTerminal(proc: os.SubProcess)(
       f: String => Unit
     )(implicit ec: ExecutionContext): Unit =
-      TestUtil.printStderrUntilCondition(proc)(_.contains("creating a dumb terminal"))(f)
+      TestUtil.printStderrUntilCondition(proc) { line =>
+        line.contains("creating a dumb terminal") ||
+        line.contains("Unable to create a system terminal")
+      }(f)
 
     def printStderrUntilRerun(timeout: Duration)(implicit ec: ExecutionContext): Unit =
       TestUtil.printStderrUntilCondition(proc, timeout)(_.contains("re-run"))()

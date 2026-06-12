@@ -249,6 +249,27 @@ trait BspSuite { this: ScalaCliSuite =>
     }
   }
 
+  protected def findDiagnostic(
+    localClient: TestBspClient,
+    filePath: os.Path,
+    messagePredicate: String => Boolean
+  ): b.Diagnostic = {
+    val expectedUri = TestUtil.normalizeUri(filePath.toNIO.toUri.toASCIIString)
+    localClient
+      .diagnostics()
+      .flatMap(params =>
+        params.getDiagnostics.asScala.map(diagnostic => (params, diagnostic))
+      )
+      .collect {
+        case (params, diagnostic)
+            if TestUtil.normalizeUri(params.getTextDocument.getUri) == expectedUri &&
+            messagePredicate(TestUtil.removeAnsiColors(diagnostic.getMessage)) =>
+          diagnostic
+      }
+      .lastOption
+      .getOrElse(sys.error(s"No matching diagnostic found in $filePath"))
+  }
+
   protected def extractDiagnosticsParams(
     relevantFilePath: os.Path,
     localClient: TestBspClient

@@ -285,6 +285,16 @@ abstract class RunTestDefinitions
              |${tab}at Throws$$.main(Throws.scala:5)
              |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
+        else if isScala39OrNewer then
+          s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
+             |${tab}at Throws$$.main(Throws.scala:8)
+             |${tab}at Throws.main(Throws.scala)
+             |Caused by: java.lang.RuntimeException: nope
+             |${tab}at scala.sys.package$$.error(package.scala:29)
+             |${tab}at Throws$$.something(Throws.scala:3)
+             |${tab}at Throws$$.main(Throws.scala:5)
+             |$tab... 1 more
+             |""".stripMargin.linesIterator.toVector
         else if isScala38OrNewer then
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
              |${tab}at Throws$$.main(Throws.scala:8)
