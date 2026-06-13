@@ -451,6 +451,9 @@ final case class BuildOptions(
             if (platform.value == Platform.JS)
               Some(notForBloopOptions.scalaJsLinkerOptions.finalScalaJsCliVersion)
             else None,
+          scalaJsCliExactVersion =
+            platform.value == Platform.JS &&
+            notForBloopOptions.scalaJsLinkerOptions.scalaJsCliVersion.isDefined,
           scalaNativeCliVersion =
             if (platform.value == Platform.Native) {
               val scalaNativeFinalVersion = scalaNativeOptions.finalVersion

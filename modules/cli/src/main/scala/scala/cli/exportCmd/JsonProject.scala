@@ -5,14 +5,21 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
 import java.io.PrintStream
 
-import scala.build.info.{BuildInfo, ExportDependencyFormat, NativeOptionsInfo, ScopedBuildInfo}
+import scala.build.info.{
+  BuildInfo,
+  ExportDependencyFormat,
+  JsOptionsInfo,
+  NativeOptionsInfo,
+  ScopedBuildInfo
+}
 import scala.util.Using
 
 final case class JsonProject(buildInfo: BuildInfo) extends Project {
   def sorted = this.copy(
     buildInfo = buildInfo.copy(
       scopes = buildInfo.scopes.map { case (k, v) => k -> v.sorted },
-      nativeOptions = buildInfo.nativeOptions.map(_.sorted)
+      nativeOptions = buildInfo.nativeOptions.map(_.sorted),
+      jsOptions = buildInfo.jsOptions.map(_.sorted)
     )
   )
 
@@ -53,6 +60,12 @@ final case class JsonProject(buildInfo: BuildInfo) extends Project {
 extension (n: NativeOptionsInfo) {
   def sorted(using ord: Ordering[String]) = n.copy(
     toolingDependencies = n.toolingDependencies.sorted(using JsonProject.ordering)
+  )
+}
+
+extension (j: JsOptionsInfo) {
+  def sorted(using ord: Ordering[String]) = j.copy(
+    toolingDependencies = j.toolingDependencies.sorted(using JsonProject.ordering)
   )
 }
 

@@ -114,6 +114,10 @@ object Artifacts {
     addNativeTestInterface: Option[String],
     scalaJsVersion: Option[String],
     scalaJsCliVersion: Option[String],
+    // When the Scala.js CLI version was set explicitly (`--js-cli-version`),
+    // pin it exactly rather than as a `<v>+` range. Range resolution needs
+    // version-listing metadata, which an offline/locked build doesn't have.
+    scalaJsCliExactVersion: Boolean,
     scalaNativeCliVersion: Option[String],
     addScalapy: Option[String]
   )
@@ -354,7 +358,10 @@ object Artifacts {
               ModuleName(s"scalajscli_2.13"),
               Map.empty
             )
-            Seq(coursier.Dependency(mod, VersionConstraint(s"$scalaJsCliVersion+")))
+            val constraint =
+              if (scalaArtifactsParams.scalaJsCliExactVersion) scalaJsCliVersion
+              else s"$scalaJsCliVersion+"
+            Seq(coursier.Dependency(mod, VersionConstraint(constraint)))
           }
 
         val fetchedScalaJsCli = scalaJsCliDependency match {

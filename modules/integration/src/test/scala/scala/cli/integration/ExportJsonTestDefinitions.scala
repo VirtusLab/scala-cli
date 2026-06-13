@@ -433,6 +433,20 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
            |"platform": "JS",
            |"scalaJsVersion": "${Constants.scalaJsVersion}",
            |"jsEsVersion":"es2015",
+           |"jsOptions": {
+           | "scalaJsVersion": "${Constants.scalaJsVersion}",
+           | "scalaJsCliVersion": "${Constants.scalaJsCliVersion}",
+           | "toolingDependencies": [
+           |   {
+           |     "groupId": "org.virtuslab.scala-cli",
+           |     "artifactId": {
+           |       "name": "scalajscli_2.13",
+           |       "fullName": "scalajscli_2.13"
+           |     },
+           |     "version": "${Constants.scalaJsCliVersion}"
+           |   }
+           | ]
+           |},
            |"scopes": {
            | "main": {
            |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],

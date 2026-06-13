@@ -49,7 +49,15 @@ object ScalaJsLinker {
         val scalaJsCliVersion = options.finalScalaJsCliVersion
         val scalaJsCliDep     = {
           val mod = mod"org.virtuslab.scala-cli:scalajscli_2.13"
-          dependency.Dependency(mod, s"$scalaJsCliVersion+")
+          // When the CLI version was set explicitly (e.g. `--js-cli-version`),
+          // pin it exactly. The default uses a `+` range so a newer patch can
+          // win, but an explicit version is treated as a hard pin — this is
+          // what lets an offline/locked build resolve the linker without the
+          // version-listing metadata that range resolution would require.
+          val constraint =
+            if (options.scalaJsCliVersion.isDefined) scalaJsCliVersion
+            else s"$scalaJsCliVersion+"
+          dependency.Dependency(mod, constraint)
         }
 
         val forcedVersions = Seq(
