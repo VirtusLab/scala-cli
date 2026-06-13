@@ -11,7 +11,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   protected lazy val canRunInRepl: Boolean =
     (actualScalaVersion.startsWith("3.3") &&
-      actualScalaVersion.coursierVersion >= "3.3.7".coursierVersion) ||
+      actualScalaVersion.coursierVersion >= "3.3.8".coursierVersion) ||
     actualScalaVersion.startsWith("3.7") ||
     actualScalaVersion.coursierVersion >= "3.7.0-RC1".coursierVersion
 
