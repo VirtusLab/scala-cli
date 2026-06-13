@@ -114,9 +114,86 @@ object Artifacts {
     addNativeTestInterface: Option[String],
     scalaJsVersion: Option[String],
     scalaJsCliVersion: Option[String],
+    // When the Scala.js CLI version was set explicitly (`--js-cli-version`),
+    // pin it exactly rather than as a `<v>+` range. Range resolution needs
+    // version-listing metadata, which an offline/locked build doesn't have.
+    scalaJsCliExactVersion: Boolean,
     scalaNativeCliVersion: Option[String],
     addScalapy: Option[String]
   )
+
+  /** Selects the test-runner module version that scala-cli would resolve at test time.
+    *
+    * Falls back to a legacy version when the Scala or Java version is no longer supported by the
+    * current test-runner module. Mirrors the logic used inside [[Artifacts.apply]] so the export
+    * stays faithful to what test-time resolution would produce.
+    */
+  def jvmTestRunnerVersion(
+    scalaVersion: String,
+    jvmVersion: Int,
+    logger: Logger,
+    logLegacyWarnings: Boolean
+  ): String = {
+    val shouldUseLegacyJava8Runners  = jvmVersion < Constants.scala38MinJavaVersion
+    val shouldUseLegacyScala3Runners =
+      scalaVersion.startsWith("3") &&
+      scalaVersion.coursierVersion < s"$scala3LtsPrefix.0".coursierVersion
+    val shouldUseLegacyScala2Runners = scalaVersion.startsWith("2")
+    val shouldUseLegacyScalaRunners  = shouldUseLegacyScala3Runners || shouldUseLegacyScala2Runners
+    val shouldUseLegacyRunners       = shouldUseLegacyScalaRunners || shouldUseLegacyJava8Runners
+
+    val runnerLegacyVersion =
+      if scalaVersion.startsWith("3") then runnerScala30LegacyVersion
+      else runnerScala2LegacyVersion
+
+    if shouldUseLegacyRunners then {
+      if logLegacyWarnings then {
+        if shouldUseLegacyScalaRunners then
+          logger.message(
+            s"$warnPrefix Scala $scalaVersion is no longer supported by the test-runner module."
+          )
+        if shouldUseLegacyJava8Runners then
+          logger.message(
+            s"$warnPrefix Java $jvmVersion is no longer supported by the test-runner module."
+          )
+        logger.message(
+          s"$warnPrefix Defaulting to a legacy test-runner module version: $runnerLegacyVersion."
+        )
+        if shouldUseLegacyScalaRunners then
+          logger.message(
+            s"$warnPrefix To use the latest test-runner, upgrade Scala to at least $scala3LtsPrefix."
+          )
+        if shouldUseLegacyJava8Runners then
+          logger.message(
+            s"$warnPrefix To use the latest test-runner, upgrade Java to at least ${Constants.defaultJavaVersion}."
+          )
+      }
+      runnerLegacyVersion
+    }
+    else testRunnerVersion
+  }
+
+  /** The test-runner dependency rendered for [[scala.build.info.ExportDependencyFormat]] consumers
+    * (e.g. `scala-cli export --json`).
+    *
+    * The artifact name is `test-runner_<scalaBinaryVersion>` to match how scala-cli resolves it at
+    * test time.
+    */
+  def jvmTestRunnerExportDependency(
+    scalaVersion: String,
+    scalaBinaryVersion: String,
+    jvmVersion: Int,
+    logger: Logger
+  ): scala.build.info.ExportDependencyFormat = {
+    import scala.build.info.{ArtifactId, ExportDependencyFormat}
+    val version  = jvmTestRunnerVersion(scalaVersion, jvmVersion, logger, logLegacyWarnings = false)
+    val fullName = s"$testRunnerModuleName${"_"}$scalaBinaryVersion"
+    ExportDependencyFormat(
+      groupId = testRunnerOrganization,
+      artifactId = ArtifactId(testRunnerModuleName, fullName),
+      version = version
+    )
+  }
 
   def apply(
     scalaArtifactsParamsOpt: Option[ScalaArtifactsParams],
@@ -170,34 +247,8 @@ object Artifacts {
 
     val jvmTestRunnerDependencies =
       if addJvmTestRunner then {
-        val runnerLegacyVersion =
-          if scalaVersion.startsWith("3")
-          then runnerScala30LegacyVersion
-          else runnerScala2LegacyVersion
         val testRunnerVersion0 =
-          if shouldUseLegacyRunners then {
-            if shouldUseLegacyScalaRunners then
-              logger.message(
-                s"$warnPrefix Scala $scalaVersion is no longer supported by the test-runner module."
-              )
-            if shouldUseLegacyJava8Runners then
-              logger.message(
-                s"$warnPrefix Java $jvmVersion is no longer supported by the test-runner module."
-              )
-            logger.message(
-              s"$warnPrefix Defaulting to a legacy test-runner module version: $runnerLegacyVersion."
-            )
-            if shouldUseLegacyScalaRunners then
-              logger.message(
-                s"$warnPrefix To use the latest test-runner, upgrade Scala to at least $scala3LtsPrefix."
-              )
-            if shouldUseLegacyJava8Runners then
-              logger.message(
-                s"$warnPrefix To use the latest test-runner, upgrade Java to at least ${Constants.defaultJavaVersion}."
-              )
-            runnerLegacyVersion
-          }
-          else testRunnerVersion
+          jvmTestRunnerVersion(scalaVersion, jvmVersion, logger, logLegacyWarnings = true)
         Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion0")
       }
       else Nil
@@ -318,7 +369,10 @@ object Artifacts {
               ModuleName(s"scalajscli_2.13"),
               Map.empty
             )
-            Seq(coursier.Dependency(mod, VersionConstraint(s"$scalaJsCliVersion+")))
+            val constraint =
+              if (scalaArtifactsParams.scalaJsCliExactVersion) scalaJsCliVersion
+              else s"$scalaJsCliVersion+"
+            Seq(coursier.Dependency(mod, VersionConstraint(constraint)))
           }
 
         val fetchedScalaJsCli = scalaJsCliDependency match {
