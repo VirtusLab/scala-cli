@@ -23,23 +23,23 @@ if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
   if [[ "$arch" == "aarch64" ]] || [[ "$arch" == "x86_64" ]]; then
     SCALA_CLI_URL="https://github.com/$GH_ORG/$GH_NAME/releases/download/$TAG/scala-cli-${arch}-pc-linux.gz"
   else
-    echoerr "scala-cli is not supported on $arch"
+    echo "scala-cli is not supported on $arch" 1>&2
     exit 2
   fi
-  CACHE_BASE="$HOME/.cache/coursier/v1"
+  CACHE_BASE="${COURSIER_CACHE:-"$HOME/.cache/coursier/v1"}"
 elif [ "$(uname)" == "Darwin" ]; then
   arch=$(uname -m)
-  CACHE_BASE="$HOME/Library/Caches/Coursier/v1"
+  CACHE_BASE="${COURSIER_CACHE:-"$HOME/Library/Caches/Coursier/v1"}"
   if [[ "$arch" == "x86_64" ]]; then
     SCALA_CLI_URL="https://github.com/$GH_ORG/$GH_NAME/releases/download/$TAG/scala-cli-x86_64-apple-darwin.gz"
   elif [[ "$arch" == "arm64" ]]; then
     SCALA_CLI_URL="https://github.com/$GH_ORG/$GH_NAME/releases/download/$TAG/scala-cli-aarch64-apple-darwin.gz"
   else
-    echoerr "scala-cli is not supported on $arch"
+    echo "scala-cli is not supported on $arch" 1>&2
     exit 2
   fi
 else
-  echo "This standalone scala-cli launcher is supported only in Linux and macOS. If you are using Windows, please use the dedicated launcher scala-cli.bat"
+  echo "This standalone scala-cli launcher is supported only in Linux and macOS. If you are using Windows, please use the dedicated launcher scala-cli.bat" 1>&2
   exit 1
 fi
 
@@ -49,7 +49,7 @@ SCALA_CLI_BIN_PATH=${CACHE_DEST%.gz}
 if [ ! -f "$CACHE_DEST" ]; then
   mkdir -p "$(dirname "$CACHE_DEST")"
   TMP_DEST="$CACHE_DEST.tmp-setup"
-  echo "Downloading $SCALA_CLI_URL"
+  echo "Downloading $SCALA_CLI_URL" 1>&2
   curl -fLo "$TMP_DEST" "$SCALA_CLI_URL"
   mv "$TMP_DEST" "$CACHE_DEST"
 fi
