@@ -298,10 +298,11 @@ object MsvcEnvironment {
   }
 
   // newest VS first, Enterprise > Community > BuildTools
-  private def vcVersions                              = Seq("2022", "2019", "2017")
-  private def vcEditions                              = Seq("Enterprise", "Community", "BuildTools")
-  private lazy val vcVarsCandidates: Iterable[String] =
-    EnvVar.Misc.vcVarsAll.valueOpt ++ {
+  private def vcVersions = Seq("18", "2026", "2022", "2019", "2017")
+  private def vcEditions = Seq("Enterprise", "Community", "BuildTools")
+
+  def vcVarsCandidatePaths(vcVarsAllOverride: Option[String] = None): Seq[String] =
+    vcVarsAllOverride.toSeq ++ {
       for {
         isX86   <- Seq(false, true)
         version <- vcVersions
@@ -312,6 +313,9 @@ object MsvcEnvironment {
           """\VC\Auxiliary\Build\vcvars64.bat"""
       }
     }
+
+  private lazy val vcVarsCandidates: Iterable[String] =
+    vcVarsCandidatePaths(EnvVar.Misc.vcVarsAll.valueOpt)
 
   lazy val mountedDrives: String = {
     val str         = "HKEY_LOCAL_MACHINE/SYSTEM/MountedDevices".replace('/', '\\')
