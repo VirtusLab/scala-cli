@@ -162,7 +162,6 @@ trait CliLaunchers extends SbtModule { self =>
       Task.Command(super.writeNativeImageScript(scriptDest, "")())
 
     def launcherKind: String
-    override def nativeImageCsCommand: T[Seq[String]] = Seq(cs())
     override def nativeImagePersist: Boolean          = System.getenv("CI") != null
     override def nativeImageGraalVmJvmId: T[String]   = deps.graalVmJvmId
     override def nativeImageOptions: T[Seq[String]]   = Task {
