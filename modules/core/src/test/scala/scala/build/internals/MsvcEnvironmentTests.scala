@@ -11,4 +11,18 @@ class MsvcEnvironmentTests extends munit.FunSuite {
       )
     )
   }
+
+  test("selectVcvars picks the newest candidate lexicographically") {
+    val older =
+      os.Path(
+        """C:\Program Files\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat""",
+        os.pwd
+      )
+    val newer =
+      os.Path(
+        """C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat""",
+        os.pwd
+      )
+    expect(MsvcEnvironment.selectVcvars(Seq(older, newer)) == Some(newer))
+  }
 }
