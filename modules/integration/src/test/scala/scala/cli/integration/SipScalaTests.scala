@@ -719,7 +719,7 @@ class SipScalaTests extends ScalaCliSuite
         outputDir
       ).call(cwd = root)
       expect(exportRes.exitCode == 0)
-      val sbtRes = sbtCommand("run").call(cwd = root / outputDir)
+      val sbtRes = sbtCommand(Constants.sbt2Version, "run").call(cwd = root / outputDir)
       val output = sbtRes.out.trim()
       expect(output.contains(expectedMessage))
     }

@@ -76,15 +76,16 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
         compileOnlyTest(mainClass = "main", extraExportArgs = defaultExportCommandArgs)
       }
     }
-    test(s"Scala.js$commonTestDescriptionSuffix") {
-      TestUtil.retryOnCi() {
-        simpleTest(
-          inputs = ExportTestProjects.jsTest(actualScalaVersion),
-          mainClass = None,
-          extraExportArgs = defaultExportCommandArgs
-        )
+    if runScalaJsExportTest then
+      test(s"Scala.js$commonTestDescriptionSuffix") {
+        TestUtil.retryOnCi() {
+          simpleTest(
+            inputs = ExportTestProjects.jsTest(actualScalaVersion),
+            mainClass = None,
+            extraExportArgs = defaultExportCommandArgs
+          )
+        }
       }
-    }
     test(s"zio test$commonTestDescriptionSuffix") {
       TestUtil.retryOnCi() {
         testZioTest(testClassName = "ZioSpec", extraExportArgs = defaultExportCommandArgs)
