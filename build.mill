@@ -1,7 +1,7 @@
 //| mill-jvm-version: system|17
 //| mvnDeps:
-//| - io.github.alexarchambault.mill::mill-native-image::0.2.4
-//| - io.github.alexarchambault.mill::mill-native-image-upload:0.2.4
+//| - io.github.alexarchambault.mill::mill-native-image::0.2.6
+//| - io.github.alexarchambault.mill::mill-native-image-upload:0.2.6
 //| - com.goyeau::mill-scalafix::0.6.0
 //| - com.lumidion::sonatype-central-client-requests:0.6.0
 //| - io.get-coursier:coursier-launcher_2.13:2.1.25-M25
@@ -594,6 +594,8 @@ trait Core extends ScalaCliCrossSbtModule
     PathRef(dir)
   }
   override def generatedSources: T[Seq[PathRef]] = super.generatedSources() ++ Seq(constantsFile())
+
+  object test extends ScalaCliTests
 }
 
 trait Directives extends ScalaCliCrossSbtModule
@@ -1507,6 +1509,7 @@ def unitTests(): Command[(msg: String, results: Seq[TestResult])] = Task.Command
   `build-module`(Scala.defaultInternal).test.testForked()()
   `build-macros`(Scala.defaultInternal).test.testForked()()
   cli(Scala.defaultInternal).test.testForked()()
+  core(Scala.defaultInternal).test.testForked()()
   directives(Scala.defaultInternal).test.testForked()()
   options(Scala.defaultInternal).test.testForked()()
 }
@@ -2062,7 +2065,7 @@ object ci extends Module {
     Task.Command {
       val msmPath = {
 
-        val vcVersions = Seq("2022", "2019", "2017")
+        val vcVersions = Seq("18", "2026", "2022", "2019", "2017")
         val vcEditions = Seq("Enterprise", "Community", "BuildTools")
         val vsDirs     = Seq(
           os.Path("""C:\Program Files\Microsoft Visual Studio"""),
