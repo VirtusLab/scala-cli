@@ -147,6 +147,48 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       )
     }
 
+    if !Properties.isWin then {
+      test(s"$runInReplPrefix pure Java sources available with --jshell=false (#4329)") {
+        val expectedMessage = "1337"
+        runInRepl(
+          codeToRunInRepl = """println(new JavaClass().hi())""",
+          testInputs = TestInputs(
+            os.rel / "JavaClass.java" ->
+              s"""public class JavaClass {
+                 |  public String hi() { return "$expectedMessage"; }
+                 |}
+                 |""".stripMargin
+          ),
+          cliOptions = Seq("--jshell=false"),
+          skipScalaVersionArgs = true,
+          shouldPipeStdErr = true
+        ) { res =>
+          val combined = res.out.text() + res.err.text()
+          expect(combined.contains(expectedMessage))
+        }
+      }
+
+      test(s"$runInReplPrefix Java sources available next to an empty Scala source (#4329)") {
+        val expectedMessage = "1337"
+        runInRepl(
+          codeToRunInRepl = """println(new JavaClass().hi())""",
+          testInputs = TestInputs(
+            os.rel / "JavaClass.java" ->
+              s"""public class JavaClass {
+                 |  public String hi() { return "$expectedMessage"; }
+                 |}
+                 |""".stripMargin,
+            os.rel / "Empty.scala" -> ""
+          ),
+          skipScalaVersionArgs = true,
+          shouldPipeStdErr = true
+        ) { res =>
+          val combined = res.out.text() + res.err.text()
+          expect(combined.contains(expectedMessage))
+        }
+      }
+    }
+
     test(s"$runInReplPrefix init script file with quotes and newlines") {
       runInRepl(
         codeToRunInRepl =
