@@ -280,22 +280,15 @@ object MsvcEnvironment {
     candidates.find(os.exists)
   }
 
-  private def vcvarsOpt(logger: Logger): Option[os.Path] = {
-    val candidates =
-      vcVarsCandidates
-        .iterator
-        .map(os.Path(_, os.pwd))
-        .filter(os.exists(_))
-        .toSeq
+  def selectVcvars(candidates: Seq[os.Path]): Option[os.Path] =
+    // newest VS sorts last lexicographically
+    candidates.sortBy(_.toString).lastOption
 
-    if (candidates.isEmpty) None
-    else {
-      // Sort lexicographically; newest VS installs always sort last
-      val sorted = candidates.sortBy(_.toString)
-      sorted.foreach(s => logger.debug(s"candidate: $s"))
-      sorted.lastOption
-    }
-  }
+  private def vcvarsOpt(logger: Logger): Option[os.Path] =
+    val existing =
+      vcVarsCandidates.iterator.map(os.Path(_, os.pwd)).filter(os.exists).toSeq
+    existing.foreach(c => logger.debug(s"candidate: $c"))
+    selectVcvars(existing)
 
   // newest VS first, Enterprise > Community > BuildTools
   private def vcVersions = Seq("18", "2026", "2022", "2019", "2017")
@@ -308,9 +301,8 @@ object MsvcEnvironment {
         version <- vcVersions
         edition <- vcEditions
       } yield {
-        val programFiles = if (isX86) "Program Files (x86)" else "Program Files"
-        """C:\""" + programFiles + """\Microsoft Visual Studio\""" + version + "\\" + edition +
-          """\VC\Auxiliary\Build\vcvars64.bat"""
+        val programFiles = if isX86 then "Program Files (x86)" else "Program Files"
+        s"""C:\\$programFiles\\Microsoft Visual Studio\\$version\\$edition\\VC\\Auxiliary\\Build\\vcvars64.bat"""
       }
     }
 
