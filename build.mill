@@ -2025,7 +2025,7 @@ object ci extends Module {
     distName: String = "vc_redist.x64.exe"
   ): Command[Unit] =
     Task.Command {
-      def vcVersions        = Seq("2022", "2019", "2017")
+      def vcVersions        = Seq("18", "2026", "2022", "2019", "2017")
       def vcEditions        = Seq("Enterprise", "Community", "BuildTools")
       def candidateBaseDirs =
         for {

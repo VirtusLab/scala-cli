@@ -1923,7 +1923,6 @@ jobs:
     needs: [changes]
     timeout-minutes: 15
     runs-on: "windows-2025"
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'Virtuslab/scala-cli'
     env:
       SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
