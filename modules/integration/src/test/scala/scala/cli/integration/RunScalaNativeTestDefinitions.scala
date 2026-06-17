@@ -44,7 +44,7 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
       }
   }
 
-  test("simple script native") {
+  test("simple script native".tag(ScalaCliSuite.sanity)) {
     TestUtil.retryOnCi() {
       simpleNativeTests()
     }

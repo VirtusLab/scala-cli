@@ -52,7 +52,7 @@ abstract class RunTestDefinitions
       .out
       .trim()
 
-  test("print command") {
+  test("print command".tag(ScalaCliSuite.sanity)) {
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs   = TestInputs(

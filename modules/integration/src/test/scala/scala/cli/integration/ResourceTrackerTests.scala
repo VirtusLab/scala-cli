@@ -8,7 +8,7 @@ import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
-class ResourceTrackerTests extends munit.FunSuite {
+class ResourceTrackerTests extends ScalaCliSuite {
 
   private final class RecordingResourceTracker(events: ConcurrentLinkedQueue[String])
       extends ResourceTracker {

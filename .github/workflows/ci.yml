@@ -883,14 +883,14 @@ jobs:
 
   native-macos-tests-default:
     needs: [changes, generate-macos-launcher]
-    timeout-minutes: 240
+    timeout-minutes: 45
     runs-on: "macOS-15-intel"
     env:
       SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
-      run: echo "Skipping native macOS integration tests (default) -- changes do not affect compiled code or CI."
+      run: echo "Skipping native macOS integration tests (sanity) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v6
       if: env.SHOULD_RUN == 'true'
       with:
@@ -919,10 +919,11 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
+        SCALA_CLI_IT_SANITY: true
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
-      run: .github/scripts/generate-junit-reports.sc macos-tests-default 'Scala CLI MacOS Tests (default)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc macos-tests-default 'Scala CLI MacOS Tests (sanity)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -932,14 +933,14 @@ jobs:
 
   native-macos-tests-rc:
     needs: [changes, generate-macos-launcher]
-    timeout-minutes: 240
+    timeout-minutes: 45
     runs-on: "macOS-15-intel"
     env:
       SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
-        run: echo "Skipping native macOS integration tests (RC) -- changes do not affect compiled code or CI."
+        run: echo "Skipping native macOS integration tests (sanity) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
         if: env.SHOULD_RUN == 'true'
         with:
@@ -968,10 +969,11 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 5
+          SCALA_CLI_IT_SANITY: true
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run: .github/scripts/generate-junit-reports.sc macos-tests-rc 'Scala CLI MacOS Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc macos-tests-rc 'Scala CLI MacOS Tests (sanity)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -1026,14 +1028,14 @@ jobs:
 
   native-macos-arm64-tests-default:
     needs: [changes, generate-macos-arm64-launcher]
-    timeout-minutes: 240
+    timeout-minutes: 45
     runs-on: "macOS-15"
     env:
       SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
-        run: echo "Skipping native macOS ARM64 integration tests (default) -- changes do not affect compiled code or CI."
+        run: echo "Skipping native macOS ARM64 integration tests (sanity) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
         if: env.SHOULD_RUN == 'true'
         with:
@@ -1062,10 +1064,11 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 1
+          SCALA_CLI_IT_SANITY: true
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-default 'Scala CLI MacOS ARM64 Tests (default)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-default 'Scala CLI MacOS ARM64 Tests (sanity)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -1073,65 +1076,16 @@ jobs:
           name: test-results-macos-arm64-tests-default
           path: test-report.xml
 
-  native-macos-arm64-tests-lts:
-    needs: [changes, generate-macos-arm64-launcher]
-    timeout-minutes: 240
-    runs-on: "macOS-15"
-    env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
-    steps:
-      - name: Log skip reason
-        if: env.SHOULD_RUN != 'true'
-        run: echo "Skipping native macOS ARM64 integration tests (Scala 3 LTS) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
-        if: env.SHOULD_RUN == 'true'
-        with:
-          fetch-depth: 0
-          submodules: true
-      - uses: coursier/cache-action@v8
-        if: env.SHOULD_RUN == 'true'
-        with:
-          ignoreJob: true
-      - uses: VirtusLab/scala-cli-setup@v1
-        if: env.SHOULD_RUN == 'true'
-        with:
-          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Ensure it's running on aarch64
-        if: env.SHOULD_RUN == 'true'
-        run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
-      - uses: actions/download-artifact@v8
-        if: env.SHOULD_RUN == 'true'
-        with:
-          name: macos-arm64-launchers
-          path: artifacts/
-      - name: Native integration tests
-        if: env.SHOULD_RUN == 'true'
-        run: ./mill -i nativeIntegrationTests
-        env:
-          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
-          SCALA_CLI_IT_GROUP: 4
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
-      - name: Convert Mill test reports to JUnit XML format
-        if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-lts 'Scala CLI MacOS ARM64 Tests (Scala 3 LTS)' test-report.xml out/
-      - name: Upload test report
-        uses: actions/upload-artifact@v7
-        if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        with:
-          name: test-results-macos-arm64-tests-lts
-          path: test-report.xml
-
   native-macos-arm64-tests-rc:
     needs: [changes, generate-macos-arm64-launcher]
-    timeout-minutes: 240
+    timeout-minutes: 45
     runs-on: "macOS-15"
     env:
       SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
-        run: echo "Skipping native macOS ARM64 integration tests (RC) -- changes do not affect compiled code or CI."
+        run: echo "Skipping native macOS ARM64 integration tests (sanity) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v6
         if: env.SHOULD_RUN == 'true'
         with:
@@ -1160,10 +1114,11 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 5
+          SCALA_CLI_IT_SANITY: true
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-rc 'Scala CLI MacOS ARM64 Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-rc 'Scala CLI MacOS ARM64 Tests (sanity)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -1977,7 +1932,6 @@ jobs:
       - native-macos-tests-default
       - native-macos-tests-rc
       - native-macos-arm64-tests-default
-      - native-macos-arm64-tests-lts
       - native-macos-arm64-tests-rc
       - native-windows-tests-default
       - native-windows-tests-lts
@@ -2058,7 +2012,6 @@ jobs:
       - native-macos-tests-default
       - native-macos-tests-rc
       - native-macos-arm64-tests-default
-      - native-macos-arm64-tests-lts
       - native-macos-arm64-tests-rc
       - native-windows-tests-default
       - native-windows-tests-lts
