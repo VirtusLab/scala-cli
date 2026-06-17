@@ -130,7 +130,9 @@ object integration extends CliIntegration {
   object test extends IntegrationScalaTests {
     override def testParallelism: T[Boolean]           = !isCI
     override def testForkGrouping: T[Seq[Seq[String]]] =
-      if isCI then discoveredTestClasses().grouped(1).toSeq else super.testForkGrouping()
+      if isCI && System.getenv("SCALA_CLI_IT_SANITY") == null then
+        discoveredTestClasses().grouped(1).toSeq
+      else super.testForkGrouping()
     override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
       Deps.coursierArchiveCache,
       Deps.jgit,

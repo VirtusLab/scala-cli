@@ -66,10 +66,19 @@ abstract class ScalaCliSuite extends munit.FunSuite {
       .flatMap(_.toIntOption)
       .exists(_ != group.idx)
 
+  private def sanityOnly: Boolean =
+    Option(System.getenv("SCALA_CLI_IT_SANITY")).exists(_.equalsIgnoreCase("true"))
+
+  override def munitTests(): Seq[Test] =
+    val all = super.munitTests()
+    if sanityOnly then all.filter(_.tags.contains(ScalaCliSuite.sanity)) else all
+
   override def munitFlakyOK: Boolean = TestUtil.isCI
 }
 
 object ScalaCliSuite {
+  val sanity: munit.Tag = new munit.Tag("sanity")
+
   sealed abstract class TestGroup(val idx: Int) extends Product with Serializable
   object TestGroup {
     case object First  extends TestGroup(1) // Scala 3 Next / default
