@@ -147,7 +147,7 @@ object Deps {
     def mavenAppArtifactId                = "maven-app"
     def mavenAppGroupId                   = "com.example"
     def mavenAppVersion                   = "0.1-SNAPSHOT"
-    def scalafix                          = "0.14.6"
+    def scalafix                          = "0.14.7"
   }
 
   def argonautShapeless =
