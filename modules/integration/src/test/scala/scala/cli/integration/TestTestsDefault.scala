@@ -6,8 +6,10 @@ import java.io.File
 
 import scala.cli.integration.Constants.munitVersion
 import scala.cli.integration.TestUtil.StringOps
+import scala.util.Properties
 
-class TestTestsDefault extends TestTestDefinitions with TestDefault {
+trait TestTestsDefault { this: TestTestDefinitions & TestDefault & TestBuildServer =>
+
   test("Pure Java with Scala tests") {
     val inputs = TestInputs(
       os.rel / "Messages.java" ->
@@ -73,6 +75,7 @@ class TestTestsDefault extends TestTestDefinitions with TestDefault {
     expectedMessage = "Hello, world!"
     expectedWarning =
       s"Defaulting to a legacy test-runner module version: ${Constants.runnerScala30LegacyVersion}"
+    if !usesBloop
   }
     test(s"run a simple test with Scala $scalaVersion (legacy)") {
       TestInputs(os.rel / "example.test.scala" ->
@@ -89,7 +92,7 @@ class TestTestsDefault extends TestTestDefinitions with TestDefault {
            |}
            |""".stripMargin).fromRoot { root =>
         val res =
-          os.proc(TestUtil.cli, "test", ".", "-S", scalaVersion, TestUtil.extraOptions)
+          os.proc(TestUtil.cli, "test", ".", "-S", scalaVersion, extraOptions)
             .call(cwd = root, stderr = os.Pipe)
         val out = res.out.trim()
         expect(out.contains(expectedMessage))
@@ -99,37 +102,40 @@ class TestTestsDefault extends TestTestDefinitions with TestDefault {
       }
     }
 
-  for {
-    buildServerOptions <- Seq(Nil, Seq("--server=false"))
-    buildServerDesc =
-      if buildServerOptions.isEmpty then "with build server" else "without build server"
-  }
-    test(s"pure Java test with JUnit has no Scala on classpath $buildServerDesc") {
-      TestInputs(
-        os.rel / "test" / "MyTests.java" ->
-          """//> using test.dep junit:junit:4.13.2
-            |//> using test.dep com.novocode:junit-interface:0.11
-            |import org.junit.Test;
-            |import static org.junit.Assert.assertEquals;
-            |
-            |public class MyTests {
-            |  @Test
-            |  public void foo() {
-            |    try {
-            |      Class.forName("scala.Predef");
-            |      throw new AssertionError("Scala should not be on the classpath");
-            |    } catch (ClassNotFoundException e) {
-            |      // expected
-            |    }
-            |    assertEquals(4, 2 + 2);
-            |    System.out.println("No Scala on classpath!");
-            |  }
-            |}
-            |""".stripMargin
-      ).fromRoot { root =>
-        val res =
-          os.proc(TestUtil.cli, "test", extraOptions, buildServerOptions, ".").call(cwd = root)
-        expect(res.out.text().contains("No Scala on classpath!"))
-      }
+  test(s"pure Java test with JUnit has no Scala on classpath $buildServerDescriptionSuffix") {
+    TestInputs(
+      os.rel / "test" / "MyTests.java" ->
+        """//> using test.dep junit:junit:4.13.2
+          |//> using test.dep com.novocode:junit-interface:0.11
+          |import org.junit.Test;
+          |import static org.junit.Assert.assertEquals;
+          |
+          |public class MyTests {
+          |  @Test
+          |  public void foo() {
+          |    try {
+          |      Class.forName("scala.Predef");
+          |      throw new AssertionError("Scala should not be on the classpath");
+          |    } catch (ClassNotFoundException e) {
+          |      // expected
+          |    }
+          |    assertEquals(4, 2 + 2);
+          |    System.out.println("No Scala on classpath!");
+          |  }
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val res =
+        os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root)
+      expect(res.out.text().contains("No Scala on classpath!"))
     }
+  }
+}
+
+class TestTestsDefaultWithBloop
+    extends TestTestDefinitions with TestDefault with TestWithBloop with TestTestsDefault
+
+class TestTestsDefaultWithoutBloop
+    extends TestTestDefinitions with TestDefault with TestWithoutBloop with TestTestsDefault {
+  override def munitIgnore: Boolean = super.munitIgnore || Properties.isWin
 }

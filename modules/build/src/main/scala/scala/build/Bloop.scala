@@ -19,6 +19,12 @@ import scala.jdk.CollectionConverters.*
 
 object Bloop {
 
+  final case class BloopTestOptions(
+    testOnly: Option[String] = None,
+    selectedTestClasses: Seq[String] = Nil,
+    extraArgs: Seq[String] = Nil
+  )
+
   private object BrokenPipeInCauses {
     @tailrec
     def unapply(ex: Throwable): Option[IOException] =
@@ -68,6 +74,77 @@ object Bloop {
         )
         Left(ex)
     }
+
+  def test(
+    projectName: String,
+    buildServer: BuildServer,
+    logger: Logger,
+    buildTargetsTimeout: FiniteDuration,
+    testOptions: BloopTestOptions = BloopTestOptions()
+  ): Either[Throwable, Int] =
+    try retry()(logger) {
+        logger.debug("Listing BSP build targets for test")
+        val results = buildServer.workspaceBuildTargets()
+          .get(buildTargetsTimeout.length, buildTargetsTimeout.unit)
+        val buildTargetOpt = results.getTargets.asScala.find(_.getDisplayName == projectName)
+
+        val buildTarget = buildTargetOpt.getOrElse {
+          throw new Exception(
+            s"Expected to find project '$projectName' in build targets (only got ${results.getTargets
+                .asScala.map("'" + _.getDisplayName + "'").mkString(", ")})"
+          )
+        }
+
+        logger.debug(s"Testing $projectName with Bloop")
+        val testParams = buildTestParams(buildTarget.getId, testOptions)
+        val testRes    = buildServer.buildTargetTest(testParams).get()
+
+        val statusCode = testRes.getStatusCode
+        val exitCode   = statusCode match {
+          case bsp4j.StatusCode.OK        => 0
+          case bsp4j.StatusCode.ERROR     => 1
+          case bsp4j.StatusCode.CANCELLED => 1
+        }
+        logger.debug(if (exitCode == 0) "Tests succeeded" else "Tests failed")
+        Right(exitCode)
+      }
+    catch {
+      case ex @ BrokenPipeInCauses(_) =>
+        logger.debug(s"Caught $ex while exchanging with Bloop server, assuming Bloop server exited")
+        Left(ex)
+      case ex: ExecutionException =>
+        logger.debug(
+          s"Caught $ex while exchanging with Bloop server, you may consider restarting the build server"
+        )
+        Left(ex)
+    }
+
+  private def buildTestParams(
+    buildTargetId: bsp4j.BuildTargetIdentifier,
+    testOptions: BloopTestOptions
+  ): bsp4j.TestParams = {
+    val params  = new bsp4j.TestParams(List(buildTargetId).asJava)
+    val classes = testOptions.selectedTestClasses
+    if classes.nonEmpty then
+      if testOptions.extraArgs.nonEmpty then {
+        val selections = classes.map { className =>
+          new bsp4j.ScalaTestSuiteSelection(className, testOptions.extraArgs.asJava)
+        }
+        val suites = new bsp4j.ScalaTestSuites(
+          selections.asJava,
+          List.empty[String].asJava,
+          List.empty[String].asJava
+        )
+        params.setDataKind(bsp4j.TestParamsDataKind.SCALA_TEST_SUITES_SELECTION)
+        params.setData(suites)
+      }
+      else {
+        params.setDataKind(bsp4j.TestParamsDataKind.SCALA_TEST_SUITES)
+        params.setData(classes.asJava)
+      }
+    params
+  }
+
   def bloopClassPath(
     dep: AnyDependency,
     params: ScalaParameters,

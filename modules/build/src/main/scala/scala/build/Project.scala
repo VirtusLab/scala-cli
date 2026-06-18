@@ -28,7 +28,8 @@ final case class Project(
   resourceDirs: Seq[os.Path],
   javaHomeOpt: Option[os.Path],
   scope: Scope,
-  javacOptions: List[String]
+  javacOptions: List[String],
+  testFrameworkNames: Seq[String] = Nil
 ) {
 
   import Project._
@@ -55,7 +56,8 @@ final case class Project(
       directory.toNIO,
       (directory / ".bloop" / projectName).toNIO,
       classesDir.toNIO,
-      scope
+      scope,
+      testFrameworkNames
     )
       .copy(
         workspaceDir = Some(workspace.toNIO),
@@ -169,12 +171,30 @@ object Project {
     BloopConfig.Resolution(modules)
   }
 
-  private def setProjectTestConfig(p: BloopConfig.Project): BloopConfig.Project =
+  private val jupiterFramework =
+    BloopConfig.TestFramework(List("com.github.sbt.junit.jupiter.api.JupiterFramework"))
+  private val zioTestFramework =
+    BloopConfig.TestFramework(List("zio.test.sbt.ZTestFramework"))
+  private val weaverFramework =
+    BloopConfig.TestFramework(List("weaver.framework.CatsEffect"))
+
+  private def bloopTestFrameworks(names: Seq[String]): List[BloopConfig.TestFramework] =
+    names match {
+      case Nil =>
+        BloopConfig.TestFramework.DefaultFrameworks ++
+          List(jupiterFramework, zioTestFramework, weaverFramework)
+      case ns => ns.map(name => BloopConfig.TestFramework(List(name))).toList
+    }
+
+  private def setProjectTestConfig(
+    p: BloopConfig.Project,
+    testFrameworkNames: Seq[String]
+  ): BloopConfig.Project =
     p.copy(
       dependencies = List(p.name.stripSuffix("-test")),
       test = Some(
         BloopConfig.Test(
-          frameworks = BloopConfig.TestFramework.DefaultFrameworks,
+          frameworks = bloopTestFrameworks(testFrameworkNames),
           options = BloopConfig.TestOptions.empty
         )
       ),
@@ -186,7 +206,8 @@ object Project {
     directory: Path,
     out: Path,
     classesDir: Path,
-    scope: Scope
+    scope: Scope,
+    testFrameworkNames: Seq[String]
   ): BloopConfig.Project = {
     val project = BloopConfig.Project(
       name = name,
@@ -210,7 +231,7 @@ object Project {
       sourceGenerators = None
     )
     if (scope == Scope.Test)
-      setProjectTestConfig(project)
+      setProjectTestConfig(project, testFrameworkNames)
     else project
   }
 
