@@ -13,15 +13,16 @@ object Cli {
 }
 
 object Scala {
-  def scala212         = "2.12.21"
-  def scala213         = "2.13.18"
-  def scala3LtsPrefix  = "3.3"                  // used for the LTS version tags
-  def scala3Lts        = s"$scala3LtsPrefix.8"  // the LTS version currently used in the build
-  def runnerScala3     = scala3Lts
-  def scala3NextPrefix = "3.8"
-  def scala3Next       = s"$scala3NextPrefix.4" // the newest/next version of Scala
-  def scala3NextAnnounced   = s"$scala3NextPrefix.4"  // the newest/next version of Scala that's been announced
-  def scala3NextRc          = "3.9.0-RC1" // the latest RC version of Scala Next
+  def scala212            = "2.12.21"
+  def scala213            = "2.13.18"
+  def scala3LtsPrefix     = "3.3"                  // used for the LTS version tags
+  def scala3Lts           = s"$scala3LtsPrefix.8"  // the LTS version currently used in the build
+  def runnerScala3        = scala3Lts
+  def scala3NextPrefix    = "3.8"
+  def scala3Next          = s"$scala3NextPrefix.4" // the newest/next version of Scala
+  def scala3NextAnnounced =
+    s"$scala3NextPrefix.4" // the newest/next version of Scala that's been announced
+  def scala3NextRc        = "3.9.0-RC1"            // the latest RC version of Scala Next
   def scala3NextRcAnnounced = "3.8.4-RC3" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
@@ -45,7 +46,7 @@ object Scala {
   val scala3MainVersions  = (defaults ++ allScala3).distinct
   val runnerScalaVersions = (Seq(runnerScala3) ++ scala3MainVersions).distinct
 
-  def scalaJs    = "1.21.0"
+  def scalaJs    = "1.22.0"
   def scalaJsCli = scalaJs // this must be compatible with the Scala.js version
 
   private def patchVer(sv: String): Int =
