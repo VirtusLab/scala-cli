@@ -2568,4 +2568,34 @@ abstract class RunTestDefinitions
       expect(output == message)
     }
   }
+
+  private def cacheRedirectsLocalRepoTest(modeArgs: Seq[String], cacheSuffix: String): Unit =
+    TestInputs(os.rel / "simple.sc" -> """println("ok")""").fromRoot { root =>
+      val cacheDir     = root / s"custom-cache-$cacheSuffix"
+      val isolatedHome = root / s"scala-cli-home-$cacheSuffix"
+      os.makeDir.all(isolatedHome)
+      val env = Map("SCALA_CLI_HOME" -> isolatedHome.toString)
+      os.proc(
+        TestUtil.cli,
+        "run",
+        "simple.sc",
+        modeArgs,
+        "--cache",
+        cacheDir.toString,
+        extraOptions
+      ).call(cwd = root, env = env)
+
+      val localRepoUnderCache = cacheDir / "scalacli-local-repo"
+      expect(os.exists(localRepoUnderCache))
+      expect(os.list(localRepoUnderCache).nonEmpty)
+
+      val localRepoUnderHome = isolatedHome / "cache" / "local-repo"
+      expect(!os.exists(localRepoUnderHome) || os.list(localRepoUnderHome).isEmpty)
+    }
+
+  test("--cache redirects local-repo extraction (issue #3523)") {
+    for (modeArgs, cacheSuffix) <-
+        Seq((Nil, "bloop"), (Seq("--server=false"), "no-server"))
+    do cacheRedirectsLocalRepoTest(modeArgs, cacheSuffix)
+  }
 }

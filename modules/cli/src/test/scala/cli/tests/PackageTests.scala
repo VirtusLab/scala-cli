@@ -2,6 +2,8 @@ package cli.tests
 
 import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
+import coursier.cache.FileCache
+import coursier.util.Task
 
 import java.nio.file.FileSystems
 
@@ -9,7 +11,7 @@ import scala.build.Ops.*
 import scala.build.options.{BuildOptions, InternalOptions, PackageType}
 import scala.build.tests.util.BloopServer
 import scala.build.tests.{TestInputs, TestLogger}
-import scala.build.{BuildThreads, Directories, LocalRepo}
+import scala.build.{BuildThreads, LocalRepo}
 import scala.cli.commands.package0.Package
 import scala.cli.packaging.Library
 
@@ -17,12 +19,14 @@ class PackageTests extends TestUtil.ScalaCliSuite {
   val buildThreads: BuildThreads    = BuildThreads.create()
   def bloopConfig: BloopRifleConfig = BloopServer.bloopConfig
 
-  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories: Directories = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: os.Path   = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val testCache: FileCache[Task] =
+    FileCache().withLocation((extraRepoTmpDir / "cache").toIO)
 
   val defaultOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
+      cache = Some(testCache),
+      localRepository = LocalRepo.localRepo(testCache, TestLogger())
     )
   )
 
