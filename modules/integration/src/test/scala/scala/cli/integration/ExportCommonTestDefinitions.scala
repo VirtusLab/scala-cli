@@ -12,7 +12,9 @@ trait ExportCommonTestDefinitions { this: ScalaCliSuite & TestScalaVersionArgs =
 
   protected def commonTestDescriptionSuffix: String = ""
 
-  protected def runExportTests: Boolean = Properties.isMac
+  protected def runExportTests: Boolean           = Properties.isMac
+  protected def runScalaJsExportTest: Boolean     = runExportTests
+  protected def runScalaNativeExportTest: Boolean = runExportTests
   protected def exportCommand(args: String*): os.proc
   protected def defaultExportCommandArgs: Seq[String] = Nil
 

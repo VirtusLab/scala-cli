@@ -1135,6 +1135,8 @@ trait CliIntegration extends SbtModule
            |  def defaultMillVersion = "${BuildInfo.millVersion}"
            |  def mill012Version = "${Deps.Versions.mill012Version}"
            |  def mill1Version = "${Deps.Versions.mill1Version}"
+           |  def sbt1Version = "${Deps.Versions.sbt1Version}"
+           |  def sbt2Version = "${Deps.Versions.sbt2Version}"
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)

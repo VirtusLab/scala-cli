@@ -170,24 +170,35 @@ final case class SbtProjectDescriptor(
     )
   }
 
+  private def isSbt2: Boolean = sbtVersion.startsWith("2.")
+
+  private def unmanagedClasspathSettings(config: String, paths: Seq[os.Path]): Seq[String] =
+    if paths.isEmpty then Nil
+    else
+      val fileExprs = paths.map(p => s"""file("$p")""")
+      if isSbt2 then
+        val classpathExpr =
+          if fileExprs.lengthCompare(1) == 0 then
+            s"PathFinder(${fileExprs.head}).classpath"
+          else
+            s"List(${fileExprs.mkString(", ")}).flatMap(f => PathFinder(f).classpath)"
+        Seq(
+          s"""$config / unmanagedClasspath ++= {
+             |  implicit val conv: xsbti.FileConverter = fileConverter.value
+             |  $classpathExpr
+             |}""".stripMargin
+        )
+      else
+        Seq(s"""$config / unmanagedClasspath ++= Seq(${fileExprs.mkString(", ")})""")
+
   private def customJarsSettings(options: BuildOptions): SbtProject = {
 
     val customCompileOnlyJarsSettings =
-      if (options.classPathOptions.extraCompileOnlyJars.isEmpty) Nil
-      else {
-        val jars = options.classPathOptions.extraCompileOnlyJars.map(p => s"""file("$p")""")
-        Seq(s"""Compile / unmanagedClasspath ++= Seq(${jars.mkString(", ")})""")
-      }
+      unmanagedClasspathSettings("Compile", options.classPathOptions.extraCompileOnlyJars)
 
     val customJarsSettings =
-      if (options.classPathOptions.extraClassPath.isEmpty) Nil
-      else {
-        val jars = options.classPathOptions.extraClassPath.map(p => s"""file("$p")""")
-        Seq(
-          s"""Compile / unmanagedClasspath ++= Seq(${jars.mkString(", ")})""",
-          s"""Runtime / unmanagedClasspath ++= Seq(${jars.mkString(", ")})"""
-        )
-      }
+      unmanagedClasspathSettings("Compile", options.classPathOptions.extraClassPath) ++
+        unmanagedClasspathSettings("Runtime", options.classPathOptions.extraClassPath)
 
     SbtProject(
       settings = Seq(customCompileOnlyJarsSettings, customJarsSettings)
