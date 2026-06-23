@@ -30,7 +30,7 @@ jobs:
       test_docs: ${{ steps.overrides.outputs.test_docs }}
       test_format: ${{ steps.overrides.outputs.test_format }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Classify changes
@@ -56,7 +56,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping unit tests -- changes do not affect compiled code, CI, or mill wrapper."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -111,7 +111,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping fish shell test -- changes do not affect compiled code, CI, or mill wrapper."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -145,7 +145,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping JVM bootstrapped integration tests -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -186,7 +186,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping JVM integration tests (default) -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -231,7 +231,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping JVM integration tests (Scala 2.13) -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -276,7 +276,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping JVM integration tests (Scala 2.12) -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -321,7 +321,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping JVM integration tests (Scala 3 LTS) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -366,7 +366,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping JVM integration tests (RC) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -411,7 +411,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping Linux native launcher generation -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -456,7 +456,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping native Linux integration tests (default) -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -505,7 +505,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping native Linux integration tests (Scala 2.13) -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -554,7 +554,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping native Linux integration tests (Scala 2.12) -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -603,7 +603,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping native Linux integration tests (Scala 3 LTS) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -652,7 +652,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping native Linux integration tests (RC) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -701,7 +701,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping Linux ARM64 native launcher generation -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -748,7 +748,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping native Linux ARM64 integration tests (default) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -797,7 +797,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping native Linux ARM64 integration tests (RC) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -846,7 +846,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping macOS native launcher generation -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -891,7 +891,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping native macOS integration tests (sanity) -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -941,7 +941,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping native macOS integration tests (sanity) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -991,7 +991,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping macOS ARM64 native launcher generation -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -1036,7 +1036,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping native macOS ARM64 integration tests (sanity) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -1086,7 +1086,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping native macOS ARM64 integration tests (sanity) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -1136,7 +1136,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping Windows native launcher generation -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1189,7 +1189,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping native Windows integration tests (default) -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1250,7 +1250,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping native Windows integration tests (Scala 3 LTS) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -1311,7 +1311,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping native Windows integration tests (RC) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -1372,7 +1372,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping mostly-static native launcher generation -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1410,7 +1410,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping native mostly-static integration tests (default) -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1474,7 +1474,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping native mostly-static integration tests (RC) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -1524,7 +1524,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping static native launcher generation -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1562,7 +1562,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping native static integration tests (default) -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1626,7 +1626,7 @@ jobs:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
         run: echo "Skipping native static integration tests (RC) -- changes do not affect compiled code or CI."
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
           fetch-depth: 0
@@ -1678,7 +1678,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping docs tests -- changes do not affect code, docs, CI, or gifs."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1724,7 +1724,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping checks -- changes do not affect code, docs, CI, or format config."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1765,7 +1765,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping format check -- changes do not affect code, docs, CI, or format config."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1789,7 +1789,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping reference doc check -- changes do not affect code, docs, or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1818,7 +1818,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping bloop memory footprint benchmark -- changes do not affect code, CI, or benchmarks."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1857,7 +1857,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping sbt export test -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1884,7 +1884,7 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping vc-redist -- changes do not affect compiled code or CI."
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
         fetch-depth: 0
@@ -1951,7 +1951,7 @@ jobs:
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         submodules: true
@@ -2032,7 +2032,7 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         submodules: true
@@ -2105,7 +2105,7 @@ jobs:
       cancel-in-progress: false
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: true
@@ -2129,7 +2129,7 @@ jobs:
     runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: true
@@ -2164,7 +2164,7 @@ jobs:
       cancel-in-progress: false
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: true
@@ -2206,7 +2206,7 @@ jobs:
       cancel-in-progress: false
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: true
@@ -2246,7 +2246,7 @@ jobs:
     runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: true
@@ -2301,7 +2301,7 @@ jobs:
     runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: true
@@ -2326,7 +2326,7 @@ jobs:
     runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: true
@@ -2350,7 +2350,7 @@ jobs:
     runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: true
@@ -2382,7 +2382,7 @@ jobs:
     runs-on: "windows-2025"
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         submodules: true
