@@ -16,7 +16,8 @@ import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
 import scala.build.input.*
 import scala.build.internal.resource.ResourceMapper
-import scala.build.internal.{Constants, MainClass, Name, Util}
+import scala.build.internal.util.WarningMessages
+import scala.build.internal.{Constants, MainClass, Name, ScriptUtils, Util}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
@@ -1223,11 +1224,31 @@ object Build {
     buildClient.clear()
     buildClient.setGeneratedSources(scope, generatedSources)
 
+    val scriptNames = sources.scriptTopLevelNames.iterator.map(_.name).toSet
+    buildClient.setSuspectedClashNames(scriptNames)
+
     val partial = partialOpt.getOrElse {
       options.notForBloopOptions.packageOptions.packageTypeOpt.exists(_.sourceBased)
     }
 
     val success = partial || compiler.compile(project, logger)
+
+    if !success && scriptNames.nonEmpty then
+      val matched = buildClient.detectedShadowingCandidates
+      if matched.nonEmpty then
+        for
+          shadowed <- ScriptUtils.findShadowingClashes(
+            sources = sources,
+            classPath = artifacts.compileClassPath,
+            logger = logger
+          )
+          if matched(shadowed.name)
+        do
+          logger.diagnostic(
+            message = WarningMessages.scriptShadowingClashHint(shadowed),
+            severity = Severity.Error,
+            positions = Seq(Position.File(Right(shadowed.filePath), (0, 0), (0, 0)))
+          )
 
     if success then
       Successful(

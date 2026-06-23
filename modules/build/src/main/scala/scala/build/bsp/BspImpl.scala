@@ -720,6 +720,10 @@ object BspImpl {
       underlying.setProjectParams(newParams)
     def setGeneratedSources(scope: Scope, newGeneratedSources: Seq[GeneratedSource]) =
       underlying.setGeneratedSources(scope, newGeneratedSources)
+    def setSuspectedClashNames(names: Set[String]) =
+      underlying.setSuspectedClashNames(names)
+    def detectedShadowingCandidates =
+      underlying.detectedShadowingCandidates
   }
 
   private final case class PreBuildData(
