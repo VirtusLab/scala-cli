@@ -1212,6 +1212,10 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       with:
         jvm: "temurin:17"
+    - uses: actions/setup-node@v6
+      if: env.SHOULD_RUN == 'true'
+      with:
+        node-version: 24
     - name: Get latest coursier launcher
       if: env.SHOULD_RUN == 'true'
       run: .github/scripts/get-latest-cs.sh
@@ -1273,6 +1277,10 @@ jobs:
         if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
+      - uses: actions/setup-node@v6
+        if: env.SHOULD_RUN == 'true'
+        with:
+          node-version: 24
       - name: Get latest coursier launcher
         if: env.SHOULD_RUN == 'true'
         run: .github/scripts/get-latest-cs.sh
@@ -1334,6 +1342,10 @@ jobs:
         if: env.SHOULD_RUN == 'true'
         with:
           jvm: "temurin:17"
+      - uses: actions/setup-node@v6
+        if: env.SHOULD_RUN == 'true'
+        with:
+          node-version: 24
       - name: Get latest coursier launcher
         if: env.SHOULD_RUN == 'true'
         run: .github/scripts/get-latest-cs.sh
