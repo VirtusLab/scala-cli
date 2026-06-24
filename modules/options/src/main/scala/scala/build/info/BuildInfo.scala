@@ -6,6 +6,22 @@ import scala.build.info.BuildInfo.escapeBackslashes
 import scala.build.internal.Constants
 import scala.build.options.*
 
+final case class NativeOptionsInfo(
+  scalaNativeVersion: String,
+  toolingDependencies: Seq[ExportDependencyFormat] = Nil
+)
+
+final case class JsOptionsInfo(
+  scalaJsVersion: String,
+  scalaJsCliVersion: String,
+  // The Scala.js linker, run on the JVM (`--js-cli-on-jvm`). Resolved via
+  // Coursier just like the Native CLI, so it can be locked + replayed offline.
+  // `scalajs-linker_2.13` must be forced to `scalaJsVersion` at resolution
+  // time (mirrors ScalaJsLinker.linkerCommand) — recorded here so the lock
+  // step can apply the same forcing.
+  toolingDependencies: Seq[ExportDependencyFormat] = Nil
+)
+
 final case class BuildInfo(
   projectVersion: Option[String] = None,
   scalaVersion: Option[String] = None,
@@ -13,7 +29,9 @@ final case class BuildInfo(
   jvmVersion: Option[String] = None,
   scalaJsVersion: Option[String] = None,
   jsEsVersion: Option[String] = None,
+  jsOptions: Option[JsOptionsInfo] = None,
   scalaNativeVersion: Option[String] = None,
+  nativeOptions: Option[NativeOptionsInfo] = None,
   mainClass: Option[String] = None,
   scopes: Map[String, ScopedBuildInfo] = Map.empty,
   scalaCliVersion: Option[String] = None
@@ -143,20 +161,43 @@ object BuildInfo {
 
   private def scalaJsSettings(options: ScalaJsOptions): BuildInfo = {
 
-    val scalaJsVersion = Some(options.version.getOrElse(Constants.scalaJsVersion))
+    val jsVersion    = options.version.getOrElse(Constants.scalaJsVersion)
+    val jsCliVersion = Constants.scalaJsCliVersion
+    val toolingDeps  = Seq(ExportDependencyFormat(
+      "org.virtuslab.scala-cli",
+      ArtifactId("scalajscli_2.13", "scalajscli_2.13"),
+      jsCliVersion
+    ))
 
     BuildInfo(
       platform = Some(Platform.JS.repr),
-      scalaJsVersion = scalaJsVersion,
-      jsEsVersion = options.esVersionStr
+      scalaJsVersion = Some(jsVersion),
+      jsEsVersion = options.esVersionStr,
+      jsOptions = Some(JsOptionsInfo(
+        scalaJsVersion = jsVersion,
+        scalaJsCliVersion = jsCliVersion,
+        toolingDependencies = toolingDeps
+      ))
     )
   }
 
-  private def scalaNativeSettings(options: ScalaNativeOptions): BuildInfo =
+  private def scalaNativeSettings(options: BuildOptions): BuildInfo = {
+    val nativeVersion = options.scalaNativeOptions.finalVersion
+    val toolingDeps   = Seq(ExportDependencyFormat(
+      "org.scala-native",
+      ArtifactId("scala-native-cli", "scala-native-cli_2.12"),
+      nativeVersion
+    ))
+
     BuildInfo(
       platform = Some(Platform.Native.repr),
-      scalaNativeVersion = Some(options.finalVersion)
+      scalaNativeVersion = Some(nativeVersion),
+      nativeOptions = Some(NativeOptionsInfo(
+        scalaNativeVersion = nativeVersion,
+        toolingDependencies = toolingDeps
+      ))
     )
+  }
 
   private def jvmSettings(options: BuildOptions): BuildInfo =
     BuildInfo(
@@ -173,7 +214,7 @@ object BuildInfo {
       case Some(Platform.JS) =>
         scalaJsSettings(options.scalaJsOptions)
       case Some(Platform.Native) =>
-        scalaNativeSettings(options.scalaNativeOptions)
+        scalaNativeSettings(options)
       case _ => jvmSettings(options)
     }
 
