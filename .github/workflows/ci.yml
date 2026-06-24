@@ -140,7 +140,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -181,7 +181,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -226,7 +226,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -271,7 +271,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -316,7 +316,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -361,7 +361,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -406,7 +406,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -451,7 +451,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -500,7 +500,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -549,7 +549,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -598,7 +598,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -647,7 +647,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -696,7 +696,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-24.04-arm
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -743,7 +743,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04-arm
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -792,7 +792,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04-arm
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -841,7 +841,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "macOS-15-intel"
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -886,7 +886,7 @@ jobs:
     timeout-minutes: 45
     runs-on: "macOS-15-intel"
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -936,7 +936,7 @@ jobs:
     timeout-minutes: 45
     runs-on: "macOS-15-intel"
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -986,7 +986,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "macOS-15"
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -1031,7 +1031,7 @@ jobs:
     timeout-minutes: 45
     runs-on: "macOS-15"
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -1081,7 +1081,7 @@ jobs:
     timeout-minutes: 45
     runs-on: "macOS-15"
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -1131,7 +1131,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "windows-2025"
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1184,7 +1184,7 @@ jobs:
     timeout-minutes: 150
     runs-on: "windows-2025"
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1249,7 +1249,7 @@ jobs:
     timeout-minutes: 150
     runs-on: "windows-2025"
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -1314,7 +1314,7 @@ jobs:
     timeout-minutes: 150
     runs-on: "windows-2025"
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -1379,7 +1379,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1417,7 +1417,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1481,7 +1481,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -1531,7 +1531,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1569,7 +1569,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1633,7 +1633,7 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_native == 'true' }}
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
@@ -1685,7 +1685,7 @@ jobs:
     # for now, let's run those tests only on ubuntu
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.gifs == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_docs == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.gifs == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_docs == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1731,7 +1731,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.format_config == 'true' || needs.changes.outputs.test_all == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.format_config == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1772,7 +1772,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.format_config == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_format == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.format_config == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_format == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1796,7 +1796,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1825,7 +1825,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.benchmark == 'true' || needs.changes.outputs.test_all == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.benchmark == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1864,7 +1864,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-24.04
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
@@ -1891,7 +1891,7 @@ jobs:
     timeout-minutes: 15
     runs-on: "windows-2025"
     env:
-      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.test_all == 'true' }}
+      SHOULD_RUN: ${{ needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' }}
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
