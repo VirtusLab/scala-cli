@@ -587,6 +587,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def mavenAppVersion = "${Deps.Versions.mavenAppVersion}"
          |
          |  def scalafixVersion = "${Deps.Versions.scalafix}"
+         |
+         |  def slothVersion = "${Deps.Versions.sloth}"
          |  
          |  def alpineVersion = "$alpineVersion"
          |}
@@ -744,6 +746,7 @@ trait Build extends ScalaCliCrossSbtModule
     Deps.nativeTestRunner,
     Deps.osLib,
     Deps.pprint,
+    Deps.slothCore,
     Deps.scalaJsEnvNodeJs,
     Deps.scalaJsTestAdapter,
     Deps.swoval,

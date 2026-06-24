@@ -680,6 +680,15 @@ Add Scala.js options
 
 `//> using jsEmitWasm`
 
+### Sloth
+
+Patch Scala 3.0-3.7.x lazy val bytecode on the classpath for JDK 26+ compatibility
+
+`//> using sloth`
+
+#### Examples
+`//> using sloth`
+
 ### Test framework
 
 Set the test framework

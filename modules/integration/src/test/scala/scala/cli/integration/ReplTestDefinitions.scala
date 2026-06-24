@@ -5,7 +5,8 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.removeAnsiColors
 import scala.util.Properties
 
-abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
+    with LazyValTests {
   this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
@@ -332,6 +333,59 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           ,
           runAfterRepl = res => expect(res.out.trim() == "Here's an HList: 2 :: true :: a :: HNil")
         )
+      }
+
+      if isScala38OrNewer then {
+        val latestJava = Constants.allJavaVersions.max.toString
+        test(
+          s"$runInReplPrefix dont warn about sun.misc.Unsafe on JDK $latestJava (no dependency)"
+        ) {
+          val expectedMessage = "Hello"
+          val code            = s"""println("$expectedMessage")"""
+          TestInputs.empty.fromRoot { root =>
+            val res = os.proc(
+              TestUtil.cli,
+              "repl",
+              "--repl-quit-after-init",
+              "--repl-init-script",
+              code,
+              "--jvm",
+              latestJava,
+              "--power",
+              "--sloth",
+              extraOptions
+            ).call(cwd = root, stderr = os.Pipe)
+            expect(res.out.trim().contains(expectedMessage))
+            expect(!res.err.trim().contains("sun.misc.Unsafe"))
+          }
+        }
+
+        test(s"$runInReplPrefix 3.3 lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava") {
+          val expectedMessage = "Hello"
+          val code            = "println(lazyvalslib.LazyValsLib.greeting)"
+          TestInputs.empty.fromRoot { root =>
+            val (dep, repoDir) = publishLazyValsLib(Constants.scala3Lts, root)
+            val res            = os.proc(
+              TestUtil.cli,
+              "repl",
+              ".",
+              "--repl-quit-after-init",
+              "--repl-init-script",
+              code,
+              extraOptions,
+              "--power",
+              "--sloth",
+              "--dep",
+              dep,
+              "--repository",
+              repoDir.toNIO.toUri.toASCIIString,
+              "--jvm",
+              latestJava
+            ).call(cwd = root, stderr = os.Pipe)
+            expect(res.out.trim().contains(expectedMessage))
+            expect(!res.err.trim().contains("sun.misc.Unsafe"))
+          }
+        }
       }
 
       if !isScala38OrNewer then
