@@ -315,7 +315,7 @@ object Artifacts {
           scalaArtifactsParams.scalaJsCliVersion.map { scalaJsCliVersion =>
             val mod = Module(
               Organization("org.virtuslab.scala-cli"),
-              ModuleName(s"scalajscli_2.13"),
+              ModuleName("scalajscli_3"),
               Map.empty
             )
             Seq(coursier.Dependency(mod, VersionConstraint(s"$scalaJsCliVersion+")))

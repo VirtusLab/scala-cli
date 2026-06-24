@@ -388,7 +388,7 @@ Version of SBT to be used for the export (2.0.0 by default)
 
 ### `--mill-version`
 
-Version of Mill to be used for the export (1.1.6 by default)
+Version of Mill to be used for the export (1.1.7 by default)
 
 ### `--mvn-version`
 
@@ -1421,7 +1421,7 @@ Path to the Scala.js linker
 ### `--js-cli-version`
 
 [Internal]
-Scala.js CLI version to use for linking (1.22.0 by default).
+Scala.js CLI version to use for linking (1.22.0.1 by default).
 
 ### `--js-cli-java-arg`
 
