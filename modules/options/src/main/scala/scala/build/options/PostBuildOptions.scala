@@ -11,11 +11,15 @@ final case class PostBuildOptions(
   pythonSetup: Option[Boolean] = None,
   python: Option[Boolean] = None,
   scalaPyVersion: Option[String] = None,
-  addRunnerDependencyOpt: Option[Boolean] = None
+  addRunnerDependencyOpt: Option[Boolean] = None,
+  slothOpt: Option[Boolean] = None
 ) {
 
   def doSetupPython: Option[Boolean] =
     pythonSetup.orElse(python)
+
+  def sloth: Boolean =
+    slothOpt.getOrElse(false)
 }
 
 object PostBuildOptions {

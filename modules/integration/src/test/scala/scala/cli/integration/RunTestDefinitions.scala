@@ -23,7 +23,8 @@ abstract class RunTestDefinitions
     with RunScalaPyTestDefinitions
     with RunZipTestDefinitions
     with RunJdkTestDefinitions
-    with CoursierScalaInstallationTestHelper { this: TestScalaVersion =>
+    with CoursierScalaInstallationTestHelper
+    with LazyValTests { this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
 
@@ -2578,5 +2579,42 @@ abstract class RunTestDefinitions
       val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
       expect(output == message)
     }
+  }
+
+  if isScala38OrNewer then {
+    val latestJava = Constants.allJavaVersions.max
+
+    def lazyValsUnsafeTest(libScalaVersion: String): Unit =
+      test(s"$libScalaVersion lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava") {
+        val expectedMessage = "Hello"
+        TestInputs.empty.fromRoot { root =>
+          val (dep, repoDir) = publishLazyValsLib(libScalaVersion, root)
+          os.write(
+            root / "script.sc",
+            s"""//> using dep $dep
+               |println(lazyvalslib.LazyValsLib.greeting)
+               |""".stripMargin
+          )
+          val r = os.proc(
+            TestUtil.cli,
+            extraOptions,
+            "--power",
+            "--sloth",
+            "script.sc",
+            "--repository",
+            repoDir.toNIO.toUri.toASCIIString,
+            "--jvm",
+            latestJava
+          ).call(cwd = root, stderr = os.Pipe)
+          expect(r.out.trim() == expectedMessage)
+          expect(!r.err.trim().contains("sun.misc.Unsafe"))
+        }
+      }
+
+    val highest30 = Constants.legacyScala3Versions
+      .filter(_.startsWith("3.0."))
+      .maxBy(_.coursierVersion)
+    lazyValsUnsafeTest(highest30)
+    lazyValsUnsafeTest(Constants.scala3Lts)
   }
 }

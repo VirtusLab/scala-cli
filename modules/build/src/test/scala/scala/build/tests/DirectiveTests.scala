@@ -518,4 +518,16 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       (_, _, maybeBuild) => expect(maybeBuild.exists(_.success))
     }
   }
+
+  test("sloth directive") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using sloth
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow
+      expect(build.options.notForBloopOptions.slothOpt.contains(true))
+    }
+  }
 }

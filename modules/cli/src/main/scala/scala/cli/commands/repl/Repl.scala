@@ -13,6 +13,7 @@ import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.ScalacOpt.{filterScalacOptionKeys, noDashPrefixes}
 import scala.build.options.{BuildOptions, JavaOpt, Scope}
+import scala.build.postprocessing.SlothPatcher
 import scala.cli.CurrentParams
 import scala.cli.commands.run.Run.{createPythonInstance, orPythonDetectionError, pythonPathEnv}
 import scala.cli.commands.run.RunMode
@@ -346,6 +347,11 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     val additionalArgs =
       pythonReplArgs ++ options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
 
+    val javaCommand = options.javaHome().value.javaCommand
+
+    def patchClassPath(classPath: Seq[os.Path]): Seq[os.Path] =
+      value(SlothPatcher.transformClassPath(classPath, options, logger))
+
     def maybeRunRepl(
       replArtifacts: ReplArtifacts,
       replArgs: Seq[String],
@@ -354,22 +360,23 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     ): Unit = {
       if dryRun then logger.message("Dry run, not running REPL.")
       else {
+        val depClassPath  = patchClassPath(mainJarsOrClassDirs ++ replArtifacts.depsClassPath)
+        val replClassPath = patchClassPath(replArtifacts.replClassPath)
         val depClassPathArgs: Seq[String] =
-          if mainJarsOrClassDirs.nonEmpty || replArtifacts.depsClassPath.nonEmpty
+          if depClassPath.nonEmpty
           then
             Seq(
               "-classpath",
-              (mainJarsOrClassDirs ++ replArtifacts.depsClassPath)
-                .map(_.toString).mkString(File.pathSeparator)
+              depClassPath.map(_.toString).mkString(File.pathSeparator)
             )
           else Nil
         val retCode = Runner.runJvm(
-          javaCommand = options.javaHome().value.javaCommand,
+          javaCommand = javaCommand,
           javaArgs = scalapyJavaOpts ++
             replArtifacts.replJavaOpts ++
             options.javaOptions.javaOpts.toSeq.map(_.value.value) ++
             extraProps.toVector.sorted.map { case (k, v) => s"-D$k=$v" },
-          classPath = replArtifacts.replClassPath,
+          classPath = replClassPath,
           mainClass = replArtifacts.replMainClass,
           args = maybeAdaptForWindows(depClassPathArgs ++ replArgs),
           logger = logger,
@@ -398,12 +405,14 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       }
     }
     if shouldUseJshell then
-      val javaHomeInfo   = options.javaHome().value
+      val javaHomeInfo    = options.javaHome().value
+      val jshellClassPath =
+        patchClassPath(mainJarsOrClassDirs ++ allArtifacts.flatMap(_.classPath).distinct)
       val jshellCommand0 = value(
         JShellRunner.commandFor(
           javaHomeInfo = javaHomeInfo,
           javaOpts = scalapyJavaOpts ++ options.javaOptions.javaOpts.toSeq.map(_.value.value),
-          classPath = mainJarsOrClassDirs ++ allArtifacts.flatMap(_.classPath).distinct,
+          classPath = jshellClassPath,
           programArgs = programArgs,
           initScriptOpt = initScriptOpt,
           quitAfterInit = quitAfterInit,
