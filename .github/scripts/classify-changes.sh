@@ -33,7 +33,7 @@ while IFS= read -r file; do
     .scalafmt.conf|.scalafix.conf) FORMAT_CONFIG=true ;;
     gcbenchmark/*) BENCHMARK=true ;;
     gifs/*) GIFS=true ;;
-    mill|mill.bat|.mill-version|.mill-jvm-opts) MILL_WRAPPER=true ;;
+    mill|millw|mill.bat|.mill-version|.mill-jvm-opts) MILL_WRAPPER=true ;;
   esac
 done <<< "$CHANGED_FILES"
 
