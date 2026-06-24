@@ -518,4 +518,16 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       (_, _, maybeBuild) => expect(maybeBuild.exists(_.success))
     }
   }
+
+  test("lazyvalgrade directive") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using lazyvalgrade
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow
+      expect(build.options.notForBloopOptions.lazyValGradeOpt.contains(true))
+    }
+  }
 }

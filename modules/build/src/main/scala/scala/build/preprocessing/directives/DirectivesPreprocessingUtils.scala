@@ -17,6 +17,7 @@ object DirectivesPreprocessingUtils {
       directives.Exclude.handler,
       directives.JavaHome.handler,
       directives.Jvm.handler,
+      directives.LazyValGrade.handler,
       directives.MainClass.handler,
       directives.ObjectWrapper.handler,
       directives.Packaging.handler,

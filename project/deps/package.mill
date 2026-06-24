@@ -151,7 +151,11 @@ object Deps {
     def mavenAppGroupId                   = "com.example"
     def mavenAppVersion                   = "0.1-SNAPSHOT"
     def scalafix                          = "0.14.7"
+    def lazyvalgrade                      = "0.1.0-SNAPSHOT"
   }
+
+  def lazyvalgradeOrganization = "org.virtuslab"
+  def lazyvalgradeModuleName   = "lazyvalgrade-cli"
 
   def argonautShapeless =
     mvn"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"

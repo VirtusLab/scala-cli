@@ -2587,6 +2587,8 @@ abstract class RunTestDefinitions
           val r = os.proc(
             TestUtil.cli,
             extraOptions,
+            "--power",
+            "--lazyvalgrade",
             "script.sc",
             "--repository",
             repoDir.toNIO.toUri.toASCIIString,

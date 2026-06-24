@@ -587,6 +587,10 @@ trait Core extends ScalaCliCrossSbtModule
          |  def mavenAppVersion = "${Deps.Versions.mavenAppVersion}"
          |
          |  def scalafixVersion = "${Deps.Versions.scalafix}"
+         |
+         |  def lazyvalgradeOrganization = "${Deps.lazyvalgradeOrganization}"
+         |  def lazyvalgradeModuleName = "${Deps.lazyvalgradeModuleName}"
+         |  def lazyvalgradeVersion = "${Deps.Versions.lazyvalgrade}"
          |  
          |  def alpineVersion = "$alpineVersion"
          |}

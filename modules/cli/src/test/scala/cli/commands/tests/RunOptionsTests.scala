@@ -50,4 +50,14 @@ class RunOptionsTests extends munit.FunSuite {
     expect(toolkitDep.name == "toolkit")
     expect(toolkitDep.version == "latest.release")
   }
+
+  test("lazyvalgrade option") {
+    val runOptions = RunOptions(
+      shared = SharedOptions(
+        lazyvalgrade = Some(true)
+      )
+    )
+    val buildOptions = Run.buildOptions(runOptions).value
+    expect(buildOptions.notForBloopOptions.lazyValGradeOpt.contains(true))
+  }
 }

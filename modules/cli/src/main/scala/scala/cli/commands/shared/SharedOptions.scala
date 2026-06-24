@@ -210,6 +210,9 @@ final case class SharedOptions(
   @HelpMessage("Force object wrapper for scripts")
   @Tag(tags.experimental)
     objectWrapper: Option[Boolean] = None,
+  @HelpMessage("Patch Scala 3.0-3.7.x lazy val bytecode on the classpath for JDK 26+ compatibility")
+  @Tag(tags.experimental)
+    lazyvalgrade: Option[Boolean] = None,
   @Group(HelpGroup.Scala.toString)
   @HelpMessage(
     "Automatically generate BSP configuration in `.bsp/` when running build commands. Enabled by default."
@@ -490,7 +493,8 @@ final case class SharedOptions(
           addRunnerDependencyOpt = runner,
           python = sharedPython.python,
           pythonSetup = sharedPython.pythonSetup,
-          scalaPyVersion = sharedPython.scalaPyVersion
+          scalaPyVersion = sharedPython.scalaPyVersion,
+          lazyValGradeOpt = lazyvalgrade
         ),
         useBuildServer = compilationServer.server
       ).orElse(watchOptions.buildOptions())

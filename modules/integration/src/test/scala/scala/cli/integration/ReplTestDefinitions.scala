@@ -337,9 +337,11 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
       if isScala38OrNewer then {
         val latestJava = Constants.allJavaVersions.max.toString
-        test(s"$runInReplPrefix dont warn about sun.misc.Unsafe on JDK $latestJava (no dependency)") {
+        test(
+          s"$runInReplPrefix dont warn about sun.misc.Unsafe on JDK $latestJava (no dependency)"
+        ) {
           val expectedMessage = "Hello"
-          val code = s"""println("$expectedMessage")"""
+          val code            = s"""println("$expectedMessage")"""
           TestInputs.empty.fromRoot { root =>
             val res = os.proc(
               TestUtil.cli,
@@ -349,6 +351,8 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
               code,
               "--jvm",
               latestJava,
+              "--power",
+              "--lazyvalgrade",
               extraOptions
             ).call(cwd = root, stderr = os.Pipe)
             expect(res.out.trim().contains(expectedMessage))
@@ -369,6 +373,8 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
               "--repl-init-script",
               code,
               extraOptions,
+              "--power",
+              "--lazyvalgrade",
               "--dep",
               dep,
               "--repository",
