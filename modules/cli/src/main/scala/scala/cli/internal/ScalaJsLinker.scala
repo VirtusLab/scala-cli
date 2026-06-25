@@ -48,7 +48,7 @@ object ScalaJsLinker {
       case None =>
         val scalaJsCliVersion = options.finalScalaJsCliVersion
         val scalaJsCliDep     = {
-          val mod = mod"org.virtuslab.scala-cli:scalajscli_2.13"
+          val mod = mod"org.virtuslab.scala-cli:scalajscli_3"
           dependency.Dependency(mod, s"$scalaJsCliVersion+")
         }
 

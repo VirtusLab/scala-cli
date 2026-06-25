@@ -115,7 +115,7 @@ various "mappings" are computed out of the generated sources list, and are used 
     - For instance: For release `1.13.0.2`, the launchers are uploaded to tags `1.13.0.2` and `1.13.0`.
 - ScalaCli dependency to `scalajs-cli`:
     - For Coursier to retrieve the most recent scalajs-cli for a specific Scala.js version, the version is set
-      as `org.virtuslab:scalajscli_2.13:{Scala.js version}+`. For example `org.virtuslab:scalajscli_2.13:1.13.0+`.
+      as `org.virtuslab:scalajscli_3:{Scala.js version}+`. For example `org.virtuslab:scalajscli_3:1.22.0.1`.
     - Native Version Download:
         - The native version is downloaded from the Scala.js version tag. If there are updates or fixes to the
           native `scalajs-cli` launchers, the updated launchers are uploaded to the `1.13.0` tag during the `1.13.0.1`
