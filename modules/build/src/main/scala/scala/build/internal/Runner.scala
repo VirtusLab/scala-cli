@@ -1,6 +1,6 @@
 package scala.build.internal
 
-import coursier.jvm.Execve
+import coursier.exec.Execve
 import org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv
 import org.scalajs.jsenv.nodejs.NodeJSEnv
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
@@ -23,6 +23,8 @@ object Runner {
 
   private def toTestRunnerLogger(logger: Logger): TestRunnerLogger =
     TestRunnerLogger(logger.verbosity)
+
+  def execveAvailable: Boolean = Execve.available()
 
   def maybeExec(
     commandName: String,
@@ -124,7 +126,8 @@ object Runner {
     args: Seq[String],
     extraEnv: Map[String, String] = Map.empty,
     useManifest: Option[Boolean] = None,
-    scratchDirOpt: Option[os.Path] = None
+    scratchDirOpt: Option[os.Path] = None,
+    allowExecve: Boolean = false
   ): Seq[String] = {
 
     def command(cp: Seq[os.Path]) =
@@ -152,7 +155,12 @@ object Runner {
     }
 
     if (useManifest0) {
-      val manifestJar = ManifestJar.create(classPath, scratchDirOpt = scratchDirOpt)
+      val manifestJar =
+        ManifestJar.create(
+          classPath,
+          scratchDirOpt = scratchDirOpt,
+          manifestDeleteOnExit = !(allowExecve && execveAvailable)
+        )
       command(Seq(manifestJar))
     }
     else initialCommand
@@ -180,7 +188,8 @@ object Runner {
       args,
       Map.empty,
       useManifest,
-      scratchDirOpt
+      scratchDirOpt,
+      allowExecve = allowExecve
     )
 
     if (allowExecve)

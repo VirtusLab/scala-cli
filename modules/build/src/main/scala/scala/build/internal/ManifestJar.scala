@@ -13,11 +13,14 @@ object ManifestJar {
     *   (but the manifest JAR can't be passed to 'java -cp' any more on Windows)
     * @param scratchDirOpt
     *   an optional scratch directory to write the manifest JAR under
+    * @param manifestDeleteOnExit
+    *   whether the temporary manifest JAR should be deleted on JVM exit
     */
   def create(
     classPath: Seq[os.Path],
     wrongSimplePaths: Boolean = false,
-    scratchDirOpt: Option[os.Path] = None
+    scratchDirOpt: Option[os.Path] = None,
+    manifestDeleteOnExit: Boolean = true
   ): os.Path = {
     import java.util.jar._
     val manifest   = new Manifest
@@ -38,7 +41,7 @@ object ManifestJar {
         os.makeDir.all(scratchDir)
         os.temp(dir = scratchDir, prefix = "classpathJar", suffix = ".jar", deleteOnExit = false)
       case None =>
-        os.temp(prefix = "classpathJar", suffix = ".jar")
+        os.temp(prefix = "classpathJar", suffix = ".jar", deleteOnExit = manifestDeleteOnExit)
     }
     var os0: OutputStream    = null
     var jos: JarOutputStream = null

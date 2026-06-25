@@ -463,8 +463,10 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   ): Either[BuildException, Either[Seq[Seq[String]], Seq[(Process, Option[() => Unit])]]] = {
     val crossBuilds        = allBuilds.groupedByCrossParams.toSeq
     val shouldLogCrossInfo = crossBuilds.size > 1
-    // execve replaces the current process, so we must not use it when spawning multiple cross-builds
-    val effectiveAllowExecve = allowExecve && !shouldLogCrossInfo
+    // execve replaces the current process, so we must not use it when spawning multiple cross-builds;
+    // coursier also runs JVM shutdown hooks right before execve (deleting deleteOnExit temp files),
+    // and our own onExit cleanup never runs in that case, so execve-bound temp files must persist
+    val effectiveAllowExecve = allowExecve && !shouldLogCrossInfo && Runner.execveAvailable
     if shouldLogCrossInfo then
       logger.log(
         s"Running ${crossBuilds.size} cross builds, one for each Scala version and platform combination."
@@ -487,7 +489,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               dir = scratchDirOpt.orNull,
               prefix = "main",
               suffix = ".mjs",
-              deleteOnExit = scratchDirOpt.isEmpty
+              deleteOnExit = scratchDirOpt.isEmpty && !effectiveAllowExecve
             )
 
             val linkerConfig = jsOpts.linkerConfig(logger)
@@ -557,7 +559,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
 
                 val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
                 val jsDest       = {
-                  val delete = scratchDirOpt.isEmpty
+                  val delete = scratchDirOpt.isEmpty && !effectiveAllowExecve
                   scratchDirOpt.foreach(os.makeDir.all(_))
                   os.temp(
                     dir = scratchDirOpt.orNull,
