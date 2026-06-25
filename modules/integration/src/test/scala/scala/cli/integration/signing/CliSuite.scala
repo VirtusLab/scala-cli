@@ -3,7 +3,7 @@ package scala.cli.signing.integration
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
-class CliSuite extends munit.FunSuite {
+abstract class CliSuite extends munit.FunSuite {
   implicit class BeforeEachOpts(munitContext: BeforeEach) {
     def locationAbsolutePath: os.Path = os.Path(munitContext.test.location.path)
   }
