@@ -1707,6 +1707,12 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       with:
         node-version: 24
+    - uses: denoland/setup-deno@v2
+      if: env.SHOULD_RUN == 'true'
+      with:
+        deno-version: v2.x
+    - uses: oven-sh/setup-bun@v2
+      if: env.SHOULD_RUN == 'true'
     - name: Build documentation
       if: env.SHOULD_RUN == 'true'
       run: .github/scripts/build-website.sh
