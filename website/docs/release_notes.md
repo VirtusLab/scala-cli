@@ -8,6 +8,261 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.15.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.15.0)
+
+### Default Scala 3.8.4, Scala Native 0.5.12 & Scala.js 1.22.0
+This Scala CLI version bumps the default Scala version to 3.8.4, Scala Native to 0.5.12 and Scala.js to 1.22.0.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.15.0
+# Scala version (default): 3.8.4
+```
+
+```bash
+scala-cli -e 'println("Hello from Scala.js 1.22.0!")' --js
+# Compiling project (Scala 3.8.4, Scala.js 1.22.0)
+# Compiled project (Scala 3.8.4, Scala.js 1.22.0)
+# Hello from Scala.js 1.22.0!
+```
+
+```bash
+scala-cli -e 'println("Hello from Scala Native 0.5.12!")' --native
+# Compiling project (Scala 3.8.4, Scala Native 0.5.12)
+# Compiled project (Scala 3.8.4, Scala Native 0.5.12)
+# Hello from Scala Native 0.5.12!
+```
+
+Scala 3.8.4 was added by [@Gedochao](https://github.com/Gedochao) in [#4299](https://github.com/VirtusLab/scala-cli/pull/4299)
+Scala Native 0.5.12 was added by [@WojciechMazur](https://github.com/WojciechMazur) in [#4286](https://github.com/VirtusLab/scala-cli/pull/4286)
+Scala.js 1.22.0 was added by [@Gedochao](https://github.com/Gedochao) in [#4344](https://github.com/VirtusLab/scala-cli/pull/4344)
+
+### JShell support in `repl`
+`scala-cli repl` can now use [JShell](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jshell.html) as its REPL
+backend, enabled with the `--jshell` (`--jsh`) flag. JShell is also picked automatically for pure-Java projects.
+The project's classpath (including dependencies) is available inside the JShell session, so you can play with your code
+(and even reference Scala classes via reflection). JShell requires JDK 9 or newer.
+
+```java title=demo/HelloJShell.java
+package demo;
+public class HelloJShell {
+  public static String greet() { return "Hello from JShell!"; }
+}
+```
+
+```jshelllanguage title=hi.jsh
+System.out.println(demo.HelloJShell.greet());
+```
+
+```bash
+scala-cli repl demo/HelloJShell.java --jshell --jvm 17 --repl-quit-after-init --repl-init-script-file hi.jsh
+```
+
+<!-- Expected:
+Hello from JShell!
+-->
+
+Note: It is possible to explicitly disable JShell on pure Java projects and revert to using Scala REPL with `--jshell=false`.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4262](https://github.com/VirtusLab/scala-cli/pull/4262)
+
+### `java` snippets in Markdown inputs (experimental ⚡️)
+Scala CLI can now compile and run `java` code blocks inside Markdown inputs, mirroring the existing support for `scala`
+snippets. A `java` snippet is treated like a regular `.java` input (its body is emitted as Java source without any
+wrapping). As with other Markdown features, this requires `--power`.
+
+````markdown title=HelloMarkdown.md
+# Java in Markdown
+
+```java
+public class HelloMarkdown {
+  public static void main(String[] args) {
+    System.out.println("Hello from a Java snippet in Markdown!");
+  }
+}
+```
+````
+
+```bash
+scala-cli --power HelloMarkdown.md
+```
+
+<!-- Expected:
+Hello from a Java snippet in Markdown!
+-->
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4284](https://github.com/VirtusLab/scala-cli/pull/4284)
+
+### WebAssembly support (experimental ⚡️)
+Scala CLI can now compile and run Scala.js through the experimental
+[Scala.js WebAssembly backend](https://www.scala-js.org/doc/project/webassembly.html).
+Enable it with the `--js-emit-wasm` flag (or the `//> using wasm` directive) together with ES module output
+(`--js-module-kind es` / `//> using jsModuleKind es`).
+
+The Wasm output runs on a JavaScript host that embeds a Wasm engine. Scala CLI does **not** bundle any of these
+runtimes — you have to install [Node.js](https://nodejs.org) (the default), [Deno](https://deno.com) or
+[Bun](https://bun.sh) yourself, then select one with `--js-runtime`.
+
+```scala title=HelloWasm.scala
+//> using wasm
+//> using jsModuleKind es
+
+@main def hello(): Unit = println("Hello from Wasm!")
+```
+
+```bash
+# Node.js is the default runtime
+scala-cli run HelloWasm.scala --power
+# run the same Wasm output on Deno
+scala-cli run HelloWasm.scala --power --js-runtime deno
+# ...or on Bun
+scala-cli run HelloWasm.scala --power --js-runtime bun
+```
+
+Added by [@lostflydev](https://github.com/lostflydev) in [#4176](https://github.com/VirtusLab/scala-cli/pull/4176)
+
+### JUnit 5 (Jupiter) support
+The `test` runner now supports [JUnit 5 (Jupiter)](https://junit.org/junit5/) via the
+[`jupiter-interface`](https://github.com/sbt/sbt-jupiter-interface) test interface, for both Scala and pure-Java tests.
+JUnit 5 requires Java 17 or newer.
+
+```scala title=MyJupiterTests.test.scala
+//> using test.dep com.github.sbt.junit:jupiter-interface:0.19.0
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.*
+
+class MyJupiterTests {
+  @Test
+  def addition(): Unit = {
+    assertEquals(4, 2 + 2)
+    println("Hello from JUnit 5 / Jupiter!")
+  }
+}
+```
+
+```bash
+scala-cli test MyJupiterTests.test.scala --jvm 17
+```
+
+<!-- Expected:
+Hello from JUnit 5 / Jupiter!
+-->
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4304](https://github.com/VirtusLab/scala-cli/pull/4304)
+
+### SBT 2.x export
+The `export` sub-command can now generate [SBT](https://www.scala-sbt.org) 2.x builds (the default SBT version used for
+the export is now 2.0.0). Pick a specific version with `--sbt-version`.
+
+```scala title=hello.scala
+@main def hello(): Unit = println("Hello from an SBT 2.x export!")
+```
+
+```bash
+scala-cli --power export hello.scala --sbt --sbt-version 2.0.0 -o sbt-project
+cat sbt-project/project/build.properties
+```
+
+<!-- Expected:
+sbt.version=2.0.0
+-->
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4327](https://github.com/VirtusLab/scala-cli/pull/4327)
+
+### Visual Studio 2026 support on Windows
+When building [Scala Native](https://scala-native.org) (or packaging GraalVM native images) on Windows, Scala CLI locates
+the MSVC toolchain from your Visual Studio installation. It now also detects **Visual Studio 2026**, and bundles the
+matching Visual C++ redistributable (`vcredist`) in the generated MSI installers.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4331](https://github.com/VirtusLab/scala-cli/pull/4331)
+
+### Dropped Ammonite support
+The Ammonite REPL integration has been **removed** (it was deprecated back in
+[v1.13.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.13.0)).
+The `--ammonite` (`--amm`), `--ammonite-version` and `--ammonite-arg` options are gone from `scala-cli repl`;
+use the default Scala REPL (or the new JShell backend for Java projects) instead.
+
+```bash run-fail
+scala-cli repl --ammonite
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4283](https://github.com/VirtusLab/scala-cli/pull/4283)
+
+### Features
+* Add support for JShell in `repl` by [@Gedochao](https://github.com/Gedochao) in [#4262](https://github.com/VirtusLab/scala-cli/pull/4262)
+* Add support for ```java snippets in Markdown inputs by [@Gedochao](https://github.com/Gedochao) in [#4284](https://github.com/VirtusLab/scala-cli/pull/4284)
+* Add Wasm support: `--wasm` flag with Node.js, Deno & Bun runtimes by [@lostflydev](https://github.com/lostflydev) in [#4176](https://github.com/VirtusLab/scala-cli/pull/4176)
+* Add support for VS 2026 in `vcredist` by [@Gedochao](https://github.com/Gedochao) in [#4331](https://github.com/VirtusLab/scala-cli/pull/4331)
+* Add support for SBT 2.* export by [@Gedochao](https://github.com/Gedochao) in [#4327](https://github.com/VirtusLab/scala-cli/pull/4327)
+* Add JUnit 5 / Jupiter support by [@Gedochao](https://github.com/Gedochao) in [#4304](https://github.com/VirtusLab/scala-cli/pull/4304)
+
+### Fixes
+* Restore BSP base directory to the original workspace regardless of permissions/ownership by [@Gedochao](https://github.com/Gedochao) in [#4273](https://github.com/VirtusLab/scala-cli/pull/4273)
+* Improve dependency update actionable diagnostic handling for slow/unresponsive custom repositories by [@Gedochao](https://github.com/Gedochao) in [#4272](https://github.com/VirtusLab/scala-cli/pull/4272)
+* Improve error for when JVM-only dependencies are not found on other platforms by [@Gedochao](https://github.com/Gedochao) in [#4281](https://github.com/VirtusLab/scala-cli/pull/4281)
+* Don't save duplicate `.scalafmt.conf` if unnecessary by [@Gedochao](https://github.com/Gedochao) in [#4291](https://github.com/VirtusLab/scala-cli/pull/4291)
+
+## Deprecations and removals
+* Drop Ammonite support by [@Gedochao](https://github.com/Gedochao) in [#4283](https://github.com/VirtusLab/scala-cli/pull/4283)
+
+### Build and internal changes
+* Compile the `directives-parser` example in Scala CLI v1.14.0 release notes by [@Gedochao](https://github.com/Gedochao) in [#4278](https://github.com/VirtusLab/scala-cli/pull/4278)
+* Retire legacy `KEYGRIP` secret by [@Gedochao](https://github.com/Gedochao) in [#4275](https://github.com/VirtusLab/scala-cli/pull/4275)
+* `update-installation-script`, `update-centos` and `update-debian` can't run in parallel by [@Gedochao](https://github.com/Gedochao) in [#4277](https://github.com/VirtusLab/scala-cli/pull/4277)
+* Track threads & futures spawned in integration tests to make sure logs are in chronological order by [@Gedochao](https://github.com/Gedochao) in [#4293](https://github.com/VirtusLab/scala-cli/pull/4293)
+* Mark Scala 2 nightly tests as flaky by [@Gedochao](https://github.com/Gedochao) in [#4317](https://github.com/VirtusLab/scala-cli/pull/4317)
+* Disable test parallelism for unit tests on the CI by [@Gedochao](https://github.com/Gedochao) in [#4316](https://github.com/VirtusLab/scala-cli/pull/4316)
+* Ensure scala-cli.sh logs to stderr by [@alexarchambault](https://github.com/alexarchambault) in [#4301](https://github.com/VirtusLab/scala-cli/pull/4301)
+* Add an extra test for VS detection on Windows + a small refactor by [@Gedochao](https://github.com/Gedochao) in [#4328](https://github.com/VirtusLab/scala-cli/pull/4328)
+* Cut MacOS integration tests down to just sanity tests by [@Gedochao](https://github.com/Gedochao) in [#4333](https://github.com/VirtusLab/scala-cli/pull/4333)
+* Add anti-regression tests for #4329 by [@Gedochao](https://github.com/Gedochao) in [#4332](https://github.com/VirtusLab/scala-cli/pull/4332)
+* Treat Mill wrapper changes as build changes by [@Gedochao](https://github.com/Gedochao) in [#4347](https://github.com/VirtusLab/scala-cli/pull/4347)
+
+### Updates
+* Update scala-cli.sh launcher for 1.14.0 by @github-actions[bot] in [#4274](https://github.com/VirtusLab/scala-cli/pull/4274)
+* Bump the npm-dependencies group in /website with 3 updates by @dependabot[bot] in [#4279](https://github.com/VirtusLab/scala-cli/pull/4279)
+* Bump webpack-dev-server from 5.2.2 to 5.2.4 in /website by @dependabot[bot] in [#4280](https://github.com/VirtusLab/scala-cli/pull/4280)
+* Bump the npm-dependencies group in /website with 2 updates by @dependabot[bot] in [#4287](https://github.com/VirtusLab/scala-cli/pull/4287)
+* Bump `scalafmt` to 3.11.1 (was 3.11.0) by [@Gedochao](https://github.com/Gedochao) in [#4290](https://github.com/VirtusLab/scala-cli/pull/4290)
+* Bump Scala 3 Next RC to 3.8.4-RC3 by [@Gedochao](https://github.com/Gedochao) in [#4288](https://github.com/VirtusLab/scala-cli/pull/4288)
+* [chore] Upgrade Scala Native to 0.5.12 by [@WojciechMazur](https://github.com/WojciechMazur) in [#4286](https://github.com/VirtusLab/scala-cli/pull/4286)
+* Bump Bloop to 2.1.0 (was 2.0.19) by [@Gedochao](https://github.com/Gedochao) in [#4295](https://github.com/VirtusLab/scala-cli/pull/4295)
+* Bump misc deps by [@Gedochao](https://github.com/Gedochao) in [#4296](https://github.com/VirtusLab/scala-cli/pull/4296)
+* Bump the npm-dependencies group in /website with 5 updates by @dependabot[bot] in [#4300](https://github.com/VirtusLab/scala-cli/pull/4300)
+* Bump Scala Next to 3.8.4 by [@Gedochao](https://github.com/Gedochao) in [#4299](https://github.com/VirtusLab/scala-cli/pull/4299)
+* Bump announced Scala Next to 3.8.4 by [@Gedochao](https://github.com/Gedochao) in [#4302](https://github.com/VirtusLab/scala-cli/pull/4302)
+* Bump @types/react from 19.2.16 to 19.2.17 in /website in the npm-dependencies group by @dependabot[bot] in [#4303](https://github.com/VirtusLab/scala-cli/pull/4303)
+* Bump MacOS CI jobs' timeouts to deal with runner slowdown by [@Gedochao](https://github.com/Gedochao) in [#4306](https://github.com/VirtusLab/scala-cli/pull/4306)
+* Bump shell-quote from 1.8.3 to 1.8.4 in /website by @dependabot[bot] in [#4307](https://github.com/VirtusLab/scala-cli/pull/4307)
+* Bump Scala Next RC to 3.9.0-RC1 by [@Gedochao](https://github.com/Gedochao) in [#4308](https://github.com/VirtusLab/scala-cli/pull/4308)
+* Bump Munit to 1.3.3 (was 1.3.0) by [@Gedochao](https://github.com/Gedochao) in [#4305](https://github.com/VirtusLab/scala-cli/pull/4305)
+* Bump Scala 3 LTS to 3.3.8 by [@Gedochao](https://github.com/Gedochao) in [#4314](https://github.com/VirtusLab/scala-cli/pull/4314)
+* Bump joi from 17.13.3 to 17.13.4 in /website by @dependabot[bot] in [#4318](https://github.com/VirtusLab/scala-cli/pull/4318)
+* Bump the npm-dependencies group in /website with 2 updates by @dependabot[bot] in [#4324](https://github.com/VirtusLab/scala-cli/pull/4324)
+* Bump @babel/core from 7.28.5 to 7.29.7 in /website by @dependabot[bot] in [#4325](https://github.com/VirtusLab/scala-cli/pull/4325)
+* Bump launch-editor from 2.12.0 to 2.14.1 in /website by @dependabot[bot] in [#4326](https://github.com/VirtusLab/scala-cli/pull/4326)
+* Bump `mill-native-image` and `mill-native-image-upload` to 0.2.6 (was 0.2.4) and add support for VS 2026 by [@Gedochao](https://github.com/Gedochao) in [#4323](https://github.com/VirtusLab/scala-cli/pull/4323)
+* Update slf4j-nop to 2.0.18 by @scala-steward in [#4313](https://github.com/VirtusLab/scala-cli/pull/4313)
+* Update scalafix-interfaces to 0.14.7 by @scala-steward in [#4319](https://github.com/VirtusLab/scala-cli/pull/4319)
+* Update windows-jni-utils to 0.3.4 by @scala-steward in [#4310](https://github.com/VirtusLab/scala-cli/pull/4310)
+* Update org.eclipse.jgit to 7.7.0.202606012155-r by @scala-steward in [#4311](https://github.com/VirtusLab/scala-cli/pull/4311)
+* Bump @algolia/client-search from 5.54.1 to 5.55.0 in /website in the npm-dependencies group by @dependabot[bot] in [#4341](https://github.com/VirtusLab/scala-cli/pull/4341)
+* Bump undici from 7.24.1 to 7.28.0 in /website by @dependabot[bot] in [#4335](https://github.com/VirtusLab/scala-cli/pull/4335)
+* Bump webpack-dev-server from 5.2.4 to 5.2.5 in /website by @dependabot[bot] in [#4343](https://github.com/VirtusLab/scala-cli/pull/4343)
+* Bump http-proxy-middleware from 2.0.9 to 2.0.10 in /website by @dependabot[bot] in [#4342](https://github.com/VirtusLab/scala-cli/pull/4342)
+* Bump actions/checkout from 6 to 7 in the github-actions group by @dependabot[bot] in [#4340](https://github.com/VirtusLab/scala-cli/pull/4340)
+* Bump Mill to 1.1.7 (was 1.1.6) by [@Gedochao](https://github.com/Gedochao) in [#4345](https://github.com/VirtusLab/scala-cli/pull/4345)
+* Update jsoniter-scala-core, ... to 2.38.16 by @scala-steward in [#4336](https://github.com/VirtusLab/scala-cli/pull/4336)
+* Bump Scala.js to 1.22.0 (was 1.21.0) by [@Gedochao](https://github.com/Gedochao) in [#4344](https://github.com/VirtusLab/scala-cli/pull/4344)
+* Bump `scala-js-cli` to 1.22.0.1 (was 1.22.0) by [@Gedochao](https://github.com/Gedochao) in [#4350](https://github.com/VirtusLab/scala-cli/pull/4350)
+* Bump `coursier` to 2.1.25-M26 (was 2.1.25-M25) by [@Gedochao](https://github.com/Gedochao) in [#4346](https://github.com/VirtusLab/scala-cli/pull/4346)
+* Bump `scala-cli-signing` to 0.3.0 (was 0.2.13) by [@Gedochao](https://github.com/Gedochao) in [#4352](https://github.com/VirtusLab/scala-cli/pull/4352)
+
+## New Contributors
+* [@lostflydev](https://github.com/lostflydev) made their first contribution in [#4176](https://github.com/VirtusLab/scala-cli/pull/4176)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.14.0...v1.15.0
+
 ## [v1.14.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.14.0)
 
 ### Change default Scala Native version to 0.5.11
