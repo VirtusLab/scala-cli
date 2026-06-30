@@ -695,7 +695,6 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                       LazyValGradePatcher.transformClassPath(
                         classPath0,
                         build.options,
-                        build.options.javaHome().value.javaCommand,
                         logger
                       )
                     )

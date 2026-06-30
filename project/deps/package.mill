@@ -155,7 +155,7 @@ object Deps {
   }
 
   def lazyvalgradeOrganization = "org.virtuslab"
-  def lazyvalgradeModuleName   = "lazyvalgrade-cli"
+  def lazyvalgradeModuleName   = "lazyvalgrade-core"
 
   def argonautShapeless =
     mvn"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"

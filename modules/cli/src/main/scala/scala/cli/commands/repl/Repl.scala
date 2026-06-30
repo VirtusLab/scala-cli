@@ -350,7 +350,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     val javaCommand = options.javaHome().value.javaCommand
 
     def patchClassPath(classPath: Seq[os.Path]): Seq[os.Path] =
-      value(LazyValGradePatcher.transformClassPath(classPath, options, javaCommand, logger))
+      value(LazyValGradePatcher.transformClassPath(classPath, options, logger))
 
     def maybeRunRepl(
       replArtifacts: ReplArtifacts,
