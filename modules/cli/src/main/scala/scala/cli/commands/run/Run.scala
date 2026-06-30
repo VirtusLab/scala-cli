@@ -19,6 +19,7 @@ import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, JSRuntime, JavaOpt, PackageType, Platform, Scope}
+import scala.build.postprocessing.LazyValGradePatcher
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package
 import scala.cli.commands.setupide.SetupIde
@@ -689,6 +690,14 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                       ++ Seq(s"-Dscala.sources=$sources", s"-Dscala.source.names=$sourceNames")
                     val setupPython =
                       build.options.notForBloopOptions.doSetupPython.getOrElse(false)
+                    val classPath0 = builds.flatMap(_.fullClassPathMaybeAsJar(asJar)).distinct
+                    val classPath  = value(
+                      LazyValGradePatcher.transformClassPath(
+                        classPath0,
+                        build.options,
+                        logger
+                      )
+                    )
                     val (pythonJavaProps, pythonExtraEnv) =
                       if setupPython then {
                         val scalapyProps = value {
@@ -713,7 +722,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                         Runner.jvmCommand(
                           build.options.javaHome().value.javaCommand,
                           allJavaOpts,
-                          builds.flatMap(_.fullClassPathMaybeAsJar(asJar)).distinct,
+                          classPath,
                           mainClass,
                           args,
                           extraEnv = pythonExtraEnv,
@@ -725,7 +734,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                       val proc = Runner.runJvm(
                         javaCommand = build.options.javaHome().value.javaCommand,
                         javaArgs = allJavaOpts,
-                        classPath = builds.flatMap(_.fullClassPathMaybeAsJar(asJar)).distinct,
+                        classPath = classPath,
                         mainClass = mainClass,
                         args = args,
                         logger = logger,

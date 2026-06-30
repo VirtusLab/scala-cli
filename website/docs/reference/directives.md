@@ -260,6 +260,15 @@ Add Javac options which will be passed when compiling sources.
 
 `//> using test.javacOpt -source 1.8 -target 1.8`
 
+### LazyValGrade
+
+Patch Scala 3.0-3.7.x lazy val bytecode on the classpath for JDK 26+ compatibility
+
+`//> using lazyvalgrade`
+
+#### Examples
+`//> using lazyvalgrade`
+
 ### Main class
 
 Specify default main class
