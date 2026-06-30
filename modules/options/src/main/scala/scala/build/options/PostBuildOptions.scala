@@ -17,6 +17,9 @@ final case class PostBuildOptions(
 
   def doSetupPython: Option[Boolean] =
     pythonSetup.orElse(python)
+
+  def lazyValGrade: Boolean =
+    lazyValGradeOpt.getOrElse(false)
 }
 
 object PostBuildOptions {

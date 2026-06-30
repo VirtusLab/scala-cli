@@ -6,39 +6,48 @@ import dependency.*
 import os.Path
 
 import java.io.{ByteArrayOutputStream, PrintStream}
+import java.math.BigInteger
 import java.net.URLClassLoader
 import java.nio.file.Path as NioPath
 import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, LazyValGradeError}
 import scala.build.internal.Constants
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.options.BuildOptions
 import scala.build.{Artifacts, Directories, Logger, Positioned}
+import scala.util.Using
+import scala.util.control.NonFatal
 
 object LazyValGradePatcher {
 
   private val cacheDir = Directories.directories.cacheDir / "lazyvalgrade"
+
+  private val jarProcessorModule  = "lazyvalgrade.jar.JarProcessor$"
+  private val moduleField         = "MODULE$"
+  private val processMethod       = "process"
+  private val failedClassesMethod = "failedClasses"
 
   def transformClassPath(
     classPath: Seq[Path],
     options: BuildOptions,
     logger: Logger
   ): Either[BuildException, Seq[Path]] =
-    if options.notForBloopOptions.lazyValGradeOpt.contains(true) then
+    if options.notForBloopOptions.lazyValGrade then
       either {
         val toolClassPath = value(fetchToolClassPath(options, logger))
-        val toolLoader    = isolatedToolLoader(toolClassPath)
-        // lazyvalgrade logs to stdout/stderr via its own bundled logging; capture it so it doesn't
-        // pollute the user program's output, routing anything it prints to the debug log instead.
         value {
-          captureStdio(logger) {
-            classPath.iterator.map { entry =>
-              if entry.ext == "jar" then patchJar(entry, toolLoader, logger)
-              else Right(entry)
-            }.sequence0
+          Using.resource(isolatedToolLoader(toolClassPath)) { toolLoader =>
+            // lazyvalgrade logs to stdout/stderr via its own bundled logging; capture it so it
+            // doesn't pollute the user program's output, routing anything it prints to debug.
+            captureStdio(logger) {
+              classPath.iterator.map { entry =>
+                if entry.ext == "jar" then patchJar(entry, toolLoader, logger)
+                else Right(entry)
+              }.sequence0
+            }
           }
         }
       }
@@ -70,13 +79,11 @@ object LazyValGradePatcher {
       val scalaParams  = value(options.scalaParams).getOrElse(
         ScalaParameters(Constants.defaultScalaVersion)
       )
-      val lazyValGradeDeps =
-        Seq(
-          dep"${Constants.lazyvalgradeOrganization}::${Constants.lazyvalgradeModuleName}:${Constants.lazyvalgradeVersion}"
-        )
+      val dependency =
+        dep"${Constants.lazyvalgradeOrganization}::${Constants.lazyvalgradeModuleName}:${Constants.lazyvalgradeVersion}"
       val artifacts = value(
         Artifacts.artifacts(
-          lazyValGradeDeps.map(Positioned.none),
+          Seq(Positioned.none(dependency)),
           repositories,
           Some(scalaParams),
           logger,
@@ -97,18 +104,18 @@ object LazyValGradePatcher {
     toolLoader: URLClassLoader,
     logger: Logger
   ): Either[BuildException, Path] =
-    either {
-      val digest    = sha1(jar)
-      val cachedDir = cacheDir / Constants.lazyvalgradeVersion / digest
-      val cached    = cachedDir / jar.last
-      if os.exists(cached) then cached
-      else {
-        os.makeDir.all(cachedDir)
-        value(runJarProcessor(jar, cached, toolLoader))
-        logger.debug(s"Patched lazy vals in $jar -> $cached")
-        cached
-      }
-    }
+    val cachedDir = cacheDir / Constants.lazyvalgradeVersion / sha1(jar)
+    val cached    = cachedDir / jar.last
+    if os.exists(cached) then Right(cached)
+    else
+      os.makeDir.all(cachedDir)
+      runJarProcessor(jar, cached, toolLoader) match
+        case Right(()) =>
+          logger.debug(s"Patched lazy vals in $jar -> $cached")
+          Right(cached)
+        case Left(error) =>
+          os.remove.all(cachedDir)
+          Left(error)
 
   /** Invokes `lazyvalgrade.jar.JarProcessor.process` reflectively through the isolated loader. */
   private def runJarProcessor(
@@ -116,37 +123,21 @@ object LazyValGradePatcher {
     output: Path,
     toolLoader: URLClassLoader
   ): Either[BuildException, Unit] =
-    try {
-      val moduleClass   = toolLoader.loadClass("lazyvalgrade.jar.JarProcessor$")
-      val module        = moduleClass.getField("MODULE$").get(null)
-      val processMethod = moduleClass.getMethod("process", classOf[NioPath], classOf[NioPath])
-      val result        = processMethod.invoke(module, input.toNIO, output.toNIO)
-      val failedClasses = result.getClass.getMethod("failedClasses").invoke(result)
-        .asInstanceOf[Int]
-      if failedClasses > 0 then
-        os.remove.all(output / os.up)
-        Left(new BuildException(s"Failed to patch lazy vals in $input") {})
-      else Right(())
-    }
-    catch {
-      case e: Throwable =>
-        os.remove.all(output / os.up)
-        Left(new BuildException(
-          s"Failed to patch lazy vals in $input: ${e.getMessage}",
-          cause = e
-        ) {})
-    }
-
-  private def sha1(path: Path): String = {
-    val md     = MessageDigest.getInstance("SHA-1")
-    val buffer = new Array[Byte](8192)
-    val stream = os.read.inputStream(path)
     try
-      var read = stream.read(buffer)
-      while read >= 0 do
-        md.update(buffer, 0, read)
-        read = stream.read(buffer)
-    finally stream.close()
-    md.digest().map("%02x".format(_)).mkString
-  }
+      val moduleClass   = toolLoader.loadClass(jarProcessorModule)
+      val module        = moduleClass.getField(moduleField).get(null)
+      val process       = moduleClass.getMethod(processMethod, classOf[NioPath], classOf[NioPath])
+      val result        = process.invoke(module, input.toNIO, output.toNIO)
+      val failedClasses = result.getClass.getMethod(failedClassesMethod).invoke(result)
+        .asInstanceOf[Int]
+      if failedClasses > 0 then Left(LazyValGradeError(s"Failed to patch lazy vals in $input"))
+      else Right(())
+    catch
+      case NonFatal(e) =>
+        Left(LazyValGradeError(s"Failed to patch lazy vals in $input: ${e.getMessage}", e))
+
+  private def sha1(path: Path): String =
+    val md = MessageDigest.getInstance("SHA-1")
+    md.update(os.read.bytes(path))
+    String.format("%040x", new BigInteger(1, md.digest()))
 }
