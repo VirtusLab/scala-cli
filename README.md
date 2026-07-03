@@ -1,6 +1,6 @@
 # scala-cli
 
-[![Build status](https://github.com/VirtusLab/scala-cli/workflows/CI/badge.svg)](https://github.com/VirtusLab/scala-ci/actions?query=workflow%3ACI)
+[![Build status](https://github.com/VirtusLab/scala-cli/workflows/CI/badge.svg)](https://github.com/VirtusLab/scala-cli/actions?query=workflow%3ACI)
 [![Maven Central](https://img.shields.io/maven-central/v/org.virtuslab.scala-cli/cli_3.svg)](https://maven-badges.herokuapp.com/maven-central/org.virtuslab.scala-cli/cli_3)
 [![Discord](https://img.shields.io/discord/632277896739946517.svg?label=&logo=discord&logoColor=ffffff&color=404244&labelColor=6A7EC2)](https://discord.gg/KzQdYkZZza)
 
