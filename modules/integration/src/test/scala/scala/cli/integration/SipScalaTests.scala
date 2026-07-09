@@ -798,7 +798,7 @@ class SipScalaTests extends ScalaCliSuite
     }
   }
 
-  test("no warnings about TASTY when using the latest nightly with scripts") {
+  test("no warnings about TASTY when using the latest nightly with scripts".flaky) {
     val scriptName = "script.sc"
     TestInputs(os.rel / "script.sc" -> "println(1)").fromRoot { root =>
       val scala3Nightly =

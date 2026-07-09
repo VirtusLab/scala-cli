@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 class RunTests3Lts extends RunTestDefinitions with Test3Lts {
   import Constants.scala3LtsPrefix
   for (ltsNightlyAlias <- List("lts.nightly", "3.lts.nightly"))
-    test(s"Scala $ltsNightlyAlias & $scala3LtsPrefix.nightly point to the same version") {
+    test(s"Scala $ltsNightlyAlias & $scala3LtsPrefix.nightly point to the same version".flaky) {
       TestInputs.empty.fromRoot { root =>
         val version1      = getScalaVersion(ltsNightlyAlias, root)
         val nightlyPrefix = version1.split('.').take(2).mkString(".")

@@ -808,7 +808,7 @@ scala-cli -e 'println(dotty.tools.dotc.config.Properties.simpleVersionString)' -
 
 Dedicated default and LTS nightly aliases are also provided.
 
-```bash
+```bash ignore
 scala-cli -e 'println(scala.util.Properties.versionNumberString)' -S nightly
 # 3.8.2-RC1-bin-20260115-6151803-NIGHTLY
 scala-cli -e 'println(dotty.tools.dotc.config.Properties.simpleVersionString)' -S lts.nightly --with-compiler

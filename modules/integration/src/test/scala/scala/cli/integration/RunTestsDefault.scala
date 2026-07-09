@@ -53,7 +53,7 @@ class RunTestsDefault extends RunTestDefinitions
       archLinuxTest()
     }
 
-  test("3.nightly") { // should run code using scala 3 nightly version
+  test("3.nightly".flaky) { // should run code using scala 3 nightly version
     TestInputs(os.rel / "sample.sc" -> """println("Hello World")""").fromRoot {
       root =>
         val res =

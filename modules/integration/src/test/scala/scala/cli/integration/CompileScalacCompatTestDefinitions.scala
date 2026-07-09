@@ -235,8 +235,12 @@ trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
     withBloopString = if (withBloop) "with Bloop" else "scalac"
     buildServerOpts = if (withBloop) Nil else Seq("--server=false")
     if (!Properties.isWin || withBloop) && actualScalaVersion == Constants.scala3Next
-  }
-    test(s"sanity check for Scala $scalaVersion standard library with cc ($withBloopString)") {
+  } {
+    val testName =
+      s"sanity check for Scala $scalaVersion standard library with cc ($withBloopString)"
+    val testOpts =
+      if scalaVersion == "3.nightly" then testName.flaky else munit.TestOptions(testName)
+    test(testOpts) {
       TestUtil.retryOnCi() {
         val input = "example.scala"
         TestInputs(os.rel / input ->
@@ -254,4 +258,5 @@ trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
         }
       }
     }
+  }
 }

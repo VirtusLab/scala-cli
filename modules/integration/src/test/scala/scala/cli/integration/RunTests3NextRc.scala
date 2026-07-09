@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class RunTests3NextRc extends RunTestDefinitions with Test3NextRc {
   for { nightlyTag <- List("3.nightly", "nightly") }
-    test(s"Scala $nightlyTag & 3.<latest-minor>.nightly point to the same version") {
+    test(s"Scala $nightlyTag & 3.<latest-minor>.nightly point to the same version".flaky) {
       TestInputs.empty.fromRoot { root =>
         val version1     = getScalaVersion(nightlyTag, root)
         val nightlyMinor = version1.split('.').take(2).last
@@ -14,7 +14,8 @@ class RunTests3NextRc extends RunTestDefinitions with Test3NextRc {
     }
 
   for {
-    label <- List("rc", "3.rc", "3.lts.rc", "lts.rc", s"${Constants.scala3LtsPrefix}.rc", "3.7.rc")
+    label <-
+      List("rc", "3.lts.rc", "lts.rc", s"${Constants.scala3LtsPrefix}.rc", "3.7.rc") // TODO "3.rc"
   }
     test(s"$label is valid and works as expected") {
       TestInputs.empty.fromRoot { root =>

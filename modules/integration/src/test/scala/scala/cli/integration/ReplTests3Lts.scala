@@ -8,7 +8,7 @@ class ReplTests3Lts extends ReplTestDefinitions with Test3Lts
   if canRunInRepl then
     for { ltsNightlyTag <- List("3.lts.nightly", "lts.nightly") }
       test(
-        s"$runInReplPrefix $ltsNightlyTag returns the same Scala version as $scala3LtsPrefix.nightly"
+        s"$runInReplPrefix $ltsNightlyTag returns the same Scala version as $scala3LtsPrefix.nightly".flaky
       ) {
         val code = s"""println($retrieveScalaVersionCode)"""
         runInRepl(

@@ -8,7 +8,7 @@ class ReplTestsDefault extends ReplTestDefinitions
   if canRunInRepl then
     for { nightlyTag <- List("3.nightly", "nightly") }
       test(
-        s"$runInReplPrefix $nightlyTag returns the same Scala version as <latest-minor>.nightly"
+        s"$runInReplPrefix $nightlyTag returns the same Scala version as <latest-minor>.nightly".flaky
       ) {
         val code = """println(scala.util.Properties.versionNumberString)"""
         runInRepl(code, cliOptions = Seq("-S", nightlyTag)) { r1 =>

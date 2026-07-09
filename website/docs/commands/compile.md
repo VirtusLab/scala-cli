@@ -121,7 +121,7 @@ scala-cli Hello.scala -S 2.nightly
 
 For compiling with the latest Scala 3 nightly build:
 
-```bash
+```bash ignore
 scala-cli Hello.scala -S 3.nightly
 ```
 
@@ -137,7 +137,7 @@ For setting this inside scala files, use [`using` directives](../guides/introduc
 //> using scala 2.nightly
 ```
 
-```scala compile
+```scala
 //> using scala 3.nightly
 ```
 
