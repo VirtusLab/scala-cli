@@ -140,6 +140,7 @@ object Deps {
     def javaSemanticdb                    = "0.12.3"
     def javaClassName                     = "0.1.9"
     def bloop                             = "2.1.0"
+    def bouncycastle                      = "1.84"
     def sbt1Version                       = "1.12.5"
     def sbt2Version                       = "2.0.1"
     def sbtVersion                        = sbt2Version
@@ -179,9 +180,11 @@ object Deps {
   def coursierPublish    = mvn"io.get-coursier.publish::publish:${Versions.coursierPublish}"
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-    def dependency    = mvn"io.get-coursier::dependency:0.3.2"
+  def dependency    = mvn"io.get-coursier::dependency:0.3.2"
+  def bcpkixJdk18on = mvn"org.bouncycastle:bcpkix-jdk18on:${Versions.bouncycastle}"
   def dockerJavaCore =
     mvn"com.github.docker-java:docker-java-core:${Versions.dockerJava}"
+      .exclude("org.bouncycastle" -> "bcpkix-jdk18on")
   def dockerJavaTransport =
     mvn"com.github.docker-java:docker-java-transport-zerodep:${Versions.dockerJava}"
   def expecty       = mvn"com.eed3si9n.expecty::expecty:0.17.1"

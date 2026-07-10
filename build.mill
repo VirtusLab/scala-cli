@@ -1033,6 +1033,7 @@ trait CliIntegration extends SbtModule
         .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
       Deps.dockerJavaCore,
       Deps.dockerJavaTransport,
+      Deps.bcpkixJdk18on,
       Deps.jsoniterCore,
       Deps.libsodiumjni,
       Deps.pprint,
