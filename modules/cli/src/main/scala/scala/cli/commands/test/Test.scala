@@ -12,6 +12,7 @@ import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
+import scala.build.postprocessing.{SlothAgent, SlothPatcher}
 import scala.build.testrunner.{AsmTestRunner, Logger as TestRunnerLogger}
 import scala.cli.CurrentParams
 import scala.cli.commands.run.Run
@@ -249,7 +250,14 @@ object Test extends ScalaCommand[TestOptions] {
           }.flatten
         }
       case Platform.JVM =>
-        val classPath = build.fullClassPathMaybeAsJar(asJar)
+        val classPath0 = build.fullClassPathMaybeAsJar(asJar)
+        val classPath  = value(
+          SlothPatcher.transformClassPath(
+            classPath0,
+            build.options,
+            logger
+          )
+        )
 
         val predefinedTestFrameworks0 =
           predefinedTestFrameworks match {
@@ -271,9 +279,15 @@ object Test extends ScalaCommand[TestOptions] {
           then Constants.javaTestRunnerMainClass
           else Constants.testRunnerMainClass
 
+        val slothAgentJavaOpts = value(
+          SlothAgent.javaAgentArgs(build.options, logger)
+        )
+        val javaOpts =
+          slothAgentJavaOpts ++ build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
-          build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
+          javaOpts,
           classPath,
           testRunnerMainClass,
           extraArgs,

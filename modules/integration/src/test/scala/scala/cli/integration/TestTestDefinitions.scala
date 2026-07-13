@@ -8,7 +8,8 @@ import scala.cli.integration.TestUtil.{ProcOps, StringOps}
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 
-abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
+    with LazyValTests {
   this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   private val utestVersion                     = "0.8.3"
@@ -1316,4 +1317,52 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           expect(err.countOccurrences(expectedWarning) == 1)
       }
     }
+
+  if isScala38OrNewer then {
+    val latestJava = Constants.allJavaVersions.max
+
+    def testLazyValsUnsafe(libScalaVersion: String, slothFlag: String): Unit =
+      test(
+        s"test $libScalaVersion lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava ($slothFlag)"
+      ) {
+        val expectedMessage = "Hello"
+        TestInputs.empty.fromRoot { root =>
+          val (dep, repoDir) = publishLazyValsLib(libScalaVersion, root)
+          os.write(
+            root / "LazyValsTests.test.scala",
+            s"""//> using dep $dep
+               |//> using dep org.scalameta::munit::$munitVersion
+               |
+               |class LazyValsTests extends munit.FunSuite {
+               |  test("lazy val from dependency") {
+               |    assertEquals(lazyvalslib.LazyValsLib.greeting, "$expectedMessage")
+               |    println(lazyvalslib.LazyValsLib.greeting)
+               |  }
+               |}
+               |""".stripMargin
+          )
+          val r = os.proc(
+            TestUtil.cli,
+            "test",
+            extraOptions,
+            "--power",
+            slothFlag,
+            ".",
+            "--repository",
+            repoDir.toNIO.toUri.toASCIIString,
+            "--jvm",
+            latestJava
+          ).call(cwd = root, stderr = os.Pipe)
+          expect(r.out.trim().contains(expectedMessage))
+          expect(!r.err.trim().contains("sun.misc.Unsafe"))
+        }
+      }
+
+    val highest30 = Constants.legacyScala3Versions
+      .filter(_.startsWith("3.0."))
+      .maxBy(_.coursierVersion)
+    for slothFlag <- Seq("--sloth", "--sloth-agent") do
+      testLazyValsUnsafe(highest30, slothFlag)
+      testLazyValsUnsafe(Constants.scala3Lts, slothFlag)
+  }
 }
