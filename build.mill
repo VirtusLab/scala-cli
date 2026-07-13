@@ -589,6 +589,9 @@ trait Core extends ScalaCliCrossSbtModule
          |  def scalafixVersion = "${Deps.Versions.scalafix}"
          |
          |  def slothVersion = "${Deps.Versions.sloth}"
+         |  def slothAgentOrganization = "${Deps.slothOrganization}"
+         |  def slothAgentModuleName = "${Deps.slothAgentModuleName}"
+         |  def slothAgentVersion = "${Deps.Versions.sloth}"
          |  
          |  def alpineVersion = "$alpineVersion"
          |}

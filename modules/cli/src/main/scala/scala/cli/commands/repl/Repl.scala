@@ -13,7 +13,7 @@ import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.ScalacOpt.{filterScalacOptionKeys, noDashPrefixes}
 import scala.build.options.{BuildOptions, JavaOpt, Scope}
-import scala.build.postprocessing.SlothPatcher
+import scala.build.postprocessing.{SlothAgent, SlothPatcher}
 import scala.cli.CurrentParams
 import scala.cli.commands.run.Run.{createPythonInstance, orPythonDetectionError, pythonPathEnv}
 import scala.cli.commands.run.RunMode
@@ -349,6 +349,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
 
     val javaCommand = options.javaHome().value.javaCommand
 
+    val slothAgentJavaOpts = value(SlothAgent.javaAgentArgs(options, logger))
+
     def patchClassPath(classPath: Seq[os.Path]): Seq[os.Path] =
       value(SlothPatcher.transformClassPath(classPath, options, logger))
 
@@ -372,7 +374,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           else Nil
         val retCode = Runner.runJvm(
           javaCommand = javaCommand,
-          javaArgs = scalapyJavaOpts ++
+          javaArgs = slothAgentJavaOpts ++
+            scalapyJavaOpts ++
             replArtifacts.replJavaOpts ++
             options.javaOptions.javaOpts.toSeq.map(_.value.value) ++
             extraProps.toVector.sorted.map { case (k, v) => s"-D$k=$v" },
@@ -411,7 +414,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       val jshellCommand0 = value(
         JShellRunner.commandFor(
           javaHomeInfo = javaHomeInfo,
-          javaOpts = scalapyJavaOpts ++ options.javaOptions.javaOpts.toSeq.map(_.value.value),
+          javaOpts = slothAgentJavaOpts ++
+            scalapyJavaOpts ++ options.javaOptions.javaOpts.toSeq.map(_.value.value),
           classPath = jshellClassPath,
           programArgs = programArgs,
           initScriptOpt = initScriptOpt,

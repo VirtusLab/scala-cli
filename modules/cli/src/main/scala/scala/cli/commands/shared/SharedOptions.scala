@@ -215,6 +215,13 @@ final case class SharedOptions(
   @Name("patch-lazy-vals")
   @Tag(tags.experimental)
     sloth: Option[Boolean] = None,
+  @HelpMessage(
+    "Patch Scala 3.0-3.7.x lazy val bytecode at class load time via the sloth Java agent for JDK 26+ compatibility"
+  )
+  @Tag(tags.experimental)
+  @Name("lazyvalgrade-agent")
+  @Name("patch-lazy-vals-with-agent")
+    slothAgent: Option[Boolean] = None,
   @Group(HelpGroup.Scala.toString)
   @HelpMessage(
     "Automatically generate BSP configuration in `.bsp/` when running build commands. Enabled by default."
@@ -496,7 +503,8 @@ final case class SharedOptions(
           python = sharedPython.python,
           pythonSetup = sharedPython.pythonSetup,
           scalaPyVersion = sharedPython.scalaPyVersion,
-          slothOpt = sloth
+          slothOpt = sloth,
+          slothAgentOpt = slothAgent
         ),
         useBuildServer = compilationServer.server
       ).orElse(watchOptions.buildOptions())
