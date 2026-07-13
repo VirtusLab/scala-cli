@@ -7,7 +7,7 @@ package scala.cli.commands.pgp
 class PgpProxyMaker {
   def get(forceSigningExternally: java.lang.Boolean): PgpProxy =
     if (forceSigningExternally)
-      new PgpProxy
+      new PgpNativeProxy
     else
       new PgpProxyJvm
 }

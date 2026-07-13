@@ -2,7 +2,9 @@ package scala.cli.internal;
 
 import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
+
 import scala.cli.commands.pgp.PgpProxy;
+import scala.cli.commands.pgp.PgpProxyJava$;
 
 /** Used for choosing the right PGP proxy implementation when Scala CLI is run as a native image.
  *  This class is used to substitute scala.cli.commands.pgp.PgpProxyMaker.
@@ -12,6 +14,6 @@ import scala.cli.commands.pgp.PgpProxy;
 public final class PgpProxyMakerSubst {
   @Substitute
   public PgpProxy get(Boolean forceSigningExternally) {
-    return new PgpProxy();
+    return PgpProxyJava$.MODULE$.create();
   }
 }

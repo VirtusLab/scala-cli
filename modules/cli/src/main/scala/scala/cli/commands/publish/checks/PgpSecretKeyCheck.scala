@@ -14,6 +14,7 @@ import scala.build.options.PublishOptions as BPublishOptions
 import scala.build.options.publish.ConfigPasswordOption
 import scala.build.options.publish.ConfigPasswordOption.*
 import scala.cli.commands.config.ThrowawayPgpSecret
+import scala.cli.commands.pgp.PgpProxySyntax.keyId
 import scala.cli.commands.pgp.{KeyServer, PgpProxyMaker}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, SetSecret}

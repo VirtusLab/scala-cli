@@ -4,8 +4,6 @@ import coursier.cache.ArchiveCache
 import coursier.util.Task
 import dependency.*
 
-import java.util.function.Supplier
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
@@ -18,24 +16,6 @@ class JavaParserProxyBinary(
   logger: Logger,
   javaCommand: () => String
 ) extends JavaParserProxy {
-
-  /** For internal use only
-    *
-    * Passing archiveCache as an Object, to work around issues with higher-kind type params from
-    * Java code.
-    */
-  def this(
-    archiveCache: Object,
-    logger: Logger,
-    javaClassNameVersionOpt: Option[String],
-    javaCommand0: Supplier[String]
-  ) =
-    this(
-      archiveCache.asInstanceOf[ArchiveCache[Task]],
-      javaClassNameVersionOpt,
-      logger,
-      () => javaCommand0.get()
-    )
 
   def className(content: Array[Byte]): Either[BuildException, Option[String]] = either {
 

@@ -5,6 +5,8 @@ import com.oracle.svm.core.annotate.TargetClass;
 
 import java.util.function.Supplier;
 
+import scala.build.internal.JavaParserProxyBinaryJava$;
+
 /**
  * This makes [[JavaParserProxyMaker.get]] provide a [[JavaParserProxyBinary]]
  * rather than a [[JavaParserProxyJvm]], from native launchers.
@@ -20,6 +22,7 @@ public final class JavaParserProxyMakerSubst {
     scala.build.Logger logger,
     Supplier<String> javaCommand
   ) {
-    return new JavaParserProxyBinary(archiveCache, logger, javaClassNameVersionOpt, javaCommand);
+    return JavaParserProxyBinaryJava$.MODULE$.apply(
+      archiveCache, logger, javaClassNameVersionOpt, javaCommand);
   }
 }

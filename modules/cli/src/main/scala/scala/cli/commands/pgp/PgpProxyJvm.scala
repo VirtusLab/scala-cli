@@ -19,8 +19,8 @@ import scala.cli.signing.shared.{PasswordOption, Secret}
   *
   * This is the 'JVM' counterpart of [[PgpProxy]]
   */
-class PgpProxyJvm extends PgpProxy {
-  override def createKey(
+class PgpProxyJvm extends PgpProxy with PgpProxyCapability {
+  def createKey(
     pubKey: String,
     secKey: String,
     mail: String,
@@ -48,7 +48,7 @@ class PgpProxyJvm extends PgpProxy {
     Right(0)
   }
 
-  override def keyId(
+  def keyId(
     key: String,
     keyPrintablePath: String,
     cache: FileCache[Task],
