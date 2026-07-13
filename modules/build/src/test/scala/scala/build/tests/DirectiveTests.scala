@@ -530,4 +530,16 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       expect(build.options.notForBloopOptions.slothOpt.contains(true))
     }
   }
+
+  test("slothAgent directive") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using slothAgent
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow
+      expect(build.options.notForBloopOptions.slothAgentOpt.contains(true))
+    }
+  }
 }

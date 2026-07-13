@@ -156,9 +156,10 @@ object Deps {
     def sloth                             = "0.1.0-M1"
   }
 
-  def slothOrganization = "org.virtuslab"
-  def slothModuleName   = "sloth-core"
-  def slothCore         = mvn"org.virtuslab::sloth-core:${Versions.sloth}"
+  def slothOrganization     = "org.virtuslab"
+  def slothModuleName       = "sloth-core"
+  def slothAgentModuleName  = "sloth-agent"
+  def slothCore             = mvn"org.virtuslab::sloth-core:${Versions.sloth}"
 
   def argonautShapeless =
     mvn"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"

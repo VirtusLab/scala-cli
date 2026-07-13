@@ -2584,8 +2584,10 @@ abstract class RunTestDefinitions
   if isScala38OrNewer then {
     val latestJava = Constants.allJavaVersions.max
 
-    def lazyValsUnsafeTest(libScalaVersion: String): Unit =
-      test(s"$libScalaVersion lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava") {
+    def lazyValsUnsafeTest(libScalaVersion: String, slothFlag: String): Unit =
+      test(
+        s"$libScalaVersion lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava ($slothFlag)"
+      ) {
         val expectedMessage = "Hello"
         TestInputs.empty.fromRoot { root =>
           val (dep, repoDir) = publishLazyValsLib(libScalaVersion, root)
@@ -2599,7 +2601,7 @@ abstract class RunTestDefinitions
             TestUtil.cli,
             extraOptions,
             "--power",
-            "--sloth",
+            slothFlag,
             "script.sc",
             "--repository",
             repoDir.toNIO.toUri.toASCIIString,
@@ -2614,7 +2616,8 @@ abstract class RunTestDefinitions
     val highest30 = Constants.legacyScala3Versions
       .filter(_.startsWith("3.0."))
       .maxBy(_.coursierVersion)
-    lazyValsUnsafeTest(highest30)
-    lazyValsUnsafeTest(Constants.scala3Lts)
+    for slothFlag <- Seq("--sloth", "--sloth-agent") do
+      lazyValsUnsafeTest(highest30, slothFlag)
+      lazyValsUnsafeTest(Constants.scala3Lts, slothFlag)
   }
 }

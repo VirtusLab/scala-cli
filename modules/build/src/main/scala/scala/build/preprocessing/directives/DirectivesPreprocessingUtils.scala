@@ -32,6 +32,7 @@ object DirectivesPreprocessingUtils {
       directives.ScalaVersion.handler,
       directives.Sources.handler,
       directives.Sloth.handler,
+      directives.SlothAgent.handler,
       directives.Watching.handler,
       directives.Tests.handler,
       directives.Wasm.handler

@@ -1714,6 +1714,12 @@ Aliases: `--lazyvalgrade`, `--patch-lazy-vals`
 
 Patch Scala 3.0-3.7.x lazy val bytecode on the classpath for JDK 26+ compatibility
 
+### `--sloth-agent`
+
+Aliases: `--lazyvalgrade-agent`, `--patch-lazy-vals-with-agent`
+
+Patch Scala 3.0-3.7.x lazy val bytecode at class load time via the sloth Java agent for JDK 26+ compatibility
+
 ### `--auto-setup-ide`
 
 Aliases: `--auto-setup-bsp`

@@ -19,7 +19,7 @@ import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, JSRuntime, JavaOpt, PackageType, Platform, Scope}
-import scala.build.postprocessing.SlothPatcher
+import scala.build.postprocessing.{SlothAgent, SlothPatcher}
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package
 import scala.cli.commands.setupide.SetupIde
@@ -716,7 +716,10 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                       }
                       else
                         (Nil, Map.empty[String, String])
-                    val allJavaOpts = pythonJavaProps ++ baseJavaProps
+                    val slothAgentJavaOpts = value(
+                      SlothAgent.javaAgentArgs(build.options, logger)
+                    )
+                    val allJavaOpts = slothAgentJavaOpts ++ pythonJavaProps ++ baseJavaProps
                     if showCommand then
                       Left {
                         Runner.jvmCommand(
