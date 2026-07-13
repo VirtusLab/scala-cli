@@ -138,7 +138,7 @@ object Deps {
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.12.3"
     def javaClassName                     = "0.1.9"
-    def bloop                             = "2.1.0"
+    def bloop                             = "2.1.1"
     def sbt1Version                       = "1.12.5"
     def sbt2Version                       = "2.0.1"
     def sbtVersion                        = sbt2Version
