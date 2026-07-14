@@ -6,11 +6,14 @@ import sloth.jar.JarProcessor
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.math.BigInteger
 import java.security.MessageDigest
+import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 import scala.build.{Directories, Logger}
+import scala.jdk.CollectionConverters.*
+import scala.util.Using
 import scala.util.control.NonFatal
 
 object SlothPatcher {
@@ -34,6 +37,48 @@ object SlothPatcher {
         }
       }
     else Right(classPath)
+
+  def patchJarFile(
+    jar: Path,
+    options: BuildOptions,
+    logger: Logger
+  ): Either[BuildException, Path] =
+    if options.notForBloopOptions.sloth then
+      Right(captureStdio(logger) {
+        if jar.ext == "jar" then patchJar(jar, logger)
+        else jar
+      })
+    else Right(jar)
+
+  def patchByteCodeZipEntries(
+    entries: Seq[(ZipEntry, Array[Byte])],
+    options: BuildOptions,
+    logger: Logger
+  ): Either[BuildException, Seq[(ZipEntry, Array[Byte])]] =
+    if !options.notForBloopOptions.sloth || entries.isEmpty then Right(entries)
+    else
+      val tmpJar = os.temp(prefix = "sloth-entries-", suffix = ".jar", dir = os.temp.dir())
+      writeZipEntries(tmpJar, entries)
+      patchJarFile(tmpJar, options, logger).map(readZipEntries)
+
+  private def writeZipEntries(path: Path, entries: Seq[(ZipEntry, Array[Byte])]): Unit =
+    val out = new ZipOutputStream(os.write.outputStream(path))
+    try
+      entries.foreach { (entry, content) =>
+        out.putNextEntry(entry)
+        out.write(content)
+        out.closeEntry()
+      }
+    finally out.close()
+
+  private def readZipEntries(path: Path): Seq[(ZipEntry, Array[Byte])] =
+    val zf = new ZipFile(path.toIO)
+    try
+      zf.entries().asScala.toSeq.map { entry =>
+        val content = Using.resource(zf.getInputStream(entry))(_.readAllBytes())
+        (entry, content)
+      }
+    finally zf.close()
 
   private def captureStdio[T](logger: Logger)(f: => T): T = {
     val outBuffer   = new ByteArrayOutputStream
