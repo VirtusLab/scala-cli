@@ -281,7 +281,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     else {
       val packageType: PackageType = value(resolvePackageType(builds, forcedPackageTypeOpt))
       if builds.head.options.notForBloopOptions.slothAgent then
-        logger.message("The sloth agent is not applicable to package; use --sloth for batch lazy-val patching.")
+        logger.message(
+          "The sloth agent is not applicable to package; use --sloth for batch lazy-val patching."
+        )
       // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
       def extension = packageType match {

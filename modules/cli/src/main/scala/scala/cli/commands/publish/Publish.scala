@@ -36,6 +36,7 @@ import scala.build.options.{
   ScalaSigningCliOptions,
   Scope
 }
+import scala.build.postprocessing.SlothPatcher
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package as PackageCmd
 import scala.cli.commands.pgp.PgpScalaSigningOptions
@@ -463,6 +464,16 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     logger.debug(s"Preparing project ${builds.head.project.projectName}")
 
     val publishOptions = builds.head.options.notForBloopOptions.publishOptions
+    val notForBloop    = builds.head.options.notForBloopOptions
+
+    def warnSlothNoOp(reason: String): Unit =
+      if notForBloop.sloth || notForBloop.slothAgent then
+        logger.message(s"Sloth patching is not applicable to $reason.")
+
+    if notForBloop.slothAgent then
+      logger.message(
+        "The sloth agent is not applicable to publish; use --sloth for batch lazy-val patching."
+      )
 
     val ArtifactData(org, moduleName, ver) = value {
       publishOptions.artifactData(
@@ -501,8 +512,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
         }).toOption
       logger.debug(s"Retained main class: ${mainClassOpt.getOrElse("(no main class found)")}")
-      val libraryJar: os.Path = Library.libraryJar(builds, mainClassOpt)
-      val dest: os.Path       = workingDir / org / s"$moduleName-$ver.jar"
+      val libraryJar0: os.Path = Library.libraryJar(builds, mainClassOpt)
+      val libraryJar: os.Path  = value(
+        SlothPatcher.patchJarFile(libraryJar0, builds.head.options, logger)
+      )
+      val dest: os.Path = workingDir / org / s"$moduleName-$ver.jar"
       logger.debug(s"Copying library jar from $libraryJar to $dest...")
       os.copy.over(libraryJar, dest, createFolders = true)
       logger.log(s"Successfully copied library jar from $libraryJar to $dest")
@@ -511,6 +525,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val sourceJarOpt =
       if publishOptions.contextual(isCi).sourceJar.getOrElse(true) then {
+        warnSlothNoOp("source jars (no bytecode)")
         val content            = PackageCmd.sourceJar(builds, now.toEpochMilli)
         val sourceJar: os.Path = workingDir / org / s"$moduleName-$ver-sources.jar"
         logger.debug(s"Saving source jar to $sourceJar...")
@@ -525,6 +540,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         docBuilds match {
           case Nil       => None
           case docBuilds =>
+            warnSlothNoOp("doc jars (no bytecode)")
             val docJarPath: os.Path = value(PackageCmd.docJar(
               builds = docBuilds,
               logger = logger,
