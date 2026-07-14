@@ -7,12 +7,12 @@ import scala.util.Properties
 
 trait PackageSlothTestDefinitions { this: PackageTestDefinitions & TestScalaVersion =>
   if actualScalaVersion.startsWith("3.") then {
-    val latestJava                = Constants.allJavaVersions.max
-    val assemblyScalaVersions     = Seq("3.0.2", Constants.scala3Lts)
-    val ltsOnlyScalaVersion       = Constants.scala3Lts
-    val expectedMessage           = "Hello"
-    val slothNoOpWarnPrefix       = "Sloth patching is not applicable to"
-    val slothAgentWarnFragment    = "is not applicable to package"
+    val latestJava             = Constants.allJavaVersions.max
+    val assemblyScalaVersions  = Seq("3.0.2", Constants.scala3Lts)
+    val ltsOnlyScalaVersion    = Constants.scala3Lts
+    val expectedMessage        = "Hello"
+    val slothNoOpWarnPrefix    = "Sloth patching is not applicable to"
+    val slothAgentWarnFragment = "is not applicable to package"
 
     def lazyValApp(scalaVersion: String): String =
       s"""//> using scala $scalaVersion
@@ -73,17 +73,18 @@ trait PackageSlothTestDefinitions { this: PackageTestDefinitions & TestScalaVers
     def runBootstrapLauncher(root: os.Path, launcher: os.Path): os.CommandResult =
       val home = javaHome(latestJava)
       val env  = Map("JAVA_HOME" -> home.toString)
-      val res  = os.proc(launcher.toString).call(cwd = root, stderr = os.Pipe, check = false, env = env)
+      val res  =
+        os.proc(launcher.toString).call(cwd = root, stderr = os.Pipe, check = false, env = env)
       if Properties.isLinux && res.exitCode == 127 then
         os.proc("/bin/bash", launcher.toString).call(cwd = root, stderr = os.Pipe, env = env)
       else if res.exitCode != 0 then throw os.SubprocessException(res)
       else res
 
     def packageSlothTest(
-                          label: String,
-                          packageExtraArgs: Seq[String],
-                          runArtifact: (os.Path, os.Path) => os.CommandResult
-                        )(packageScalaVersion: String): Unit =
+      label: String,
+      packageExtraArgs: Seq[String],
+      runArtifact: (os.Path, os.Path) => os.CommandResult
+    )(packageScalaVersion: String): Unit =
       test(s"package $label $packageScalaVersion --sloth patches lazy vals on JDK $latestJava") {
         TestInputs(
           os.rel / "Main.scala" -> lazyValApp(packageScalaVersion)
