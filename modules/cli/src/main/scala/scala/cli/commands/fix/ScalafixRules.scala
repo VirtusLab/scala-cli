@@ -9,6 +9,7 @@ import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.internal.{Constants, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.BuildOptions
+import scala.build.postprocessing.{SlothAgent, SlothPatcher}
 import scala.build.{Build, Logger, ScalafixArtifacts}
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.BuildCommandHelpers.copyOutput
@@ -73,7 +74,6 @@ object ScalafixRules extends CommandHelpers {
       case b if b.forall(_.success) =>
         val successfulBuilds = b.collect { case s: Build.Successful => s }
         successfulBuilds.foreach(_.copyOutput(sharedOptions))
-        val classPaths    = successfulBuilds.flatMap(_.fullClassPath).distinct
         val scalacOptions =
           successfulBuilds.headOption.toSeq
             .flatMap(_.options.scalaOptions.scalacOptions.toSeq.map(_.value.value))
@@ -86,6 +86,10 @@ object ScalafixRules extends CommandHelpers {
         }.getOrElse(Constants.defaultScalaVersion)
 
         either {
+          val classPaths0 = successfulBuilds.flatMap(_.fullClassPath).distinct
+          val classPaths  = value(
+            SlothPatcher.transformClassPath(classPaths0, buildOptions, logger)
+          )
           val artifacts =
             value(
               ScalafixArtifacts.artifacts(
@@ -114,9 +118,10 @@ object ScalafixRules extends CommandHelpers {
               scalafixOptions.scalafixRules.flatMap(Seq("-r", _))
               ++ scalafixOptions.scalafixArg
 
-          val proc = Runner.runJvm(
+          val slothAgentJavaOpts = value(SlothAgent.javaAgentArgs(buildOptions, logger))
+          val proc               = Runner.runJvm(
             buildOptions.javaHome().value.javaCommand,
-            buildOptions.javaOptions.javaOpts.toSeq.map(_.value.value),
+            slothAgentJavaOpts ++ buildOptions.javaOptions.javaOpts.toSeq.map(_.value.value),
             artifacts.scalafixJars,
             "scalafix.cli.Cli",
             scalafixCliOptions,
