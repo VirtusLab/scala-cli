@@ -6,7 +6,8 @@ abstract class FixTestDefinitions
     extends ScalaCliSuite
     with TestScalaVersionArgs
     with FixBuiltInRulesTestDefinitions
-    with FixScalafixRulesTestDefinitions { this: TestScalaVersion =>
+    with FixScalafixRulesTestDefinitions
+    with FixSlothTestDefinitions { this: TestScalaVersion =>
   val projectFileName           = "project.scala"
   val extraOptions: Seq[String] =
     scalaVersionArgs ++ TestUtil.extraOptions ++ Seq("--suppress-experimental-feature-warning")
