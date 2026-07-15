@@ -115,11 +115,30 @@ trait PackageSlothTestDefinitions { this: PackageTestDefinitions & TestScalaVers
         runAssemblyJar(_, _, "Main")
       )(ver)
 
-    packageSlothTest(
-      "bootstrap standalone",
-      Seq("--standalone"),
-      runBootstrapLauncher
-    )(ltsOnlyScalaVersion)
+    test(
+      s"package bootstrap standalone $ltsOnlyScalaVersion --sloth patches lazy vals on JDK $latestJava"
+    ) {
+      TestInputs(
+        os.rel / "Main.scala" -> lazyValApp(ltsOnlyScalaVersion)
+      ).fromRoot { root =>
+        val launcher = root / (if Properties.isWin then "app.bat" else "app")
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          extraOptions,
+          "--sloth",
+          "--standalone",
+          ".",
+          "-o",
+          launcher
+        ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+        val r = runBootstrapLauncher(root, launcher)
+        expect(r.out.trim().contains(expectedMessage))
+        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }
 
     test(s"package library $ltsOnlyScalaVersion --sloth patches lazy vals on JDK $latestJava") {
       TestInputs(
