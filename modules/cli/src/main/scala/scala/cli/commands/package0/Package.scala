@@ -647,7 +647,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     builds: Seq[Build.Successful],
     logger: Logger,
     extraArgs: Seq[String],
-    withTestScope: Boolean
+    withTestScope: Boolean,
+    patchClassPath: Boolean = false
   ): Either[BuildException, os.Path] = either {
 
     val workDir   = builds.head.inputs.docJarWorkDir
@@ -662,7 +663,15 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
     if cacheData.changed then {
 
-      val contentDir = value(Doc.generateScaladocDirPath(builds, logger, extraArgs, withTestScope))
+      val contentDir = value(
+        Doc.generateScaladocDirPath(
+          builds,
+          logger,
+          extraArgs,
+          withTestScope,
+          patchClassPath = patchClassPath
+        )
+      )
 
       var outputStream: OutputStream = null
       try {
