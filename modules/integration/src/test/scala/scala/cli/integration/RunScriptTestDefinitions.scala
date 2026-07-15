@@ -86,6 +86,29 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
       expect(output == message)
     }
   }
+
+  if actualScalaVersion.startsWith("3") then
+    test("script with main method and tuple comparison in if condition") {
+      val message = "Hello"
+      val inputs  = TestInputs(
+        os.rel / "testScript.sc" ->
+          s"""|object MainNeverCalled {
+              |  def main(args: Array[String]): Unit = {
+              |    printf("$message\\n")
+              |    val pair = ("", "")
+              |    val (a, b) = pair
+              |    if (a, b) == pair then println("yo")
+              |  }
+              |}
+              |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, extraOptions, "testScript.sc")
+          .call(cwd = root).out.trim()
+        expect(output.contains(message))
+      }
+    }
+
   test("main.sc has an object that extends App") {
     val message = "Hello"
     val inputs  = TestInputs(
