@@ -259,7 +259,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         val classFilePath = os.rel / {
           if actualScalaVersion.startsWith("3.")
-          then "simple$_.class"
+          then "simple_class.class"
           else "simple$.class"
         }
         expect(compileProducts.contains(classFilePath))

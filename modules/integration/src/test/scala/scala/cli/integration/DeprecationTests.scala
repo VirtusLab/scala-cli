@@ -107,4 +107,41 @@ class DeprecationTests extends ScalaCliSuite {
       expect(deprecatedWarningLines == 1)
     }
   }
+
+  Seq("--dollar-script-wrapper", "--dollar-wrapper").foreach { optionName =>
+    test(s"$optionName is deprecated") {
+      val inputPath = os.rel / "example.sc"
+      TestInputs(inputPath -> """println("hello")""").fromRoot { root =>
+        val res = os.proc(
+          TestUtil.cli,
+          "run",
+          TestUtil.extraOptions,
+          optionName,
+          inputPath
+        ).call(cwd = root, stderr = os.Pipe)
+        val err = res.err.trim()
+        expect(err.contains(optionName))
+        expect(err.contains("is deprecated."))
+        expect(err.contains("backwards-compat shim"))
+      }
+    }
+  }
+
+  test("dollarWrapper using directive is deprecated for removal") {
+    val inputPath = os.rel / "example.sc"
+    TestInputs(inputPath ->
+      """//> using dollarWrapper
+        |println("hello")
+        |""".stripMargin).fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        TestUtil.extraOptions,
+        inputPath
+      ).call(cwd = root, stderr = os.Pipe)
+      val err = res.err.trim()
+      expect(err.contains("dollarWrapper"))
+      expect(err.contains("removed in a future version"))
+    }
+  }
 }

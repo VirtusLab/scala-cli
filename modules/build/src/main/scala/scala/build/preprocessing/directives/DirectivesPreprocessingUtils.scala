@@ -19,6 +19,7 @@ object DirectivesPreprocessingUtils {
       directives.Jvm.handler,
       directives.MainClass.handler,
       directives.ObjectWrapper.handler,
+      directives.DollarWrapper.handler,
       directives.Packaging.handler,
       directives.Platform.handler,
       directives.Plugin.handler,

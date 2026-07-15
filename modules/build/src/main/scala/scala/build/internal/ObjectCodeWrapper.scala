@@ -4,7 +4,11 @@ package scala.build.internal
   * or/and not using JS native prefer [[ClassCodeWrapper]], since it prevents deadlocks when running
   * threads from script
   */
-case class ObjectCodeWrapper(scalaVersion: String, log: String => Unit) extends CodeWrapper {
+case class ObjectCodeWrapper(
+  scalaVersion: String,
+  log: String => Unit,
+  useDollarNames: Boolean = false
+) extends CodeWrapper {
 
   override def mainClassObject(className: Name): Name =
     Name(className.raw ++ "_sc")
@@ -16,8 +20,9 @@ case class ObjectCodeWrapper(scalaVersion: String, log: String => Unit) extends 
     scriptPath: String
   ) = {
     val mainObject         = WrapperUtils.mainObjectInScript(scalaVersion, code)
+    val names              = WrapperUtils.ScriptWrapperNames(useDollarNames)
     val name               = mainClassObject(indexedWrapperName).backticked
-    val aliasedWrapperName = name + "$$alias"
+    val aliasedWrapperName = name + names.aliasSuffix
     val realScript         =
       if (name == "main_sc")
         s"$aliasedWrapperName.alias" // https://github.com/VirtusLab/scala-cli/issues/314
@@ -28,23 +33,11 @@ case class ObjectCodeWrapper(scalaVersion: String, log: String => Unit) extends 
       case otherwise                                  =>
         otherwise.warningMessage.foreach(log)
         s"val _ = $realScript.hashCode()"
-    // We need to call hashCode (or any other method so compiler does not report a warning)
-    val mainObjectCode =
-      AmmUtil.normalizeNewlines(s"""|object $name {
-                                    |  private var args$$opt0 = Option.empty[Array[String]]
-                                    |  def args$$set(args: Array[String]): Unit = {
-                                    |    args$$opt0 = Some(args)
-                                    |  }
-                                    |  def args$$opt: Option[Array[String]] = args$$opt0
-                                    |  def args$$: Array[String] = args$$opt.getOrElse {
-                                    |    sys.error("No arguments passed to this script")
-                                    |  }
-                                    |  def main(args: Array[String]): Unit = {
-                                    |    args$$set(args)
-                                    |    $funHashCodeMethod // hashCode to clear scalac warning about pure expression in statement position
-                                    |  }
-                                    |}
-                                    |""".stripMargin)
+    val mainObjectCode = WrapperUtils.scriptMainObjectCode(
+      names = names,
+      objectName = name,
+      mainInvocation = funHashCodeMethod
+    )
 
     val packageDirective =
       if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
@@ -60,7 +53,7 @@ case class ObjectCodeWrapper(scalaVersion: String, log: String => Unit) extends 
       s"""$packageDirective
          |
          |object ${indexedWrapperName.backticked} {
-         |def args = $name.args$$
+         |def args = $name.${names.argsAccessor}
          |def scriptPath = \"\"\"$scriptPath\"\"\"
          |""".stripMargin
     )

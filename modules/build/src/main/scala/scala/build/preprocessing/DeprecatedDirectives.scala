@@ -74,7 +74,11 @@ object DeprecatedDirectives {
     ),
     DirectiveTemplate(Seq("deprecatedForRemovalTestDirective"), None) -> noReplacement(
       deprecatedWarningForRemoval("deprecatedForRemovalTestDirective")
-    )
+    ),
+    DirectiveTemplate(
+      allKeysFrom(directives.DollarWrapper.handler),
+      None
+    ) -> noReplacement(deprecatedWarningForRemoval("dollarWrapper"))
   )
 
   private def warningAndReplacement(directive: StrictDirective): Option[WarningAndReplacement] =

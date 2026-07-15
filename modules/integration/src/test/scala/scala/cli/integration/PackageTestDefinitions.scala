@@ -909,7 +909,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       if (actualScalaVersion.startsWith("2."))
         expect(genContentStr.contains("object simple"))
       else
-        expect(genContentStr.contains("class simple$_"))
+        expect(genContentStr.contains("class simple_class"))
     }
   }
 
@@ -941,14 +941,14 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           Seq(
             "index.html",
             "inkuire-db.json",
-            "$lessempty$greater$/simple$_.html",
+            "$lessempty$greater$/simple_class.html",
             "lib/Messages$.html"
           )
         else
           Seq(
             "index.html",
             "inkuire-db.json",
-            "_empty_/simple$_.html",
+            "_empty_/simple_class.html",
             "lib/Messages$.html"
           )
       val entries = zf.entries().asScala.iterator.map(_.getName).toSet

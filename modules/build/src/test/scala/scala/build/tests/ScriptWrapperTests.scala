@@ -46,12 +46,20 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
   def expectClassWrapper(wrapperName: String, path: os.Path): Unit = {
     val generatedFileContent = os.read(path)
     assert(
-      generatedFileContent.contains(s"final class $wrapperName$$_"),
+      generatedFileContent.contains(s"final class ${wrapperName}_class"),
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
       !generatedFileContent.contains(s"object $wrapperName extends App {") &&
       !generatedFileContent.contains(s"object $wrapperName {"),
+      clue(s"Generated file content: $generatedFileContent")
+    )
+  }
+
+  def expectLegacyClassWrapper(wrapperName: String, path: os.Path): Unit = {
+    val generatedFileContent = os.read(path)
+    assert(
+      generatedFileContent.contains(s"final class $wrapperName$$_"),
       clue(s"Generated file content: $generatedFileContent")
     )
   }
@@ -89,6 +97,11 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
       platform = Some(Positioned(List(Position.CommandLine()), Platform.JS))
     )
   )
+  val dollarWrapperOptions = BuildOptions(
+    scriptOptions = ScriptOptions(
+      useDollarScriptWrapper = Some(true)
+    )
+  )
 
   test(s"class wrapper for scala 3") {
     val inputs = TestInputs(
@@ -119,6 +132,25 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
         expectClassWrapper(
           "script2",
           projectDir.head / "src_generated" / "main" / "script2.scala"
+        )
+    }
+  }
+
+  test(s"legacy dollar class wrapper for scala 3") {
+    val inputs = TestInputs(
+      os.rel / "script1.sc" -> """println("Hello")"""
+    )
+
+    inputs.withBuild(baseOptions.orElse(dollarWrapperOptions), buildThreads, bloopConfigOpt) {
+      (root, _, maybeBuild) =>
+        expect(maybeBuild.orThrow.success)
+        val projectDir = os.list(root / ".scala-build").filter(
+          _.baseName.startsWith(root.baseName + "_")
+        )
+        expect(projectDir.size == 1)
+        expectLegacyClassWrapper(
+          "script1",
+          projectDir.head / "src_generated" / "main" / "script1.scala"
         )
     }
   }

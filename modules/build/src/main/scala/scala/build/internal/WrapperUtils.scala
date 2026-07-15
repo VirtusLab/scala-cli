@@ -4,6 +4,69 @@ import scala.build.internal.util.WarningMessages
 
 object WrapperUtils {
 
+  /** Internal names used by script wrappers for args handling and wrapper class/alias suffixes. */
+  final case class ScriptWrapperNames(
+    argsOpt0: String,
+    argsSet: String,
+    argsOpt: String,
+    argsArray: String,
+    classSuffix: String,
+    aliasSuffix: String
+  ) {
+    def argsAccessor: String = argsArray
+  }
+
+  object ScriptWrapperNames {
+    def apply(useDollarNames: Boolean): ScriptWrapperNames =
+      if useDollarNames then
+        ScriptWrapperNames(
+          argsOpt0 = "args$opt0",
+          argsSet = "args$set",
+          argsOpt = "args$opt",
+          argsArray = "args$",
+          classSuffix = "$_",
+          aliasSuffix = "$$alias"
+        )
+      else
+        ScriptWrapperNames(
+          argsOpt0 = "scalaCliArgsOpt0",
+          argsSet = "scalaCliArgsSet",
+          argsOpt = "scalaCliArgsOpt",
+          argsArray = "scalaCliArgs",
+          classSuffix = "_class",
+          aliasSuffix = "_alias"
+        )
+  }
+
+  def scriptMainObjectCode(
+    names: ScriptWrapperNames,
+    objectName: String,
+    mainInvocation: String,
+    extraBody: String = "",
+    exportLine: Option[String] = None
+  ): String = {
+    val extraBody0   = if extraBody.isEmpty then "" else extraBody + "\n  "
+    val exportSuffix = exportLine.map(e => s"\n\n$e").getOrElse("")
+    AmmUtil.normalizeNewlines(
+      s"""|object $objectName {
+          |  private var ${names.argsOpt0} = Option.empty[Array[String]]
+          |  def ${names.argsSet}(args: Array[String]): Unit = {
+          |    ${names.argsOpt0} = Some(args)
+          |  }
+          |  def ${names.argsOpt}: Option[Array[String]] = ${names.argsOpt0}
+          |  def ${names.argsArray}: Array[String] = ${names.argsOpt}.getOrElse {
+          |    sys.error("No arguments passed to this script")
+          |  }
+          |
+          |  ${extraBody0}def main(args: Array[String]): Unit = {
+          |    ${names.argsSet}(args)
+          |    $mainInvocation // hashCode to clear scalac warning about pure expression in statement position
+          |  }
+          |}$exportSuffix
+          |""".stripMargin
+    )
+  }
+
   enum ScriptMainMethod:
     case Exists(name: String)
     case Multiple(names: Seq[String])

@@ -1200,6 +1200,16 @@ Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Sc
 
 Exclude sources
 
+### [deprecated] `--dollar-script-wrapper`
+
+Aliases: `--dollar-wrapper`
+
+**Deprecated**: The dollar-sign script wrapper is a backwards-compat shim and will be removed in a future version.
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+[deprecated] Use the legacy dollar-sign ($) based script wrapper naming
+
 ### `--auto-setup-ide`
 
 Aliases: `--auto-setup-bsp`

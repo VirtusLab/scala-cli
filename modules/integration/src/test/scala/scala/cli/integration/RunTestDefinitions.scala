@@ -1338,6 +1338,40 @@ abstract class RunTestDefinitions
       }
     }
 
+  if isScala39OrNewer then
+    test("scripts should not warn about dollar-sign identifiers in wrapper (Scala 3.9+)") {
+      val inputs = TestInputs(
+        os.rel / "snippet.sc" -> """println("hello")""",
+        os.rel / "legacy.sc"  ->
+          """//> using dollarWrapper
+            |println("legacy")""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val defaultRes = os.proc(TestUtil.cli, "run", extraOptions, "snippet.sc")
+          .call(cwd = root, mergeErrIntoOut = true)
+        val defaultOutput = defaultRes.out.trim()
+        expect(!defaultOutput.contains("reserved for internal compiler use"))
+        expect(!defaultOutput.contains("should not contain `$`"))
+
+        val legacyFlagRes = os.proc(
+          TestUtil.cli,
+          "run",
+          extraOptions,
+          "--dollar-script-wrapper",
+          "snippet.sc"
+        ).call(cwd = root, mergeErrIntoOut = true)
+        expect(legacyFlagRes.out.trim().contains("reserved for internal compiler use"))
+
+        val legacyDirectiveRes = os.proc(
+          TestUtil.cli,
+          "run",
+          extraOptions,
+          "legacy.sc"
+        ).call(cwd = root, mergeErrIntoOut = true)
+        expect(legacyDirectiveRes.out.trim().contains("reserved for internal compiler use"))
+      }
+    }
+
   test("should add toolkit to classpath") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->

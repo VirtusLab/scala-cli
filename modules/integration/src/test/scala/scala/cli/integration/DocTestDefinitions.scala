@@ -57,14 +57,14 @@ abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             Seq(
               "index.html",
               "inkuire-db.json",
-              "$lessempty$greater$/simple$_.html",
+              "$lessempty$greater$/simple_class.html",
               "lib/Messages$.html"
             )
           else
             Seq(
               "index.html",
               "inkuire-db.json",
-              "_empty_/simple$_.html",
+              "_empty_/simple_class.html",
               "lib/Messages$.html"
             )
         val entries =

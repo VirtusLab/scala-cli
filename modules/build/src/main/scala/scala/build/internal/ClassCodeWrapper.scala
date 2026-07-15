@@ -5,7 +5,11 @@ package scala.build.internal
   * running interconnected scripts using Scala CLI <br> <br> Incompatible with Scala 2 - it uses
   * Scala 3 feature 'export'<br> Incompatible with native JS members - the wrapper is a class
   */
-case class ClassCodeWrapper(scalaVersion: String, log: String => Unit) extends CodeWrapper {
+case class ClassCodeWrapper(
+  scalaVersion: String,
+  log: String => Unit,
+  useDollarNames: Boolean = false
+) extends CodeWrapper {
 
   override def mainClassObject(className: Name): Name =
     Name(className.raw ++ "_sc")
@@ -24,29 +28,17 @@ case class ClassCodeWrapper(scalaVersion: String, log: String => Unit) extends C
         otherwise.warningMessage.foreach(log)
         s"val _ = script.hashCode()"
 
+    val names            = WrapperUtils.ScriptWrapperNames(useDollarNames)
     val name             = mainClassObject(indexedWrapperName).backticked
-    val wrapperClassName = scala.build.internal.Name(indexedWrapperName.raw ++ "$_").backticked
-    val mainObjectCode   =
-      AmmUtil.normalizeNewlines(s"""|object $name {
-                                    |  private var args$$opt0 = Option.empty[Array[String]]
-                                    |  def args$$set(args: Array[String]): Unit = {
-                                    |    args$$opt0 = Some(args)
-                                    |  }
-                                    |  def args$$opt: Option[Array[String]] = args$$opt0
-                                    |  def args$$: Array[String] = args$$opt.getOrElse {
-                                    |    sys.error("No arguments passed to this script")
-                                    |  }
-                                    |
-                                    |  lazy val script = new $wrapperClassName
-                                    |
-                                    |  def main(args: Array[String]): Unit = {
-                                    |    args$$set(args)
-                                    |    $mainInvocation // hashCode to clear scalac warning about pure expression in statement position
-                                    |  }
-                                    |}
-                                    |
-                                    |export $name.script as `${indexedWrapperName.raw}`
-                                    |""".stripMargin)
+    val wrapperClassName =
+      scala.build.internal.Name(indexedWrapperName.raw ++ names.classSuffix).backticked
+    val mainObjectCode = WrapperUtils.scriptMainObjectCode(
+      names = names,
+      objectName = name,
+      mainInvocation = mainInvocation,
+      extraBody = s"lazy val script = new $wrapperClassName",
+      exportLine = Some(s"export $name.script as `${indexedWrapperName.raw}`")
+    )
 
     val packageDirective =
       if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
@@ -55,7 +47,7 @@ case class ClassCodeWrapper(scalaVersion: String, log: String => Unit) extends C
       s"""$packageDirective
          |
          |final class $wrapperClassName {
-         |def args = $name.args$$
+         |def args = $name.${names.argsAccessor}
          |def scriptPath = \"\"\"$scriptPath\"\"\"
          |""".stripMargin
     )

@@ -100,10 +100,10 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     testInputs.withBuild(defaultScala3Options, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
         maybeBuild.orThrow.assertGeneratedEquals(
-          "simple$_.class",
+          "simple_class.class",
           "simple_sc.class",
           "simple_sc.tasty",
-          "simple$_.tasty",
+          "simple_class.tasty",
           "simple_sc$.class",
           "simple$package$.class",
           "simple$package.class",
@@ -123,9 +123,9 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
       (_, _, maybeBuild) =>
         val build = maybeBuild.orThrow
         build.assertGeneratedEquals(
-          "other$_$A.class",
-          "other$_.tasty",
-          "other$_.class",
+          "other_class$A.class",
+          "other_class.tasty",
+          "other_class.class",
           "other_sc$.class",
           "other_sc.class",
           "other_sc.tasty",
@@ -228,10 +228,10 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val build = maybeBuild.orThrow
       build.assertGeneratedEquals(
-        "simple$_.class",
+        "simple_class.class",
         "simple_sc.class",
         "simple_sc.tasty",
-        "simple$_.tasty",
+        "simple_class.tasty",
         "simple_sc$.class",
         "simple$package$.class",
         "simple$package.class",
@@ -240,7 +240,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
       )
       maybeBuild.orThrow.assertNoDiagnostics()
       val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
-      val tastyData = TastyData.read(os.read.bytes(outputDir / "simple$_.tasty")).orThrow
+      val tastyData = TastyData.read(os.read.bytes(outputDir / "simple_class.tasty")).orThrow
       val names     = tastyData.names.simpleNames
       expect(names.contains("simple.sc"))
     }

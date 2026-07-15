@@ -1708,6 +1708,14 @@ Exclude sources
 
 Force object wrapper for scripts
 
+### [deprecated] `--dollar-script-wrapper`
+
+Aliases: `--dollar-wrapper`
+
+**Deprecated**: The dollar-sign script wrapper is a backwards-compat shim and will be removed in a future version.
+
+[deprecated] Use the legacy dollar-sign ($) based script wrapper naming
+
 ### `--auto-setup-ide`
 
 Aliases: `--auto-setup-bsp`

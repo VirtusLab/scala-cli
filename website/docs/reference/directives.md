@@ -170,6 +170,15 @@ Add dependencies
 
 `//> using scalafix.dep com.github.xuwei-k::scalafix-rules:0.5.1`
 
+### DollarWrapper
+
+Use the legacy dollar-sign ($) based script wrapper naming
+
+`//> using dollarWrapper`
+
+#### Examples
+`//> using dollarWrapper`
+
 ### Exclude sources
 
 Exclude sources from the project

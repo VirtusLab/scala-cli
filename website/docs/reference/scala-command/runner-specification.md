@@ -656,6 +656,12 @@ Aliases: `--toolkit`
 
 Exclude sources
 
+**--dollar-script-wrapper**
+
+[deprecated] Use the legacy dollar-sign ($) based script wrapper naming
+
+Aliases: `--dollar-wrapper`
+
 **--auto-setup-ide**
 
 Automatically generate BSP configuration in `.bsp/` when running build commands. Enabled by default.
@@ -1471,6 +1477,12 @@ Aliases: `--toolkit`
 
 Exclude sources
 
+**--dollar-script-wrapper**
+
+[deprecated] Use the legacy dollar-sign ($) based script wrapper naming
+
+Aliases: `--dollar-wrapper`
+
 **--auto-setup-ide**
 
 Automatically generate BSP configuration in `.bsp/` when running build commands. Enabled by default.
@@ -2101,6 +2113,12 @@ Aliases: `--toolkit`
 **--exclude**
 
 Exclude sources
+
+**--dollar-script-wrapper**
+
+[deprecated] Use the legacy dollar-sign ($) based script wrapper naming
+
+Aliases: `--dollar-wrapper`
 
 **--auto-setup-ide**
 
@@ -2773,6 +2791,12 @@ Aliases: `--toolkit`
 
 Exclude sources
 
+**--dollar-script-wrapper**
+
+[deprecated] Use the legacy dollar-sign ($) based script wrapper naming
+
+Aliases: `--dollar-wrapper`
+
 **--auto-setup-ide**
 
 Automatically generate BSP configuration in `.bsp/` when running build commands. Enabled by default.
@@ -3443,6 +3467,12 @@ Aliases: `--toolkit`
 
 Exclude sources
 
+**--dollar-script-wrapper**
+
+[deprecated] Use the legacy dollar-sign ($) based script wrapper naming
+
+Aliases: `--dollar-wrapper`
+
 **--auto-setup-ide**
 
 Automatically generate BSP configuration in `.bsp/` when running build commands. Enabled by default.
@@ -4070,6 +4100,12 @@ Aliases: `--toolkit`
 **--exclude**
 
 Exclude sources
+
+**--dollar-script-wrapper**
+
+[deprecated] Use the legacy dollar-sign ($) based script wrapper naming
+
+Aliases: `--dollar-wrapper`
 
 **--auto-setup-ide**
 
@@ -4776,6 +4812,12 @@ Aliases: `--toolkit`
 **--exclude**
 
 Exclude sources
+
+**--dollar-script-wrapper**
+
+[deprecated] Use the legacy dollar-sign ($) based script wrapper naming
+
+Aliases: `--dollar-wrapper`
 
 **--auto-setup-ide**
 
@@ -5492,6 +5534,12 @@ Aliases: `--toolkit`
 **--exclude**
 
 Exclude sources
+
+**--dollar-script-wrapper**
+
+[deprecated] Use the legacy dollar-sign ($) based script wrapper naming
+
+Aliases: `--dollar-wrapper`
 
 **--auto-setup-ide**
 
@@ -6491,6 +6539,12 @@ Aliases: `--toolkit`
 **--exclude**
 
 Exclude sources
+
+**--dollar-script-wrapper**
+
+[deprecated] Use the legacy dollar-sign ($) based script wrapper naming
+
+Aliases: `--dollar-wrapper`
 
 **--auto-setup-ide**
 

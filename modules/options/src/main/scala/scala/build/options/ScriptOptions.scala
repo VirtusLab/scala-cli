@@ -1,7 +1,8 @@
 package scala.build.options
 
 final case class ScriptOptions(
-  forceObjectWrapper: Option[Boolean] = None
+  forceObjectWrapper: Option[Boolean] = None,
+  useDollarScriptWrapper: Option[Boolean] = None
 )
 
 object ScriptOptions {

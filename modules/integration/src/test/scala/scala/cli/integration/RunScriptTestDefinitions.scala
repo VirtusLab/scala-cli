@@ -294,8 +294,8 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
   test("sub-directory") {
     val fileName          = "script.sc"
     val expectedClassName =
-      if (actualScalaVersion.startsWith("3."))
-        fileName.stripSuffix(".sc") + "$_"
+      if actualScalaVersion.startsWith("3.") then
+        fileName.stripSuffix(".sc") + "_class"
       else
         fileName.stripSuffix(".sc") + "$"
     val scriptPath = os.rel / "something" / fileName
@@ -316,8 +316,8 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
   test("sub-directory and script") {
     val fileName          = "script.sc"
     val expectedClassName =
-      if (actualScalaVersion.startsWith("3."))
-        fileName.stripSuffix(".sc") + "$_"
+      if actualScalaVersion.startsWith("3.") then
+        fileName.stripSuffix(".sc") + "_class"
       else
         fileName.stripSuffix(".sc") + "$"
     val scriptPath = os.rel / "something" / fileName
@@ -511,13 +511,13 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
       val (caughtLines, causedLines) = exceptionLines.span(!_.startsWith("Caused by:"))
 
       assert(caughtLines.length > 1)
-      assert(caughtLines.contains(s"${tab}at throws$$_.<init>(throws.sc:8)"), clues(caughtLines))
+      assert(caughtLines.contains(s"${tab}at throws_class.<init>(throws.sc:8)"), clues(caughtLines))
 
       assert(causedLines.length > 1)
       assert(
         causedLines.contains(s"Caused by: java.lang.RuntimeException: nope") &&
-        causedLines.contains(s"${tab}at throws$$_.something(throws.sc:3)") &&
-        causedLines.contains(s"${tab}at throws$$_.<init>(throws.sc:5)"),
+        causedLines.contains(s"${tab}at throws_class.something(throws.sc:3)") &&
+        causedLines.contains(s"${tab}at throws_class.<init>(throws.sc:5)"),
         clues(causedLines)
       )
     }

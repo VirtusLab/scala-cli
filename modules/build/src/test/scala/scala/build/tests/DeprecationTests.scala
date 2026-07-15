@@ -85,6 +85,21 @@ class DeprecationTests extends TestUtil.ScalaCliBuildSuite {
     expect(diag.get.textEdit.isEmpty)
   }
 
+  test("DeprecatedDirectives dollarWrapper emits warning for removal without TextEdit") {
+    val directive = StrictDirective("dollarWrapper", Seq.empty)
+    val logger    = new DiagnosticCapturingLogger()
+    DeprecatedDirectives.issueWarnings(
+      Left("test.scala"),
+      Seq(directive),
+      SuppressWarningOptions(),
+      logger
+    )
+    val diag = logger.diagnostics.find(_.message.contains("dollarWrapper"))
+    expect(diag.isDefined)
+    expect(diag.get.message.contains("removed in a future version"))
+    expect(diag.get.textEdit.isEmpty)
+  }
+
   test("DeprecatedDirectives key replacement emits warning with TextEdit") {
     val directive = StrictDirective("deprecatedTestDirective", Seq.empty)
     val logger    = new DiagnosticCapturingLogger()

@@ -489,3 +489,16 @@ Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for
 
 `//> using test.toolkit default`
 
+## Implementation-specific directices
+
+Directives which are used within Scala CLI and should be a part of the `scala` command but aren't a part of the specification.
+
+### DollarWrapper
+
+Use the legacy dollar-sign ($) based script wrapper naming
+
+`//> using dollarWrapper`
+
+#### Examples
+`//> using dollarWrapper`
+

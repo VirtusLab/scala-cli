@@ -210,6 +210,15 @@ final case class SharedOptions(
   @HelpMessage("Force object wrapper for scripts")
   @Tag(tags.experimental)
     objectWrapper: Option[Boolean] = None,
+  @HelpMessage(
+    "[deprecated] Use the legacy dollar-sign ($) based script wrapper naming"
+  )
+  @Tag(tags.implementation)
+  @Name("dollarWrapper")
+  @Tag(tags.deprecatedOption(
+    "The dollar-sign script wrapper is a backwards-compat shim and will be removed in a future version."
+  ))
+    dollarScriptWrapper: Option[Boolean] = None,
   @Group(HelpGroup.Scala.toString)
   @HelpMessage(
     "Automatically generate BSP configuration in `.bsp/` when running build commands. Enabled by default."
@@ -453,7 +462,8 @@ final case class SharedOptions(
           platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
         ),
         scriptOptions = scala.build.options.ScriptOptions(
-          forceObjectWrapper = objectWrapper
+          forceObjectWrapper = objectWrapper,
+          useDollarScriptWrapper = dollarScriptWrapper
         ),
         scalaJsOptions = value(scalaJsOptions(js)),
         scalaNativeOptions = snOpts,

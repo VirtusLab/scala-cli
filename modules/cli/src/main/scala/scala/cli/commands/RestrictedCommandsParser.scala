@@ -55,6 +55,12 @@ object RestrictedCommandsParser {
           case (r @ Right(Some(_, arg: Arg, _)), passedOption :: _)
               if arg.isExperimental && !shouldSuppressExperimentalWarnings =>
             logger.experimentalWarning(passedOption, FeatureType.Option)
+            if arg.isDeprecatedOption && !shouldSuppressDeprecatedWarnings then
+              logger.deprecationWarning(
+                passedOption,
+                arg.deprecationMessage.getOrElse(""),
+                FeatureType.Option
+              )
             r
           case (r @ Right(Some(_, arg: Arg, _)), passedOption :: _)
               if arg.isDeprecatedOption && !shouldSuppressDeprecatedWarnings =>
