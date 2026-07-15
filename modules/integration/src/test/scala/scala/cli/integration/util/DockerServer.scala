@@ -2,10 +2,11 @@ package scala.cli.integration.util
 
 // adapted from https://github.com/coursier/coursier/blob/2cb552ea934a100f52ce79f94278304c90d808a4/modules/proxy-tests/src/it/scala/coursier/test/DockerServer.scala
 
-import com.spotify.docker.client.DefaultDockerClient
-import com.spotify.docker.client.messages.{ContainerConfig, HostConfig, PortBinding}
+import com.github.dockerjava.api.command.PullImageResultCallback
+import com.github.dockerjava.api.model.{ExposedPort, HostConfig, Ports}
+import com.github.dockerjava.core.{DefaultDockerClientConfig, DockerClientImpl}
+import com.github.dockerjava.zerodep.ZerodepDockerHttpClient
 
-import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 final case class DockerServer(
@@ -29,36 +30,40 @@ object DockerServer {
     def log(s: String): Unit =
       Console.err.println(s"[$image @ $addr] $s")
 
-    val docker = DefaultDockerClient.fromEnv().build()
-    docker.pull(image)
-
-    val portBindings = Map(imagePort.toString -> Seq(PortBinding.of("0.0.0.0", hostPort)).asJava)
-
-    val hostConfig = HostConfig.builder().portBindings(portBindings.asJava).build()
-
-    val containerConfig = ContainerConfig.builder()
-      .hostConfig(hostConfig)
-      .image(image)
-      .exposedPorts(portBindings.keys.toSeq*)
+    val config     = DefaultDockerClientConfig.createDefaultConfigBuilder().build()
+    val httpClient = new ZerodepDockerHttpClient.Builder()
+      .dockerHost(config.getDockerHost)
+      .sslConfig(config.getSSLConfig)
       .build()
+    val docker = DockerClientImpl.getInstance(config, httpClient)
+
+    docker.pullImageCmd(image).exec(new PullImageResultCallback()).awaitCompletion()
+
+    val exposedPort = ExposedPort.tcp(imagePort)
+    val ports       = new Ports()
+    ports.bind(exposedPort, Ports.Binding.bindPort(hostPort))
+
+    val hostConfig = HostConfig.newHostConfig().withPortBindings(ports)
 
     var idOpt = Option.empty[String]
 
     def shutdown(): Unit =
       for (id <- idOpt) {
-        Try(docker.killContainer(id))
-        docker.removeContainer(id)
+        Try(docker.killContainerCmd(id).exec())
+        docker.removeContainerCmd(id).exec()
         docker.close()
       }
 
     try {
-      val creation = docker.createContainer(containerConfig)
-
-      val id = creation.id()
+      val id = docker.createContainerCmd(image)
+        .withExposedPorts(exposedPort)
+        .withHostConfig(hostConfig)
+        .exec()
+        .getId
       idOpt = Some(id)
 
       log(s"starting container $id")
-      docker.startContainer(id)
+      docker.startContainerCmd(id).exec()
 
       val base = s"http://localhost:$hostPort/$basePath"
 
