@@ -540,12 +540,12 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         docBuilds match {
           case Nil       => None
           case docBuilds =>
-            warnSlothNoOp("doc jars (no bytecode)")
             val docJarPath: os.Path = value(PackageCmd.docJar(
               builds = docBuilds,
               logger = logger,
               extraArgs = Nil,
-              withTestScope = withTestScope
+              withTestScope = withTestScope,
+              patchClassPath = true
             ))
             val docJar: os.Path = workingDir / org / s"$moduleName-$ver-javadoc.jar"
             logger.debug(s"Copying doc jar from $docJarPath to $docJar...")

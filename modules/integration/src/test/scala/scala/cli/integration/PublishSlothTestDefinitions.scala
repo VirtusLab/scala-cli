@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
+
 trait PublishSlothTestDefinitions { this: PublishTestDefinitions & TestScalaVersion =>
   if actualScalaVersion.startsWith("3.") then {
     val latestJava             = Constants.allJavaVersions.max
@@ -15,6 +17,13 @@ trait PublishSlothTestDefinitions { this: PublishTestDefinitions & TestScalaVers
     val dep                    = s"$testOrg:${testName}_3:$testVersion"
     val slothOptions           = Seq("--sloth", "--suppress-experimental-feature-warning")
     val slothAgentOptions      = Seq("--sloth-agent", "--suppress-experimental-feature-warning")
+    val slothCacheSegment      = s"${File.separator}sloth${File.separator}"
+
+    def expectScaladocClasspathContains(output: String, fragment: String): Unit = {
+      val marker       = "dotty.tools.scaladoc.Main -classpath "
+      val classpathOpt = output.split(marker).lift(1).map(_.takeWhile(c => c != ' ' && c != '\n'))
+      expect(classpathOpt.exists(_.contains(fragment)))
+    }
 
     def lazyValProjFile: String =
       s"""//> using scala $publishScalaVersion
@@ -71,7 +80,7 @@ trait PublishSlothTestDefinitions { this: PublishTestDefinitions & TestScalaVers
       }
     }
 
-    for warningKeyword <- Seq("source jars", "doc jars") do
+    for warningKeyword <- Seq("source jars") do
       test(s"publish --sloth warns that sloth is not applicable to $warningKeyword") {
         TestInputs(
           os.rel / "Main.scala" -> lazyValProjFile
@@ -82,6 +91,17 @@ trait PublishSlothTestDefinitions { this: PublishTestDefinitions & TestScalaVers
           expect(r.out.trim().contains(warningKeyword))
         }
       }
+
+    test("publish --sloth patches the doc-generation classpath") {
+      TestInputs(
+        os.rel / "Main.scala" -> lazyValProjFile
+      ).fromRoot { root =>
+        val repo = root / "test-repo"
+        val r    = publishToRepo(root, slothOptions ++ Seq("-v"), repo, mergeErrIntoOut = true)
+        expect(r.exitCode == 0)
+        expectScaladocClasspathContains(r.out.text(), slothCacheSegment)
+      }
+    }
 
     test("publish --sloth-agent is rejected with a warning") {
       TestInputs(
