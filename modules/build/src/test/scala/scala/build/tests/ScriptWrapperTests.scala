@@ -24,7 +24,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
-      !generatedFileContent.contains(s"final class $wrapperName$$_") &&
+      !generatedFileContent.contains(s"final class `$wrapperName$$_`") &&
       !generatedFileContent.contains(s"object $wrapperName {"),
       clue(s"Generated file content: $generatedFileContent")
     )
@@ -37,7 +37,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
-      !generatedFileContent.contains(s"final class $wrapperName$$_") &&
+      !generatedFileContent.contains(s"final class `$wrapperName$$_`") &&
       !generatedFileContent.contains(s"object $wrapperName extends App {"),
       clue(s"Generated file content: $generatedFileContent")
     )
@@ -46,7 +46,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
   def expectClassWrapper(wrapperName: String, path: os.Path): Unit = {
     val generatedFileContent = os.read(path)
     assert(
-      generatedFileContent.contains(s"final class $wrapperName$$_"),
+      generatedFileContent.contains(s"final class `$wrapperName$$_`"),
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(

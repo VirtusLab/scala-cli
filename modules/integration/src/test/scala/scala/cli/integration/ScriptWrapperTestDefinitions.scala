@@ -9,7 +9,7 @@ import scala.jdk.CollectionConverters.*
 
 trait ScriptWrapperTestDefinitions extends ScalaCliSuite { this: BspTestDefinitions =>
   private def appWrapperSnippet(wrapperName: String)    = s"object $wrapperName extends App {"
-  private def classWrapperSnippet(wrapperName: String)  = s"final class $wrapperName$$_"
+  private def classWrapperSnippet(wrapperName: String)  = s"final class `$wrapperName$$_`"
   private def objectWrapperSnippet(wrapperName: String) = s"object $wrapperName {"
   def expectScriptWrapper(
     path: os.Path,

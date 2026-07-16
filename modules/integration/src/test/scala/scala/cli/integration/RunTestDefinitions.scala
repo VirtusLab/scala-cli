@@ -1338,6 +1338,17 @@ abstract class RunTestDefinitions
       }
     }
 
+  if isScala39OrNewer then
+    test("scripts should not warn about dollar-sign identifiers in wrapper (Scala 3.9+)") {
+      TestInputs(os.rel / "snippet.sc" -> """println("hello")""").fromRoot { root =>
+        val defaultRes = os.proc(TestUtil.cli, "run", extraOptions, "snippet.sc")
+          .call(cwd = root, mergeErrIntoOut = true)
+        val defaultOutput = defaultRes.out.trim()
+        expect(!defaultOutput.contains("reserved for internal compiler use"))
+        expect(!defaultOutput.contains("should not contain `$`"))
+      }
+    }
+
   test("should add toolkit to classpath") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
@@ -1685,7 +1696,7 @@ abstract class RunTestDefinitions
            |  assert(BuildInfo.Main.resolvers.size == 3)
            |  assert(BuildInfo.Main.resourceDirs.size == 1)
            |  assert(BuildInfo.Main.customJarsDecls.size == 2)
-           |   
+           |
            |  assert(BuildInfo.Test.sources.head.endsWith("Test.scala"))
            |  assert(BuildInfo.Test.scalacOptions == Seq("-Xasync"))
            |  assert(BuildInfo.Test.scalaCompilerPlugins.size == 0)
