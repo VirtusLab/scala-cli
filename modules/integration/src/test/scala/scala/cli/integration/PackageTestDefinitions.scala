@@ -909,7 +909,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       if (actualScalaVersion.startsWith("2."))
         expect(genContentStr.contains("object simple"))
       else
-        expect(genContentStr.contains("class simple$_"))
+        expect(genContentStr.contains("class `simple$_`"))
     }
   }
 

@@ -24,23 +24,25 @@ case class ClassCodeWrapper(scalaVersion: String, log: String => Unit) extends C
         otherwise.warningMessage.foreach(log)
         s"val _ = script.hashCode()"
 
-    val name             = mainClassObject(indexedWrapperName).backticked
-    val wrapperClassName = scala.build.internal.Name(indexedWrapperName.raw ++ "$_").backticked
-    val mainObjectCode   =
+    val name = mainClassObject(indexedWrapperName).backticked
+    // Force backticks so Scala 3.9+ does not warn about `$` in the wrapper class name
+    val wrapperClassName =
+      s"`${scala.build.internal.Name(indexedWrapperName.raw ++ "$_").encoded}`"
+    val mainObjectCode =
       AmmUtil.normalizeNewlines(s"""|object $name {
-                                    |  private var args$$opt0 = Option.empty[Array[String]]
-                                    |  def args$$set(args: Array[String]): Unit = {
-                                    |    args$$opt0 = Some(args)
+                                    |  private var `args$$opt0` = Option.empty[Array[String]]
+                                    |  def `args$$set`(args: Array[String]): Unit = {
+                                    |    `args$$opt0` = Some(args)
                                     |  }
-                                    |  def args$$opt: Option[Array[String]] = args$$opt0
-                                    |  def args$$: Array[String] = args$$opt.getOrElse {
+                                    |  def `args$$opt`: Option[Array[String]] = `args$$opt0`
+                                    |  def `args$$`: Array[String] = `args$$opt`.getOrElse {
                                     |    sys.error("No arguments passed to this script")
                                     |  }
                                     |
                                     |  lazy val script = new $wrapperClassName
                                     |
                                     |  def main(args: Array[String]): Unit = {
-                                    |    args$$set(args)
+                                    |    `args$$set`(args)
                                     |    $mainInvocation // hashCode to clear scalac warning about pure expression in statement position
                                     |  }
                                     |}
@@ -55,7 +57,7 @@ case class ClassCodeWrapper(scalaVersion: String, log: String => Unit) extends C
       s"""$packageDirective
          |
          |final class $wrapperClassName {
-         |def args = $name.args$$
+         |def args = $name.`args$$`
          |def scriptPath = \"\"\"$scriptPath\"\"\"
          |""".stripMargin
     )
