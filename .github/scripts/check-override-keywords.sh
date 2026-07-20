@@ -6,14 +6,15 @@ set -euo pipefail
 # Outputs: writes override=true/false pairs to $GITHUB_OUTPUT and a summary table to $GITHUB_STEP_SUMMARY
 
 if [[ "$EVENT_NAME" != "pull_request" ]]; then
-  echo "Non-PR event, setting all overrides to true"
+  echo "Non-PR event, setting all overrides to true (except test_skip)"
   for override in test_all test_native test_integration test_docs test_format; do
     echo "$override=true" >> "$GITHUB_OUTPUT"
   done
+  echo "test_skip=false" >> "$GITHUB_OUTPUT"
   exit 0
 fi
 
-TEST_ALL=false; TEST_NATIVE=false; TEST_INTEGRATION=false; TEST_DOCS=false; TEST_FORMAT=false
+TEST_ALL=false; TEST_NATIVE=false; TEST_INTEGRATION=false; TEST_DOCS=false; TEST_FORMAT=false; TEST_SKIP=false
 
 check_override() {
   local keyword="$1"
@@ -29,6 +30,7 @@ check_override "[test_native]" "TEST_NATIVE"
 check_override "[test_integration]" "TEST_INTEGRATION"
 check_override "[test_docs]" "TEST_DOCS"
 check_override "[test_format]" "TEST_FORMAT"
+check_override "[test_skip]" "TEST_SKIP"
 
 echo "Override keywords:"
 echo "  test_all=$TEST_ALL"
@@ -36,12 +38,14 @@ echo "  test_native=$TEST_NATIVE"
 echo "  test_integration=$TEST_INTEGRATION"
 echo "  test_docs=$TEST_DOCS"
 echo "  test_format=$TEST_FORMAT"
+echo "  test_skip=$TEST_SKIP"
 
 echo "test_all=$TEST_ALL" >> "$GITHUB_OUTPUT"
 echo "test_native=$TEST_NATIVE" >> "$GITHUB_OUTPUT"
 echo "test_integration=$TEST_INTEGRATION" >> "$GITHUB_OUTPUT"
 echo "test_docs=$TEST_DOCS" >> "$GITHUB_OUTPUT"
 echo "test_format=$TEST_FORMAT" >> "$GITHUB_OUTPUT"
+echo "test_skip=$TEST_SKIP" >> "$GITHUB_OUTPUT"
 
 echo "## Override keywords" >> "$GITHUB_STEP_SUMMARY"
 echo "| Keyword | Active |" >> "$GITHUB_STEP_SUMMARY"
@@ -51,3 +55,4 @@ echo "| [test_native] | $TEST_NATIVE |" >> "$GITHUB_STEP_SUMMARY"
 echo "| [test_integration] | $TEST_INTEGRATION |" >> "$GITHUB_STEP_SUMMARY"
 echo "| [test_docs] | $TEST_DOCS |" >> "$GITHUB_STEP_SUMMARY"
 echo "| [test_format] | $TEST_FORMAT |" >> "$GITHUB_STEP_SUMMARY"
+echo "| [test_skip] | $TEST_SKIP |" >> "$GITHUB_STEP_SUMMARY"
