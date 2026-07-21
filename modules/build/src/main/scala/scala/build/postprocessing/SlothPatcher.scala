@@ -142,19 +142,26 @@ object SlothPatcher:
         val content = Using.resource(zf.getInputStream(entry))(_.readAllBytes())
         (entry, content)
 
-  private def captureStdio[T](logger: Logger)(f: => T): T =
-    val outBuffer   = ByteArrayOutputStream()
-    val errBuffer   = ByteArrayOutputStream()
-    val originalOut = System.out
-    val originalErr = System.err
-    System.setOut(PrintStream(outBuffer, true))
-    System.setErr(PrintStream(errBuffer, true))
-    try f
-    finally
-      System.setOut(originalOut)
-      System.setErr(originalErr)
-      val captured = (outBuffer.toString ++ errBuffer.toString).trim
-      if captured.nonEmpty then logger.debug(captured)
+  // System.out/err are process-global; sloth's BytecodePatcher prints stack
+  // traces directly to System.err. We must swap the global streams to capture
+  // that noise, so the whole swap/restore window is serialized behind this lock
+  // to stay correct under concurrent patching (e.g. --watch reruns).
+  private val stdioLock = new Object
+
+  private[build] def captureStdio[T](logger: Logger)(f: => T): T =
+    stdioLock.synchronized:
+      val outBuffer   = ByteArrayOutputStream()
+      val errBuffer   = ByteArrayOutputStream()
+      val originalOut = System.out
+      val originalErr = System.err
+      System.setOut(PrintStream(outBuffer, true))
+      System.setErr(PrintStream(errBuffer, true))
+      try f
+      finally
+        System.setOut(originalOut)
+        System.setErr(originalErr)
+        val captured = (outBuffer.toString ++ errBuffer.toString).trim
+        if captured.nonEmpty then logger.debug(captured)
 
   private def patchJar(jar: os.Path, logger: Logger): os.Path =
     val cachedDir = cacheDir / Constants.slothVersion / sha1(jar)

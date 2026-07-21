@@ -9,9 +9,6 @@ class RunTestsDefault extends RunTestDefinitions
     with LazyValTests
     with TestDefault {
 
-  // Sloth tests - only in default suite since they use hardcoded Scala versions
-  private val latestJava = Constants.allJavaVersions.max
-
   private def lazyValsUnsafeTest(libScalaVersion: String, slothFlag: String): Unit =
     test(
       s"$libScalaVersion lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava ($slothFlag)"
