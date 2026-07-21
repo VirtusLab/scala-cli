@@ -20,7 +20,9 @@ object Fix extends ScalaCommand[FixOptions] {
       val inputs    = options.shared.inputs(args.all).orExit(logger)
       val buildOpts = buildOptionsOrExit(options)
       val configDb  = ConfigDbUtils.configDb.orExit(logger)
-      if buildOpts.notForBloopOptions.slothRequested && !options.enableScalafix then
+      if (buildOpts.notForBloopOptions.sloth || buildOpts.notForBloopOptions.slothAgent) &&
+        !options.enableScalafix
+      then
         logger.message(
           WarningMessages.slothNotApplicable("the fix command without scalafix rules enabled")
         )

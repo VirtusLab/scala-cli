@@ -425,7 +425,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       val packageOptions = builds.head.options.notForBloopOptions.packageOptions
 
       def warnSlothNoOp(reason: String): Unit =
-        if builds.head.options.notForBloopOptions.slothRequested then
+        if builds.head.options.notForBloopOptions.sloth ||
+          builds.head.options.notForBloopOptions.slothAgent
+        then
           logger.message(WarningMessages.slothNotApplicable(reason))
 
       val outputPath = packageType match {

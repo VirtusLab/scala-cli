@@ -1,13 +1,28 @@
 package scala.build.tests
 
+import com.eed3si9n.expecty.Expecty.expect
+
 import scala.build.errors.SlothAgentError
 import scala.build.internal.Constants
+import scala.build.internal.util.WarningMessages
+import scala.build.options.{BuildOptions, PostBuildOptions}
 import scala.build.postprocessing.SlothAgent
 
 class SlothAgentTests extends TestUtil.ScalaCliBuildSuite:
 
   private val expectedAgentJarName =
     s"${Constants.slothAgentModuleName}-${Constants.slothAgentVersion}.jar"
+
+  private def optionsWith(
+    sloth: Boolean = false,
+    slothAgent: Boolean = false
+  ): BuildOptions =
+    BuildOptions(notForBloopOptions =
+      PostBuildOptions(
+        slothOpt = Some(sloth).filter(identity),
+        slothAgentOpt = Some(slothAgent).filter(identity)
+      )
+    )
 
   test("selectAgentJar picks the agent jar, not a transitive dependency"):
     val decoyJar  = os.root / "cache" / "asm-9.10.1.jar"
@@ -35,3 +50,17 @@ class SlothAgentTests extends TestUtil.ScalaCliBuildSuite:
     result match
       case Left(_: SlothAgentError) => ()
       case other                    => fail(s"Expected Left(SlothAgentError) but got $other")
+
+  test("warnIfRedundantWithBatchPatching warns when both modes are enabled"):
+    val logger = RecordingLogger()
+    SlothAgent.warnIfRedundantWithBatchPatching(
+      optionsWith(sloth = true, slothAgent = true),
+      logger
+    )
+    expect(logger.messages.exists(_.contains(WarningMessages.slothModesMutuallyRedundant)))
+
+  test("warnIfRedundantWithBatchPatching is silent when only one mode is enabled"):
+    val logger = RecordingLogger()
+    SlothAgent.warnIfRedundantWithBatchPatching(optionsWith(sloth = true), logger)
+    SlothAgent.warnIfRedundantWithBatchPatching(optionsWith(slothAgent = true), logger)
+    expect(logger.messages.isEmpty)

@@ -468,7 +468,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val notForBloop    = builds.head.options.notForBloopOptions
 
     def warnSlothNoOp(reason: String): Unit =
-      if notForBloop.slothRequested then
+      if notForBloop.sloth || notForBloop.slothAgent then
         logger.message(WarningMessages.slothNotApplicable(reason))
 
     if notForBloop.slothAgent then

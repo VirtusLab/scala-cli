@@ -7,6 +7,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, SlothAgentError}
 import scala.build.internal.Constants
 import scala.build.internal.CsLoggerUtil.*
+import scala.build.internal.util.WarningMessages
 import scala.build.options.BuildOptions
 import scala.build.{Artifacts, Logger, Positioned}
 
@@ -18,9 +19,17 @@ object SlothAgent:
   ): Either[BuildException, Seq[String]] =
     if options.notForBloopOptions.slothAgent then
       either:
+        warnIfRedundantWithBatchPatching(options, logger)
         val agentJar = value(fetchAgentJar(options, logger))
         Seq(s"-javaagent:$agentJar")
     else Right(Nil)
+
+  private[build] def warnIfRedundantWithBatchPatching(
+    options: BuildOptions,
+    logger: Logger
+  ): Unit =
+    if options.notForBloopOptions.sloth && options.notForBloopOptions.slothAgent then
+      logger.message(WarningMessages.slothModesMutuallyRedundant)
 
   private def fetchAgentJar(
     options: BuildOptions,

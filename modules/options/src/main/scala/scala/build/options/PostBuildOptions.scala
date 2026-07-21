@@ -24,9 +24,6 @@ final case class PostBuildOptions(
 
   def slothAgent: Boolean =
     slothAgentOpt.getOrElse(false)
-
-  def slothRequested: Boolean =
-    sloth || slothAgent
 }
 
 object PostBuildOptions:

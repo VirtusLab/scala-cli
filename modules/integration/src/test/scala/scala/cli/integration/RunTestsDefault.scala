@@ -45,6 +45,24 @@ class RunTestsDefault extends RunTestDefinitions
     lazyValsUnsafeTest(highest30, slothFlag)
     lazyValsUnsafeTest(Constants.scala3Lts, slothFlag)
 
+  test("--sloth and --sloth-agent together warn they are mutually redundant") {
+    val expectedMessage = "Hello"
+    TestInputs(
+      os.rel / "hello.sc" -> s"""println("$expectedMessage")"""
+    ).fromRoot { root =>
+      val r = os.proc(
+        TestUtil.cli,
+        "--power",
+        "--sloth",
+        "--sloth-agent",
+        "--suppress-experimental-feature-warning",
+        "hello.sc"
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(r.out.trim().contains(expectedMessage))
+      expect(r.out.trim().contains("mutually redundant"))
+    }
+  }
+
   test(
     s"user code ${Constants.scala3Lts} lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava (--sloth)"
   ) {
