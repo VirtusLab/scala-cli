@@ -4,13 +4,15 @@ import sloth.jar.JarProcessor
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.math.BigInteger
+import java.nio.file.attribute.FileTime
 import java.security.MessageDigest
+import java.util.jar.{Attributes as JarAttributes, JarOutputStream, Manifest as JarManifest}
 import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
-import scala.build.{Directories, Logger}
+import scala.build.{Build, Directories, Logger, coursierVersion, isScala38OrNewer}
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
 import scala.util.control.NonFatal
@@ -19,13 +21,34 @@ object SlothPatcher:
 
   private val cacheDir = Directories.directories.cacheDir / "sloth"
 
+  private[build] def shouldPatchProjectClasses(
+    hasJava: Boolean,
+    hasScala: Boolean,
+    scalaVersions: Seq[String]
+  ): Boolean =
+    val isPureJavaProject = hasJava && !hasScala
+    !isPureJavaProject &&
+    scalaVersions.exists(v => !v.coursierVersion.isScala38OrNewer)
+
+  def shouldPatchProjectClasses(builds: Seq[Build.Successful]): Boolean =
+    shouldPatchProjectClasses(
+      hasJava = builds.exists(_.sources.hasJava),
+      hasScala = builds.exists(_.sources.hasScala),
+      scalaVersions = builds.flatMap(_.scalaParams).map(_.scalaVersion)
+    )
+
   def transformClassPath(
     classPath: Seq[os.Path],
     options: BuildOptions,
-    logger: Logger
+    logger: Logger,
+    patchProjectClassDirs: Boolean = false
   ): Either[BuildException, Seq[os.Path]] =
     if options.notForBloopOptions.sloth then
-      Right(captureStdio(logger)(classPath.map(patchIfJar(_, logger))))
+      Right(captureStdio(logger)(classPath.map(patchClassPathEntry(
+        _,
+        patchProjectClassDirs,
+        logger
+      ))))
     else Right(classPath)
 
   def patchJarFile(
@@ -51,6 +74,60 @@ object SlothPatcher:
   private def patchIfJar(path: os.Path, logger: Logger): os.Path =
     if path.ext == "jar" then patchJar(path, logger)
     else path
+
+  private def patchClassPathEntry(
+    path: os.Path,
+    patchProjectClassDirs: Boolean,
+    logger: Logger
+  ): os.Path =
+    if path.ext == "jar" then patchJar(path, logger)
+    else if patchProjectClassDirs && os.isDir(path) then patchClassDir(path, logger)
+    else path
+
+  private def patchClassDir(dir: os.Path, logger: Logger): os.Path =
+    val dirHash   = sha1OfDir(dir)
+    val cachedDir = cacheDir / Constants.slothVersion / "dirs" / dirHash
+    val cached    = cachedDir / s"${dir.last}.jar"
+    if os.exists(cached) then cached
+    else
+      os.makeDir.all(cachedDir)
+      val tmpJar = os.temp(prefix = "sloth-classdir-", suffix = ".jar", dir = cachedDir)
+      jarDirectory(dir, tmpJar)
+      runJarProcessor(tmpJar, cached) match
+        case Right(()) =>
+          os.remove(tmpJar)
+          logger.debug(s"Patched lazy vals in class directory $dir -> $cached")
+          cached
+        case Left(message) =>
+          os.remove.all(cachedDir)
+          logger.message(s"Could not patch lazy vals in $dir, using original: $message")
+          dir
+
+  private def jarDirectory(dir: os.Path, dest: os.Path): Unit =
+    val manifest = JarManifest()
+    manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
+    Using.resource(JarOutputStream(os.write.outputStream(dest), manifest)): jos =>
+      for
+        path <- os.walk(dir)
+        if os.isFile(path)
+      do
+        val relativePath = path.relativeTo(dir).toString.replace('\\', '/')
+        val entry        = ZipEntry(relativePath)
+        entry.setLastModifiedTime(FileTime.fromMillis(os.mtime(path)))
+        val content = os.read.bytes(path)
+        entry.setSize(content.length)
+        jos.putNextEntry(entry)
+        jos.write(content)
+        jos.closeEntry()
+
+  private def sha1OfDir(dir: os.Path): String =
+    val md    = MessageDigest.getInstance("SHA-1")
+    val files = os.walk(dir).filter(os.isFile).sorted
+    for file <- files do
+      val relativePath = file.relativeTo(dir).toString
+      md.update(relativePath.getBytes("UTF-8"))
+      md.update(os.read.bytes(file))
+    String.format("%040x", BigInteger(1, md.digest()))
 
   private def writeZipEntries(path: os.Path, entries: Seq[(ZipEntry, Array[Byte])]): Unit =
     Using.resource(ZipOutputStream(os.write.outputStream(path))): out =>

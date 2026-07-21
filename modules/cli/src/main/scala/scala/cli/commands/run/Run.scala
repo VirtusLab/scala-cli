@@ -695,7 +695,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                       SlothPatcher.transformClassPath(
                         classPath0,
                         build.options,
-                        logger
+                        logger,
+                        patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(builds)
                       )
                     )
                     val (pythonJavaProps, pythonExtraEnv) =
