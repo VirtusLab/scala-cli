@@ -44,6 +44,22 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
     assert(result.isRight)
     assert(result.toOption.get.isEmpty)
 
+  test("patchByteCodeZipEntries does not leak temp files or dirs"):
+    val logger  = TestLogger()
+    val tmpRoot = os.Path(sys.props("java.io.tmpdir"))
+    val entries = Seq((ZipEntry("Test.class"), Array[Byte](1, 2, 3)))
+    val options = optionsWithSloth(enabled = true)
+
+    val before = os.list(tmpRoot).toSet
+    val result = SlothPatcher.patchByteCodeZipEntries(entries, options, logger)
+    assert(result.isRight)
+
+    val leaked = (os.list(tmpRoot).toSet -- before).filter { p =>
+      p.last.startsWith("sloth-entries-") ||
+      (os.isDir(p) && os.list(p).exists(_.last.startsWith("sloth-entries-")))
+    }
+    assert(leaked.isEmpty, s"Leaked temp entries: $leaked")
+
   test("patchJarFile passes through non-jar files even when sloth enabled"):
     TestInputs.withTmpDir("sloth-test-"): root =>
       val logger   = TestLogger()
