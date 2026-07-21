@@ -6,7 +6,8 @@ import java.nio.file.Files
 
 import scala.util.Properties
 
-class PackageTestsDefault extends PackageTestDefinitions with TestDefault {
+class PackageTestsDefault extends PackageTestDefinitions with PackageSlothTestDefinitions
+    with TestDefault {
   test("reuse run native binary") {
     TestUtil.retryOnCi() {
       val inputs = TestInputs(

@@ -6,7 +6,75 @@ import scala.util.Properties
 
 class RunTestsDefault extends RunTestDefinitions
     with RunWithWatchTestDefinitions
+    with LazyValTests
     with TestDefault {
+
+  // Sloth tests - only in default suite since they use hardcoded Scala versions
+  private val latestJava = Constants.allJavaVersions.max
+
+  private def lazyValsUnsafeTest(libScalaVersion: String, slothFlag: String): Unit =
+    test(
+      s"$libScalaVersion lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava ($slothFlag)"
+    ) {
+      val expectedMessage = "Hello"
+      TestInputs.empty.fromRoot { root =>
+        val (dep, repoDir) = publishLazyValsLib(libScalaVersion, root)
+        os.write(
+          root / "script.sc",
+          s"""//> using dep $dep
+             |println(lazyvalslib.LazyValsLib.greeting)
+             |""".stripMargin
+        )
+        val r = os.proc(
+          TestUtil.cli,
+          extraOptions,
+          "--power",
+          slothFlag,
+          "script.sc",
+          "--repository",
+          repoDir.toNIO.toUri.toASCIIString,
+          "--jvm",
+          latestJava
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(r.out.trim() == expectedMessage)
+        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }
+
+  private val highest30 = Constants.legacyScala3Versions
+    .filter(_.startsWith("3.0."))
+    .maxBy(_.coursierVersion)
+  for slothFlag <- Seq("--sloth", "--sloth-agent") do
+    lazyValsUnsafeTest(highest30, slothFlag)
+    lazyValsUnsafeTest(Constants.scala3Lts, slothFlag)
+
+  test(
+    s"user code ${Constants.scala3Lts} lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava (--sloth)"
+  ) {
+    val expectedMessage = "Hello from user code"
+    TestInputs.empty.fromRoot { root =>
+      os.write(
+        root / "Main.scala",
+        s"""object Main {
+           |  lazy val greeting: String = "$expectedMessage"
+           |  def main(args: Array[String]): Unit = println(greeting)
+           |}
+           |""".stripMargin
+      )
+      val r = os.proc(
+        TestUtil.cli,
+        "--power",
+        "--sloth",
+        ".",
+        "--scala",
+        Constants.scala3Lts,
+        "--jvm",
+        latestJava
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(r.out.trim().contains(expectedMessage))
+      expect(!r.out.trim().contains("sun.misc.Unsafe"))
+    }
+  }
   def archLinuxTest(): Unit = {
     val message = "Hello from Scala CLI on Arch Linux"
     val inputs  = TestInputs(
