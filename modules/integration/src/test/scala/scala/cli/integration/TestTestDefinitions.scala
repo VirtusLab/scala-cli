@@ -1364,5 +1364,44 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     for slothFlag <- Seq("--sloth", "--sloth-agent") do
       testLazyValsUnsafe(highest30, slothFlag)
       testLazyValsUnsafe(Constants.scala3Lts, slothFlag)
+
+    test(
+      s"test user code ${Constants.scala3Lts} lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava (--sloth)"
+    ) {
+      val expectedMessage = "Hello from user test code"
+      TestInputs.empty.fromRoot { root =>
+        os.write(
+          root / "UserLazyVal.scala",
+          s"""object UserLazyVal {
+             |  lazy val greeting: String = "$expectedMessage"
+             |}
+             |""".stripMargin
+        )
+        os.write(
+          root / "UserLazyValsTests.test.scala",
+          s"""//> using dep org.scalameta::munit::$munitVersion
+             |
+             |class UserLazyValsTests extends munit.FunSuite {
+             |  test("user code lazy val") {
+             |    assertEquals(UserLazyVal.greeting, "$expectedMessage")
+             |  }
+             |}
+             |""".stripMargin
+        )
+        val r = os.proc(
+          TestUtil.cli,
+          "test",
+          "--power",
+          "--sloth",
+          ".",
+          "--scala",
+          Constants.scala3Lts,
+          "--jvm",
+          latestJava
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(r.exitCode == 0)
+        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }
   }
 }

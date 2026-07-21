@@ -255,7 +255,8 @@ object Test extends ScalaCommand[TestOptions] {
           SlothPatcher.transformClassPath(
             classPath0,
             build.options,
-            logger
+            logger,
+            patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(Seq(build))
           )
         )
 

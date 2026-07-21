@@ -2619,5 +2619,33 @@ abstract class RunTestDefinitions
     for slothFlag <- Seq("--sloth", "--sloth-agent") do
       lazyValsUnsafeTest(highest30, slothFlag)
       lazyValsUnsafeTest(Constants.scala3Lts, slothFlag)
+
+    test(
+      s"user code ${Constants.scala3Lts} lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava (--sloth)"
+    ) {
+      val expectedMessage = "Hello from user code"
+      TestInputs.empty.fromRoot { root =>
+        os.write(
+          root / "Main.scala",
+          s"""object Main {
+             |  lazy val greeting: String = "$expectedMessage"
+             |  def main(args: Array[String]): Unit = println(greeting)
+             |}
+             |""".stripMargin
+        )
+        val r = os.proc(
+          TestUtil.cli,
+          "--power",
+          "--sloth",
+          ".",
+          "--scala",
+          Constants.scala3Lts,
+          "--jvm",
+          latestJava
+        ).call(cwd = root, mergeErrIntoOut = true)
+        expect(r.out.trim().contains(expectedMessage))
+        expect(!r.out.trim().contains("sun.misc.Unsafe"))
+      }
+    }
   }
 }

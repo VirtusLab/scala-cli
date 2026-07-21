@@ -352,7 +352,12 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     val slothAgentJavaOpts = value(SlothAgent.javaAgentArgs(options, logger))
 
     def patchClassPath(classPath: Seq[os.Path]): Seq[os.Path] =
-      value(SlothPatcher.transformClassPath(classPath, options, logger))
+      value(SlothPatcher.transformClassPath(
+        classPath,
+        options,
+        logger,
+        patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(successfulBuilds)
+      ))
 
     def maybeRunRepl(
       replArtifacts: ReplArtifacts,

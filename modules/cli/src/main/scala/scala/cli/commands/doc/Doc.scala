@@ -254,7 +254,12 @@ object Doc extends ScalaCommand[DocOptions] with BuildCommandHelpers {
         val userClassPath0 = builds.flatMap(_.fullCompileClassPath).distinct
         val userClassPath  =
           if patchClassPath then
-            value(SlothPatcher.transformClassPath(userClassPath0, builds.head.options, logger))
+            value(SlothPatcher.transformClassPath(
+              userClassPath0,
+              builds.head.options,
+              logger,
+              patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(builds)
+            ))
           else userClassPath0
         val baseArgs = Seq(
           "-classpath",
