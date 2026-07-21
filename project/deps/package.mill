@@ -157,7 +157,6 @@ object Deps {
   }
 
   def slothOrganization     = "org.virtuslab"
-  def slothModuleName       = "sloth-core"
   def slothAgentModuleName  = "sloth-agent"
   def slothCore             = mvn"org.virtuslab::sloth-core:${Versions.sloth}"
 

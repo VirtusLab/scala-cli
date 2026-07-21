@@ -519,12 +519,14 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
-  for (directive <- Seq(
+  for (
+    directive <- Seq(
       "sloth",
       "lazyvalgrade",
-      "patchLazyVals",
-      "patch-lazy-vals"
-    ))
+      "lazyValPatching",
+      "lazy-val-patching"
+    )
+  )
     test(s"sloth directive ($directive)") {
       val testInputs = TestInputs(
         os.rel / "simple.sc" ->
@@ -537,14 +539,16 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       }
     }
 
-  for (directive <- Seq(
+  for (
+    directive <- Seq(
       "slothAgent",
       "sloth-agent",
       "lazyvalgradeAgent",
       "lazyvalgrade-agent",
-      "patchLazyValsWithAgent",
-      "patch-lazy-vals-with-agent"
-    ))
+      "lazyValPatchingWithAgent",
+      "lazy-val-patching-with-agent"
+    )
+  )
     test(s"slothAgent directive ($directive)") {
       val testInputs = TestInputs(
         os.rel / "simple.sc" ->

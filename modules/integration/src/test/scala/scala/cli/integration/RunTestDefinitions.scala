@@ -27,7 +27,7 @@ abstract class RunTestDefinitions
     with LazyValTests { this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
-  protected val latestJava = Constants.allJavaVersions.max
+  protected val latestJava                     = Constants.allJavaVersions.max
 
   override def warmUpExtraTestOptions: Seq[String] = extraOptions
 
@@ -2566,6 +2566,69 @@ abstract class RunTestDefinitions
         processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
       }
     }
+
+    for {
+      slothArgs     <- Seq(Seq("--sloth"), Seq("--sloth-agent"))
+      (input, code) <- Seq(
+        os.rel / "script.sc" ->
+          s"""//> using dep $lazyValsLibDep
+             |lazy val greeting = lazyvalslib.LazyValsLib.greeting
+             |println(greeting)""".stripMargin,
+        os.rel / "raw.scala" ->
+          s"""//> using dep $lazyValsLibDep
+             |object Main {
+             |  def main(args: Array[String]): Unit = {
+             |    lazy val greeting = lazyvalslib.LazyValsLib.greeting
+             |    println(greeting)
+             |  }
+             |}""".stripMargin
+      )
+      testInputs = TestInputs(input -> code)
+      shouldRestartBloop <- Seq(true, false)
+      restartBloopString = if (shouldRestartBloop) "with" else "without"
+      parallelInstancesCount <-
+        TestUtil.isCI -> shouldRestartBloop match {
+          case (true, false) => Seq(2, 4)
+          case (true, true)  => Seq(2)
+          case _             => Seq(5, 10)
+        }
+      if actualScalaVersion.startsWith("3")
+    }
+      test(
+        s"run $parallelInstancesCount instances of $input in parallel with ${slothArgs.mkString(" ")} ($restartBloopString restarting Bloop)"
+      ) {
+        TestUtil.retryOnCi() {
+          testInputs.fromRoot { root =>
+            // Scala 3.3 lib built on JDK 8 -> uses sun.misc.Unsafe lazy vals; sloth must patch it.
+            val (_, repoDir) = publishLazyValsLib(Constants.scala3Lts, root, buildJvm = Some("8"))
+            if (shouldRestartBloop)
+              os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+            val processes = (0 until parallelInstancesCount).map { _ =>
+              os.proc(
+                TestUtil.cli,
+                "run",
+                input.toString(),
+                extraOptions,
+                "--power",
+                slothArgs,
+                "--suppress-experimental-feature-warning",
+                "--repository",
+                repoDir.toNIO.toUri.toASCIIString,
+                "--jvm",
+                latestJava
+              ).spawn(
+                cwd = root,
+                stderr = os.Pipe,
+                env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds")
+              )
+            }
+            processes.foreach(_.waitFor())
+            processes.foreach(p => expect(p.exitCode() == 0))
+            processes.foreach(p => expect(p.stdout.trim() == "Hello"))
+            processes.foreach(p => expect(!p.stderr.trim().contains("sun.misc.Unsafe")))
+          }
+        }
+      }
 
   test("sbt file in directory does not break run") {
     val message = "Hello from run"

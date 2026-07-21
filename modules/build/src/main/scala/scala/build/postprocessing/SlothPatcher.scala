@@ -5,6 +5,7 @@ import sloth.jar.JarProcessor
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.math.BigInteger
 import java.nio.file.attribute.FileTime
+import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException}
 import java.security.MessageDigest
 import java.util.jar.{Attributes as JarAttributes, JarOutputStream, Manifest as JarManifest}
 import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
@@ -93,17 +94,22 @@ object SlothPatcher:
     if os.exists(cached) then cached
     else
       os.makeDir.all(cachedDir)
-      val tmpJar = os.temp(prefix = "sloth-classdir-", suffix = ".jar", dir = cachedDir)
-      jarDirectory(dir, tmpJar)
-      runJarProcessor(tmpJar, cached) match
-        case Right(()) =>
-          os.remove(tmpJar)
-          logger.debug(s"Patched lazy vals in class directory $dir -> $cached")
-          cached
-        case Left(message) =>
-          os.remove.all(cachedDir)
-          logger.message(s"Could not patch lazy vals in $dir, using original: $message")
-          dir
+      val tmpInput = os.temp(
+        prefix = "sloth-classdir-",
+        suffix = ".jar",
+        dir = cachedDir,
+        deleteOnExit = false
+      )
+      try
+        jarDirectory(dir, tmpInput)
+        publishCached(cachedDir, cached, out => runJarProcessor(tmpInput, out)) match
+          case Right(path) =>
+            logger.debug(s"Patched lazy vals in class directory $dir -> $path")
+            path
+          case Left(message) =>
+            logger.message(s"Could not patch lazy vals in $dir, using original: $message")
+            dir
+      finally if os.exists(tmpInput) then os.remove(tmpInput)
 
   private def jarDirectory(dir: os.Path, dest: os.Path): Unit =
     val manifest = JarManifest()
@@ -170,15 +176,44 @@ object SlothPatcher:
     val cached    = cachedDir / jar.last
     if os.exists(cached) then cached
     else
-      os.makeDir.all(cachedDir)
-      runJarProcessor(jar, cached) match
-        case Right(()) =>
-          logger.debug(s"Patched lazy vals in $jar -> $cached")
-          cached
+      publishCached(cachedDir, cached, out => runJarProcessor(jar, out)) match
+        case Right(path) =>
+          logger.debug(s"Patched lazy vals in $jar -> $path")
+          path
         case Left(message) =>
-          os.remove.all(cachedDir)
           logger.message(s"Could not patch lazy vals in $jar, using original: $message")
           jar
+
+  /** Write to a unique temp file in `cachedDir`, then atomically move into `cached`. */
+  private def publishCached(
+    cachedDir: os.Path,
+    cached: os.Path,
+    writeTo: os.Path => Either[String, Unit]
+  ): Either[String, os.Path] =
+    os.makeDir.all(cachedDir)
+    if os.exists(cached) then Right(cached)
+    else
+      val tmp =
+        os.temp(prefix = "sloth-patch-", suffix = ".tmp", dir = cachedDir, deleteOnExit = false)
+      try
+        writeTo(tmp) match
+          case Left(message) =>
+            Left(message)
+          case Right(()) =>
+            try
+              os.move(tmp, cached, atomicMove = true, replaceExisting = false)
+              Right(cached)
+            catch
+              case _: FileAlreadyExistsException =>
+                // Another process won the race; use their completed cache entry.
+                Right(cached)
+              case _: AtomicMoveNotSupportedException =>
+                try
+                  os.move(tmp, cached, replaceExisting = false)
+                  Right(cached)
+                catch
+                  case _: FileAlreadyExistsException => Right(cached)
+      finally if os.exists(tmp) then os.remove(tmp)
 
   private def runJarProcessor(input: os.Path, output: os.Path): Either[String, Unit] =
     try

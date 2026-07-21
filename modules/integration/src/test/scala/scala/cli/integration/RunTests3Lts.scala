@@ -1,8 +1,9 @@
 package scala.cli.integration
 
+import com.eed3si9n.expecty.Expecty.expect
+
 import scala.cli.integration.TestUtil.ProcOps
 import scala.concurrent.duration.DurationInt
-import com.eed3si9n.expecty.Expecty.expect
 import scala.util.Properties
 
 class RunTests3Lts extends RunTestDefinitions with Test3Lts {
@@ -24,7 +25,7 @@ class RunTests3Lts extends RunTestDefinitions with Test3Lts {
     test(s"--sloth works correctly under --watch mode") {
       val expectedMessage1 = "Hello from lazy val"
       val expectedMessage2 = "Updated lazy val"
-      val inputPath = os.rel / "Main.scala"
+      val inputPath        = os.rel / "Main.scala"
 
       def code(msg: String) =
         s"""object Main {
