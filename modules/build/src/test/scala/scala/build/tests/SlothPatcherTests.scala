@@ -1,5 +1,6 @@
 package scala.build.tests
 
+import java.util.concurrent.{CyclicBarrier, Executors}
 import java.util.zip.{ZipEntry, ZipFile}
 
 import scala.build.options.{BuildOptions, PostBuildOptions}
@@ -140,3 +141,38 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       scalaVersions = Nil
     )
     assert(!result, "No sources/versions should not patch class dirs")
+
+  test("captureStdio restores System.out/err under concurrent access"):
+    import java.util.concurrent.Callable
+    val threadCount = 16
+    val iterations  = 200
+    val originalOut = System.out
+    val originalErr = System.err
+    val executor    = Executors.newFixedThreadPool(threadCount)
+    val barrier     = CyclicBarrier(threadCount)
+    val logger      = TestLogger()
+
+    try
+      val futures = (1 to threadCount).map: _ =>
+        val task: Callable[Unit] = () =>
+          barrier.await()
+          for _ <- 1 to iterations do
+            SlothPatcher.captureStdio(logger):
+              Thread.`yield`()
+              42
+        executor.submit(task)
+
+      futures.foreach(_.get())
+
+      assert(
+        System.out eq originalOut,
+        s"System.out was corrupted: expected original stream but got ${System.out}"
+      )
+      assert(
+        System.err eq originalErr,
+        s"System.err was corrupted: expected original stream but got ${System.err}"
+      )
+    finally
+      executor.shutdown()
+      System.setOut(originalOut)
+      System.setErr(originalErr)

@@ -27,6 +27,7 @@ abstract class RunTestDefinitions
     with LazyValTests { this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
+  protected val latestJava = Constants.allJavaVersions.max
 
   override def warmUpExtraTestOptions: Seq[String] = extraOptions
 
