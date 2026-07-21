@@ -519,27 +519,41 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
-  test("sloth directive") {
-    val testInputs = TestInputs(
-      os.rel / "simple.sc" ->
-        """//> using sloth
-          |""".stripMargin
-    )
-    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      val build = maybeBuild.orThrow
-      expect(build.options.notForBloopOptions.slothOpt.contains(true))
+  for (directive <- Seq(
+      "sloth",
+      "lazyvalgrade",
+      "patchLazyVals",
+      "patch-lazy-vals"
+    ))
+    test(s"sloth directive ($directive)") {
+      val testInputs = TestInputs(
+        os.rel / "simple.sc" ->
+          s"""//> using $directive
+             |""".stripMargin
+      )
+      testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        expect(build.options.notForBloopOptions.slothOpt.contains(true))
+      }
     }
-  }
 
-  test("slothAgent directive") {
-    val testInputs = TestInputs(
-      os.rel / "simple.sc" ->
-        """//> using slothAgent
-          |""".stripMargin
-    )
-    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      val build = maybeBuild.orThrow
-      expect(build.options.notForBloopOptions.slothAgentOpt.contains(true))
+  for (directive <- Seq(
+      "slothAgent",
+      "sloth-agent",
+      "lazyvalgradeAgent",
+      "lazyvalgrade-agent",
+      "patchLazyValsWithAgent",
+      "patch-lazy-vals-with-agent"
+    ))
+    test(s"slothAgent directive ($directive)") {
+      val testInputs = TestInputs(
+        os.rel / "simple.sc" ->
+          s"""//> using $directive
+             |""".stripMargin
+      )
+      testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        expect(build.options.notForBloopOptions.slothAgentOpt.contains(true))
+      }
     }
-  }
 }

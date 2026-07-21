@@ -693,7 +693,7 @@ Patch Scala 3.0-3.7.x lazy val bytecode on the classpath for JDK 26+ compatibili
 
 Patch Scala 3.0-3.7.x lazy val bytecode at class load time via the sloth Java agent for JDK 26+ compatibility
 
-`//> using slothAgent`
+`//> using lazyValPatchingWithAgent`
 
 #### Examples
 `//> using slothAgent`
