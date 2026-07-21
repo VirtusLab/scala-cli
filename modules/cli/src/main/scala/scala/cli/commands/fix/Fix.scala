@@ -3,6 +3,7 @@ package scala.cli.commands.fix
 import caseapp.core.RemainingArgs
 
 import scala.build.EitherCps.{either, value}
+import scala.build.internal.util.WarningMessages
 import scala.build.{BuildThreads, Logger}
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
@@ -16,14 +17,12 @@ object Fix extends ScalaCommand[FixOptions] {
 
   override def runCommand(options: FixOptions, args: RemainingArgs, logger: Logger): Unit = {
     if options.areAnyRulesEnabled then {
-      val inputs         = options.shared.inputs(args.all).orExit(logger)
-      val buildOpts      = buildOptionsOrExit(options)
-      val configDb       = ConfigDbUtils.configDb.orExit(logger)
-      val slothRequested =
-        buildOpts.notForBloopOptions.sloth || buildOpts.notForBloopOptions.slothAgent
-      if slothRequested && !options.enableScalafix then
+      val inputs    = options.shared.inputs(args.all).orExit(logger)
+      val buildOpts = buildOptionsOrExit(options)
+      val configDb  = ConfigDbUtils.configDb.orExit(logger)
+      if buildOpts.notForBloopOptions.slothRequested && !options.enableScalafix then
         logger.message(
-          "Sloth patching is not applicable to the fix command without scalafix rules enabled."
+          WarningMessages.slothNotApplicable("the fix command without scalafix rules enabled")
         )
       if options.enableBuiltInRules then {
         logger.message("Running built-in rules...")

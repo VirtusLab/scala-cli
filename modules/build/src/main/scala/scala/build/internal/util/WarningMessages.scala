@@ -169,4 +169,9 @@ object WarningMessages {
     else
       s"""Using 'latest' for toolkit is deprecated, use 'default' to get more stable behaviour:
          | $updatedValue""".stripMargin
+
+  def slothNotApplicable(context: String, forAgent: Boolean = false): String =
+    val subject = if forAgent then "The sloth agent" else "Sloth patching"
+    val suffix  = if forAgent then "; use --sloth for batch lazy-val patching" else ""
+    s"$subject is not applicable to $context$suffix."
 }
