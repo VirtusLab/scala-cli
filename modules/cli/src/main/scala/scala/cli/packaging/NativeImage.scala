@@ -2,6 +2,8 @@ package scala.cli.packaging
 
 import java.io.File
 
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.BuildException
 import scala.build.internal.{ManifestJar, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.MsvcEnvironment
@@ -74,7 +76,7 @@ object NativeImage {
     nativeImageWorkDir: os.Path,
     extraOptions: Seq[String],
     logger: Logger
-  ): Unit = {
+  ): Either[BuildException, Unit] = either {
 
     os.makeDir.all(nativeImageWorkDir)
 
@@ -99,10 +101,10 @@ object NativeImage {
 
     if cacheData.changed then {
       val mainJar0      = Library.libraryJar(builds)
-      val mainJar       = SlothPatcher.patchJarFile(mainJar0, options, logger).getOrElse(mainJar0)
+      val mainJar       = value(SlothPatcher.patchJarFile(mainJar0, options, logger))
       val baseClassPath = mainJar +: builds.flatMap(_.dependencyClassPath).distinct
       val originalClassPath =
-        SlothPatcher.transformClassPath(baseClassPath, options, logger).getOrElse(baseClassPath)
+        value(SlothPatcher.transformClassPath(baseClassPath, options, logger))
 
       ManifestJar.maybeWithManifestClassPath(
         createManifest = Properties.isWin,
