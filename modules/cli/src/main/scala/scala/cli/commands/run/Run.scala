@@ -15,6 +15,7 @@ import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.input.*
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
+import scala.build.internal.util.WarningMessages
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.EnvVar
@@ -483,6 +484,12 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           if jsOpts.jsEmitWasm then {
             // The Scala.js Wasm backend can only emit ES modules; require it explicitly.
             value(jsOpts.validateWasm)
+            if build.options.notForBloopOptions.sloth ||
+              build.options.notForBloopOptions.slothAgent
+            then
+              logger.message(
+                WarningMessages.slothNotApplicable("Scala.js (compiles to JavaScript)")
+              )
             val runtime  = jsOpts.jsRuntime
             val esModule = true // guaranteed by validateWasm above
             scratchDirOpt.foreach(os.makeDir.all(_))
@@ -553,6 +560,12 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           else
             build.options.platform.value match {
               case Platform.JS =>
+                if build.options.notForBloopOptions.sloth ||
+                  build.options.notForBloopOptions.slothAgent
+                then
+                  logger.message(
+                    WarningMessages.slothNotApplicable("Scala.js (compiles to JavaScript)")
+                  )
                 val esModule =
                   build.options.scalaJsOptions.moduleKindStr.exists(m =>
                     m == "es" || m == "esmodule"
@@ -601,6 +614,12 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                   }
                 value(res)
               case Platform.Native =>
+                if build.options.notForBloopOptions.sloth ||
+                  build.options.notForBloopOptions.slothAgent
+                then
+                  logger.message(
+                    WarningMessages.slothNotApplicable("Scala Native (compiles to native)")
+                  )
                 val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
                 val (pythonExecutable, pythonLibraryPaths, pythonExtraEnv) =
                   if setupPython then {

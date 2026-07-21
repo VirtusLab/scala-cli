@@ -3,6 +3,7 @@ package scala.cli.commands.util
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.Runner
+import scala.build.internal.util.WarningMessages
 import scala.build.internals.EnvVar
 import scala.build.{Build, Logger}
 import scala.cli.commands.package0.Package as PackageCmd
@@ -22,6 +23,10 @@ object RunSpark {
     showCommand: Boolean,
     scratchDirOpt: Option[os.Path]
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
+
+    val notForBloop = builds.head.options.notForBloopOptions
+    if notForBloop.sloth || notForBloop.slothAgent then
+      logger.message(WarningMessages.slothNotApplicable("spark-submit"))
 
     // FIXME Get Spark.sparkModules via provided settings?
     val providedModules = Spark.sparkModules
@@ -78,6 +83,10 @@ object RunSpark {
     showCommand: Boolean,
     scratchDirOpt: Option[os.Path]
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
+
+    val notForBloop = builds.head.options.notForBloopOptions
+    if notForBloop.sloth || notForBloop.slothAgent then
+      logger.message(WarningMessages.slothNotApplicable("spark-submit"))
 
     // FIXME Get Spark.sparkModules via provided settings?
     val providedModules              = Spark.sparkModules

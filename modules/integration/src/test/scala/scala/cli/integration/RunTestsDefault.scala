@@ -90,6 +90,62 @@ class RunTestsDefault extends RunTestDefinitions
       expect(!r.out.trim().contains("sun.misc.Unsafe"))
     }
   }
+
+  test("run js --sloth warns that sloth is not applicable") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using scala ${Constants.scala3Lts}
+           |//> using platform scala-js
+           |import scala.scalajs.js
+           |
+           |object Main {
+           |  def main(args: Array[String]): Unit =
+           |    js.Dynamic.global.console.log("Hello")
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      val r = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        "--sloth",
+        "--suppress-experimental-feature-warning",
+        "--js",
+        "."
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(r.out.trim().contains(slothNoOpWarnPrefix))
+      expect(r.out.trim().contains("Scala.js"))
+    }
+  }
+
+  test("run native --sloth warns that sloth is not applicable") {
+    TestUtil.retryOnCi() {
+      TestInputs(
+        os.rel / "Main.scala" ->
+          s"""//> using scala ${Constants.scala3Lts}
+             |//> using platform scala-native
+             |object Main {
+             |  def main(args: Array[String]): Unit = println("Hello")
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        val r = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          extraOptions,
+          "--sloth",
+          "--suppress-experimental-feature-warning",
+          "--native",
+          "."
+        ).call(cwd = root, mergeErrIntoOut = true)
+        expect(r.out.trim().contains(slothNoOpWarnPrefix))
+        expect(r.out.trim().contains("Scala Native"))
+      }
+    }
+  }
+
   def archLinuxTest(): Unit = {
     val message = "Hello from Scala CLI on Arch Linux"
     val inputs  = TestInputs(
