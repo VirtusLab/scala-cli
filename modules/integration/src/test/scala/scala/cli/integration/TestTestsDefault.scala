@@ -94,6 +94,67 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
       expect(!r.err.trim().contains("sun.misc.Unsafe"))
     }
   }
+
+  test("test js --sloth warns that sloth is not applicable") {
+    TestInputs(
+      os.rel / "HelloTests.test.scala" ->
+        s"""//> using scala ${Constants.scala3Lts}
+           |//> using platform scala-js
+           |//> using dep org.scalameta::munit::$munitVersion
+           |
+           |class HelloTests extends munit.FunSuite {
+           |  test("hello") {
+           |    assertEquals(1, 1)
+           |  }
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      val r = os.proc(
+        TestUtil.cli,
+        "test",
+        "--power",
+        extraOptions,
+        "--sloth",
+        "--suppress-experimental-feature-warning",
+        "--js",
+        "."
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(r.out.trim().contains(slothNoOpWarnPrefix))
+      expect(r.out.trim().contains("Scala.js"))
+    }
+  }
+
+  test("test native --sloth warns that sloth is not applicable") {
+    TestUtil.retryOnCi() {
+      TestInputs(
+        os.rel / "HelloTests.test.scala" ->
+          s"""//> using scala ${Constants.scala3Lts}
+             |//> using platform scala-native
+             |//> using dep org.scalameta::munit::$munitVersion
+             |
+             |class HelloTests extends munit.FunSuite {
+             |  test("hello") {
+             |    assertEquals(1, 1)
+             |  }
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        val r = os.proc(
+          TestUtil.cli,
+          "test",
+          "--power",
+          extraOptions,
+          "--sloth",
+          "--suppress-experimental-feature-warning",
+          "--native",
+          "."
+        ).call(cwd = root, mergeErrIntoOut = true)
+        expect(r.out.trim().contains(slothNoOpWarnPrefix))
+        expect(r.out.trim().contains("Scala Native"))
+      }
+    }
+  }
+
   test("Pure Java with Scala tests") {
     val inputs = TestInputs(
       os.rel / "Messages.java" ->
