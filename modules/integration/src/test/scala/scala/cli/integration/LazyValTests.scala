@@ -8,7 +8,7 @@ trait LazyValTests:
   private val lazyValsLibOrg     = "test.lazyvals"
   private val lazyValsLibName    = "lazyvals-lib"
   private val lazyValsLibVersion = "0.1.0"
-  private val lazyValsLibDep     = s"$lazyValsLibOrg::$lazyValsLibName:$lazyValsLibVersion"
+  protected val lazyValsLibDep   = s"$lazyValsLibOrg::$lazyValsLibName:$lazyValsLibVersion"
 
   protected val slothNoOpWarnPrefix: String = "Sloth patching is not applicable to"
   protected val slothCacheSegment: String   = s"${File.separator}sloth${File.separator}"
@@ -24,7 +24,8 @@ trait LazyValTests:
 
   protected def publishLazyValsLib(
     scalaVersion: String,
-    workspace: os.Path
+    workspace: os.Path,
+    buildJvm: Option[String] = None
   ): (String, os.Path) =
     val libDir  = workspace / "lazyvals-lib"
     val repoDir = workspace / "test-repo"
@@ -50,6 +51,7 @@ trait LazyValTests:
       lazyValsLibVersion,
       "--scala",
       scalaVersion,
+      buildJvm.toSeq.flatMap(j => Seq("--jvm", j)),
       "--publish-repo",
       repoDir.toNIO.toUri.toASCIIString
     ).call(cwd = workspace, stdin = os.Inherit, stdout = os.Inherit)

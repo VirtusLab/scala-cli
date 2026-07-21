@@ -1,6 +1,6 @@
 package scala.build.tests
 
-import java.util.concurrent.{CyclicBarrier, Executors}
+import java.util.concurrent.{Callable, CyclicBarrier, Executors}
 import java.util.zip.{ZipEntry, ZipFile}
 
 import scala.build.options.{BuildOptions, PostBuildOptions}
@@ -159,7 +159,6 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
     assert(!result, "No sources/versions should not patch class dirs")
 
   test("captureStdio restores System.out/err under concurrent access"):
-    import java.util.concurrent.Callable
     val threadCount = 16
     val iterations  = 200
     val originalOut = System.out

@@ -14,8 +14,8 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.input.*
-import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internal.util.WarningMessages
+import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.EnvVar

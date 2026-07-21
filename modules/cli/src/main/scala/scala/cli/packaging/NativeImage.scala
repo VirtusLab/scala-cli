@@ -100,9 +100,9 @@ object NativeImage {
     )
 
     if cacheData.changed then {
-      val mainJar0      = Library.libraryJar(builds)
-      val mainJar       = value(SlothPatcher.patchJarFile(mainJar0, options, logger))
-      val baseClassPath = mainJar +: builds.flatMap(_.dependencyClassPath).distinct
+      val mainJar0          = Library.libraryJar(builds)
+      val mainJar           = value(SlothPatcher.patchJarFile(mainJar0, options, logger))
+      val baseClassPath     = mainJar +: builds.flatMap(_.dependencyClassPath).distinct
       val originalClassPath =
         value(SlothPatcher.transformClassPath(baseClassPath, options, logger))
 
