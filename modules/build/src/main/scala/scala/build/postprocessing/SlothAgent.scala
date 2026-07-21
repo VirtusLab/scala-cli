@@ -40,7 +40,13 @@ object SlothAgent:
           cache.withMessage(s"Downloading sloth agent ${Constants.slothAgentVersion}")
         )
       )
-      value:
-        artifacts.headOption.map(_._2).toRight(
-          SlothAgentError(s"Could not resolve sloth agent ${Constants.slothAgentVersion}")
-        )
+      value(selectAgentJar(artifacts))
+
+  private[build] def selectAgentJar(
+    artifacts: Seq[(String, os.Path)]
+  ): Either[BuildException, os.Path] =
+    val expectedJarName =
+      s"${Constants.slothAgentModuleName}-${Constants.slothAgentVersion}.jar"
+    artifacts
+      .collectFirst { case (_, path) if path.last == expectedJarName => path }
+      .toRight(SlothAgentError(s"Could not resolve sloth agent ${Constants.slothAgentVersion}"))
