@@ -2,20 +2,15 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.File
+trait FixSlothTestDefinitions extends LazyValTests:
+  this: FixTestDefinitions & TestScalaVersion =>
 
-trait FixSlothTestDefinitions { this: FixTestDefinitions & TestScalaVersion =>
-  if actualScalaVersion.startsWith("3.") then {
-    val fixScalaVersion     = Constants.scala3Lts
-    val slothOptions        = Seq("--sloth")
-    val slothAgentOptions   = Seq("--sloth-agent")
-    val slothNoOpWarnPrefix = "Sloth patching is not applicable to"
-    val slothCacheSegment   = s"${File.separator}sloth${File.separator}"
+  if actualScalaVersion.startsWith("3.") then
+    val fixScalaVersion = Constants.scala3Lts
 
-    def expectScalafixClasspathContains(output: String, fragment: String): Unit = {
+    def expectScalafixClasspathContains(output: String, fragment: String): Unit =
       val cpOpt = output.split("--classpath ").lift(1).map(_.takeWhile(c => c != ' ' && c != '\n'))
       expect(cpOpt.exists(_.contains(fragment)))
-    }
 
     def lazyValProjFile: String =
       s"""//> using scala $fixScalaVersion
@@ -81,5 +76,3 @@ trait FixSlothTestDefinitions { this: FixTestDefinitions & TestScalaVersion =>
         expect(r.out.text().contains(slothNoOpWarnPrefix))
       }
     }
-  }
-}

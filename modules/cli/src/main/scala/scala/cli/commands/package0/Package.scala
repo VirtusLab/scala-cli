@@ -25,9 +25,17 @@ import scala.build.errors.*
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
 import scala.build.internal.resource.NativeResourceMapper
+import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.PackageType.Native
-import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalaNativeTarget, Scope}
+import scala.build.options.{
+  BuildOptions,
+  JavaOpt,
+  PackageType,
+  Platform,
+  ScalaNativeTarget,
+  Scope
+}
 import scala.build.postprocessing.SlothPatcher
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
@@ -281,9 +289,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     else {
       val packageType: PackageType = value(resolvePackageType(builds, forcedPackageTypeOpt))
       if builds.head.options.notForBloopOptions.slothAgent then
-        logger.message(
-          "The sloth agent is not applicable to package; use --sloth for batch lazy-val patching."
-        )
+        logger.message(WarningMessages.slothNotApplicable("package", forAgent = true))
       // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
       def extension = packageType match {
@@ -419,9 +425,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       val packageOptions = builds.head.options.notForBloopOptions.packageOptions
 
       def warnSlothNoOp(reason: String): Unit =
-        val options = builds.head.options
-        if options.notForBloopOptions.sloth || options.notForBloopOptions.slothAgent then
-          logger.message(s"Sloth patching is not applicable to $reason.")
+        if builds.head.options.notForBloopOptions.slothRequested then
+          logger.message(WarningMessages.slothNotApplicable(reason))
 
       val outputPath = packageType match {
         case PackageType.Bootstrap =>

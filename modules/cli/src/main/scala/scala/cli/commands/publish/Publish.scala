@@ -27,6 +27,7 @@ import scala.build.errors.{BuildException, CompositeBuildException, Severity}
 import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
+import scala.build.internal.util.WarningMessages
 import scala.build.options.publish.{Developer, License, Signer as PSigner, Vcs}
 import scala.build.options.{
   BuildOptions,
@@ -467,13 +468,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val notForBloop    = builds.head.options.notForBloopOptions
 
     def warnSlothNoOp(reason: String): Unit =
-      if notForBloop.sloth || notForBloop.slothAgent then
-        logger.message(s"Sloth patching is not applicable to $reason.")
+      if notForBloop.slothRequested then
+        logger.message(WarningMessages.slothNotApplicable(reason))
 
     if notForBloop.slothAgent then
-      logger.message(
-        "The sloth agent is not applicable to publish; use --sloth for batch lazy-val patching."
-      )
+      logger.message(WarningMessages.slothNotApplicable("publish", forAgent = true))
 
     val ArtifactData(org, moduleName, ver) = value {
       publishOptions.artifactData(

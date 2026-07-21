@@ -1,6 +1,5 @@
 package scala.build.postprocessing
 
-import os.Path
 import sloth.jar.JarProcessor
 
 import java.io.{ByteArrayOutputStream, PrintStream}
@@ -16,38 +15,26 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Using
 import scala.util.control.NonFatal
 
-object SlothPatcher {
+object SlothPatcher:
 
   private val cacheDir = Directories.directories.cacheDir / "sloth"
 
   def transformClassPath(
-    classPath: Seq[Path],
+    classPath: Seq[os.Path],
     options: BuildOptions,
     logger: Logger
-  ): Either[BuildException, Seq[Path]] =
+  ): Either[BuildException, Seq[os.Path]] =
     if options.notForBloopOptions.sloth then
-      Right {
-        // sloth logs to stdout/stderr via its own bundled logging; capture it so it
-        // doesn't pollute the user program's output, routing anything it prints to debug.
-        captureStdio(logger) {
-          classPath.map { entry =>
-            if entry.ext == "jar" then patchJar(entry, logger)
-            else entry
-          }
-        }
-      }
+      Right(captureStdio(logger)(classPath.map(patchIfJar(_, logger))))
     else Right(classPath)
 
   def patchJarFile(
-    jar: Path,
+    jar: os.Path,
     options: BuildOptions,
     logger: Logger
-  ): Either[BuildException, Path] =
+  ): Either[BuildException, os.Path] =
     if options.notForBloopOptions.sloth then
-      Right(captureStdio(logger) {
-        if jar.ext == "jar" then patchJar(jar, logger)
-        else jar
-      })
+      Right(captureStdio(logger)(patchIfJar(jar, logger)))
     else Right(jar)
 
   def patchByteCodeZipEntries(
@@ -61,42 +48,38 @@ object SlothPatcher {
       writeZipEntries(tmpJar, entries)
       patchJarFile(tmpJar, options, logger).map(readZipEntries)
 
-  private def writeZipEntries(path: Path, entries: Seq[(ZipEntry, Array[Byte])]): Unit =
-    val out = new ZipOutputStream(os.write.outputStream(path))
-    try
-      entries.foreach { (entry, content) =>
+  private def patchIfJar(path: os.Path, logger: Logger): os.Path =
+    if path.ext == "jar" then patchJar(path, logger)
+    else path
+
+  private def writeZipEntries(path: os.Path, entries: Seq[(ZipEntry, Array[Byte])]): Unit =
+    Using.resource(ZipOutputStream(os.write.outputStream(path))): out =>
+      entries.foreach: (entry, content) =>
         out.putNextEntry(entry)
         out.write(content)
         out.closeEntry()
-      }
-    finally out.close()
 
-  private def readZipEntries(path: Path): Seq[(ZipEntry, Array[Byte])] =
-    val zf = new ZipFile(path.toIO)
-    try
-      zf.entries().asScala.toSeq.map { entry =>
+  private def readZipEntries(path: os.Path): Seq[(ZipEntry, Array[Byte])] =
+    Using.resource(ZipFile(path.toIO)): zf =>
+      zf.entries().asScala.toSeq.map: entry =>
         val content = Using.resource(zf.getInputStream(entry))(_.readAllBytes())
         (entry, content)
-      }
-    finally zf.close()
 
-  private def captureStdio[T](logger: Logger)(f: => T): T = {
-    val outBuffer   = new ByteArrayOutputStream
-    val errBuffer   = new ByteArrayOutputStream
+  private def captureStdio[T](logger: Logger)(f: => T): T =
+    val outBuffer   = ByteArrayOutputStream()
+    val errBuffer   = ByteArrayOutputStream()
     val originalOut = System.out
     val originalErr = System.err
-    System.setOut(new PrintStream(outBuffer, true))
-    System.setErr(new PrintStream(errBuffer, true))
+    System.setOut(PrintStream(outBuffer, true))
+    System.setErr(PrintStream(errBuffer, true))
     try f
-    finally {
+    finally
       System.setOut(originalOut)
       System.setErr(originalErr)
       val captured = (outBuffer.toString ++ errBuffer.toString).trim
       if captured.nonEmpty then logger.debug(captured)
-    }
-  }
 
-  private def patchJar(jar: Path, logger: Logger): Path =
+  private def patchJar(jar: os.Path, logger: Logger): os.Path =
     val cachedDir = cacheDir / Constants.slothVersion / sha1(jar)
     val cached    = cachedDir / jar.last
     if os.exists(cached) then cached
@@ -111,22 +94,19 @@ object SlothPatcher {
           logger.message(s"Could not patch lazy vals in $jar, using original: $message")
           jar
 
-  private def runJarProcessor(
-    input: Path,
-    output: Path
-  ): Either[String, Unit] =
+  private def runJarProcessor(input: os.Path, output: os.Path): Either[String, Unit] =
     try
       val result = JarProcessor.process(input.toNIO, output.toNIO)
-      if result.failedClasses > 0 then
-        val details = if result.errors.nonEmpty then s": ${result.errors.mkString("; ")}" else ""
-        Left(s"Failed to patch lazy vals in $input ($result.failedClasses failed classes)$details")
+      if result.errors.nonEmpty then
+        Left(
+          s"Failed to patch lazy vals in $input (${result.failedClasses} failed classes): ${result.errors.mkString("; ")}"
+        )
       else Right(())
     catch
       case NonFatal(e) =>
         Left(s"Failed to patch lazy vals in $input: ${e.getMessage}")
 
-  private def sha1(path: Path): String =
+  private def sha1(path: os.Path): String =
     val md = MessageDigest.getInstance("SHA-1")
     md.update(os.read.bytes(path))
-    String.format("%040x", new BigInteger(1, md.digest()))
-}
+    String.format("%040x", BigInteger(1, md.digest()))

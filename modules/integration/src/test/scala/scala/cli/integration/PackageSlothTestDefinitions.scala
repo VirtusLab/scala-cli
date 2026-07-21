@@ -2,16 +2,16 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.cli.integration.{Constants, PackageTestDefinitions, TestScalaVersion, TestUtil}
 import scala.util.Properties
 
-trait PackageSlothTestDefinitions { this: PackageTestDefinitions & TestScalaVersion =>
-  if actualScalaVersion.startsWith("3.") then {
+trait PackageSlothTestDefinitions extends LazyValTests:
+  this: PackageTestDefinitions & TestScalaVersion =>
+
+  if actualScalaVersion.startsWith("3.") then
     val latestJava             = Constants.allJavaVersions.max
     val assemblyScalaVersions  = Seq("3.0.2", Constants.scala3Lts)
     val ltsOnlyScalaVersion    = Constants.scala3Lts
     val expectedMessage        = "Hello"
-    val slothNoOpWarnPrefix    = "Sloth patching is not applicable to"
     val slothAgentWarnFragment = "is not applicable to package"
 
     def lazyValApp(scalaVersion: String): String =
@@ -297,5 +297,3 @@ trait PackageSlothTestDefinitions { this: PackageTestDefinitions & TestScalaVers
         expect(r.out.trim().contains(slothAgentWarnFragment))
       }
     }
-  }
-}

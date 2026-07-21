@@ -24,10 +24,12 @@ final case class PostBuildOptions(
 
   def slothAgent: Boolean =
     slothAgentOpt.getOrElse(false)
+
+  def slothRequested: Boolean =
+    sloth || slothAgent
 }
 
-object PostBuildOptions {
+object PostBuildOptions:
   /* Using HasHashData.nop here (PostBuildOptions values are not used during compilation) */
   implicit val hasHashData: HasHashData[PostBuildOptions] = HasHashData.nop
   implicit val monoid: ConfigMonoid[PostBuildOptions]     = ConfigMonoid.derive
-}

@@ -98,19 +98,11 @@ object NativeImage {
     )
 
     if cacheData.changed then {
-      val mainJar0 = Library.libraryJar(builds)
-      val mainJar  = SlothPatcher
-        .patchJarFile(mainJar0, options, logger)
-        .getOrElse(mainJar0)
-      val originalClassPath = SlothPatcher
-        .transformClassPath(
-          mainJar +: builds.flatMap(_.dependencyClassPath).distinct,
-          options,
-          logger
-        )
-        .getOrElse(mainJar +: builds.flatMap(_.dependencyClassPath).distinct)
-      // GraalVM native images compile bytecode at build time, so they do not emit the runtime
-      // sun.misc.Unsafe lazy-val warning; patching here keeps the native-image classpath consistent.
+      val mainJar0      = Library.libraryJar(builds)
+      val mainJar       = SlothPatcher.patchJarFile(mainJar0, options, logger).getOrElse(mainJar0)
+      val baseClassPath = mainJar +: builds.flatMap(_.dependencyClassPath).distinct
+      val originalClassPath =
+        SlothPatcher.transformClassPath(baseClassPath, options, logger).getOrElse(baseClassPath)
 
       ManifestJar.maybeWithManifestClassPath(
         createManifest = Properties.isWin,
