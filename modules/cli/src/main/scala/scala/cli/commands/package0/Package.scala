@@ -529,14 +529,14 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           destPath
 
         case PackageType.GraalVMNativeImage =>
-          NativeImage.buildNativeImage(
+          value(NativeImage.buildNativeImage(
             builds,
             value(mainClass),
             destPath,
             nativeImageWorkDirForArtifact(builds.head.inputs.nativeImageWorkDir, destPath),
             extraArgs,
             logger
-          )
+          ))
           destPath
 
         case nativePackagerType: PackageType.NativePackagerType =>
