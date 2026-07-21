@@ -2061,47 +2061,56 @@ jobs:
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.setShouldPublish
-    - uses: actions/download-artifact@v8
+    - name: Download Linux x64 launchers
+      uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: linux-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v8
+    - name: Download Linux ARM64 (AArch64) launchers
+      uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: linux-aarch64-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v8
+    - name: Download MacOS x64 launchers
+      uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: macos-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v8
+    - name: Download Linux ARM64 (AArch64) launchers
+      uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: macos-arm64-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v8
+    - name: Download Windows launchers
+      uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: windows-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v8
+    - name: Download mostly static launchers
+      uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: mostly-static-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v8
+    - name: Download static launchers
+      uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: static-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v8
+    - name: Download JVM launchers
+      uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: jvm-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v8
+    - name: Download Visual Studio launchers
+      uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: vc-redist-launchers
@@ -2157,11 +2166,13 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v8
+      - name: Download MacOS x86 launchers
+        uses: actions/download-artifact@v8
         with:
           name: macos-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v8
+      - name: Download MacOS ARM64 (AArch64) launchers
+        uses: actions/download-artifact@v8
         with:
           name: macos-arm64-launchers
           path: artifacts/
@@ -2192,11 +2203,13 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v8
+      - name: Download Linux x86 launchers
+        uses: actions/download-artifact@v8
         with:
           name: linux-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v8
+      - name: Download MacOS ARM64 (AArch 64) launchers
+        uses: actions/download-artifact@v8
         with:
           name: linux-aarch64-launchers
           path: artifacts/
@@ -2234,11 +2247,13 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v8
+      - name: Download Linux x86 launchers
+        uses: actions/download-artifact@v8
         with:
           name: linux-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v8
+      - name: Download MacOS ARM64 (AArch64) launchers
+        uses: actions/download-artifact@v8
         with:
           name: linux-aarch64-launchers
           path: artifacts/
@@ -2274,35 +2289,43 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v8
+      - name: Download Linux x86 launchers
+        uses: actions/download-artifact@v8
         with:
           name: linux-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v8
+      - name: Download Linux ARM64 (AArch64) launchers
+        uses: actions/download-artifact@v8
         with:
           name: linux-aarch64-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v8
+      - name: Download MacOS x86 launchers
+        uses: actions/download-artifact@v8
         with:
           name: macos-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v8
+      - name: Download MacOS ARM64 (AArch64) launchers
+        uses: actions/download-artifact@v8
         with:
           name: macos-arm64-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v8
+      - name: Download Windows launchers
+        uses: actions/download-artifact@v8
         with:
           name: windows-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v8
+      - name: Download mostly static launchers
+        uses: actions/download-artifact@v8
         with:
           name: mostly-static-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v8
+      - name: Download static launchers
+        uses: actions/download-artifact@v8
         with:
           name: static-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v8
+      - name: Download JVM launchers
+        uses: actions/download-artifact@v8
         with:
           name: jvm-launchers
           path: artifacts/
@@ -2378,11 +2401,13 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v8
+      - name: Download MacOS x86 launchers
+        uses: actions/download-artifact@v8
         with:
           name: macos-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v8
+      - name: Download MacOS ARM64 (AArch64) launchers
+        uses: actions/download-artifact@v8
         with:
           name: macos-arm64-launchers
           path: artifacts/
@@ -2414,7 +2439,8 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v8
+    - name: Download Windows launchers
+      uses: actions/download-artifact@v8
       with:
         name: windows-launchers
         path: artifacts/
