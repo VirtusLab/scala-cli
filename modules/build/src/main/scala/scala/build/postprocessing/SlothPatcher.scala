@@ -67,9 +67,11 @@ object SlothPatcher:
   ): Either[BuildException, Seq[(ZipEntry, Array[Byte])]] =
     if !options.notForBloopOptions.sloth || entries.isEmpty then Right(entries)
     else
-      val tmpJar = os.temp(prefix = "sloth-entries-", suffix = ".jar", dir = os.temp.dir())
-      writeZipEntries(tmpJar, entries)
-      patchJarFile(tmpJar, options, logger).map(readZipEntries)
+      val tmpJar = os.temp(prefix = "sloth-entries-", suffix = ".jar", deleteOnExit = false)
+      try
+        writeZipEntries(tmpJar, entries)
+        patchJarFile(tmpJar, options, logger).map(readZipEntries)
+      finally os.remove(tmpJar)
 
   private def patchIfJar(path: os.Path, logger: Logger): os.Path =
     if path.ext == "jar" then patchJar(path, logger)
