@@ -74,6 +74,11 @@ abstract class ScalaCliSuite extends munit.FunSuite {
     if sanityOnly then all.filter(_.tags.contains(ScalaCliSuite.sanity)) else all
 
   override def munitFlakyOK: Boolean = TestUtil.isCI
+
+  def exitBloop: os.CommandResult = os.proc(TestUtil.cli, "--power", "bloop", "exit").call()
+
+  val cleanBloopFixture =
+    FunFixture[os.CommandResult](setup = _ => exitBloop, teardown = _ => exitBloop)
 }
 
 object ScalaCliSuite {

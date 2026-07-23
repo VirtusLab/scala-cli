@@ -2579,4 +2579,74 @@ abstract class RunTestDefinitions
       expect(output == message)
     }
   }
+
+  if actualScalaVersion.startsWith("3") then
+    cleanBloopFixture
+      .test("compilation server download respects COURSIER_REPOSITORIES for Bloop download") {
+        cleanBloopResult =>
+          expect(cleanBloopResult.exitCode == 0)
+          val inputs = TestInputs(os.rel / "simple.sc" -> """println("hello")""")
+          inputs.fromRoot { root =>
+            // Pre-download bloop (and Scala compiler) via coursier into a cache, then mirror
+            // that cache into a proper local maven repo. Coursier cache paths URL-encode '+'
+            // as '%2B', which is not valid maven layout, so we decode while copying.
+            val prefilledCache = root / "prefilled-cache"
+            os.makeDir(prefilledCache)
+            val artifactsToPrefetch = Seq(
+              s"ch.epfl.scala:bloop-frontend_2.12:${Constants.bloopVersion}",
+              s"org.scala-lang:scala3-compiler_3:$actualScalaVersion",
+              s"org.scala-lang:scala3-sbt-bridge:$actualScalaVersion"
+            )
+            for artifact <- artifactsToPrefetch do
+              os.proc(TestUtil.cs, "fetch", "--cache", prefilledCache.toString, artifact)
+                .call(cwd = root)
+
+            val cacheMaven2 = prefilledCache / "https" / "repo1.maven.org" / "maven2"
+            val customRepo  = root / "custom-repo"
+            for path <- os.walk(cacheMaven2) if os.isFile(path) do
+              val name = path.last
+              if !name.startsWith(".") then
+                val rel        = path.relativeTo(cacheMaven2)
+                val decodedRel = os.RelPath(
+                  rel.segments.map(s => java.net.URLDecoder.decode(s, "UTF-8")),
+                  ups = 0
+                )
+                os.copy(path, customRepo / decodedRel, createFolders = true)
+
+            val customRepoUri = customRepo.toNIO.toUri.toASCIIString
+
+            // Fresh empty cache to force resolution via COURSIER_REPOSITORIES
+            val freshCache = root / "fresh-cache"
+            os.makeDir(freshCache)
+
+            // Exit any existing bloop to force a fresh compilation server resolution
+            os.proc(TestUtil.cli, "--power", "bloop", "exit")
+              .call(cwd = root, check = false)
+
+            val env = Map(
+              "COURSIER_CACHE"        -> freshCache.toString,
+              "COURSIER_REPOSITORIES" -> customRepoUri
+            )
+
+            // Run with verbose logging to capture resolution attempts
+            val res = os.proc(TestUtil.cli, "run", "simple.sc", extraOptions, "-v", "-v")
+              .call(cwd = root, env = env, mergeErrIntoOut = true)
+
+            val output = res.out.text()
+
+            val mavenCentral    = "central.sonatype.com"
+            val scalaLang       = "repo.scala-lang.org"
+            val bloopResolution = output.linesIterator
+              .filter(line =>
+                line.contains("bloop-frontend") || line.contains("compilation server")
+              )
+              .mkString("\n")
+
+            expect(!bloopResolution.contains(mavenCentral))
+            expect(!bloopResolution.contains(scalaLang))
+
+            expect(res.exitCode == 0)
+            expect(output.contains("hello"))
+          }
+      }
 }

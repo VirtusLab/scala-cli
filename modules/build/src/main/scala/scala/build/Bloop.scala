@@ -78,11 +78,13 @@ object Bloop {
       val res = value {
         Artifacts.artifacts(
           Seq(Positioned.none(dep)),
-          Seq(
-            coursier.Repositories.centralMavenSnapshots,
-            RepositoryUtils.snapshotsRepository,
-            RepositoryUtils.scala3NightlyRepository
-          ),
+          if dep.version.endsWith("SNAPSHOT") then
+            Seq(
+              coursier.Repositories.centralMavenSnapshots,
+              RepositoryUtils.snapshotsRepository,
+              RepositoryUtils.scala3NightlyRepository
+            )
+          else Nil,
           Some(params),
           logger,
           cache.withMessage(s"Downloading compilation server ${dep.version}")
