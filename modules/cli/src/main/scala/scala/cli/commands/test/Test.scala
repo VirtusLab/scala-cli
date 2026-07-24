@@ -9,9 +9,11 @@ import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
+import scala.build.postprocessing.{SlothAgent, SlothPatcher}
 import scala.build.testrunner.{AsmTestRunner, Logger as TestRunnerLogger}
 import scala.cli.CurrentParams
 import scala.cli.commands.run.Run
@@ -195,6 +197,12 @@ object Test extends ScalaCommand[TestOptions] {
 
     build.options.platform.value match {
       case Platform.JS =>
+        if build.options.notForBloopOptions.sloth ||
+          build.options.notForBloopOptions.slothAgent
+        then
+          logger.message(
+            WarningMessages.slothNotApplicable("Scala.js (compiles to JavaScript)")
+          )
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
         val esModule     =
           build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
@@ -227,6 +235,12 @@ object Test extends ScalaCommand[TestOptions] {
           }.flatten
         }
       case Platform.Native =>
+        if build.options.notForBloopOptions.sloth ||
+          build.options.notForBloopOptions.slothAgent
+        then
+          logger.message(
+            WarningMessages.slothNotApplicable("Scala Native (compiles to native)")
+          )
         value {
           Run.withNativeLauncher(
             Seq(build),
@@ -249,7 +263,15 @@ object Test extends ScalaCommand[TestOptions] {
           }.flatten
         }
       case Platform.JVM =>
-        val classPath = build.fullClassPathMaybeAsJar(asJar)
+        val classPath0 = build.fullClassPathMaybeAsJar(asJar)
+        val classPath  = value(
+          SlothPatcher.transformClassPath(
+            classPath0,
+            build.options,
+            logger,
+            patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(Seq(build))
+          )
+        )
 
         val predefinedTestFrameworks0 =
           predefinedTestFrameworks match {
@@ -271,9 +293,15 @@ object Test extends ScalaCommand[TestOptions] {
           then Constants.javaTestRunnerMainClass
           else Constants.testRunnerMainClass
 
+        val slothAgentJavaOpts = value(
+          SlothAgent.javaAgentArgs(build.options, logger)
+        )
+        val javaOpts =
+          slothAgentJavaOpts ++ build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
-          build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
+          javaOpts,
           classPath,
           testRunnerMainClass,
           extraArgs,

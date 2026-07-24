@@ -15,6 +15,7 @@ import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Runner
 import scala.build.options.{BuildOptions, Scope}
+import scala.build.postprocessing.{SlothAgent, SlothPatcher}
 import scala.cli.CurrentParams
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
@@ -183,7 +184,16 @@ object Doc extends ScalaCommand[DocOptions] with BuildCommandHelpers {
 
     value(alreadyExistsCheck())
 
-    val docJarPath = value(generateScaladocDirPath(builds, logger, extraArgs, withTestScope))
+    val docJarPath = value(
+      generateScaladocDirPath(
+        builds,
+        logger,
+        extraArgs,
+        withTestScope,
+        patchClassPath = true,
+        useSlothAgent = true
+      )
+    )
     value(alreadyExistsCheck())
     os.makeDir.all(destPath / os.up)
     if force then os.copy.over(docJarPath, destPath) else os.copy(docJarPath, destPath)
@@ -218,7 +228,9 @@ object Doc extends ScalaCommand[DocOptions] with BuildCommandHelpers {
     builds: Seq[Build.Successful],
     logger: Logger,
     extraArgs: Seq[String],
-    withTestScope: Boolean
+    withTestScope: Boolean,
+    patchClassPath: Boolean = false,
+    useSlothAgent: Boolean = false
   ): Either[BuildException, os.Path] = either {
     val docContentDir = builds.head.scalaParams
       .map(sp => sp -> sp.scalaVersion.startsWith("2.")) match {
@@ -238,14 +250,20 @@ object Doc extends ScalaCommand[DocOptions] with BuildCommandHelpers {
         }
         val destDir = builds.head.project.scaladocDir
         os.makeDir.all(destDir)
-        val ext      = if Properties.isWin then ".exe" else ""
+        val ext            = if Properties.isWin then ".exe" else ""
+        val userClassPath0 = builds.flatMap(_.fullCompileClassPath).distinct
+        val userClassPath  =
+          if patchClassPath then
+            value(SlothPatcher.transformClassPath(
+              userClassPath0,
+              builds.head.options,
+              logger,
+              patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(builds)
+            ))
+          else userClassPath0
         val baseArgs = Seq(
           "-classpath",
-          builds
-            .flatMap(_.fullCompileClassPath)
-            .distinct
-            .map(_.toString)
-            .mkString(File.pathSeparator),
+          userClassPath.map(_.toString).mkString(File.pathSeparator),
           "-d",
           destDir.toString
         )
@@ -260,9 +278,12 @@ object Doc extends ScalaCommand[DocOptions] with BuildCommandHelpers {
           extraArgs ++
           defaultArgs ++
           builds.map(_.output.toString)
+        val slothAgentJavaOpts =
+          if useSlothAgent then value(SlothAgent.javaAgentArgs(builds.head.options, logger))
+          else Nil
         val retCode = Runner.runJvm(
           (builds.head.options.javaHomeLocation().value / "bin" / s"java$ext").toString,
-          Nil, // FIXME Allow to customize that?
+          slothAgentJavaOpts,
           res.files.map(os.Path(_, os.pwd)),
           "dotty.tools.scaladoc.Main",
           args,

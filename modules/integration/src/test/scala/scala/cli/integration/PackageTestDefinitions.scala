@@ -13,7 +13,8 @@ import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
-abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
+    with LazyValTests {
   this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected lazy val node: String              = TestUtil.fromPath("node").getOrElse("node")

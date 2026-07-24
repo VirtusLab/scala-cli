@@ -8,7 +8,8 @@ import scala.cli.integration.TestUtil.{ProcOps, StringOps}
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 
-abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
+    with LazyValTests {
   this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   private val utestVersion                     = "0.8.3"

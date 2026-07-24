@@ -5,7 +5,8 @@ import org.jsoup.*
 
 import scala.jdk.CollectionConverters.*
 
-abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class DocTestDefinitions
+    extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 

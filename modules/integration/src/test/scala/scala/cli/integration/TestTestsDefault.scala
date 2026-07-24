@@ -7,7 +7,154 @@ import java.io.File
 import scala.cli.integration.Constants.munitVersion
 import scala.cli.integration.TestUtil.StringOps
 
-class TestTestsDefault extends TestTestDefinitions with TestDefault {
+class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDefault {
+
+  // Sloth tests - only in default suite since they use hardcoded Scala versions
+  private val latestJava = Constants.allJavaVersions.max
+
+  private def testLazyValsUnsafe(libScalaVersion: String, slothFlag: String): Unit =
+    test(
+      s"test $libScalaVersion lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava ($slothFlag)"
+    ) {
+      val expectedMessage = "Hello"
+      TestInputs.empty.fromRoot { root =>
+        val (dep, repoDir) = publishLazyValsLib(libScalaVersion, root)
+        os.write(
+          root / "LazyValsTests.test.scala",
+          s"""//> using dep $dep
+             |//> using dep org.scalameta::munit::$munitVersion
+             |
+             |class LazyValsTests extends munit.FunSuite {
+             |  test("lazy val from dependency") {
+             |    assertEquals(lazyvalslib.LazyValsLib.greeting, "$expectedMessage")
+             |    println(lazyvalslib.LazyValsLib.greeting)
+             |  }
+             |}
+             |""".stripMargin
+        )
+        val r = os.proc(
+          TestUtil.cli,
+          "test",
+          extraOptions,
+          "--power",
+          slothFlag,
+          ".",
+          "--repository",
+          repoDir.toNIO.toUri.toASCIIString,
+          "--jvm",
+          latestJava
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(r.out.trim().contains(expectedMessage))
+        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }
+
+  private val highest30 = Constants.legacyScala3Versions
+    .filter(_.startsWith("3.0."))
+    .maxBy(_.coursierVersion)
+  for slothFlag <- Seq("--sloth", "--sloth-agent") do
+    testLazyValsUnsafe(highest30, slothFlag)
+    testLazyValsUnsafe(Constants.scala3Lts, slothFlag)
+
+  test(
+    s"test user code ${Constants.scala3Lts} lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava (--sloth)"
+  ) {
+    val expectedMessage = "Hello from user test code"
+    TestInputs.empty.fromRoot { root =>
+      os.write(
+        root / "UserLazyVal.scala",
+        s"""object UserLazyVal {
+           |  lazy val greeting: String = "$expectedMessage"
+           |}
+           |""".stripMargin
+      )
+      os.write(
+        root / "UserLazyValsTests.test.scala",
+        s"""//> using dep org.scalameta::munit::$munitVersion
+           |
+           |class UserLazyValsTests extends munit.FunSuite {
+           |  test("user code lazy val") {
+           |    assertEquals(UserLazyVal.greeting, "$expectedMessage")
+           |  }
+           |}
+           |""".stripMargin
+      )
+      val r = os.proc(
+        TestUtil.cli,
+        "test",
+        "--power",
+        "--sloth",
+        ".",
+        "--scala",
+        Constants.scala3Lts,
+        "--jvm",
+        latestJava
+      ).call(cwd = root, stderr = os.Pipe)
+      expect(r.exitCode == 0)
+      expect(!r.err.trim().contains("sun.misc.Unsafe"))
+    }
+  }
+
+  test("test js --sloth warns that sloth is not applicable") {
+    TestInputs(
+      os.rel / "HelloTests.test.scala" ->
+        s"""//> using scala ${Constants.scala3Lts}
+           |//> using platform scala-js
+           |//> using dep org.scalameta::munit::$munitVersion
+           |
+           |class HelloTests extends munit.FunSuite {
+           |  test("hello") {
+           |    assertEquals(1, 1)
+           |  }
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      val r = os.proc(
+        TestUtil.cli,
+        "test",
+        "--power",
+        extraOptions,
+        "--sloth",
+        "--suppress-experimental-feature-warning",
+        "--js",
+        "."
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(r.out.trim().contains(slothNoOpWarnPrefix))
+      expect(r.out.trim().contains("Scala.js"))
+    }
+  }
+
+  test("test native --sloth warns that sloth is not applicable") {
+    TestUtil.retryOnCi() {
+      TestInputs(
+        os.rel / "HelloTests.test.scala" ->
+          s"""//> using scala ${Constants.scala3Lts}
+             |//> using platform scala-native
+             |//> using dep org.scalameta::munit::$munitVersion
+             |
+             |class HelloTests extends munit.FunSuite {
+             |  test("hello") {
+             |    assertEquals(1, 1)
+             |  }
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        val r = os.proc(
+          TestUtil.cli,
+          "test",
+          "--power",
+          extraOptions,
+          "--sloth",
+          "--suppress-experimental-feature-warning",
+          "--native",
+          "."
+        ).call(cwd = root, mergeErrIntoOut = true)
+        expect(r.out.trim().contains(slothNoOpWarnPrefix))
+        expect(r.out.trim().contains("Scala Native"))
+      }
+    }
+  }
+
   test("Pure Java with Scala tests") {
     val inputs = TestInputs(
       os.rel / "Messages.java" ->
