@@ -2713,4 +2713,36 @@ abstract class RunTestDefinitions
             expect(output.contains("hello"))
           }
       }
+
+  if actualScalaVersion.startsWith("3") then
+    test(s"run --sloth with signed dependency succeeds on JDK $latestJava") {
+      TestInputs(
+        os.rel / "Main.scala" ->
+          // No //> using scala - extraOptions drives the project version
+          """import signedlib.SignedLib
+            |@main def run(): Unit = println(SignedLib.greeting)
+            |""".stripMargin
+      ).fromRoot { root =>
+        // Signed dep built at 3.3 LTS (Sloth patches 3.0-3.7.x bytecode)
+        val signedJar = publishSignedLazyValsJar(Constants.scala3Lts, root, latestJava)
+
+        val r = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          extraOptions,
+          slothOptions,
+          "--classpath",
+          signedJar,
+          "--jvm",
+          latestJava.toString,
+          "."
+        ).call(cwd = root, stderr = os.Pipe)
+
+        expect(r.out.trim().contains(signedLibMessage))
+        expect(!r.err.trim().contains("SecurityException"))
+        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+        expect(r.err.trim().contains(slothSignatureStrippedWarnFragment))
+      }
+    }
 }

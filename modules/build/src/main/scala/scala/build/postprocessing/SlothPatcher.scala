@@ -12,6 +12,7 @@ import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
+import scala.build.internal.util.WarningMessages
 import scala.build.options.BuildOptions
 import scala.build.{Build, Directories, Logger, coursierVersion, isScala38OrNewer}
 import scala.jdk.CollectionConverters.*
@@ -102,12 +103,12 @@ object SlothPatcher:
       )
       try
         jarDirectory(dir, tmpInput)
-        publishCached(cachedDir, cached, out => runJarProcessor(tmpInput, out)) match
-          case Right(path) =>
-            logger.debug(s"Patched lazy vals in class directory $dir -> $path")
-            path
-          case Left(message) =>
-            logger.message(s"Could not patch lazy vals in $dir, using original: $message")
+        publishCached(cachedDir, cached, out => runJarProcessor(tmpInput, out).map(_ => ())) match
+          case Right(cachedPath) =>
+            logger.debug(s"Patched lazy vals in class directory $dir -> $cachedPath")
+            cachedPath
+          case Left(errorMsg) =>
+            logger.message(s"Could not patch lazy vals in $dir, using original: $errorMsg")
             dir
       finally if os.exists(tmpInput) then os.remove(tmpInput)
 
@@ -150,6 +151,72 @@ object SlothPatcher:
         val content = Using.resource(zf.getInputStream(entry))(_.readAllBytes())
         (entry, content)
 
+  // --- Signature detection and stripping ---
+
+  private val signatureExtensions = Set("sf", "dsa", "rsa", "ec")
+
+  /** Returns entry names of signature files in a JAR (META-INF entries: .SF, .DSA, .RSA, .EC,
+    * SIG-).
+    */
+  private[build] def signatureEntryNames(jar: os.Path): Seq[String] =
+    Using.resource(ZipFile(jar.toIO)): zf =>
+      zf.entries().asScala.toSeq
+        .map(_.getName)
+        .filter: name =>
+          if !name.startsWith("META-INF/") then false
+          else
+            val relativeName = name.stripPrefix("META-INF/")
+            !relativeName.contains("/") && (
+              signatureExtensions.contains(
+                relativeName.toLowerCase.split("\\.").lastOption.getOrElse("")
+              ) ||
+              relativeName.toUpperCase.startsWith("SIG-")
+            )
+
+  /** Checks if a JAR contains signature files. */
+  private[build] def isSigned(jar: os.Path): Boolean =
+    signatureEntryNames(jar).nonEmpty
+
+  /** Strips signature files and digest attributes from a JAR. */
+  private[build] def stripSignatures(input: os.Path, output: os.Path): Unit =
+    val sigEntries = signatureEntryNames(input).toSet
+    Using.resource(ZipFile(input.toIO)): zf =>
+      val manifestEntry    = zf.getEntry("META-INF/MANIFEST.MF")
+      val originalManifest =
+        if manifestEntry != null then
+          Using.resource(zf.getInputStream(manifestEntry))(is => JarManifest(is))
+        else
+          val m = JarManifest()
+          m.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
+          m
+
+      val newManifest = JarManifest()
+      newManifest.getMainAttributes.putAll(originalManifest.getMainAttributes)
+
+      for (entryName, attrs) <- originalManifest.getEntries.asScala do
+        val newAttrs = JarAttributes()
+        for (key, value) <- attrs.asScala do
+          val keyName = key.toString
+          if !keyName.toLowerCase.contains("-digest") then
+            newAttrs.put(key, value)
+        if !newAttrs.isEmpty then
+          newManifest.getEntries.put(entryName, newAttrs)
+
+      Using.resource(JarOutputStream(os.write.outputStream(output), newManifest)): jos =>
+        for entry <- zf.entries().asScala do
+          val name = entry.getName
+          if !sigEntries.contains(name) && name != "META-INF/MANIFEST.MF" then
+            val newEntry = ZipEntry(name)
+            if entry.getTime >= 0 then
+              newEntry.setLastModifiedTime(FileTime.fromMillis(entry.getTime))
+            val content = Using.resource(zf.getInputStream(entry))(_.readAllBytes())
+            newEntry.setSize(content.length)
+            jos.putNextEntry(newEntry)
+            jos.write(content)
+            jos.closeEntry()
+
+  // --- End signature handling ---
+
   // System.out/err are process-global; sloth's BytecodePatcher prints stack
   // traces directly to System.err. We must swap the global streams to capture
   // that noise, so the whole swap/restore window is serialized behind this lock
@@ -171,18 +238,65 @@ object SlothPatcher:
         val captured = (outBuffer.toString ++ errBuffer.toString).trim
         if captured.nonEmpty then logger.debug(captured)
 
+  private val unpatchedMarkerName = ".sloth-unpatched"
+
   private def patchJar(jar: os.Path, logger: Logger): os.Path =
-    val cachedDir = cacheDir / Constants.slothVersion / sha1(jar)
-    val cached    = cachedDir / jar.last
-    if os.exists(cached) then cached
+    val jarHash         = sha1(jar)
+    val cachedDir       = cacheDir / Constants.slothVersion / jarHash
+    val cached          = cachedDir / jar.last
+    val unpatchedMarker = cachedDir / unpatchedMarkerName
+    val signed          = isSigned(jar)
+
+    if os.exists(cached) then
+      if signed then
+        logger.message(WarningMessages.slothStrippedJarSignatures(jar))
+      cached
+    else if os.exists(unpatchedMarker) then
+      jar
     else
-      publishCached(cachedDir, cached, out => runJarProcessor(jar, out)) match
-        case Right(path) =>
-          logger.debug(s"Patched lazy vals in $jar -> $path")
-          path
-        case Left(message) =>
-          logger.message(s"Could not patch lazy vals in $jar, using original: $message")
-          jar
+      os.makeDir.all(cachedDir)
+      val tmpOutput =
+        os.temp(prefix = "sloth-patch-", suffix = ".tmp", dir = cachedDir, deleteOnExit = false)
+      try
+        runJarProcessor(jar, tmpOutput) match
+          case Left(message) =>
+            logger.message(s"Could not patch lazy vals in $jar, using original: $message")
+            jar
+          case Right(result) =>
+            if result.patchedClasses == 0 then
+              os.write(unpatchedMarker, "", createFolders = true)
+              logger.debug(s"No lazy vals to patch in $jar")
+              jar
+            else if signed then
+              val stripped = os.temp(
+                prefix = "sloth-stripped-",
+                suffix = ".tmp",
+                dir = cachedDir,
+                deleteOnExit = false
+              )
+              try
+                stripSignatures(tmpOutput, stripped)
+                try
+                  os.move(stripped, cached, atomicMove = true, replaceExisting = false)
+                catch
+                  case _: FileAlreadyExistsException | _: AtomicMoveNotSupportedException =>
+                    try os.move(stripped, cached, replaceExisting = false)
+                    catch case _: FileAlreadyExistsException => ()
+                logger.message(WarningMessages.slothStrippedJarSignatures(jar))
+                logger.debug(s"Patched lazy vals in $jar -> $cached")
+                cached
+              finally
+                if os.exists(stripped) then os.remove(stripped)
+            else
+              try
+                os.move(tmpOutput, cached, atomicMove = true, replaceExisting = false)
+              catch
+                case _: FileAlreadyExistsException | _: AtomicMoveNotSupportedException =>
+                  try os.move(tmpOutput, cached, replaceExisting = false)
+                  catch case _: FileAlreadyExistsException => ()
+              logger.debug(s"Patched lazy vals in $jar -> $cached")
+              cached
+      finally if os.exists(tmpOutput) then os.remove(tmpOutput)
 
   /** Write to a unique temp file in `cachedDir`, then atomically move into `cached`. */
   private def publishCached(
@@ -215,14 +329,17 @@ object SlothPatcher:
                   case _: FileAlreadyExistsException => Right(cached)
       finally if os.exists(tmp) then os.remove(tmp)
 
-  private def runJarProcessor(input: os.Path, output: os.Path): Either[String, Unit] =
+  private def runJarProcessor(
+    input: os.Path,
+    output: os.Path
+  ): Either[String, JarProcessor.JarResult] =
     try
       val result = JarProcessor.process(input.toNIO, output.toNIO)
       if result.errors.nonEmpty then
         Left(
           s"Failed to patch lazy vals in $input (${result.failedClasses} failed classes): ${result.errors.mkString("; ")}"
         )
-      else Right(())
+      else Right(result)
     catch
       case NonFatal(e) =>
         Left(s"Failed to patch lazy vals in $input: ${e.getMessage}")

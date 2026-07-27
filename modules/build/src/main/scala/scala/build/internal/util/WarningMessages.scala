@@ -177,4 +177,7 @@ object WarningMessages {
 
   val slothModesMutuallyRedundant: String =
     "--sloth and --sloth-agent are mutually redundant: both batch-patch the classpath and inject the agent, which re-patches the same lazy-val bytecode at class load time."
+
+  def slothStrippedJarSignatures(jar: os.Path): String =
+    s"Sloth patched lazy vals in the signed JAR $jar; its JAR signature files were removed, as they would no longer match the patched bytecode."
 }

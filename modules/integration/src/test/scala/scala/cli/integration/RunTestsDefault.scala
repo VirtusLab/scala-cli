@@ -6,7 +6,6 @@ import scala.util.Properties
 
 class RunTestsDefault extends RunTestDefinitions
     with RunWithWatchTestDefinitions
-    with LazyValTests
     with TestDefault {
 
   private def lazyValsUnsafeTest(libScalaVersion: String, slothFlag: String): Unit =

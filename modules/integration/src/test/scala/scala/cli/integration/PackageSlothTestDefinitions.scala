@@ -75,12 +75,6 @@ trait PackageSlothTestDefinitions extends LazyValTests:
       latestJava.toString
     ).call(cwd = root, stderr = os.Pipe)
 
-  private def javaHome(jvm: Int): os.Path =
-    os.Path(
-      os.proc(TestUtil.cs, "java-home", "--jvm", jvm.toString).call().out.trim(),
-      os.pwd
-    )
-
   private def runBootstrapLauncher(root: os.Path, launcher: os.Path): os.CommandResult =
     val home = javaHome(latestJava)
     val env  = Map("JAVA_HOME" -> home.toString)
@@ -315,3 +309,58 @@ trait PackageSlothTestDefinitions extends LazyValTests:
       expect(r.out.trim().contains(slothAgentWarnFragment))
     }
   }
+
+  for {
+    preambleOpts <- Seq(Seq("--preamble=false"), Nil)
+    preambleString = preambleOpts.headOption.getOrElse("assembly with preamble")
+    if actualScalaVersion.startsWith("3")
+    if !Properties.isWin || preambleOpts.isEmpty
+  }
+    test(
+      s"package assembly --sloth with signed dependency strips signatures (JDK $latestJava, $preambleString)"
+    ) {
+      TestInputs(
+        os.rel / "Main.scala" ->
+          """import signedlib.SignedLib
+            |object Main {
+            |  def main(args: Array[String]): Unit = println(SignedLib.greeting)
+            |}
+            |""".stripMargin
+      ).fromRoot { root =>
+        // Signed dep built at 3.3 LTS
+        val signedJar = publishSignedLazyValsJar(Constants.scala3Lts, root, latestJava)
+        val appJar    = root / "app.jar"
+
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          extraOptions,
+          slothOptions,
+          "--assembly",
+          preambleOpts,
+          "--classpath",
+          signedJar,
+          ".",
+          "-o",
+          appJar
+        ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+        // The assembly should not contain signature files
+        expect(signatureEntriesIn(appJar).isEmpty)
+
+        val r = os.proc(
+          TestUtil.cli,
+          "run",
+          extraOptions,
+          appJar,
+          "-M",
+          "Main",
+          "--jvm",
+          latestJava.toString
+        ).call(cwd = root, stderr = os.Pipe)
+
+        expect(r.out.trim().contains(signedLibMessage))
+        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }

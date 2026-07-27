@@ -7,7 +7,6 @@ trait PublishSlothTestDefinitions extends LazyValTests:
 
   if actualScalaVersion.startsWith("3.") then
     val latestJava             = Constants.allJavaVersions.max
-    val publishScalaVersion    = Constants.scala3Lts
     val expectedMessage        = "Hello"
     val slothAgentWarnFragment = "is not applicable to publish"
     val testOrg                = "test-publish-sloth-org"
@@ -16,8 +15,7 @@ trait PublishSlothTestDefinitions extends LazyValTests:
     val dep                    = s"$testOrg:${testName}_3:$testVersion"
 
     def lazyValProjFile: String =
-      s"""//> using scala $publishScalaVersion
-         |//> using publish.organization $testOrg
+      s"""//> using publish.organization $testOrg
          |//> using publish.name $testName
          |//> using publish.version $testVersion
          |
@@ -46,27 +44,40 @@ trait PublishSlothTestDefinitions extends LazyValTests:
       if mergeErrIntoOut then baseCall.call(cwd = root, mergeErrIntoOut = true)
       else baseCall.call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
 
-    test(s"publish --sloth patches lazy vals on JDK $latestJava") {
-      TestInputs(
-        os.rel / "Main.scala" -> lazyValProjFile
-      ).fromRoot { root =>
-        val repo = root / "test-repo"
-        publishToRepo(root, slothOptions, repo)
-        val r = os.proc(
-          TestUtil.cli,
-          "run",
-          extraOptions,
-          "--dep",
-          dep,
-          "-M",
-          "Main",
-          "--jvm",
-          latestJava.toString,
-          "-r",
-          repo.toNIO.toUri.toASCIIString
-        ).call(cwd = root, stderr = os.Pipe)
-        expect(r.out.trim().contains(expectedMessage))
-        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+    if !isScala38OrNewer then {
+      test(s"publish --sloth patches lazy vals on JDK $latestJava") {
+        TestInputs(
+          os.rel / "Main.scala" -> lazyValProjFile
+        ).fromRoot { root =>
+          val repo = root / "test-repo"
+          publishToRepo(root, slothOptions, repo)
+          val r = os.proc(
+            TestUtil.cli,
+            "run",
+            extraOptions,
+            "--dep",
+            dep,
+            "-M",
+            "Main",
+            "--jvm",
+            latestJava.toString,
+            "-r",
+            repo.toNIO.toUri.toASCIIString
+          ).call(cwd = root, stderr = os.Pipe)
+          expect(r.out.trim().contains(expectedMessage))
+          expect(!r.err.trim().contains("sun.misc.Unsafe"))
+        }
+      }
+
+      test("publish --sloth patches the doc-generation classpath") {
+        TestInputs(
+          os.rel / "Main.scala" -> lazyValProjFile
+        ).fromRoot { root =>
+          val repo = root / "test-repo"
+          val r    = publishToRepo(root, slothOptions ++ Seq("-v"), repo, mergeErrIntoOut = true)
+          expect(r.exitCode == 0)
+          expectScaladocClasspathContains(r.out.text(), slothCacheSegment)
+        }
       }
     }
 
@@ -81,17 +92,6 @@ trait PublishSlothTestDefinitions extends LazyValTests:
           expect(r.out.trim().contains(warningKeyword))
         }
       }
-
-    test("publish --sloth patches the doc-generation classpath") {
-      TestInputs(
-        os.rel / "Main.scala" -> lazyValProjFile
-      ).fromRoot { root =>
-        val repo = root / "test-repo"
-        val r    = publishToRepo(root, slothOptions ++ Seq("-v"), repo, mergeErrIntoOut = true)
-        expect(r.exitCode == 0)
-        expectScaladocClasspathContains(r.out.text(), slothCacheSegment)
-      }
-    }
 
     test("publish --sloth-agent is rejected with a warning") {
       TestInputs(

@@ -1,11 +1,14 @@
 package scala.build.tests
 
 import java.util.concurrent.{Callable, CyclicBarrier, Executors}
+import java.util.jar.{Attributes as JarAttributes, JarOutputStream, Manifest as JarManifest}
 import java.util.zip.{ZipEntry, ZipFile}
 
+import scala.build.internal.util.WarningMessages
 import scala.build.options.{BuildOptions, PostBuildOptions}
 import scala.build.postprocessing.SlothPatcher
 import scala.jdk.CollectionConverters.*
+import scala.util.Using
 
 class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
 
@@ -191,3 +194,128 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       executor.shutdown()
       System.setOut(originalOut)
       System.setErr(originalErr)
+
+  // --- Signature detection and stripping tests ---
+
+  private def createJarWithSignatureFiles(jarPath: os.Path, signatureFiles: Seq[String]): Unit =
+    val manifest = JarManifest()
+    manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
+    Using.resource(JarOutputStream(os.write.outputStream(jarPath), manifest)): jos =>
+      // Add a regular class file
+      val classEntry = ZipEntry("com/example/Test.class")
+      jos.putNextEntry(classEntry)
+      jos.write(Array[Byte](0xca.toByte, 0xfe.toByte, 0xba.toByte, 0xbe.toByte))
+      jos.closeEntry()
+      // Add signature files
+      signatureFiles.foreach: name =>
+        val entry = ZipEntry(name)
+        jos.putNextEntry(entry)
+        jos.write(s"content of $name".getBytes)
+        jos.closeEntry()
+
+  test("signatureEntryNames detects META-INF signature files"):
+    TestInputs.withTmpDir("sloth-sig-test-"): root =>
+      val jar = root / "test.jar"
+      createJarWithSignatureFiles(
+        jar,
+        Seq(
+          "META-INF/TEST.SF",
+          "META-INF/TEST.DSA",
+          "META-INF/TEST.RSA",
+          "META-INF/TEST.EC",
+          "META-INF/SIG-FOO",
+          "META-INF/services/java.sql.Driver", // should NOT be detected
+          "META-INF/sub/nested.SF"             // should NOT be detected (not direct child)
+        )
+      )
+      val sigFiles = SlothPatcher.signatureEntryNames(jar)
+      assert(sigFiles.contains("META-INF/TEST.SF"), s"Missing TEST.SF in $sigFiles")
+      assert(sigFiles.contains("META-INF/TEST.DSA"), s"Missing TEST.DSA in $sigFiles")
+      assert(sigFiles.contains("META-INF/TEST.RSA"), s"Missing TEST.RSA in $sigFiles")
+      assert(sigFiles.contains("META-INF/TEST.EC"), s"Missing TEST.EC in $sigFiles")
+      assert(sigFiles.contains("META-INF/SIG-FOO"), s"Missing SIG-FOO in $sigFiles")
+      assert(
+        !sigFiles.contains("META-INF/services/java.sql.Driver"),
+        s"Should not include services file"
+      )
+      assert(!sigFiles.contains("META-INF/sub/nested.SF"), s"Should not include nested SF file")
+      assert(sigFiles.size == 5, s"Expected 5 signature files, got ${sigFiles.size}: $sigFiles")
+
+  test("signatureEntryNames is case-insensitive for extensions"):
+    TestInputs.withTmpDir("sloth-sig-test-"): root =>
+      val jar = root / "test.jar"
+      createJarWithSignatureFiles(
+        jar,
+        Seq(
+          "META-INF/TEST.sf",
+          "META-INF/OTHER.Dsa",
+          "META-INF/ANOTHER.rSa"
+        )
+      )
+      val sigFiles = SlothPatcher.signatureEntryNames(jar)
+      assert(sigFiles.size == 3, s"Expected 3 signature files, got ${sigFiles.size}: $sigFiles")
+
+  test("stripSignatures removes signature entries and digest attributes"):
+    TestInputs.withTmpDir("sloth-strip-test-"): root =>
+      val jar = root / "signed.jar"
+      // Create a jar with signature files and digest attributes in manifest
+      val manifest = JarManifest()
+      manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
+      manifest.getMainAttributes.putValue("Created-By", "Test")
+      // Add per-entry digest attribute (simulating a signed jar)
+      val entryAttrs = JarAttributes()
+      entryAttrs.putValue("SHA-256-Digest", "abc123...")
+      manifest.getEntries.put("com/example/Test.class", entryAttrs)
+
+      Using.resource(JarOutputStream(os.write.outputStream(jar), manifest)): jos =>
+        val classEntry = ZipEntry("com/example/Test.class")
+        jos.putNextEntry(classEntry)
+        jos.write(Array[Byte](0xca.toByte, 0xfe.toByte, 0xba.toByte, 0xbe.toByte))
+        jos.closeEntry()
+        // Add signature files
+        Seq("META-INF/TEST.SF", "META-INF/TEST.DSA").foreach: name =>
+          val entry = ZipEntry(name)
+          jos.putNextEntry(entry)
+          jos.write(s"content of $name".getBytes)
+          jos.closeEntry()
+
+      val stripped = root / "stripped.jar"
+      SlothPatcher.stripSignatures(jar, stripped)
+
+      // Verify signature files are removed
+      val zf      = ZipFile(stripped.toIO)
+      val entries = zf.entries().asScala.map(_.getName).toSet
+      zf.close()
+      assert(!entries.contains("META-INF/TEST.SF"), "SF file should be removed")
+      assert(!entries.contains("META-INF/TEST.DSA"), "DSA file should be removed")
+      assert(entries.contains("com/example/Test.class"), "Class file should be preserved")
+      assert(entries.contains("META-INF/MANIFEST.MF"), "Manifest should be preserved")
+
+      // Verify digest attributes are removed from manifest
+      Using.resource(ZipFile(stripped.toIO)): zf =>
+        val manifestEntry   = zf.getEntry("META-INF/MANIFEST.MF")
+        val manifestContent = new String(zf.getInputStream(manifestEntry).readAllBytes())
+        assert(
+          !manifestContent.contains("SHA-256-Digest"),
+          s"Digest should be removed from manifest: $manifestContent"
+        )
+        assert(manifestContent.contains("Created-By"), "Non-digest attributes should be preserved")
+
+  test("isSigned returns true for jars with signature files"):
+    TestInputs.withTmpDir("sloth-signed-test-"): root =>
+      val signedJar = root / "signed.jar"
+      createJarWithSignatureFiles(signedJar, Seq("META-INF/TEST.SF", "META-INF/TEST.DSA"))
+      assert(SlothPatcher.isSigned(signedJar), "Jar with .SF/.DSA should be detected as signed")
+
+      val unsignedJar = root / "unsigned.jar"
+      createJarWithSignatureFiles(unsignedJar, Seq.empty)
+      assert(
+        !SlothPatcher.isSigned(unsignedJar),
+        "Jar without signature files should not be detected as signed"
+      )
+
+  test("WarningMessages.slothStrippedJarSignatures mentions jar path"):
+    val jarPath = os.pwd / "some" / "path" / "signed.jar"
+    val message = WarningMessages.slothStrippedJarSignatures(jarPath)
+    assert(message.contains(jarPath.toString), s"Message should contain jar path: $message")
+    assert(message.contains("signature"), s"Message should mention signature: $message")

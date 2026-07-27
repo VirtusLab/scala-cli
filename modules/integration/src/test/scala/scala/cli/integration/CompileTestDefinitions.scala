@@ -14,8 +14,11 @@ abstract class CompileTestDefinitions
     with TestScalaVersionArgs
     with CompilerPluginTestDefinitions
     with CompileScalacCompatTestDefinitions
-    with SemanticDbTestDefinitions { this: TestScalaVersion =>
+    with SemanticDbTestDefinitions
+    with LazyValTests { this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+
+  private val latestJava = Constants.allJavaVersions.max
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {
     os.proc(TestUtil.cli, "--power", "directories").call().out.text()
@@ -1013,4 +1016,90 @@ abstract class CompileTestDefinitions
       os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
     }
   }
+
+  if actualScalaVersion.startsWith("3") then
+    test(s"compile --sloth --print-class-path with signed dependency strips signatures") {
+      TestInputs(
+        os.rel / "Main.scala" ->
+          // No //> using scala - extraOptions drives the project version
+          """import signedlib.SignedLib
+            |@main def run(): Unit = println(SignedLib.greeting)
+            |""".stripMargin
+      ).fromRoot { root =>
+        // Signed dep built at 3.3 LTS (Sloth patches 3.0-3.7.x bytecode)
+        val signedJar = publishSignedLazyValsJar(Constants.scala3Lts, root, latestJava)
+
+        val r = os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          extraOptions,
+          slothOptions,
+          "--classpath",
+          signedJar,
+          "--print-class-path",
+          "."
+        ).call(cwd = root, stderr = os.Pipe)
+
+        val printedClasspath = r.out.trim()
+        // The classpath should contain the sloth cache path for the signed jar
+        expect(printedClasspath.contains(slothCacheSegment))
+
+        // Find the cached jar path in the classpath
+        val cachedJarPath = printedClasspath
+          .split(File.pathSeparator)
+          .find(p => p.contains(slothCacheSegment) && p.endsWith(".jar") && p.contains("signed"))
+        expect(cachedJarPath.isDefined)
+
+        // The cached jar should not contain signature files
+        expect(signatureEntriesIn(os.Path(cachedJarPath.get)).isEmpty)
+
+        // The warning should be emitted
+        expect(r.err.trim().contains(slothSignatureStrippedWarnFragment))
+      }
+    }
+
+    test(s"compile --sloth leaves signed Java-only jar untouched") {
+      TestInputs(
+        os.rel / "Main.scala" ->
+          """import javalib.JavaLib
+            |@main def run(): Unit = println(JavaLib.greeting())
+            |""".stripMargin
+      ).fromRoot { root =>
+        val signedJavaJar = publishSignedJavaJar(root, latestJava)
+
+        // Verify the jar is initially signed
+        val verifyBefore = os.proc(jdkTool(latestJava, "jarsigner"), "-verify", signedJavaJar)
+          .call(cwd = root, check = false)
+        expect(verifyBefore.exitCode == 0)
+
+        // Run compile with sloth (which should NOT patch or strip this jar)
+        val r = os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          extraOptions,
+          slothOptions,
+          "--classpath",
+          signedJavaJar,
+          "--print-class-path",
+          "."
+        ).call(cwd = root, stderr = os.Pipe)
+
+        // The warning about stripping signatures should NOT appear
+        expect(!r.err.trim().contains(slothSignatureStrippedWarnFragment))
+
+        // Either the original jar is returned, or if a cache entry exists,
+        // verify the signature is still valid
+        val printedClasspath = r.out.trim()
+        if !printedClasspath.contains(signedJavaJar.toString) then
+          val cachedPath = printedClasspath
+            .split(File.pathSeparator)
+            .find(_.contains("signed-java-lib.jar"))
+          expect(cachedPath.isDefined)
+          val verifyAfter = os.proc(jdkTool(latestJava, "jarsigner"), "-verify", cachedPath.get)
+            .call(cwd = root, check = false)
+          expect(verifyAfter.exitCode == 0)
+      }
+    }
 }
