@@ -2,6 +2,9 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.nio.charset.StandardCharsets
+import java.util
+
 import scala.util.Properties
 
 trait PackageSlothTestDefinitions extends LazyValTests:
@@ -41,7 +44,16 @@ trait PackageSlothTestDefinitions extends LazyValTests:
        |}
        |""".stripMargin
 
-  private def runAssemblyJar(root: os.Path, appJar: os.Path, mainClass: String): os.CommandResult =
+  private def runAssemblyJar(
+    root: os.Path,
+    appJar: os.Path,
+    mainClass: String,
+    withPreamble: Boolean = false
+  ): os.CommandResult =
+    if withPreamble then
+      val preambleStart = "#!".getBytes(StandardCharsets.UTF_8)
+      val contentStart  = os.read.bytes(appJar).take(preambleStart.length)
+      expect(util.Arrays.equals(contentStart, preambleStart))
     os.proc(
       TestUtil.cli,
       "run",
@@ -112,6 +124,13 @@ trait PackageSlothTestDefinitions extends LazyValTests:
       "assembly",
       Seq("--assembly", "--preamble=false"),
       runAssemblyJar(_, _, "Main")
+    )(ver)
+
+  for ver <- assemblyScalaVersions do
+    packageSlothTest(
+      "sloth-assembly-default-preamble",
+      Seq("--assembly"),
+      runAssemblyJar(_, _, "Main", withPreamble = true)
     )(ver)
 
   test(
