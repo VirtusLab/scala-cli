@@ -6,6 +6,7 @@ import caseapp.core.help.HelpFormat
 import java.io.File
 
 import scala.build.options.Scope
+import scala.build.postprocessing.SlothPatcher
 import scala.build.{Build, BuildThreads, Builds, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.setupide.SetupIde
@@ -86,7 +87,14 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
           } yield s
         if (options.printClassPath)
           for (s <- successulBuildOpt) {
-            val cp = s.fullClassPathMaybeAsJar(options.shared.asJar)
+            val successfulBuilds = builds.all.collect { case s: Build.Successful => s }
+            val rawCp            = s.fullClassPathMaybeAsJar(options.shared.asJar)
+            val cp               = SlothPatcher.transformClassPath(
+              rawCp,
+              s.options,
+              logger,
+              patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(successfulBuilds)
+            ).orExit(logger)
               .map(_.toString)
               .mkString(File.pathSeparator)
             println(cp)
