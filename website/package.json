@@ -24,24 +24,24 @@
     "@types/react": "^19.2.17",
     "clsx": "^2.1.1",
     "docusaurus-plugin-sass": "^0.2.6",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-loadable": "^5.5.0",
     "react-player": "^3.4.0",
-    "sass": "^1.101.0",
+    "sass": "^1.102.0",
     "search-insights": "^2.17.3",
-    "@svta/cml-cta": "1.0.6",
-    "@svta/cml-structured-field-values": "1.1.3",
-    "@svta/cml-utils": "1.5.0"
+    "@svta/cml-cta": "1.0.7",
+    "@svta/cml-structured-field-values": "1.1.4",
+    "@svta/cml-utils": "1.5.1"
   },
   "resolutions": {
     "react-loadable": "^5.5.0",
     "search-insights": "^2.17.3",
     "@algolia/client-search": "^5.48.1",
     "@types/react": "^19.2.17",
-    "@svta/cml-cta": "1.0.6",
-    "@svta/cml-structured-field-values": "1.1.3",
-    "@svta/cml-utils": "1.5.0"
+    "@svta/cml-cta": "1.0.7",
+    "@svta/cml-structured-field-values": "1.1.4",
+    "@svta/cml-utils": "1.5.1"
   },
   "browserslist": {
     "production": [

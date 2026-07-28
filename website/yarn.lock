@@ -2972,10 +2972,10 @@
   resolved "https://registry.yarnpkg.com/@svta/cml-cmsd/-/cml-cmsd-1.0.1.tgz#f5a70ddbae413fd6cb898af8dce8f1303691bc46"
   integrity sha512-+nIB8PuSfb/qw+xGaArPhNqPm84tBJUbe3H1DnPL5QUsjSUI7mUIUQwAtRV1ZdEu0+80g9i0op79woB0OIwr/g==
 
-"@svta/cml-cta@1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@svta/cml-cta/-/cml-cta-1.0.6.tgz#bca159d044df4cabc7b4686cba582b41da5e1def"
-  integrity sha512-l13/4myTX1EbRd38nY8J1umVY5UdR/nZO6CeKqVLXnMMIayg7/fu0TueZckjTA9Loal55MGK1xbHnXVjz7OUUw==
+"@svta/cml-cta@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@svta/cml-cta/-/cml-cta-1.0.7.tgz#7f7ae4563c97f102f5359940b7f24d7ac8ad306b"
+  integrity sha512-U2169sIVsWTJFhEWusn7iDfxXHPnnRAUADaVzz2tkLr1mBEREl5HiuSNG4yU4xX7MeDssCBlLw0prsxH2zSv6w==
 
 "@svta/cml-dash@1.0.1":
   version "1.0.1"
@@ -2992,15 +2992,15 @@
   resolved "https://registry.yarnpkg.com/@svta/cml-request/-/cml-request-1.0.1.tgz#49eb488a00fc7a8309b4cc6b10ee6007fe2001db"
   integrity sha512-enL19BuXUjFkDDDF9jdNwUclMNPRsagnjGAetVC7xcmpDMpEx+ZLgsDip6BFNg5p6izSEk/OyujTWW1r8bDNiA==
 
-"@svta/cml-structured-field-values@1.1.3":
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/@svta/cml-structured-field-values/-/cml-structured-field-values-1.1.3.tgz#07f92c67426082e5c27758a99e99c59ecd76ad19"
-  integrity sha512-XqLzQOTznz6kh/nsSh8dy1kV7GQjL4csG+2U5EvLGhAqNuNUczbVg5EAsDobKDVg8xhdthdXx2UuwM+ZHQCxSg==
+"@svta/cml-structured-field-values@1.1.4":
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/@svta/cml-structured-field-values/-/cml-structured-field-values-1.1.4.tgz#13351ca36a53e5185e20be933a54827e88aa80c1"
+  integrity sha512-hLNhR8IzMV/DWyaWzCzc79ku+y7W5+f2An5BuyTJAjrRPftQ1CZ5TDOKz4Y2N/KVipyOAYOt3xdswWYv8efj0g==
 
-"@svta/cml-utils@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@svta/cml-utils/-/cml-utils-1.5.0.tgz#5f521990fe37fab085135de864222f3d36b52681"
-  integrity sha512-JMqclD7Akd+GSJiuaYNUHOP2wNtf/nauKeszlYeivSHfi0Lp3pmSW5PXDvJ2dO4aPmmSOQbF0ztTsW9Vcs2Whw==
+"@svta/cml-utils@1.5.1":
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@svta/cml-utils/-/cml-utils-1.5.1.tgz#75a548fdb90f55c787e270547bc2e95a25a0a0b6"
+  integrity sha512-iQ9OaOZqLPjNCyzo6jZrCyXKtfm9xv389Bbqs6ndWNid59G2vR+Bs2zPBG8iQDyRJWJjO5i2w0A9AS/ZpxctUA==
 
 "@svta/cml-xml@1.0.1":
   version "1.0.1"
@@ -8348,10 +8348,10 @@ rc@1.2.8:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-dom@^19.2.7:
-  version "19.2.7"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-19.2.7.tgz#0450dc9ae9ddbff76ef196401cd8b8c7fb466ccc"
-  integrity sha512-t0BRVXvbiE/o20Hfw669rLbMCDWtYZLvmJigy2f0MxsXF+71pxhR3xOkspmsO8h3ZlNzyibAmtCa3l4lYKk6gQ==
+react-dom@^19.2.8:
+  version "19.2.8"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-19.2.8.tgz#3b46b9eeda877cdff2cf13d2770fff4ae36c2ec2"
+  integrity sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==
   dependencies:
     scheduler "^0.27.0"
 
@@ -8446,10 +8446,10 @@ react-router@5.3.4, react-router@^5.3.4:
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
 
-react@^19.2.7:
-  version "19.2.7"
-  resolved "https://registry.yarnpkg.com/react/-/react-19.2.7.tgz#1f47a1bfc06f8ec885752c6f4af14369a9f8260b"
-  integrity sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==
+react@^19.2.8:
+  version "19.2.8"
+  resolved "https://registry.yarnpkg.com/react/-/react-19.2.8.tgz#a80663dbb58d69c6fe3fd291d3cb324e8a7dff2d"
+  integrity sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==
 
 readable-stream@^2.0.1:
   version "2.3.8"
@@ -8795,10 +8795,10 @@ sass-loader@^16.0.2:
   dependencies:
     neo-async "^2.6.2"
 
-sass@^1.101.0:
-  version "1.101.0"
-  resolved "https://registry.yarnpkg.com/sass/-/sass-1.101.0.tgz#c2db5bbf2f956be7277f6223b899d0d4be3c899b"
-  integrity sha512-OL3GoQyoUdDt843DpVmDO6y2k1sc5IhUDSpu8XucEI+35neq5QivZ1iuegnpraEVTJXlQGK1gl27zKcTLEPbQw==
+sass@^1.102.0:
+  version "1.102.0"
+  resolved "https://registry.yarnpkg.com/sass/-/sass-1.102.0.tgz#4ed9378f37ca4186a76d6d1f52a6680c92b6bd80"
+  integrity sha512-NSOyTnaQF7rTAEOtI2fwb386vL+akyiQLBZu8Na7hXCb+umJy0GAqlcMIaqACZ6Z1VgTBS4K9PG6B3IdjHGJsw==
   dependencies:
     chokidar "^5.0.0"
     immutable "^5.1.5"
