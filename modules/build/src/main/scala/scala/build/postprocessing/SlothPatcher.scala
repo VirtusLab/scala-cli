@@ -71,9 +71,10 @@ object SlothPatcher:
     else
       val tmpJar = os.temp(prefix = "sloth-entries-", suffix = ".jar", deleteOnExit = false)
       try
-        writeZipEntries(tmpJar, entries)
-        patchJarFile(tmpJar, options, logger).map(readZipEntries)
-      finally os.remove(tmpJar)
+        withOriginalFallback("bytecode zip entries", Right(entries), logger):
+          writeZipEntries(tmpJar, entries)
+          patchJarFile(tmpJar, options, logger).map(readZipEntries)
+      finally if os.exists(tmpJar) then os.remove(tmpJar)
 
   /** ZIP local-file / empty-archive / spanned signatures. */
   private val zipLocalFileHeader: Array[Byte] = Array(0x50, 0x4b, 0x03, 0x04)
@@ -146,67 +147,70 @@ object SlothPatcher:
   private[build] def isJarLike(path: os.Path): Boolean = zipStartOffset(path).isDefined
 
   private def patchIfJar(path: os.Path, logger: Logger): os.Path =
-    zipStartOffset(path) match
-      case Some(offset) =>
-        patchJar(path, offset, logger)
-      case None =>
-        if os.isFile(path) then
-          logger.message(WarningMessages.slothNotAnArchive(path))
-        else
-          logger.debug(s"Sloth skipping non-archive path: $path")
-        path
+    path.orOriginalOnFailure(logger):
+      zipStartOffset(path) match
+        case Some(offset) =>
+          patchJar(path, offset, logger)
+        case None =>
+          if os.isFile(path) then
+            logger.message(WarningMessages.slothNotAnArchive(path))
+          else
+            logger.debug(s"Sloth skipping non-archive path: $path")
+          path
 
   private def patchClassPathEntry(
     path: os.Path,
     patchProjectClassDirs: Boolean,
     logger: Logger
   ): os.Path =
-    zipStartOffset(path) match
-      case Some(offset) =>
-        patchJar(path, offset, logger)
-      case None if patchProjectClassDirs && os.isDir(path) =>
-        patchClassDir(path, logger)
-      case None =>
-        logger.debug(s"Sloth skipping classpath entry: $path")
-        path
+    path.orOriginalOnFailure(logger):
+      zipStartOffset(path) match
+        case Some(offset) =>
+          patchJar(path, offset, logger)
+        case None if patchProjectClassDirs && os.isDir(path) =>
+          patchClassDir(path, logger)
+        case None =>
+          logger.debug(s"Sloth skipping classpath entry: $path")
+          path
 
   private def patchClassDir(dir: os.Path, logger: Logger): os.Path =
-    val dirHash   = sha1OfDir(dir)
-    val cachedDir = cacheDir / Constants.slothVersion / "dirs" / dirHash
-    val cached    = cachedDir / s"${dir.last}.jar"
-    if os.exists(cached) then cached
-    else
-      os.makeDir.all(cachedDir)
-      val tmpInput = os.temp(
-        prefix = "sloth-classdir-",
-        suffix = ".jar",
-        dir = cachedDir,
-        deleteOnExit = false
-      )
-      try
-        val jarred: Either[String, Unit] =
-          try
-            jarDirectory(dir, tmpInput)
-            Right(())
-          catch
-            case NonFatal(e) => Left(e.getMessage)
-        jarred match
-          case Left(errorMsg) =>
-            logger.message(s"Could not patch lazy vals in $dir, using original: $errorMsg")
-            dir
-          case Right(()) =>
-            publishCached(
-              cachedDir,
-              cached,
-              out => runJarProcessor(tmpInput, out).map(_ => ())
-            ) match
-              case Right(cachedPath) =>
-                logger.debug(s"Patched lazy vals in class directory $dir -> $cachedPath")
-                cachedPath
-              case Left(errorMsg) =>
-                logger.message(s"Could not patch lazy vals in $dir, using original: $errorMsg")
-                dir
-      finally if os.exists(tmpInput) then os.remove(tmpInput)
+    dir.orOriginalOnFailure(logger):
+      val dirHash   = sha1OfDir(dir)
+      val cachedDir = cacheDir / Constants.slothVersion / "dirs" / dirHash
+      val cached    = cachedDir / s"${dir.last}.jar"
+      if os.exists(cached) then cached
+      else
+        os.makeDir.all(cachedDir)
+        val tmpInput = os.temp(
+          prefix = "sloth-classdir-",
+          suffix = ".jar",
+          dir = cachedDir,
+          deleteOnExit = false
+        )
+        try
+          val jarred: Either[String, Unit] =
+            try
+              jarDirectory(dir, tmpInput)
+              Right(())
+            catch
+              case NonFatal(e) => Left(e.getMessage)
+          jarred match
+            case Left(errorMsg) =>
+              logger.message(WarningMessages.slothCouldNotPatch(dir.toString, errorMsg))
+              dir
+            case Right(()) =>
+              publishCached(
+                cachedDir,
+                cached,
+                out => runJarProcessor(tmpInput, out).map(_ => ())
+              ) match
+                case Right(cachedPath) =>
+                  logger.debug(s"Patched lazy vals in class directory $dir -> $cachedPath")
+                  cachedPath
+                case Left(errorMsg) =>
+                  logger.message(WarningMessages.slothCouldNotPatch(dir.toString, errorMsg))
+                  dir
+        finally if os.exists(tmpInput) then os.remove(tmpInput)
 
   private def jarDirectory(dir: os.Path, dest: os.Path): Unit =
     val manifest = JarManifests.merged(JarManifests.userManifestIn(dir), Nil)
@@ -336,70 +340,87 @@ object SlothPatcher:
 
   private val unpatchedMarkerName = ".sloth-unpatched"
 
-  private def patchJar(jar: os.Path, zipOffset: Long, logger: Logger): os.Path =
-    val jarHash         = sha1(jar)
-    val cachedDir       = cacheDir / Constants.slothVersion / jarHash
-    val cached          = cachedDir / jar.last
-    val unpatchedMarker = cachedDir / unpatchedMarkerName
-    val signed          = isSigned(jar)
+  private def withOriginalFallback[T](subject: String, original: => T, logger: Logger)(f: => T): T =
+    try f
+    catch
+      case NonFatal(e) =>
+        logger.message(
+          WarningMessages.slothCouldNotPatch(
+            subject,
+            Option(e.getMessage).getOrElse(e.toString)
+          )
+        )
+        original
 
-    if os.exists(cached) then
-      if signed then
-        logger.message(WarningMessages.slothStrippedJarSignatures(jar))
-      cached
-    else if os.exists(unpatchedMarker) then
-      jar
-    else
-      os.makeDir.all(cachedDir)
-      val payloadJar =
-        if zipOffset == 0 then jar
-        else
-          val extracted =
-            os.temp(
-              prefix = "sloth-payload-",
-              suffix = ".jar",
-              dir = cachedDir,
-              deleteOnExit = false
-            )
-          extractZipPayload(jar, zipOffset, extracted)
-          extracted
-      val tmpOutput =
-        os.temp(prefix = "sloth-patch-", suffix = ".tmp", dir = cachedDir, deleteOnExit = false)
-      try
-        runJarProcessor(payloadJar, tmpOutput) match
-          case Left(message) =>
-            logger.message(s"Could not patch lazy vals in $jar, using original: $message")
-            jar
-          case Right(result) =>
-            if result.patchedClasses == 0 then
-              os.write(unpatchedMarker, "", createFolders = true)
-              logger.debug(s"No lazy vals to patch in $jar")
+  extension (path: os.Path)
+    private def orOriginalOnFailure(logger: Logger)(patch: => os.Path): os.Path =
+      withOriginalFallback(path.toString, path, logger)(patch)
+
+  private def patchJar(jar: os.Path, zipOffset: Long, logger: Logger): os.Path =
+    jar.orOriginalOnFailure(logger):
+      val jarHash         = sha1(jar)
+      val cachedDir       = cacheDir / Constants.slothVersion / jarHash
+      val cached          = cachedDir / jar.last
+      val unpatchedMarker = cachedDir / unpatchedMarkerName
+      val signed          = isSigned(jar)
+
+      if os.exists(cached) then
+        if signed then
+          logger.message(WarningMessages.slothStrippedJarSignatures(jar))
+        cached
+      else if os.exists(unpatchedMarker) then
+        jar
+      else
+        os.makeDir.all(cachedDir)
+        val payloadJar =
+          if zipOffset == 0 then jar
+          else
+            val extracted =
+              os.temp(
+                prefix = "sloth-payload-",
+                suffix = ".jar",
+                dir = cachedDir,
+                deleteOnExit = false
+              )
+            extractZipPayload(jar, zipOffset, extracted)
+            extracted
+        val tmpOutput =
+          os.temp(prefix = "sloth-patch-", suffix = ".tmp", dir = cachedDir, deleteOnExit = false)
+        try
+          runJarProcessor(payloadJar, tmpOutput) match
+            case Left(message) =>
+              logger.message(WarningMessages.slothCouldNotPatch(jar.toString, message))
               jar
-            else
-              val patchedPayload =
-                if signed then
-                  val stripped = os.temp(
-                    prefix = "sloth-stripped-",
-                    suffix = ".tmp",
-                    dir = cachedDir,
-                    deleteOnExit = false
-                  )
-                  try
-                    stripSignatures(tmpOutput, stripped)
-                    stripped
-                  catch
-                    case NonFatal(e) =>
-                      if os.exists(stripped) then os.remove(stripped)
-                      throw e
-                else tmpOutput
-              try
-                publishPatchedArchive(jar, zipOffset, patchedPayload, cached, signed, logger)
-              finally
-                if patchedPayload != tmpOutput && os.exists(patchedPayload) then
-                  os.remove(patchedPayload)
-      finally
-        if os.exists(tmpOutput) then os.remove(tmpOutput)
-        if payloadJar != jar && os.exists(payloadJar) then os.remove(payloadJar)
+            case Right(result) =>
+              if result.patchedClasses == 0 then
+                os.write(unpatchedMarker, "", createFolders = true)
+                logger.debug(s"No lazy vals to patch in $jar")
+                jar
+              else
+                val patchedPayload =
+                  if signed then
+                    val stripped = os.temp(
+                      prefix = "sloth-stripped-",
+                      suffix = ".tmp",
+                      dir = cachedDir,
+                      deleteOnExit = false
+                    )
+                    try
+                      stripSignatures(tmpOutput, stripped)
+                      stripped
+                    catch
+                      case NonFatal(e) =>
+                        if os.exists(stripped) then os.remove(stripped)
+                        throw e
+                  else tmpOutput
+                try
+                  publishPatchedArchive(jar, zipOffset, patchedPayload, cached, signed, logger)
+                finally
+                  if patchedPayload != tmpOutput && os.exists(patchedPayload) then
+                    os.remove(patchedPayload)
+        finally
+          if os.exists(tmpOutput) then os.remove(tmpOutput)
+          if payloadJar != jar && os.exists(payloadJar) then os.remove(payloadJar)
 
   private def extractZipPayload(jar: os.Path, zipOffset: Long, dest: os.Path): Unit =
     val size   = os.size(jar)

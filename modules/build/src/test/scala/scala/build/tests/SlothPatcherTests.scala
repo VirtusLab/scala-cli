@@ -475,3 +475,85 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
     val message = WarningMessages.slothStrippedJarSignatures(jarPath)
     assert(message.contains(jarPath.toString), s"Message should contain jar path: $message")
     assert(message.contains("signature"), s"Message should mention signature: $message")
+
+  // --- Corrupt / malformed archive degradation ---
+
+  /** Truncated JAR that still passes zipStartOffset (plausible PK header + EOCD). */
+  private def createCorruptJarWithPlausibleEocd(dest: os.Path): Unit =
+    val valid = dest / os.up / s"${dest.last}.valid"
+    createEmptyJar(valid)
+    val bytes = os.read.bytes(valid)
+    // Keep local-file header bytes and the trailing EOCD (22 bytes) so the sniff
+    // succeeds, but drop the middle so ZipFile / central directory reads fail.
+    os.write.over(dest, bytes.take(40) ++ bytes.takeRight(22), createFolders = true)
+    os.remove(valid)
+
+  test("patchJarFile degrades gracefully on corrupt archive"):
+    TestInputs.withTmpDir("sloth-corrupt-jar-"): root =>
+      val logger     = RecordingLogger()
+      val corruptJar = root / "corrupt.jar"
+      createCorruptJarWithPlausibleEocd(corruptJar)
+      assert(
+        SlothPatcher.zipStartOffset(corruptJar).contains(0L),
+        s"Corrupt fixture must pass zipStartOffset sniff, got ${SlothPatcher.zipStartOffset(corruptJar)}"
+      )
+      val options = optionsWithSloth(enabled = true)
+      val result  = SlothPatcher.patchJarFile(corruptJar, options, logger)
+      assert(result.isRight, s"Expected Right, got: $result")
+      assert(
+        result.toOption.get == corruptJar,
+        s"Expected original path, got: ${result.toOption.get}"
+      )
+      assert(
+        logger.messages.exists(_.contains("using original")),
+        s"Expected 'using original' warning, got: ${logger.messages}"
+      )
+
+  test("transformClassPath degrades gracefully on corrupt classpath entry"):
+    TestInputs.withTmpDir("sloth-corrupt-cp-"): root =>
+      val logger     = RecordingLogger()
+      val goodJar    = root / "good.jar"
+      val corruptJar = root / "corrupt.jar"
+      createEmptyJar(goodJar)
+      createCorruptJarWithPlausibleEocd(corruptJar)
+      assert(SlothPatcher.zipStartOffset(corruptJar).contains(0L))
+      val options   = optionsWithSloth(enabled = true)
+      val classPath = Seq(goodJar, corruptJar)
+      val result    = SlothPatcher.transformClassPath(classPath, options, logger)
+      assert(result.isRight, s"Expected Right, got: $result")
+      val transformed = result.toOption.get
+      assert(transformed.size == 2, s"Expected 2 entries, got: $transformed")
+      assert(
+        transformed(1) == corruptJar,
+        s"Corrupt entry should be left unchanged, got: ${transformed(1)}"
+      )
+      assert(
+        logger.messages.exists(_.contains("using original")),
+        s"Expected 'using original' warning, got: ${logger.messages}"
+      )
+
+  test("patchByteCodeZipEntries degrades gracefully on unwritable entries"):
+    val logger  = RecordingLogger()
+    val tmpRoot = os.Path(sys.props("java.io.tmpdir"))
+    // Duplicate entry names make ZipOutputStream.putNextEntry throw ZipException
+    val entries = Seq(
+      (ZipEntry("Dup.class"), Array[Byte](1, 2, 3)),
+      (ZipEntry("Dup.class"), Array[Byte](4, 5, 6))
+    )
+    val options = optionsWithSloth(enabled = true)
+    val before  = os.list(tmpRoot).toSet
+    val result  = SlothPatcher.patchByteCodeZipEntries(entries, options, logger)
+    assert(result.isRight, s"Expected Right, got: $result")
+    assert(
+      result.toOption.get == entries,
+      s"Expected original entries returned, got: ${result.toOption.get.map(_._1.getName)}"
+    )
+    assert(
+      logger.messages.exists(_.contains("using original")),
+      s"Expected 'using original' warning, got: ${logger.messages}"
+    )
+    val leaked = (os.list(tmpRoot).toSet -- before).filter { p =>
+      p.last.startsWith("sloth-entries-") ||
+      (os.isDir(p) && os.list(p).exists(_.last.startsWith("sloth-entries-")))
+    }
+    assert(leaked.isEmpty, s"Leaked temp entries: $leaked")

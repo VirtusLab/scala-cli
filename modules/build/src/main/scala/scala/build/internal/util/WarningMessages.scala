@@ -183,4 +183,7 @@ object WarningMessages {
 
   def slothNotAnArchive(path: os.Path): String =
     s"Sloth could not patch lazy vals in $path: it is not a JAR archive."
+
+  def slothCouldNotPatch(subject: String, reason: String): String =
+    s"Could not patch lazy vals in $subject, using original: $reason"
 }
