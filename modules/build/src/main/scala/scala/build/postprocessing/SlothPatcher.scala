@@ -62,6 +62,68 @@ object SlothPatcher:
       Right(captureStdio(logger)(patchIfJar(jar, logger)))
     else Right(jar)
 
+  /** In-process memo of class directories covered by [[patchClassDirInPlace]] in this JVM.
+    * Consulted by callers (e.g. `copyOutput`) to skip a redundant second pass over the same bytes;
+    * does not short-circuit [[patchClassDirInPlace]] itself (needed under `--watch`).
+    */
+  private val patchedClassDirsInThisProcess =
+    java.util.concurrent.ConcurrentHashMap.newKeySet[os.Path]()
+
+  def wasPatchedInThisProcess(dir: os.Path): Boolean =
+    patchedClassDirsInThisProcess.contains(dir)
+
+  /** Patch `.class` files under `dir` in place when `--sloth` is enabled and `shouldPatch` is true.
+    * Registers `dir` in the in-process memo once the pass completes (including when nothing needed
+    * patching), so callers can skip re-patching a copy of the same directory.
+    */
+  def patchClassDirInPlace(
+    dir: os.Path,
+    options: BuildOptions,
+    logger: Logger,
+    shouldPatch: Boolean
+  ): Either[BuildException, Unit] =
+    if !options.notForBloopOptions.sloth || !shouldPatch || !os.isDir(dir) then Right(())
+    else
+      Right:
+        captureStdio(logger):
+          try
+            withOriginalFallback(dir.toString, (), logger):
+              val tmpInput =
+                os.temp(prefix = "sloth-inplace-", suffix = ".jar", deleteOnExit = false)
+              val tmpOutput =
+                os.temp(prefix = "sloth-inplace-out-", suffix = ".jar", deleteOnExit = false)
+              try
+                jarDirectory(dir, tmpInput)
+                runJarProcessor(tmpInput, tmpOutput) match
+                  case Left(errorMsg) =>
+                    logger.message(WarningMessages.slothCouldNotPatch(dir.toString, errorMsg))
+                  case Right(result) if result.patchedClasses == 0 =>
+                    logger.debug(s"No lazy vals to patch in place in $dir")
+                  case Right(_) =>
+                    writeBackPatchedClasses(dir, tmpInput, tmpOutput, logger)
+                    logger.debug(s"Patched lazy vals in place in $dir")
+              finally
+                if os.exists(tmpInput) then os.remove(tmpInput)
+                if os.exists(tmpOutput) then os.remove(tmpOutput)
+          finally
+            patchedClassDirsInThisProcess.add(dir)
+
+  private def writeBackPatchedClasses(
+    dir: os.Path,
+    originalJar: os.Path,
+    patchedJar: os.Path,
+    logger: Logger
+  ): Unit =
+    val originalEntries = readZipEntries(originalJar).map((e, b) => e.getName -> b).toMap
+    for (entry, content) <- readZipEntries(patchedJar) do
+      val name = entry.getName
+      if name.endsWith(".class") && !JarManifests.isManifestEntry(name) then
+        val original = originalEntries.get(name)
+        if !original.exists(java.util.Arrays.equals(_, content)) then
+          val dest = dir / os.RelPath(name)
+          os.write.over(dest, content, createFolders = true)
+          logger.debug(s"Wrote patched class $name -> $dest")
+
   def patchByteCodeZipEntries(
     entries: Seq[(ZipEntry, Array[Byte])],
     options: BuildOptions,

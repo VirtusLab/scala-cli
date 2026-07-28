@@ -1171,14 +1171,220 @@ abstract class CompileTestDefinitions
         ).call(cwd = root, stderr = os.Pipe)
 
         val printedClasspath = r.out.trim()
-        expect(printedClasspath.contains(slothCacheSegment))
-        val patchedJar = printedClasspath
-          .split(File.pathSeparator)
-          .map(os.Path(_))
-          .find(p => p.toString.contains(slothCacheSegment) && p.ext == "jar")
-        expect(patchedJar.isDefined)
-        val attrs = jarManifestMainAttributes(patchedJar.get)
-        expect(attrs.get("X-Custom").contains("yes"))
+        val classesMain      = findProjectClassesDir(printedClasspath, root)
+        expect(!classesMain.toString.contains(slothCacheSegment))
+        val manifestPath = classesMain / "META-INF" / "MANIFEST.MF"
+        expect(os.isFile(manifestPath))
+        expect(os.read(manifestPath).contains("X-Custom: yes"))
       }
     }
+
+  if actualScalaVersion.startsWith("3") && !isScala38OrNewer then
+    val lazyValMainSource =
+      """object Main {
+        |  lazy val greeting: String = "Hello from lazy val"
+        |  def main(args: Array[String]): Unit = println(greeting)
+        |}
+        |""".stripMargin
+
+    test("compile --sloth patches the compilation output in place") {
+      TestInputs(os.rel / "Main.scala" -> lazyValMainSource).fromRoot { root =>
+        val withoutSloth = os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          extraOptions,
+          "--print-class-path",
+          "."
+        ).call(cwd = root, stderr = os.Pipe)
+        val unpatchedBytes =
+          classFileBytes(findProjectClassesDir(withoutSloth.out.trim(), root), "Main$")
+
+        val withSloth = os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          extraOptions,
+          slothOptions,
+          "--print-class-path",
+          "."
+        ).call(cwd = root, stderr = os.Pipe)
+        val patchedClasspath = withSloth.out.trim()
+        val patchedClasses   = findProjectClassesDir(patchedClasspath, root)
+        expect(!patchedClasses.toString.contains(slothCacheSegment))
+        val patchedBytes = classFileBytes(patchedClasses, "Main$")
+        expect(!java.util.Arrays.equals(unpatchedBytes, patchedBytes))
+
+        val run = os.proc(
+          jdkTool(latestJava, "java").toString,
+          "-cp",
+          patchedClasspath,
+          "Main"
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(run.out.trim() == "Hello from lazy val")
+        expect(!run.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }
+
+    test("compile --sloth patches classes copied to --compile-output") {
+      TestInputs(os.rel / "Main.scala" -> lazyValMainSource).fromRoot { root =>
+        val outPlain = root / "out-plain"
+        val outSloth = root / "out-sloth"
+
+        val plainCp = os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          extraOptions,
+          "--compile-output",
+          outPlain,
+          "--print-class-path",
+          "."
+        ).call(cwd = root, stderr = os.Pipe).out.trim()
+        val classesMain  = findProjectClassesDir(plainCp, root)
+        val outPlainMain = outPlain / "Main$.class"
+        val outSlothMain = outSloth / "Main$.class"
+        expect(os.isFile(outPlainMain))
+        expect(java.util.Arrays.equals(
+          classFileBytes(classesMain, "Main$"),
+          classFileBytes(outPlain, "Main$")
+        ))
+
+        val slothCp = os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          extraOptions,
+          slothOptions,
+          "--compile-output",
+          outSloth,
+          "--print-class-path",
+          "."
+        ).call(cwd = root, stderr = os.Pipe).out.trim()
+        expect(os.isFile(outSlothMain))
+        expect(!java.util.Arrays.equals(
+          classFileBytes(outPlain, "Main$"),
+          classFileBytes(outSloth, "Main$")
+        ))
+        // The -d copy comes from the already-patched build output, so it matches in-place.
+        expect(java.util.Arrays.equals(
+          classFileBytes(findProjectClassesDir(slothCp, root), "Main$"),
+          classFileBytes(outSloth, "Main$")
+        ))
+
+        val deps = classpathEntries(slothCp)
+          .filterNot(_.startsWith(root / Constants.workspaceDirName))
+          .mkString(File.pathSeparator)
+        val run = os.proc(
+          jdkTool(latestJava, "java").toString,
+          "-cp",
+          s"$outSloth${File.pathSeparator}$deps",
+          "Main"
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(run.out.trim() == "Hello from lazy val")
+        expect(!run.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }
+
+    test("compile --sloth is idempotent across repeated runs") {
+      TestInputs(os.rel / "Main.scala" -> lazyValMainSource).fromRoot { root =>
+        def compileSloth() =
+          os.proc(
+            TestUtil.cli,
+            "--power",
+            "compile",
+            extraOptions,
+            slothOptions,
+            "--print-class-path",
+            "."
+          ).call(cwd = root, stderr = os.Pipe)
+
+        val first      = compileSloth()
+        val firstCp    = first.out.trim()
+        val firstBytes = classFileBytes(findProjectClassesDir(firstCp, root), "Main$")
+
+        val second      = compileSloth()
+        val secondCp    = second.out.trim()
+        val secondBytes = classFileBytes(findProjectClassesDir(secondCp, root), "Main$")
+        expect(java.util.Arrays.equals(firstBytes, secondBytes))
+
+        val run = os.proc(
+          jdkTool(latestJava, "java").toString,
+          "-cp",
+          secondCp,
+          "Main"
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(run.out.trim() == "Hello from lazy val")
+        expect(!run.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }
+
+    test("compile --sloth does not patch the project classes twice") {
+      TestInputs(os.rel / "Main.scala" -> lazyValMainSource).fromRoot { root =>
+        val out = root / "out"
+        val r   = os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          extraOptions,
+          slothOptions,
+          "--compile-output",
+          out,
+          "--print-class-path",
+          "-v",
+          "-v",
+          "."
+        ).call(cwd = root, stderr = os.Pipe)
+
+        val printedClasspath = r.out.trim()
+        val classesMain      = findProjectClassesDir(printedClasspath, root)
+        val outMain          = out / "Main$.class"
+        expect(!classesMain.toString.contains(slothCacheSegment))
+        expect(os.isFile(outMain))
+        expect(java.util.Arrays.equals(
+          classFileBytes(classesMain, "Main$"),
+          classFileBytes(out, "Main$")
+        ))
+
+        val debug = r.err.text()
+        expect(debug.contains("already patched"))
+        // Exactly one in-place patch of the project class directory; the -d copy is skipped.
+        val patchPasses = debug.linesIterator.count { line =>
+          line.contains("Patched lazy vals in class directory") ||
+          line.contains("Patched lazy vals in place")
+        }
+        expect(patchPasses == 1)
+      }
+    }
+
+  test("compile --sloth-agent warns it is not applicable") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("Hello")
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val slothAgentWarnFragment = "The sloth agent is not applicable to compile"
+      val withAgent              = os.proc(
+        TestUtil.cli,
+        "--power",
+        "compile",
+        extraOptions,
+        slothAgentOptions,
+        "."
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(withAgent.out.trim().contains(slothAgentWarnFragment))
+
+      val withSloth = os.proc(
+        TestUtil.cli,
+        "--power",
+        "compile",
+        extraOptions,
+        slothOptions,
+        "."
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(!withSloth.out.trim().contains(slothAgentWarnFragment))
+    }
+  }
 }

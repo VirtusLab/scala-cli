@@ -307,7 +307,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                     }
                   (proc, onExit)
               }
-            successfulBuilds.foreach(_.copyOutput(options.shared))
+            successfulBuilds.foreach(_.copyOutput(options.shared, logger))
             if options.sharedRun.watch.restart
             then processesRef.set(maybeProcesses)
             else {
@@ -352,7 +352,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         .all match {
         case b if b.forall(_.success) =>
           val successfulBuilds = b.collect { case s: Build.Successful => s }
-          successfulBuilds.foreach(_.copyOutput(options.shared))
+          successfulBuilds.foreach(_.copyOutput(options.shared, logger))
           val results = maybeRun(
             builds = successfulBuilds,
             allowTerminate = true,

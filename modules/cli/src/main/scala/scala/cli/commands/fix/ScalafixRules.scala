@@ -73,7 +73,7 @@ object ScalafixRules extends CommandHelpers {
     builds.builds match
       case b if b.forall(_.success) =>
         val successfulBuilds = b.collect { case s: Build.Successful => s }
-        successfulBuilds.foreach(_.copyOutput(sharedOptions))
+        successfulBuilds.foreach(_.copyOutput(sharedOptions, logger))
         val scalacOptions =
           successfulBuilds.headOption.toSeq
             .flatMap(_.options.scalaOptions.scalacOptions.toSeq.map(_.value.value))

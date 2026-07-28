@@ -113,7 +113,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         res.orReport(logger).map(_.all).foreach {
           case b if b.forall(_.success) =>
             val successfulBuilds = b.collect { case s: Build.Successful => s }
-            successfulBuilds.foreach(_.copyOutput(options.shared))
+            successfulBuilds.foreach(_.copyOutput(options.shared, logger))
             val mtimeDestPath = doPackageCrossBuilds(
               logger = logger,
               outputOpt = options.output.filter(_.nonEmpty),
@@ -153,7 +153,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         .all match {
         case b if b.forall(_.success) =>
           val successfulBuilds = b.collect { case s: Build.Successful => s }
-          successfulBuilds.foreach(_.copyOutput(options.shared))
+          successfulBuilds.foreach(_.copyOutput(options.shared, logger))
           val res0 = doPackageCrossBuilds(
             logger = logger,
             outputOpt = options.output.filter(_.nonEmpty),

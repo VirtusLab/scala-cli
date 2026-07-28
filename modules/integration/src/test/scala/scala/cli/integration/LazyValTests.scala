@@ -100,6 +100,28 @@ trait LazyValTests:
     val classpathOpt = output.split(marker).lift(1).map(_.takeWhile(c => c != ' ' && c != '\n'))
     expect(classpathOpt.exists(_.contains(fragment)))
 
+  protected def classpathEntries(classpath: String): Seq[os.Path] =
+    classpath.split(File.pathSeparator).toSeq.filter(_.nonEmpty).map(os.Path(_))
+
+  /** Finds the project `classes/main` (or `classes/test`) directory in a printed classpath. */
+  protected def findProjectClassesDir(
+    classpath: String,
+    root: os.Path,
+    scope: String = "main"
+  ): os.Path =
+    val suffix = Seq("classes", scope).mkString(File.separator)
+    val found  = classpathEntries(classpath).find { p =>
+      p.startsWith(root / Constants.workspaceDirName) && p.toString.endsWith(suffix)
+    }
+    expect(found.isDefined)
+    found.get
+
+  protected def classFileBytes(classesDir: os.Path, className: String): Array[Byte] =
+    val path    = classesDir / s"$className.class"
+    val isClass = os.isFile(path)
+    expect(isClass)
+    os.read.bytes(path)
+
   protected def publishLazyValsLib(
     scalaVersion: String,
     workspace: os.Path,
