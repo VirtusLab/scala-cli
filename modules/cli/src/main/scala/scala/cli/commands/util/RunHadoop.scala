@@ -4,6 +4,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.Runner
 import scala.build.internal.util.WarningMessages
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.{Build, Logger}
 import scala.cli.commands.package0.Package as PackageCmd
 import scala.cli.commands.packaging.Spark
@@ -22,7 +23,9 @@ object RunHadoop {
     // Batch --sloth patching is applied via Package.assembly; the agent cannot be attached to
     // an external `hadoop jar` process.
     if builds.head.options.notForBloopOptions.slothAgent then
-      logger.message(WarningMessages.slothNotApplicable("hadoop jar", forAgent = true))
+      logger.message(
+        s"$warnPrefix ${WarningMessages.slothNotApplicable("hadoop jar", forAgent = true)}"
+      )
     // FIXME Get Spark.hadoopModules via provided settings?
     val providedModules = Spark.hadoopModules
     scratchDirOpt.foreach(os.makeDir.all(_))

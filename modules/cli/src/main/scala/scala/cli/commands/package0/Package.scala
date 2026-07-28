@@ -27,6 +27,7 @@ import scala.build.internal.Util.*
 import scala.build.internal.resource.NativeResourceMapper
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{JarManifests, Runner, ScalaJsLinkerConfig}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.PackageType.Native
 import scala.build.options.{
   BuildOptions,
@@ -290,7 +291,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       val packageType: PackageType = value(resolvePackageType(builds, forcedPackageTypeOpt))
       // Doc jars are the exception: the agent is attached to the scaladoc JVM.
       if builds.head.options.notForBloopOptions.slothAgent && packageType != PackageType.DocJar then
-        logger.message(WarningMessages.slothNotApplicable("package", forAgent = true))
+        logger.message(
+          s"$warnPrefix ${WarningMessages.slothNotApplicable("package", forAgent = true)}"
+        )
       // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
       def extension = packageType match {
@@ -428,7 +431,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       def warnSlothNoOp(reason: String): Unit =
         val notForBloop = builds.head.options.notForBloopOptions
         if notForBloop.sloth || notForBloop.slothAgent then
-          logger.message(WarningMessages.slothNotApplicable(reason))
+          logger.message(s"$warnPrefix ${WarningMessages.slothNotApplicable(reason)}")
 
       val outputPath = packageType match {
         case PackageType.Bootstrap =>
@@ -907,7 +910,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           else
             if options.notForBloopOptions.sloth then
               logger.message(
-                "Could not patch lazy vals in non-standalone bootstrap dependencies; use --standalone for batch patching."
+                s"$warnPrefix ${WarningMessages.slothNonStandaloneBootstrapWarning}"
               )
             ClassPathEntry.Url(url)
       }

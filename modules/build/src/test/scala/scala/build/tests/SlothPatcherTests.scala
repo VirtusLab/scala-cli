@@ -5,6 +5,7 @@ import java.util.jar.{Attributes as JarAttributes, JarOutputStream, Manifest as 
 import java.util.zip.{ZipEntry, ZipFile}
 
 import scala.build.internal.util.WarningMessages
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.{BuildOptions, PostBuildOptions}
 import scala.build.postprocessing.SlothPatcher
 import scala.jdk.CollectionConverters.*
@@ -178,8 +179,12 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       assert(result.isRight)
       assert(result.toOption.get == fakeJar)
       assert(
-        logger.messages.contains(WarningMessages.slothNotAnArchive(fakeJar)),
+        logger.messages.exists(_.contains(WarningMessages.slothNotAnArchive(fakeJar))),
         s"Expected slothNotAnArchive warning, got: ${logger.messages}"
+      )
+      assert(
+        logger.messages.exists(_.startsWith(warnPrefix)),
+        s"Expected warnPrefix on warning, got: ${logger.messages}"
       )
 
   test("transformClassPath stays silent for plain text classpath entry"):
@@ -508,6 +513,10 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         logger.messages.exists(_.contains("using original")),
         s"Expected 'using original' warning, got: ${logger.messages}"
       )
+      assert(
+        logger.messages.exists(_.startsWith(warnPrefix)),
+        s"Expected warnPrefix on warning, got: ${logger.messages}"
+      )
 
   test("transformClassPath degrades gracefully on corrupt classpath entry"):
     TestInputs.withTmpDir("sloth-corrupt-cp-"): root =>
@@ -531,6 +540,10 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         logger.messages.exists(_.contains("using original")),
         s"Expected 'using original' warning, got: ${logger.messages}"
       )
+      assert(
+        logger.messages.exists(_.startsWith(warnPrefix)),
+        s"Expected warnPrefix on warning, got: ${logger.messages}"
+      )
 
   test("patchByteCodeZipEntries degrades gracefully on unwritable entries"):
     val logger  = RecordingLogger()
@@ -551,6 +564,10 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
     assert(
       logger.messages.exists(_.contains("using original")),
       s"Expected 'using original' warning, got: ${logger.messages}"
+    )
+    assert(
+      logger.messages.exists(_.startsWith(warnPrefix)),
+      s"Expected warnPrefix on warning, got: ${logger.messages}"
     )
     val leaked = (os.list(tmpRoot).toSet -- before).filter { p =>
       p.last.startsWith("sloth-entries-") ||

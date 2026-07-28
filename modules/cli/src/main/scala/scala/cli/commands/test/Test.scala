@@ -12,6 +12,7 @@ import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
 import scala.build.postprocessing.{SlothAgent, SlothPatcher}
 import scala.build.testrunner.{AsmTestRunner, Logger as TestRunnerLogger}
@@ -201,7 +202,7 @@ object Test extends ScalaCommand[TestOptions] {
           build.options.notForBloopOptions.slothAgent
         then
           logger.message(
-            WarningMessages.slothNotApplicable("Scala.js (compiles to JavaScript)")
+            s"$warnPrefix ${WarningMessages.slothNotApplicable("Scala.js (compiles to JavaScript)")}"
           )
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
         val esModule     =
@@ -239,7 +240,7 @@ object Test extends ScalaCommand[TestOptions] {
           build.options.notForBloopOptions.slothAgent
         then
           logger.message(
-            WarningMessages.slothNotApplicable("Scala Native (compiles to native)")
+            s"$warnPrefix ${WarningMessages.slothNotApplicable("Scala Native (compiles to native)")}"
           )
         value {
           Run.withNativeLauncher(

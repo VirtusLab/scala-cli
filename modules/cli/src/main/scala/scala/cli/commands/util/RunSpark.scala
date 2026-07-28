@@ -4,6 +4,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.Runner
 import scala.build.internal.util.WarningMessages
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.EnvVar
 import scala.build.postprocessing.{SlothAgent, SlothPatcher}
 import scala.build.{Build, Logger}
@@ -27,7 +28,9 @@ object RunSpark {
     // Batch --sloth can patch the library JAR and --jars classpath; the agent cannot be
     // attached to an external `spark-submit` process.
     if builds.head.options.notForBloopOptions.slothAgent then
-      logger.message(WarningMessages.slothNotApplicable("spark-submit", forAgent = true))
+      logger.message(
+        s"$warnPrefix ${WarningMessages.slothNotApplicable("spark-submit", forAgent = true)}"
+      )
 
     // FIXME Get Spark.sparkModules via provided settings?
     val providedModules = Spark.sparkModules

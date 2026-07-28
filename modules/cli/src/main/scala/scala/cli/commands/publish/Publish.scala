@@ -28,6 +28,7 @@ import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.internal.util.WarningMessages
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.publish.{Developer, License, Signer as PSigner, Vcs}
 import scala.build.options.{
   BuildOptions,
@@ -469,10 +470,12 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     def warnSlothNoOp(reason: String): Unit =
       if notForBloop.sloth || notForBloop.slothAgent then
-        logger.message(WarningMessages.slothNotApplicable(reason))
+        logger.message(s"$warnPrefix ${WarningMessages.slothNotApplicable(reason)}")
 
     if notForBloop.slothAgent then
-      logger.message(WarningMessages.slothNotApplicable("publish", forAgent = true))
+      logger.message(
+        s"$warnPrefix ${WarningMessages.slothNotApplicable("publish", forAgent = true)}"
+      )
 
     val ArtifactData(org, moduleName, ver) = value {
       publishOptions.artifactData(

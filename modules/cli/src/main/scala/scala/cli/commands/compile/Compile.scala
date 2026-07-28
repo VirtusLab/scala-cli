@@ -6,6 +6,7 @@ import caseapp.core.help.HelpFormat
 import java.io.File
 
 import scala.build.internal.util.WarningMessages
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.Scope
 import scala.build.postprocessing.SlothPatcher
 import scala.build.{Build, BuildThreads, Builds, Logger}
@@ -56,7 +57,9 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
       Update.checkUpdateSafe(logger)
 
     if (buildOptions.notForBloopOptions.slothAgent)
-      logger.message(WarningMessages.slothNotApplicable("compile", forAgent = true))
+      logger.message(
+        s"$warnPrefix ${WarningMessages.slothNotApplicable("compile", forAgent = true)}"
+      )
 
     val cross = options.cross.cross.getOrElse(false)
     if (options.printClassPath && cross) {

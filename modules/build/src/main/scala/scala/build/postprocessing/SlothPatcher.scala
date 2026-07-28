@@ -13,6 +13,7 @@ import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 import scala.build.errors.BuildException
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, JarManifests}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.BuildOptions
 import scala.build.{Build, Directories, Logger, coursierVersion, isScala38OrNewer}
 import scala.jdk.CollectionConverters.*
@@ -96,7 +97,9 @@ object SlothPatcher:
                 jarDirectory(dir, tmpInput)
                 runJarProcessor(tmpInput, tmpOutput) match
                   case Left(errorMsg) =>
-                    logger.message(WarningMessages.slothCouldNotPatch(dir.toString, errorMsg))
+                    logger.message(
+                      s"$warnPrefix ${WarningMessages.slothCouldNotPatch(dir.toString, errorMsg)}"
+                    )
                   case Right(result) if result.patchedClasses == 0 =>
                     logger.debug(s"No lazy vals to patch in place in $dir")
                   case Right(_) =>
@@ -206,8 +209,6 @@ object SlothPatcher:
       ((bytes(offset + 2) & 0xff).toLong << 16) |
       ((bytes(offset + 3) & 0xff).toLong << 24)
 
-  private[build] def isJarLike(path: os.Path): Boolean = zipStartOffset(path).isDefined
-
   private def patchIfJar(path: os.Path, logger: Logger): os.Path =
     path.orOriginalOnFailure(logger):
       zipStartOffset(path) match
@@ -215,7 +216,7 @@ object SlothPatcher:
           patchJar(path, offset, logger)
         case None =>
           if os.isFile(path) then
-            logger.message(WarningMessages.slothNotAnArchive(path))
+            logger.message(s"$warnPrefix ${WarningMessages.slothNotAnArchive(path)}")
           else
             logger.debug(s"Sloth skipping non-archive path: $path")
           path
@@ -258,7 +259,9 @@ object SlothPatcher:
               case NonFatal(e) => Left(e.getMessage)
           jarred match
             case Left(errorMsg) =>
-              logger.message(WarningMessages.slothCouldNotPatch(dir.toString, errorMsg))
+              logger.message(
+                s"$warnPrefix ${WarningMessages.slothCouldNotPatch(dir.toString, errorMsg)}"
+              )
               dir
             case Right(()) =>
               publishCached(
@@ -270,7 +273,9 @@ object SlothPatcher:
                   logger.debug(s"Patched lazy vals in class directory $dir -> $cachedPath")
                   cachedPath
                 case Left(errorMsg) =>
-                  logger.message(WarningMessages.slothCouldNotPatch(dir.toString, errorMsg))
+                  logger.message(
+                    s"$warnPrefix ${WarningMessages.slothCouldNotPatch(dir.toString, errorMsg)}"
+                  )
                   dir
         finally if os.exists(tmpInput) then os.remove(tmpInput)
 
@@ -407,10 +412,10 @@ object SlothPatcher:
     catch
       case NonFatal(e) =>
         logger.message(
-          WarningMessages.slothCouldNotPatch(
-            subject,
-            Option(e.getMessage).getOrElse(e.toString)
-          )
+          s"$warnPrefix ${WarningMessages.slothCouldNotPatch(
+              subject,
+              Option(e.getMessage).getOrElse(e.toString)
+            )}"
         )
         original
 
@@ -428,7 +433,7 @@ object SlothPatcher:
 
       if os.exists(cached) then
         if signed then
-          logger.message(WarningMessages.slothStrippedJarSignatures(jar))
+          logger.message(s"$warnPrefix ${WarningMessages.slothStrippedJarSignatures(jar)}")
         cached
       else if os.exists(unpatchedMarker) then
         jar
@@ -451,7 +456,9 @@ object SlothPatcher:
         try
           runJarProcessor(payloadJar, tmpOutput) match
             case Left(message) =>
-              logger.message(WarningMessages.slothCouldNotPatch(jar.toString, message))
+              logger.message(
+                s"$warnPrefix ${WarningMessages.slothCouldNotPatch(jar.toString, message)}"
+              )
               jar
             case Right(result) =>
               if result.patchedClasses == 0 then
@@ -520,7 +527,7 @@ object SlothPatcher:
           catch case _: FileAlreadyExistsException => ()
       copyPermissions(jar, cached)
       if signed then
-        logger.message(WarningMessages.slothStrippedJarSignatures(jar))
+        logger.message(s"$warnPrefix ${WarningMessages.slothStrippedJarSignatures(jar)}")
       logger.debug(s"Patched lazy vals in $jar -> $cached")
       cached
     finally

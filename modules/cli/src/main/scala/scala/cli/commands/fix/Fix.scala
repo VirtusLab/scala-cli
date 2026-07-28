@@ -4,6 +4,7 @@ import caseapp.core.RemainingArgs
 
 import scala.build.EitherCps.{either, value}
 import scala.build.internal.util.WarningMessages
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.{BuildThreads, Logger}
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
@@ -24,7 +25,7 @@ object Fix extends ScalaCommand[FixOptions] {
         !options.enableScalafix
       then
         logger.message(
-          WarningMessages.slothNotApplicable("the fix command without scalafix rules enabled")
+          s"$warnPrefix ${WarningMessages.slothNotApplicable("the fix command without scalafix rules enabled")}"
         )
       if options.enableBuiltInRules then {
         logger.message("Running built-in rules...")

@@ -8,6 +8,7 @@ import scala.build.errors.{BuildException, SlothAgentError}
 import scala.build.internal.Constants
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.util.WarningMessages
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.BuildOptions
 import scala.build.{Artifacts, Logger, Positioned}
 
@@ -29,7 +30,7 @@ object SlothAgent:
     logger: Logger
   ): Unit =
     if options.notForBloopOptions.sloth && options.notForBloopOptions.slothAgent then
-      logger.message(WarningMessages.slothModesMutuallyRedundant)
+      logger.message(s"$warnPrefix ${WarningMessages.slothModesMutuallyRedundant}")
 
   private def fetchAgentJar(
     options: BuildOptions,

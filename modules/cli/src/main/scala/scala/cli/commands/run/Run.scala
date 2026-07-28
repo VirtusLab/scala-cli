@@ -488,7 +488,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               build.options.notForBloopOptions.slothAgent
             then
               logger.message(
-                WarningMessages.slothNotApplicable("Scala.js (compiles to JavaScript)")
+                s"$warnPrefix ${WarningMessages.slothNotApplicable("Scala.js (compiles to JavaScript)")}"
               )
             val runtime  = jsOpts.jsRuntime
             val esModule = true // guaranteed by validateWasm above
@@ -564,7 +564,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                   build.options.notForBloopOptions.slothAgent
                 then
                   logger.message(
-                    WarningMessages.slothNotApplicable("Scala.js (compiles to JavaScript)")
+                    s"$warnPrefix ${WarningMessages.slothNotApplicable("Scala.js (compiles to JavaScript)")}"
                   )
                 val esModule =
                   build.options.scalaJsOptions.moduleKindStr.exists(m =>
@@ -618,7 +618,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                   build.options.notForBloopOptions.slothAgent
                 then
                   logger.message(
-                    WarningMessages.slothNotApplicable("Scala Native (compiles to native)")
+                    s"$warnPrefix ${WarningMessages.slothNotApplicable("Scala Native (compiles to native)")}"
                   )
                 val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
                 val (pythonExecutable, pythonLibraryPaths, pythonExtraEnv) =

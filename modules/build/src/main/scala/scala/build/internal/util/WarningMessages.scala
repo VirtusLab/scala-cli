@@ -186,4 +186,7 @@ object WarningMessages {
 
   def slothCouldNotPatch(subject: String, reason: String): String =
     s"Could not patch lazy vals in $subject, using original: $reason"
+
+  val slothNonStandaloneBootstrapWarning: String =
+    "Could not patch lazy vals in non-standalone bootstrap dependencies; use --standalone for batch patching."
 }

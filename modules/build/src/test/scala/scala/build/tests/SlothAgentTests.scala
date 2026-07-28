@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.build.errors.SlothAgentError
 import scala.build.internal.Constants
 import scala.build.internal.util.WarningMessages
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.{BuildOptions, PostBuildOptions}
 import scala.build.postprocessing.SlothAgent
 
@@ -58,6 +59,7 @@ class SlothAgentTests extends TestUtil.ScalaCliBuildSuite:
       logger
     )
     expect(logger.messages.exists(_.contains(WarningMessages.slothModesMutuallyRedundant)))
+    expect(logger.messages.exists(_.startsWith(warnPrefix)))
 
   test("warnIfRedundantWithBatchPatching is silent when only one mode is enabled"):
     val logger = RecordingLogger()
