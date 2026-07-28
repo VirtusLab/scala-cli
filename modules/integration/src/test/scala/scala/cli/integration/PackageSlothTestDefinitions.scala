@@ -466,3 +466,70 @@ trait PackageSlothTestDefinitions extends LazyValTests:
         expect(!r.err.trim().contains("sun.misc.Unsafe"))
       }
     }
+
+  test(s"package --library --sloth preserves user META-INF/MANIFEST.MF ($ltsOnlyScalaVersion)") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using scala $ltsOnlyScalaVersion
+           |//> using resourceDir resources
+           |object Main {
+           |  lazy val greeting: String = "$expectedMessage"
+           |  def main(args: Array[String]): Unit = println(greeting)
+           |}
+           |""".stripMargin,
+      os.rel / "resources" / "META-INF" / "MANIFEST.MF" -> userManifestResourceContent
+    ).fromRoot { root =>
+      val appJar = root / "app.jar"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        slothOptions,
+        "--library",
+        ".",
+        "-o",
+        appJar
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val attrs = jarManifestMainAttributes(appJar)
+      expect(attrs.get("X-Custom").contains("yes"))
+      expect(attrs.get("Main-Class").contains("Main"))
+      val r = runLibraryJar(root, appJar)
+      expect(r.out.trim().contains(expectedMessage))
+    }
+  }
+
+  test(s"package --assembly --sloth preserves user META-INF/MANIFEST.MF ($ltsOnlyScalaVersion)") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using scala $ltsOnlyScalaVersion
+           |//> using resourceDir resources
+           |object Main {
+           |  lazy val greeting: String = "$expectedMessage"
+           |  def main(args: Array[String]): Unit = println(greeting)
+           |}
+           |""".stripMargin,
+      os.rel / "resources" / "META-INF" / "MANIFEST.MF" -> userManifestResourceContent
+    ).fromRoot { root =>
+      val appJar = root / "app.jar"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        slothOptions,
+        "--assembly",
+        "--preamble=false",
+        ".",
+        "-o",
+        appJar
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val attrs = jarManifestMainAttributes(appJar)
+      expect(attrs.get("X-Custom").contains("yes"))
+      expect(attrs.get("Main-Class").contains("Main"))
+      val r = runAssemblyJar(root, appJar, "Main")
+      expect(r.out.trim().contains(expectedMessage))
+    }
+  }

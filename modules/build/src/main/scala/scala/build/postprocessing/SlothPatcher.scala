@@ -11,8 +11,8 @@ import java.util.jar.{Attributes as JarAttributes, JarOutputStream, Manifest as 
 import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
 import scala.build.errors.BuildException
-import scala.build.internal.Constants
 import scala.build.internal.util.WarningMessages
+import scala.build.internal.{Constants, JarManifests}
 import scala.build.options.BuildOptions
 import scala.build.{Build, Directories, Logger, coursierVersion, isScala38OrNewer}
 import scala.jdk.CollectionConverters.*
@@ -102,32 +102,46 @@ object SlothPatcher:
         deleteOnExit = false
       )
       try
-        jarDirectory(dir, tmpInput)
-        publishCached(cachedDir, cached, out => runJarProcessor(tmpInput, out).map(_ => ())) match
-          case Right(cachedPath) =>
-            logger.debug(s"Patched lazy vals in class directory $dir -> $cachedPath")
-            cachedPath
+        val jarred: Either[String, Unit] =
+          try
+            jarDirectory(dir, tmpInput)
+            Right(())
+          catch
+            case NonFatal(e) => Left(e.getMessage)
+        jarred match
           case Left(errorMsg) =>
             logger.message(s"Could not patch lazy vals in $dir, using original: $errorMsg")
             dir
+          case Right(()) =>
+            publishCached(
+              cachedDir,
+              cached,
+              out => runJarProcessor(tmpInput, out).map(_ => ())
+            ) match
+              case Right(cachedPath) =>
+                logger.debug(s"Patched lazy vals in class directory $dir -> $cachedPath")
+                cachedPath
+              case Left(errorMsg) =>
+                logger.message(s"Could not patch lazy vals in $dir, using original: $errorMsg")
+                dir
       finally if os.exists(tmpInput) then os.remove(tmpInput)
 
   private def jarDirectory(dir: os.Path, dest: os.Path): Unit =
-    val manifest = JarManifest()
-    manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
+    val manifest = JarManifests.merged(JarManifests.userManifestIn(dir), Nil)
     Using.resource(JarOutputStream(os.write.outputStream(dest), manifest)): jos =>
       for
         path <- os.walk(dir)
         if os.isFile(path)
       do
         val relativePath = path.relativeTo(dir).toString.replace('\\', '/')
-        val entry        = ZipEntry(relativePath)
-        entry.setLastModifiedTime(FileTime.fromMillis(os.mtime(path)))
-        val content = os.read.bytes(path)
-        entry.setSize(content.length)
-        jos.putNextEntry(entry)
-        jos.write(content)
-        jos.closeEntry()
+        if !JarManifests.isManifestEntry(relativePath) then
+          val entry = ZipEntry(relativePath)
+          entry.setLastModifiedTime(FileTime.fromMillis(os.mtime(path)))
+          val content = os.read.bytes(path)
+          entry.setSize(content.length)
+          jos.putNextEntry(entry)
+          jos.write(content)
+          jos.closeEntry()
 
   private def sha1OfDir(dir: os.Path): String =
     val md    = MessageDigest.getInstance("SHA-1")

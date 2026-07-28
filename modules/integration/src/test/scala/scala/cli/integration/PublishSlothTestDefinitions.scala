@@ -148,3 +148,33 @@ trait PublishSlothTestDefinitions extends LazyValTests:
         expect(r.out.trim().contains(slothAgentWarnFragment))
       }
     }
+
+    test("publish --sloth preserves user META-INF/MANIFEST.MF from resources") {
+      val projFile =
+        s"""//> using scala ${Constants.scala3Lts}
+           |//> using resourceDir resources
+           |//> using publish.organization $testOrg
+           |//> using publish.name $testName
+           |//> using publish.version $testVersion
+           |
+           |object Main {
+           |  lazy val greeting: String = "$expectedMessage"
+           |  def main(args: Array[String]): Unit = println(greeting)
+           |}
+           |""".stripMargin
+      TestInputs(
+        os.rel / "Main.scala"                             -> projFile,
+        os.rel / "resources" / "META-INF" / "MANIFEST.MF" -> userManifestResourceContent
+      ).fromRoot { root =>
+        val repo = root / "test-repo"
+        publishToRepo(root, slothOptions, repo)
+        val publishedJar = os.walk(repo)
+          .find(p =>
+            p.last.endsWith(".jar") && !p.last.contains("-sources") && !p.last.contains("-javadoc")
+          )
+          .getOrElse(sys.error(s"Published jar not found under $repo"))
+        val attrs = jarManifestMainAttributes(publishedJar)
+        expect(attrs.get("X-Custom").contains("yes"))
+        expect(attrs.get("Main-Class").contains("Main"))
+      }
+    }

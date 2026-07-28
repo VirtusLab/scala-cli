@@ -121,6 +121,42 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       assert(entries.contains("resource.txt"), s"Missing resource.txt in $entries")
       assert(entries.contains("sub/nested.txt"), s"Missing sub/nested.txt in $entries")
 
+  test("transformClassPath preserves user META-INF/MANIFEST.MF in class dirs"):
+    TestInputs.withTmpDir("sloth-manifest-test-"): root =>
+      val logger   = TestLogger()
+      val classDir = root / "classes"
+      os.makeDir.all(classDir / "META-INF")
+      os.write(classDir / "resource.txt", "test content")
+      os.write(
+        classDir / "META-INF" / "MANIFEST.MF",
+        """Manifest-Version: 1.0
+          |X-Custom: yes
+          |""".stripMargin
+      )
+      val options = optionsWithSloth(enabled = true)
+      val result  = SlothPatcher.transformClassPath(
+        Seq(classDir),
+        options,
+        logger,
+        patchProjectClassDirs = true
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      val patchedPath = result.toOption.get.head
+      assert(patchedPath.ext == "jar", s"Expected jar, got: $patchedPath")
+      Using.resource(ZipFile(patchedPath.toIO)): zf =>
+        val entries = zf.entries().asScala.map(_.getName).toSeq
+        assert(
+          entries.count(_ == "META-INF/MANIFEST.MF") == 1,
+          s"Expected exactly one META-INF/MANIFEST.MF, got: $entries"
+        )
+        assert(entries.contains("resource.txt"), s"Missing resource.txt in $entries")
+        val manifestEntry = zf.getEntry("META-INF/MANIFEST.MF")
+        val manifest      = JarManifest(zf.getInputStream(manifestEntry))
+        assert(
+          manifest.getMainAttributes.getValue("X-Custom") == "yes",
+          s"Expected X-Custom=yes in manifest"
+        )
+
   test("shouldPatchProjectClasses returns false for pure Java project"):
     val result = SlothPatcher.shouldPatchProjectClasses(
       hasJava = true,

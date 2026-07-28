@@ -1146,4 +1146,39 @@ abstract class CompileTestDefinitions
         expect(withSlothAgain.out.trim().contains(slothCacheSegment))
       }
     }
+
+    test("compile --sloth --print-class-path preserves user META-INF/MANIFEST.MF") {
+      val expectedMessage = "Hello"
+      TestInputs(
+        os.rel / "Main.scala" ->
+          s"""//> using scala ${Constants.scala3Lts}
+             |//> using resourceDir resources
+             |object Main {
+             |  lazy val greeting: String = "$expectedMessage"
+             |  def main(args: Array[String]): Unit = println(greeting)
+             |}
+             |""".stripMargin,
+        os.rel / "resources" / "META-INF" / "MANIFEST.MF" -> userManifestResourceContent
+      ).fromRoot { root =>
+        val r = os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          extraOptions,
+          slothOptions,
+          "--print-class-path",
+          "."
+        ).call(cwd = root, stderr = os.Pipe)
+
+        val printedClasspath = r.out.trim()
+        expect(printedClasspath.contains(slothCacheSegment))
+        val patchedJar = printedClasspath
+          .split(File.pathSeparator)
+          .map(os.Path(_))
+          .find(p => p.toString.contains(slothCacheSegment) && p.ext == "jar")
+        expect(patchedJar.isDefined)
+        val attrs = jarManifestMainAttributes(patchedJar.get)
+        expect(attrs.get("X-Custom").contains("yes"))
+      }
+    }
 }

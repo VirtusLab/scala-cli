@@ -79,6 +79,22 @@ trait LazyValTests:
         }
       }.toSeq
 
+  protected def jarManifestMainAttributes(jar: os.Path): Map[String, String] =
+    Using.resource(ZipFile(jar.toIO)): zf =>
+      val entries = zf.entries().asScala.map(_.getName).toSeq
+      expect(entries.count(_ == "META-INF/MANIFEST.MF") == 1)
+      val manifest = new java.util.jar.Manifest(
+        zf.getInputStream(zf.getEntry("META-INF/MANIFEST.MF"))
+      )
+      manifest.getMainAttributes.asScala.map { case (k, v) =>
+        k.toString -> String.valueOf(v)
+      }.toMap
+
+  protected val userManifestResourceContent: String =
+    """Manifest-Version: 1.0
+      |X-Custom: yes
+      |""".stripMargin
+
   protected def expectScaladocClasspathContains(output: String, fragment: String): Unit =
     val marker       = "dotty.tools.scaladoc.Main -classpath "
     val classpathOpt = output.split(marker).lift(1).map(_.takeWhile(c => c != ' ' && c != '\n'))

@@ -188,6 +188,34 @@ class RunTestsDefault extends RunTestDefinitions
     }
   }
 
+  test(
+    s"run --sloth preserves user META-INF/MANIFEST.MF for ${Constants.scala3Lts}"
+  ) {
+    val expectedMessage = "Hello with manifest"
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using resourceDir resources
+           |object Main {
+           |  lazy val greeting: String = "$expectedMessage"
+           |  def main(args: Array[String]): Unit = println(greeting)
+           |}
+           |""".stripMargin,
+      os.rel / "resources" / "META-INF" / "MANIFEST.MF" -> userManifestResourceContent
+    ).fromRoot { root =>
+      val r = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        slothOptions,
+        "--scala",
+        Constants.scala3Lts,
+        "."
+      ).call(cwd = root, stderr = os.Pipe)
+      expect(r.out.trim().contains(expectedMessage))
+    }
+  }
+
   def archLinuxTest(): Unit = {
     val message = "Hello from Scala CLI on Arch Linux"
     val inputs  = TestInputs(
@@ -275,6 +303,24 @@ class RunTestsDefault extends RunTestDefinitions
 
       os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", "--as-jar")
         .call(cwd = root)
+    }
+  }
+
+  test("as jar with user META-INF/MANIFEST.MF resource") {
+    val message = "Hello from as-jar"
+    val inputs  = TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using resourceDir resources
+           |object Main {
+           |  def main(args: Array[String]): Unit = println("$message")
+           |}
+           |""".stripMargin,
+      os.rel / "resources" / "META-INF" / "MANIFEST.MF" -> userManifestResourceContent
+    )
+    inputs.fromRoot { root =>
+      val r = os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", "--as-jar")
+        .call(cwd = root, stderr = os.Pipe)
+      expect(r.out.trim() == message)
     }
   }
 

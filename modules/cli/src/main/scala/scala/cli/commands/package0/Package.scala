@@ -26,7 +26,7 @@ import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
 import scala.build.internal.resource.NativeResourceMapper
 import scala.build.internal.util.WarningMessages
-import scala.build.internal.{Runner, ScalaJsLinkerConfig}
+import scala.build.internal.{JarManifests, Runner, ScalaJsLinkerConfig}
 import scala.build.options.PackageType.Native
 import scala.build.options.{
   BuildOptions,
@@ -434,7 +434,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           value(bootstrap(builds, destPath, value(mainClass), () => alreadyExistsCheck(), logger))
           destPath
         case PackageType.LibraryJar =>
-          val libraryJar0 = Library.libraryJar(builds)
+          val libraryJar0 = Library.libraryJar(builds, mainClassOpt)
           val libraryJar  = value(
             SlothPatcher.patchJarFile(libraryJar0, builds.head.options, logger)
           )
@@ -855,7 +855,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       os.walk(build.output)
         .filter(os.isFile(_))
         .map { path =>
-          val name         = path.relativeTo(build.output).toString
+          val name         = path.relativeTo(build.output).toString.replace('\\', '/')
           val content      = os.read.bytes(path)
           val lastModified = os.mtime(path)
           val entry        = new ZipEntry(name)
@@ -865,14 +865,19 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         }
     }
 
+    val (manifestEntries, nonManifestEntries) =
+      byteCodeZipEntries.partition((entry, _) => JarManifests.isManifestEntry(entry.getName))
+    val baseManifestOpt = manifestEntries.headOption.map(_._2)
+
     val patchedByteCodeZipEntries = value(
-      SlothPatcher.patchByteCodeZipEntries(byteCodeZipEntries, options, logger)
+      SlothPatcher.patchByteCodeZipEntries(nonManifestEntries, options, logger)
     )
 
     // TODO Generate that in memory
     val tmpJar       = os.temp(prefix = destPath.last.stripSuffix(".jar"), suffix = ".jar")
     val tmpJarParams = Parameters.Assembly()
       .withExtraZipEntries(patchedByteCodeZipEntries)
+      .withBaseManifest(baseManifestOpt)
       .withMainClass(mainClass)
     AssemblyGenerator.generate(tmpJarParams, tmpJar.toNIO)
     val tmpJarContent = os.read.bytes(tmpJar)
@@ -1044,7 +1049,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val byteCodeZipEntries = (compiledClassesByOutputDir ++ extraClassesByDefaultOutputDir)
       .distinct
       .map { (outputDir, path) =>
-        val name         = path.relativeTo(outputDir).toString
+        val name         = path.relativeTo(outputDir).toString.replace('\\', '/')
         val content      = os.read.bytes(path)
         val lastModified = os.mtime(path)
         val ent          = new ZipEntry(name)
@@ -1052,6 +1057,10 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         ent.setSize(content.length)
         (ent, content)
       }
+
+    val (manifestEntries, nonManifestEntries) =
+      byteCodeZipEntries.partition((entry, _) => JarManifests.isManifestEntry(entry.getName))
+    val baseManifestOpt = manifestEntries.headOption.map(_._2)
 
     val provided = options.notForBloopOptions.packageOptions.provided ++ extraProvided
     val allJars  =
@@ -1073,7 +1082,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         }
       else None
     val params = Parameters.Assembly()
-      .withExtraZipEntries(byteCodeZipEntries)
+      .withExtraZipEntries(nonManifestEntries)
+      .withBaseManifest(baseManifestOpt)
       .withFiles(jars.map(_.toIO))
       .withMainClass(mainClassOpt)
       .withPreambleOpt(preambleOpt)

@@ -244,7 +244,7 @@ class CachedBinaryTests extends TestUtil.ScalaCliSuite {
 
     for {
       slothOpt <- Seq(Some(true), Some(false), None)
-    } {
+    }
       test(s"should rebuild when --sloth changes from $slothOpt ($additionalMessage)") {
         inputs.withLoadedBuild(
           defaultOptions.copy(
@@ -284,6 +284,5 @@ class CachedBinaryTests extends TestUtil.ScalaCliSuite {
             expect(cacheAfterSlothToggle.changed)
         }
       }
-    }
   }
 }
