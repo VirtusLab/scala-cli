@@ -539,6 +539,18 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       }
     }
 
+  test("sloth directive false") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using sloth false
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow
+      expect(build.options.notForBloopOptions.slothOpt.contains(false))
+    }
+  }
+
   for (
     directive <- Seq(
       "slothAgent",
@@ -560,4 +572,16 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
         expect(build.options.notForBloopOptions.slothAgentOpt.contains(true))
       }
     }
+
+  test("slothAgent directive false") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using slothAgent false
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow
+      expect(build.options.notForBloopOptions.slothAgentOpt.contains(false))
+    }
+  }
 }

@@ -20,7 +20,7 @@ final case class SlothAgent(
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] =
     Right(BuildOptions(
-      notForBloopOptions = PostBuildOptions(slothAgentOpt = Some(true))
+      notForBloopOptions = PostBuildOptions(slothAgentOpt = Some(slothAgent))
     ))
 }
 
