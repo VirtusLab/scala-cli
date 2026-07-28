@@ -288,7 +288,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       }
     else {
       val packageType: PackageType = value(resolvePackageType(builds, forcedPackageTypeOpt))
-      if builds.head.options.notForBloopOptions.slothAgent then
+      // Doc jars are the exception: the agent is attached to the scaladoc JVM.
+      if builds.head.options.notForBloopOptions.slothAgent && packageType != PackageType.DocJar then
         logger.message(WarningMessages.slothNotApplicable("package", forAgent = true))
       // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
@@ -451,8 +452,16 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           else os.write(destPath, content, createFolders = true)
           destPath
         case PackageType.DocJar =>
-          warnSlothNoOp("doc jars (no bytecode)")
-          val docJarPath = value(docJar(builds, logger, extraArgs, withTestScope))
+          // The doc jar itself carries no bytecode, but scaladoc generation runs on the JVM,
+          // so both the classpath patching and the agent apply there.
+          val docJarPath = value(docJar(
+            builds,
+            logger,
+            extraArgs,
+            withTestScope,
+            patchClassPath = true,
+            useSlothAgent = true
+          ))
           value(alreadyExistsCheck())
           if force then os.copy.over(docJarPath, destPath, createFolders = true)
           else os.copy(docJarPath, destPath, createFolders = true)
@@ -654,7 +663,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     logger: Logger,
     extraArgs: Seq[String],
     withTestScope: Boolean,
-    patchClassPath: Boolean = false
+    patchClassPath: Boolean,
+    useSlothAgent: Boolean
   ): Either[BuildException, os.Path] = either {
 
     val workDir   = builds.head.inputs.docJarWorkDir
@@ -675,7 +685,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           logger,
           extraArgs,
           withTestScope,
-          patchClassPath = patchClassPath
+          patchClassPath = patchClassPath,
+          useSlothAgent = useSlothAgent
         )
       )
 

@@ -229,8 +229,8 @@ object Doc extends ScalaCommand[DocOptions] with BuildCommandHelpers {
     logger: Logger,
     extraArgs: Seq[String],
     withTestScope: Boolean,
-    patchClassPath: Boolean = false,
-    useSlothAgent: Boolean = false
+    patchClassPath: Boolean,
+    useSlothAgent: Boolean
   ): Either[BuildException, os.Path] = either {
     val docContentDir = builds.head.scalaParams
       .map(sp => sp -> sp.scalaVersion.startsWith("2.")) match {

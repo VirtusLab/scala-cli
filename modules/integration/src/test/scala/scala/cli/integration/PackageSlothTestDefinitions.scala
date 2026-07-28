@@ -370,7 +370,7 @@ trait PackageSlothTestDefinitions extends LazyValTests:
     }
   }
 
-  test("package doc jar --sloth warns that sloth is not applicable") {
+  test("package --doc --sloth patches the scaladoc classpath") {
     TestInputs(
       os.rel / "Main.scala" -> lazyValApp(ltsOnlyScalaVersion)
     ).fromRoot { root =>
@@ -380,14 +380,41 @@ trait PackageSlothTestDefinitions extends LazyValTests:
         "--power",
         "package",
         extraOptions,
-        "--sloth",
+        slothOptions,
         ".",
         "-o",
         dest,
-        "--doc"
+        "--doc",
+        "-v"
       ).call(cwd = root, mergeErrIntoOut = true)
-      expect(r.out.trim().contains(slothNoOpWarnPrefix))
-      expect(r.out.trim().contains("doc jars"))
+      expect(r.exitCode == 0)
+      expect(os.isFile(dest))
+      expectScaladocClasspathContains(r.out.text(), slothCacheSegment)
+      expect(!r.out.text().contains(slothNoOpWarnPrefix))
+    }
+  }
+
+  test("package --doc --sloth-agent attaches the sloth java agent to scaladoc") {
+    TestInputs(
+      os.rel / "Main.scala" -> lazyValApp(ltsOnlyScalaVersion)
+    ).fromRoot { root =>
+      val dest = root / "doc.jar"
+      val r    = os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        slothAgentOptions,
+        ".",
+        "-o",
+        dest,
+        "--doc",
+        "-v"
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(r.exitCode == 0)
+      expect(os.isFile(dest))
+      expect(r.out.text().contains("-javaagent"))
+      expect(!r.out.text().contains(slothAgentWarnFragment))
     }
   }
 

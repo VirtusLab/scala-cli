@@ -544,7 +544,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               logger = logger,
               extraArgs = Nil,
               withTestScope = withTestScope,
-              patchClassPath = true
+              patchClassPath = true,
+              useSlothAgent = false
             ))
             val docJar: os.Path = workingDir / org / s"$moduleName-$ver-javadoc.jar"
             logger.debug(s"Copying doc jar from $docJarPath to $docJar...")
