@@ -1072,9 +1072,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         allJars.filterNot(providedFilesSet.contains)
       }
 
-    val slothEnabled = options.notForBloopOptions.sloth
-    val preambleOpt  =
-      if withPreamble && !slothEnabled then
+    val preambleOpt =
+      if withPreamble then
         Some {
           Preamble()
             .withOsKind(Properties.isWin)
@@ -1091,13 +1090,6 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     AssemblyGenerator.generate(params, destPath.toNIO)
     val patchedDest = value(SlothPatcher.patchJarFile(destPath, options, logger))
     if patchedDest != destPath then os.copy.over(patchedDest, destPath, createFolders = true)
-    if slothEnabled && withPreamble then
-      val preambleBytes = Preamble()
-        .withOsKind(Properties.isWin)
-        .callsItself(Properties.isWin)
-        .value
-      val jarBytes = os.read.bytes(destPath)
-      os.write.over(destPath, preambleBytes ++ jarBytes, createFolders = true)
     ProcUtil.maybeUpdatePreamble(destPath)
   }
 

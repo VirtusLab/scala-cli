@@ -180,4 +180,7 @@ object WarningMessages {
 
   def slothStrippedJarSignatures(jar: os.Path): String =
     s"Sloth patched lazy vals in the signed JAR $jar; its JAR signature files were removed, as they would no longer match the patched bytecode."
+
+  def slothNotAnArchive(path: os.Path): String =
+    s"Sloth could not patch lazy vals in $path: it is not a JAR archive."
 }

@@ -73,6 +73,126 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       assert(result.isRight)
       assert(result.toOption.get == classDir)
 
+  private def createEmptyJar(jarPath: os.Path): Unit =
+    val manifest = JarManifest()
+    manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
+    Using.resource(JarOutputStream(os.write.outputStream(jarPath), manifest)): jos =>
+      val entry = ZipEntry("resource.txt")
+      jos.putNextEntry(entry)
+      jos.write("hello".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+      jos.closeEntry()
+
+  private def createPreambleLauncher(dest: os.Path, jarBytes: Array[Byte], preamble: String)
+    : Array[Byte] =
+    val preambleBytes = preamble.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+    os.write(dest, preambleBytes ++ jarBytes, createFolders = true)
+    preambleBytes
+
+  test("zipStartOffset returns Some(0) for extension-less archive"):
+    TestInputs.withTmpDir("sloth-zip-offset-"): root =>
+      val archive = root / "lib_no_ext"
+      createEmptyJar(archive)
+      assert(SlothPatcher.zipStartOffset(archive).contains(0L))
+
+  test("zipStartOffset returns preamble length for preamble-carrying archive"):
+    TestInputs.withTmpDir("sloth-zip-offset-"): root =>
+      val plainJar = root / "plain.jar"
+      createEmptyJar(plainJar)
+      val jarBytes = os.read.bytes(plainJar)
+      val preamble =
+        """#!/usr/bin/env sh
+          |exec java -jar "$0" "$@"
+          |""".stripMargin
+      val launcher      = root / "app.jar"
+      val preambleBytes = createPreambleLauncher(launcher, jarBytes, preamble)
+      val offsetOpt     = SlothPatcher.zipStartOffset(launcher)
+      assert(
+        offsetOpt.contains(preambleBytes.length.toLong),
+        s"Expected ${preambleBytes.length}, got $offsetOpt"
+      )
+      val payload = root / "payload.jar"
+      os.write(payload, jarBytes)
+      Using.resource(ZipFile(payload.toIO)): zf =>
+        assert(zf.getEntry("resource.txt") != null)
+
+  test("zipStartOffset returns None for non-archives"):
+    TestInputs.withTmpDir("sloth-zip-offset-"): root =>
+      val fakeJar = root / "fake.jar"
+      os.write(fakeJar, "not a jar")
+      val dir = root / "classes"
+      os.makeDir.all(dir)
+      assert(SlothPatcher.zipStartOffset(fakeJar).isEmpty)
+      assert(SlothPatcher.zipStartOffset(dir).isEmpty)
+      assert(SlothPatcher.zipStartOffset(root / "missing").isEmpty)
+
+  test("patchJarFile attempts patching extension-less archive when sloth enabled"):
+    TestInputs.withTmpDir("sloth-extless-"): root =>
+      val logger  = RecordingLogger()
+      val archive = root / "lib_no_ext"
+      createEmptyJar(archive)
+      val options = optionsWithSloth(enabled = true)
+      val result  = SlothPatcher.patchJarFile(archive, options, logger)
+      assert(result.isRight)
+      assert(
+        logger.debugMessages.exists(_.contains("No lazy vals to patch")),
+        s"Expected patch attempt debug log, got messages=${logger.messages} debug=${logger.debugMessages}"
+      )
+
+  test("patchJarFile attempts patching preamble-carrying archive when sloth enabled"):
+    TestInputs.withTmpDir("sloth-preamble-"): root =>
+      val logger   = RecordingLogger()
+      val plainJar = root / "plain.jar"
+      createEmptyJar(plainJar)
+      val preamble =
+        """#!/usr/bin/env sh
+          |exec java -jar "$0" "$@"
+          |""".stripMargin
+      val launcher      = root / "app.jar"
+      val preambleBytes = createPreambleLauncher(launcher, os.read.bytes(plainJar), preamble)
+      assert(
+        SlothPatcher.zipStartOffset(launcher).contains(preambleBytes.length.toLong),
+        s"Expected zipStartOffset=${preambleBytes.length}, got ${SlothPatcher.zipStartOffset(launcher)}"
+      )
+      val options = optionsWithSloth(enabled = true)
+      val result  = SlothPatcher.patchJarFile(launcher, options, logger)
+      assert(result.isRight)
+      val patched = result.toOption.get
+      val head    = os.read.bytes(patched, offset = 0, count = 2)
+      assert(
+        head.sameElements("#!".getBytes(java.nio.charset.StandardCharsets.UTF_8)),
+        s"Expected patched launcher to keep preamble, got head=${head.toSeq}"
+      )
+      assert(
+        logger.debugMessages.exists(_.contains("No lazy vals to patch")) ||
+        logger.debugMessages.exists(_.contains("Patched lazy vals")),
+        s"Expected patch attempt debug log, got messages=${logger.messages} debug=${logger.debugMessages}"
+      )
+
+  test("patchJarFile warns for non-archive file when sloth enabled"):
+    TestInputs.withTmpDir("sloth-not-archive-"): root =>
+      val logger  = RecordingLogger()
+      val fakeJar = root / "fake.jar"
+      os.write(fakeJar, "not a jar")
+      val options = optionsWithSloth(enabled = true)
+      val result  = SlothPatcher.patchJarFile(fakeJar, options, logger)
+      assert(result.isRight)
+      assert(result.toOption.get == fakeJar)
+      assert(
+        logger.messages.contains(WarningMessages.slothNotAnArchive(fakeJar)),
+        s"Expected slothNotAnArchive warning, got: ${logger.messages}"
+      )
+
+  test("transformClassPath stays silent for plain text classpath entry"):
+    TestInputs.withTmpDir("sloth-silent-"): root =>
+      val logger  = RecordingLogger()
+      val txtFile = root / "readme.txt"
+      os.write(txtFile, "hello")
+      val options = optionsWithSloth(enabled = true)
+      val result  = SlothPatcher.transformClassPath(Seq(txtFile), options, logger)
+      assert(result.isRight)
+      assert(result.toOption.get == Seq(txtFile))
+      assert(logger.messages.isEmpty, s"Expected no message-level output, got: ${logger.messages}")
+
   test("transformClassPath passes through directories when patchProjectClassDirs is false"):
     TestInputs.withTmpDir("sloth-test-"): root =>
       val logger   = TestLogger()

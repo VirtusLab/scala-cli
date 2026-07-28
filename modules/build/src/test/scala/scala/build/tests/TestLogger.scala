@@ -13,9 +13,10 @@ import scala.build.internals.FeatureType
 import scala.collection.mutable.ListBuffer
 import scala.scalanative.build as sn
 
-/** Logger that records all message() and log() calls for test assertions. */
+/** Logger that records all message(), log(), and debug() calls for test assertions. */
 final class RecordingLogger(delegate: Logger = TestLogger()) extends Logger {
-  val messages: ListBuffer[String] = ListBuffer.empty
+  val messages: ListBuffer[String]      = ListBuffer.empty
+  val debugMessages: ListBuffer[String] = ListBuffer.empty
 
   override def error(message: String): Unit      = delegate.error(message)
   override def message(message: => String): Unit = {
@@ -28,8 +29,12 @@ final class RecordingLogger(delegate: Logger = TestLogger()) extends Logger {
     messages += msg
     delegate.log(msg)
   }
-  override def log(s: => String, debug: => String): Unit         = delegate.log(s, debug)
-  override def debug(s: => String): Unit                         = delegate.debug(s)
+  override def log(s: => String, debug: => String): Unit = delegate.log(s, debug)
+  override def debug(s: => String): Unit                 = {
+    val msg = s
+    debugMessages += msg
+    delegate.debug(msg)
+  }
   override def log(diagnostics: Seq[Diagnostic]): Unit           = delegate.log(diagnostics)
   override def log(ex: BuildException): Unit                     = delegate.log(ex)
   override def debug(ex: BuildException): Unit                   = delegate.debug(ex)

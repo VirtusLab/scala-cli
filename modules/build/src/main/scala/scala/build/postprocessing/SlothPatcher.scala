@@ -75,18 +75,100 @@ object SlothPatcher:
         patchJarFile(tmpJar, options, logger).map(readZipEntries)
       finally os.remove(tmpJar)
 
+  /** ZIP local-file / empty-archive / spanned signatures. */
+  private val zipLocalFileHeader: Array[Byte] = Array(0x50, 0x4b, 0x03, 0x04)
+  private val zipEmptyArchive: Array[Byte]    = Array(0x50, 0x4b, 0x05, 0x06)
+  private val zipSpannedArchive: Array[Byte]  = Array(0x50, 0x4b, 0x07, 0x08)
+  private val zipEocdSignature: Array[Byte]   = Array(0x50, 0x4b, 0x05, 0x06)
+  // EOCD is 22 bytes + up to 65535-byte comment
+  private val eocdScanMax: Int = 22 + 65535
+
+  /** Returns the byte offset where ZIP content begins, or None if the path is not a JAR-like
+    * archive. Offset 0 means a plain archive; a positive offset means a launcher preamble precedes
+    * the ZIP payload.
+    */
+  private[build] def zipStartOffset(path: os.Path): Option[Long] =
+    if !os.isFile(path) then None
+    else
+      val size = os.size(path)
+      if size < 4 then None
+      else
+        val header = os.read.bytes(path, offset = 0, count = 4)
+        if isZipSignature(header) then Some(0L)
+        else findPreambleZipOffset(path, size)
+
+  private def isZipSignature(bytes: Array[Byte]): Boolean =
+    bytes.length >= 4 && (
+      bytes.startsWith(zipLocalFileHeader) ||
+      bytes.startsWith(zipEmptyArchive) ||
+      bytes.startsWith(zipSpannedArchive)
+    )
+
+  private def findPreambleZipOffset(path: os.Path, size: Long): Option[Long] =
+    val scanLen = math.min(size, eocdScanMax.toLong).toInt
+    if scanLen < 22 then None
+    else
+      val tail       = os.read.bytes(path, offset = size - scanLen, count = scanLen)
+      val eocdInTail = findEocdOffset(tail)
+      eocdInTail.flatMap { eocdRel =>
+        val eocdPos        = size - scanLen + eocdRel
+        val centralDirSize = readLittleEndianInt(tail, eocdRel + 12)
+        val centralDirOff  = readLittleEndianInt(tail, eocdRel + 16)
+        val preambleLength = eocdPos - centralDirSize - centralDirOff
+        if preambleLength < 0 || preambleLength >= size then None
+        else if preambleLength == 0 then Some(0L)
+        else
+          val atOffset = os.read.bytes(path, offset = preambleLength, count = 4)
+          if isZipSignature(atOffset) ||
+            (centralDirSize == 0 && centralDirOff == 0 && atOffset.startsWith(zipEmptyArchive))
+          then Some(preambleLength)
+          else None
+      }
+
+  private def findEocdOffset(bytes: Array[Byte]): Option[Int] =
+    @annotation.tailrec
+    def loop(i: Int): Option[Int] =
+      if i < 0 then None
+      else if bytes(i) == zipEocdSignature(0) &&
+        bytes(i + 1) == zipEocdSignature(1) &&
+        bytes(i + 2) == zipEocdSignature(2) &&
+        bytes(i + 3) == zipEocdSignature(3)
+      then Some(i)
+      else loop(i - 1)
+    loop(bytes.length - 22)
+
+  private def readLittleEndianInt(bytes: Array[Byte], offset: Int): Long =
+    (bytes(offset) & 0xff).toLong |
+      ((bytes(offset + 1) & 0xff).toLong << 8) |
+      ((bytes(offset + 2) & 0xff).toLong << 16) |
+      ((bytes(offset + 3) & 0xff).toLong << 24)
+
+  private[build] def isJarLike(path: os.Path): Boolean = zipStartOffset(path).isDefined
+
   private def patchIfJar(path: os.Path, logger: Logger): os.Path =
-    if path.ext == "jar" then patchJar(path, logger)
-    else path
+    zipStartOffset(path) match
+      case Some(offset) =>
+        patchJar(path, offset, logger)
+      case None =>
+        if os.isFile(path) then
+          logger.message(WarningMessages.slothNotAnArchive(path))
+        else
+          logger.debug(s"Sloth skipping non-archive path: $path")
+        path
 
   private def patchClassPathEntry(
     path: os.Path,
     patchProjectClassDirs: Boolean,
     logger: Logger
   ): os.Path =
-    if path.ext == "jar" then patchJar(path, logger)
-    else if patchProjectClassDirs && os.isDir(path) then patchClassDir(path, logger)
-    else path
+    zipStartOffset(path) match
+      case Some(offset) =>
+        patchJar(path, offset, logger)
+      case None if patchProjectClassDirs && os.isDir(path) =>
+        patchClassDir(path, logger)
+      case None =>
+        logger.debug(s"Sloth skipping classpath entry: $path")
+        path
 
   private def patchClassDir(dir: os.Path, logger: Logger): os.Path =
     val dirHash   = sha1OfDir(dir)
@@ -254,7 +336,7 @@ object SlothPatcher:
 
   private val unpatchedMarkerName = ".sloth-unpatched"
 
-  private def patchJar(jar: os.Path, logger: Logger): os.Path =
+  private def patchJar(jar: os.Path, zipOffset: Long, logger: Logger): os.Path =
     val jarHash         = sha1(jar)
     val cachedDir       = cacheDir / Constants.slothVersion / jarHash
     val cached          = cachedDir / jar.last
@@ -269,10 +351,22 @@ object SlothPatcher:
       jar
     else
       os.makeDir.all(cachedDir)
+      val payloadJar =
+        if zipOffset == 0 then jar
+        else
+          val extracted =
+            os.temp(
+              prefix = "sloth-payload-",
+              suffix = ".jar",
+              dir = cachedDir,
+              deleteOnExit = false
+            )
+          extractZipPayload(jar, zipOffset, extracted)
+          extracted
       val tmpOutput =
         os.temp(prefix = "sloth-patch-", suffix = ".tmp", dir = cachedDir, deleteOnExit = false)
       try
-        runJarProcessor(jar, tmpOutput) match
+        runJarProcessor(payloadJar, tmpOutput) match
           case Left(message) =>
             logger.message(s"Could not patch lazy vals in $jar, using original: $message")
             jar
@@ -281,36 +375,77 @@ object SlothPatcher:
               os.write(unpatchedMarker, "", createFolders = true)
               logger.debug(s"No lazy vals to patch in $jar")
               jar
-            else if signed then
-              val stripped = os.temp(
-                prefix = "sloth-stripped-",
-                suffix = ".tmp",
-                dir = cachedDir,
-                deleteOnExit = false
-              )
-              try
-                stripSignatures(tmpOutput, stripped)
-                try
-                  os.move(stripped, cached, atomicMove = true, replaceExisting = false)
-                catch
-                  case _: FileAlreadyExistsException | _: AtomicMoveNotSupportedException =>
-                    try os.move(stripped, cached, replaceExisting = false)
-                    catch case _: FileAlreadyExistsException => ()
-                logger.message(WarningMessages.slothStrippedJarSignatures(jar))
-                logger.debug(s"Patched lazy vals in $jar -> $cached")
-                cached
-              finally
-                if os.exists(stripped) then os.remove(stripped)
             else
+              val patchedPayload =
+                if signed then
+                  val stripped = os.temp(
+                    prefix = "sloth-stripped-",
+                    suffix = ".tmp",
+                    dir = cachedDir,
+                    deleteOnExit = false
+                  )
+                  try
+                    stripSignatures(tmpOutput, stripped)
+                    stripped
+                  catch
+                    case NonFatal(e) =>
+                      if os.exists(stripped) then os.remove(stripped)
+                      throw e
+                else tmpOutput
               try
-                os.move(tmpOutput, cached, atomicMove = true, replaceExisting = false)
-              catch
-                case _: FileAlreadyExistsException | _: AtomicMoveNotSupportedException =>
-                  try os.move(tmpOutput, cached, replaceExisting = false)
-                  catch case _: FileAlreadyExistsException => ()
-              logger.debug(s"Patched lazy vals in $jar -> $cached")
-              cached
-      finally if os.exists(tmpOutput) then os.remove(tmpOutput)
+                publishPatchedArchive(jar, zipOffset, patchedPayload, cached, signed, logger)
+              finally
+                if patchedPayload != tmpOutput && os.exists(patchedPayload) then
+                  os.remove(patchedPayload)
+      finally
+        if os.exists(tmpOutput) then os.remove(tmpOutput)
+        if payloadJar != jar && os.exists(payloadJar) then os.remove(payloadJar)
+
+  private def extractZipPayload(jar: os.Path, zipOffset: Long, dest: os.Path): Unit =
+    val size   = os.size(jar)
+    val length = (size - zipOffset).toInt
+    val bytes  = os.read.bytes(jar, offset = zipOffset, count = length)
+    os.write.over(dest, bytes, createFolders = true)
+
+  private def publishPatchedArchive(
+    jar: os.Path,
+    zipOffset: Long,
+    patchedPayload: os.Path,
+    cached: os.Path,
+    signed: Boolean,
+    logger: Logger
+  ): os.Path =
+    val cachedDir = cached / os.up
+    val assembled =
+      if zipOffset == 0 then patchedPayload
+      else
+        val withPreamble = os.temp(
+          prefix = "sloth-preamble-",
+          suffix = ".tmp",
+          dir = cachedDir,
+          deleteOnExit = false
+        )
+        val preamble = os.read.bytes(jar, offset = 0, count = zipOffset.toInt)
+        os.write.over(withPreamble, preamble ++ os.read.bytes(patchedPayload), createFolders = true)
+        withPreamble
+    try
+      try
+        os.move(assembled, cached, atomicMove = true, replaceExisting = false)
+      catch
+        case _: FileAlreadyExistsException | _: AtomicMoveNotSupportedException =>
+          try os.move(assembled, cached, replaceExisting = false)
+          catch case _: FileAlreadyExistsException => ()
+      copyPermissions(jar, cached)
+      if signed then
+        logger.message(WarningMessages.slothStrippedJarSignatures(jar))
+      logger.debug(s"Patched lazy vals in $jar -> $cached")
+      cached
+    finally
+      if assembled != patchedPayload && os.exists(assembled) then os.remove(assembled)
+
+  private def copyPermissions(from: os.Path, to: os.Path): Unit =
+    try os.perms.set(to, os.perms(from))
+    catch case NonFatal(_) => ()
 
   /** Write to a unique temp file in `cachedDir`, then atomically move into `cached`. */
   private def publishCached(

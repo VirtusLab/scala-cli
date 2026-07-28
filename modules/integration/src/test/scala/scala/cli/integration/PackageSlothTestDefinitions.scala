@@ -533,3 +533,38 @@ trait PackageSlothTestDefinitions extends LazyValTests:
       expect(r.out.trim().contains(expectedMessage))
     }
   }
+
+  for {
+    preambleOpts <- Seq(Seq("--preamble=false"), Nil)
+    preambleString = preambleOpts.headOption.getOrElse("assembly with preamble")
+    if !Properties.isWin || preambleOpts.nonEmpty
+  }
+    test(
+      s"package assembly --sloth extension-less output patches lazy vals ($ltsOnlyScalaVersion, $preambleString)"
+    ) {
+      TestInputs(
+        os.rel / "Main.scala" -> lazyValApp(ltsOnlyScalaVersion)
+      ).fromRoot { root =>
+        val app = root / "app_no_jar_ext"
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          extraOptions,
+          slothOptions,
+          "--assembly",
+          preambleOpts,
+          ".",
+          "-o",
+          app
+        ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+        val r = os.proc(
+          jdkTool(latestJava, "java").toString,
+          "-jar",
+          app.toString
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(r.out.trim().contains(expectedMessage))
+        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }

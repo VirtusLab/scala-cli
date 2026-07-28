@@ -216,6 +216,100 @@ class RunTestsDefault extends RunTestDefinitions
     }
   }
 
+  test(
+    s"run --sloth --classpath non-.jar archive patches lazy vals on JDK $latestJava"
+  ) {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """import extlesslib.ExtLessLib
+          |object Main {
+          |  def main(args: Array[String]): Unit = println(ExtLessLib.greeting)
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      // Use a .zip suffix so the compiler accepts the archive on --classpath, while Sloth
+      // must still recognize it by content rather than a `.jar` extension.
+      val lib = packageLazyValsLibrary(Constants.scala3Lts, root, root / "lib.zip")
+      val r   = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        slothOptions,
+        "--classpath",
+        lib,
+        "--jvm",
+        latestJava.toString,
+        "."
+      ).call(cwd = root, stderr = os.Pipe)
+      expect(r.out.trim().contains(signedLibMessage))
+      expect(!r.err.trim().contains("sun.misc.Unsafe"))
+    }
+  }
+
+  if !Properties.isWin then
+    test(
+      s"run --sloth --classpath preamble-carrying assembly patches and preserves preamble on JDK $latestJava"
+    ) {
+      TestInputs(
+        os.rel / "Main.scala" ->
+          """import extlesslib.ExtLessLib
+            |object Main {
+            |  def main(args: Array[String]): Unit = println(ExtLessLib.greeting)
+            |}
+            |""".stripMargin
+      ).fromRoot { root =>
+        val plainLib = packageLazyValsLibrary(Constants.scala3Lts, root, root / "lib.jar")
+        val preamble =
+          """#!/usr/bin/env sh
+            |exec java -jar "$0" "$@"
+            |""".stripMargin
+        val preambleJar = root / "lib-with-preamble.jar"
+        os.write(
+          preambleJar,
+          preamble.getBytes(java.nio.charset.StandardCharsets.UTF_8) ++ os.read.bytes(plainLib)
+        )
+        os.perms.set(preambleJar, "rwxr-xr-x")
+
+        val r = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          extraOptions,
+          slothOptions,
+          "--classpath",
+          preambleJar,
+          "--jvm",
+          latestJava.toString,
+          "."
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(r.out.trim().contains(signedLibMessage))
+        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+
+        val cp = os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          extraOptions,
+          slothOptions,
+          "--print-class-path",
+          "--classpath",
+          preambleJar,
+          "."
+        ).call(cwd = root)
+        val patchedEntry = cp.out.trim().split(java.io.File.pathSeparator).toSeq
+          .map(os.Path(_, root))
+          .find(p => p.last == preambleJar.last && p.toString.contains(slothCacheSegment))
+        expect(patchedEntry.isDefined)
+        val patchedHead = os.read.bytes(patchedEntry.get, offset = 0, count = 2)
+        expect(java.util.Arrays.equals(
+          patchedHead,
+          "#!".getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        ))
+        expect(os.perms(patchedEntry.get).toString.contains("x"))
+      }
+    }
+
   def archLinuxTest(): Unit = {
     val message = "Hello from Scala CLI on Arch Linux"
     val inputs  = TestInputs(

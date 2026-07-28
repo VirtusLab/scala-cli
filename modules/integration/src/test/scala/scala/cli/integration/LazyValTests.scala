@@ -173,6 +173,29 @@ trait LazyValTests:
          |""".stripMargin
     )
 
+  /** Packages a library with lazy vals to `dest` (may be extension-less). Returns `dest`. */
+  protected def packageLazyValsLibrary(
+    scalaVersion: String,
+    workspace: os.Path,
+    dest: os.Path,
+    packageName: String = "extless-lib"
+  ): os.Path =
+    val libDir = workspace / s"$packageName-src"
+    os.write(
+      libDir / "ExtLessLib.scala",
+      s"""//> using scala $scalaVersion
+         |package extlesslib
+         |object ExtLessLib {
+         |  lazy val greeting: String = "$signedLibMessage"
+         |}
+         |""".stripMargin,
+      createFolders = true
+    )
+    os.proc(TestUtil.cli, "--power", "package", "--library", libDir, "-o", dest)
+      .call(cwd = workspace, stdin = os.Inherit, stdout = os.Inherit)
+    os.remove.all(libDir)
+    dest
+
   /** Publishes a library JAR without lazy vals (pure Java or Scala 3.8+) and signs it. Returns the
     * path to the signed JAR.
     */
