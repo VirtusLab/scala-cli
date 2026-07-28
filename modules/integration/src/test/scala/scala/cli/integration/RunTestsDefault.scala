@@ -90,6 +90,49 @@ class RunTestsDefault extends RunTestDefinitions
     }
   }
 
+  test(
+    s"run reflects --sloth toggle for ${Constants.scala3Lts} lazy vals on JDK $latestJava"
+  ) {
+    val expectedMessage = "Hello from toggle"
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""object Main {
+           |  lazy val greeting: String = "$expectedMessage"
+           |  def main(args: Array[String]): Unit = println(greeting)
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      val withSloth = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        slothOptions,
+        "--scala",
+        Constants.scala3Lts,
+        "--jvm",
+        latestJava.toString,
+        "."
+      ).call(cwd = root, stderr = os.Pipe)
+      expect(withSloth.out.trim().contains(expectedMessage))
+      expect(!withSloth.err.trim().contains("sun.misc.Unsafe"))
+
+      val withoutSloth = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        "--scala",
+        Constants.scala3Lts,
+        "--jvm",
+        latestJava.toString,
+        "."
+      ).call(cwd = root, stderr = os.Pipe)
+      expect(withoutSloth.out.trim().contains(expectedMessage))
+      expect(withoutSloth.err.trim().contains("sun.misc.Unsafe"))
+    }
+  }
+
   test("run js --sloth warns that sloth is not applicable") {
     TestInputs(
       os.rel / "Main.scala" ->

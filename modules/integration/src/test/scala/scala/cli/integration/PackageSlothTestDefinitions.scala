@@ -175,6 +175,58 @@ trait PackageSlothTestDefinitions extends LazyValTests:
     }
   }
 
+  for {
+    (label, packageExtraArgs) <- Seq(
+      "library"  -> Seq("--library"),
+      "assembly" -> Seq("--assembly", "--preamble=false")
+    )
+  }
+    test(
+      s"package $label reflects --sloth toggle for $ltsOnlyScalaVersion lazy vals on JDK $latestJava"
+    ) {
+      TestInputs(
+        os.rel / "Main.scala" -> lazyValApp(ltsOnlyScalaVersion)
+      ).fromRoot { root =>
+        val appJar = root / "app.jar"
+
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          extraOptions,
+          slothOptions,
+          packageExtraArgs,
+          ".",
+          "-o",
+          appJar
+        ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+        val withSloth =
+          if label == "library" then runLibraryJar(root, appJar)
+          else runAssemblyJar(root, appJar, "Main")
+        expect(withSloth.out.trim().contains(expectedMessage))
+        expect(!withSloth.err.trim().contains("sun.misc.Unsafe"))
+
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          extraOptions,
+          "--force",
+          packageExtraArgs,
+          ".",
+          "-o",
+          appJar
+        ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+        val withoutSloth =
+          if label == "library" then runLibraryJar(root, appJar)
+          else runAssemblyJar(root, appJar, "Main")
+        expect(withoutSloth.out.trim().contains(expectedMessage))
+        expect(withoutSloth.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }
+
   test(s"package native-image $ltsOnlyScalaVersion --sloth patches classpath on JDK $latestJava") {
     TestUtil.retryOnCi() {
       val dest       = "hello"
@@ -199,6 +251,56 @@ trait PackageSlothTestDefinitions extends LazyValTests:
         expect(os.isFile(root / actualDest))
         val res = os.proc(root / actualDest).call(cwd = root)
         expect(res.out.trim() == expectedMessage)
+      }
+    }
+  }
+
+  test(
+    s"package native-image rebuilds when --sloth is toggled on ($ltsOnlyScalaVersion)"
+  ) {
+    TestUtil.retryOnCi() {
+      val dest       = "hello"
+      val actualDest = if Properties.isWin then "hello.exe" else "hello"
+      val cachedMsg  = "Found cached native image binary."
+      val sharedOpts = extraOptions ++ Seq("--suppress-experimental-feature-warning")
+      TestInputs(
+        os.rel / "Main.scala" -> lazyValApp(ltsOnlyScalaVersion)
+      ).fromRoot { root =>
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          sharedOpts,
+          ".",
+          "--native-image",
+          "-o",
+          dest,
+          "--",
+          "--no-fallback"
+        ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+        expect(os.isFile(root / actualDest))
+        val withoutSlothBytes = os.read.bytes(root / actualDest)
+
+        val withSloth = os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          sharedOpts,
+          "--sloth",
+          "--force",
+          ".",
+          "--native-image",
+          "-o",
+          dest,
+          "--",
+          "--no-fallback"
+        ).call(cwd = root, mergeErrIntoOut = true)
+
+        expect(!withSloth.out.trim().contains(cachedMsg))
+        expect(os.isFile(root / actualDest))
+        val withSlothBytes = os.read.bytes(root / actualDest)
+        expect(!util.Arrays.equals(withoutSlothBytes, withSlothBytes))
       }
     }
   }

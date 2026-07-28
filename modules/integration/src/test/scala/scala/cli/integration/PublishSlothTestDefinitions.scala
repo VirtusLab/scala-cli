@@ -81,6 +81,51 @@ trait PublishSlothTestDefinitions extends LazyValTests:
       }
     }
 
+    test(
+      s"publish reflects --sloth toggle for ${Constants.scala3Lts} lazy vals on JDK $latestJava"
+    ) {
+      val ltsProjFile =
+        s"""//> using scala ${Constants.scala3Lts}
+           |//> using publish.organization $testOrg
+           |//> using publish.name $testName
+           |//> using publish.version $testVersion
+           |
+           |object Main {
+           |  lazy val greeting: String = "$expectedMessage"
+           |  def main(args: Array[String]): Unit = println(greeting)
+           |}
+           |""".stripMargin
+      TestInputs(
+        os.rel / "Main.scala" -> ltsProjFile
+      ).fromRoot { root =>
+        def runPublished(repo: os.Path): os.CommandResult =
+          os.proc(
+            TestUtil.cli,
+            "run",
+            "--dep",
+            dep,
+            "-M",
+            "Main",
+            "--jvm",
+            latestJava.toString,
+            "-r",
+            repo.toNIO.toUri.toASCIIString
+          ).call(cwd = root, stderr = os.Pipe)
+
+        val withSlothRepo = root / "test-repo-sloth"
+        publishToRepo(root, slothOptions, withSlothRepo)
+        val withSloth = runPublished(withSlothRepo)
+        expect(withSloth.out.trim().contains(expectedMessage))
+        expect(!withSloth.err.trim().contains("sun.misc.Unsafe"))
+
+        val withoutSlothRepo = root / "test-repo-no-sloth"
+        publishToRepo(root, Nil, withoutSlothRepo)
+        val withoutSloth = runPublished(withoutSlothRepo)
+        expect(withoutSloth.out.trim().contains(expectedMessage))
+        expect(withoutSloth.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }
+
     for warningKeyword <- Seq("source jars") do
       test(s"publish --sloth warns that sloth is not applicable to $warningKeyword") {
         TestInputs(

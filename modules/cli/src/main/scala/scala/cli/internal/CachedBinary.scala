@@ -75,6 +75,13 @@ object CachedBinary {
     md.update("</config>".getBytes(charset))
     md.update(Constants.version.getBytes)
     md.update(0: Byte)
+    // PostBuildOptions (including --sloth) use HasHashData.nop so they are absent from
+    // BuildOptions.hash; hash sloth explicitly so cached binaries rebuild when it is toggled.
+    md.update("<sloth>".getBytes(charset))
+    for build <- builds do
+      md.update(build.options.notForBloopOptions.sloth.toString.getBytes(charset))
+      md.update(0: Byte)
+    md.update("</sloth>".getBytes(charset))
     for (h <- builds.map(_.options).reduce(_.orElse(_)).hash) {
       md.update(h.getBytes(charset))
       md.update(0: Byte)
