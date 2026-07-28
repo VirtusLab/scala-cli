@@ -102,9 +102,9 @@ object NativeImage {
     if cacheData.changed then {
       val mainJar0          = Library.libraryJar(builds)
       val mainJar           = value(SlothPatcher.patchJarFile(mainJar0, options, logger))
-      val baseClassPath     = mainJar +: builds.flatMap(_.dependencyClassPath).distinct
+      val deps              = builds.flatMap(_.dependencyClassPath).distinct
       val originalClassPath =
-        value(SlothPatcher.transformClassPath(baseClassPath, options, logger))
+        mainJar +: value(SlothPatcher.transformClassPath(deps, options, logger))
 
       ManifestJar.maybeWithManifestClassPath(
         createManifest = Properties.isWin,
