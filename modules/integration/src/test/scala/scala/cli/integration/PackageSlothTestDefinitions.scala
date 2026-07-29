@@ -44,6 +44,11 @@ trait PackageSlothTestDefinitions extends LazyValTests:
        |}
        |""".stripMargin
 
+  /** Assembly preambles are OS-specific: a `.bat` script on Windows, a shell script elsewhere. */
+  private val assemblyPreambleStart: Array[Byte] =
+    val marker = if Properties.isWin then "@echo off" else "#!"
+    marker.getBytes(StandardCharsets.UTF_8)
+
   private def runAssemblyJar(
     root: os.Path,
     appJar: os.Path,
@@ -51,9 +56,8 @@ trait PackageSlothTestDefinitions extends LazyValTests:
     withPreamble: Boolean = false
   ): os.CommandResult =
     if withPreamble then
-      val preambleStart = "#!".getBytes(StandardCharsets.UTF_8)
-      val contentStart  = os.read.bytes(appJar).take(preambleStart.length)
-      expect(util.Arrays.equals(contentStart, preambleStart))
+      val contentStart = os.read.bytes(appJar).take(assemblyPreambleStart.length)
+      expect(util.Arrays.equals(contentStart, assemblyPreambleStart))
     os.proc(
       TestUtil.cli,
       "run",

@@ -29,13 +29,16 @@ trait PublishSlothTestDefinitions extends LazyValTests:
       root: os.Path,
       extraArgs: Seq[String],
       repo: os.Path,
-      mergeErrIntoOut: Boolean = false
-    ): os.CommandResult =
+      mergeErrIntoOut: Boolean = false,
+      scalaVersionOverride: String = actualScalaVersion
+    ): os.CommandResult = {
       val baseCall = os.proc(
         TestUtil.cli,
         "--power",
         "publish",
-        extraOptions,
+        TestUtil.extraOptions,
+        "-S",
+        scalaVersionOverride,
         extraArgs,
         ".",
         "--publish-repo",
@@ -43,6 +46,7 @@ trait PublishSlothTestDefinitions extends LazyValTests:
       )
       if mergeErrIntoOut then baseCall.call(cwd = root, mergeErrIntoOut = true)
       else baseCall.call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+    }
 
     if !isScala38OrNewer then {
       test(s"publish --sloth patches lazy vals on JDK $latestJava") {
@@ -85,8 +89,7 @@ trait PublishSlothTestDefinitions extends LazyValTests:
       s"publish reflects --sloth toggle for ${Constants.scala3Lts} lazy vals on JDK $latestJava"
     ) {
       val ltsProjFile =
-        s"""//> using scala ${Constants.scala3Lts}
-           |//> using publish.organization $testOrg
+        s"""//> using publish.organization $testOrg
            |//> using publish.name $testName
            |//> using publish.version $testVersion
            |
@@ -109,17 +112,18 @@ trait PublishSlothTestDefinitions extends LazyValTests:
             "--jvm",
             latestJava.toString,
             "-r",
-            repo.toNIO.toUri.toASCIIString
+            repo.toNIO.toUri.toASCIIString,
+            extraOptions
           ).call(cwd = root, stderr = os.Pipe)
 
         val withSlothRepo = root / "test-repo-sloth"
-        publishToRepo(root, slothOptions, withSlothRepo)
+        publishToRepo(root, slothOptions, withSlothRepo, scalaVersionOverride = Constants.scala3Lts)
         val withSloth = runPublished(withSlothRepo)
         expect(withSloth.out.trim().contains(expectedMessage))
         expect(!withSloth.err.trim().contains("sun.misc.Unsafe"))
 
         val withoutSlothRepo = root / "test-repo-no-sloth"
-        publishToRepo(root, Nil, withoutSlothRepo)
+        publishToRepo(root, Nil, withoutSlothRepo, scalaVersionOverride = Constants.scala3Lts)
         val withoutSloth = runPublished(withoutSlothRepo)
         expect(withoutSloth.out.trim().contains(expectedMessage))
         expect(withoutSloth.err.trim().contains("sun.misc.Unsafe"))

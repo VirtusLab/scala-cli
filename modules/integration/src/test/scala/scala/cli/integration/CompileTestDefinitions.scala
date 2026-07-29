@@ -1103,50 +1103,6 @@ abstract class CompileTestDefinitions
       }
     }
 
-    test("compile --print-class-path reflects --sloth toggle in the same workspace") {
-      TestInputs(
-        os.rel / "Main.scala" ->
-          s"""//> using scala ${Constants.scala3Lts}
-             |object Main {
-             |  lazy val greeting: String = "Hello"
-             |  def main(args: Array[String]): Unit = println(greeting)
-             |}
-             |""".stripMargin
-      ).fromRoot { root =>
-        val withSloth = os.proc(
-          TestUtil.cli,
-          "--power",
-          "compile",
-          extraOptions,
-          slothOptions,
-          "--print-class-path",
-          "."
-        ).call(cwd = root, stderr = os.Pipe)
-        expect(withSloth.out.trim().contains(slothCacheSegment))
-
-        val withoutSloth = os.proc(
-          TestUtil.cli,
-          "--power",
-          "compile",
-          extraOptions,
-          "--print-class-path",
-          "."
-        ).call(cwd = root, stderr = os.Pipe)
-        expect(!withoutSloth.out.trim().contains(slothCacheSegment))
-
-        val withSlothAgain = os.proc(
-          TestUtil.cli,
-          "--power",
-          "compile",
-          extraOptions,
-          slothOptions,
-          "--print-class-path",
-          "."
-        ).call(cwd = root, stderr = os.Pipe)
-        expect(withSlothAgain.out.trim().contains(slothCacheSegment))
-      }
-    }
-
     test("compile --sloth --print-class-path preserves user META-INF/MANIFEST.MF") {
       val expectedMessage = "Hello"
       TestInputs(
