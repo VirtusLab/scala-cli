@@ -5,6 +5,7 @@ import ch.epfl.scala.bsp4j
 import java.io.File
 import java.net.URI
 import java.nio.file.{NoSuchFileException, Paths}
+import java.util.concurrent.atomic.AtomicReference
 
 import scala.build.errors.Severity
 import scala.build.internal.WrapperParams
@@ -32,6 +33,9 @@ class ConsoleBloopBuildClient(
 
   private val diagnostics0 = new mutable.ListBuffer[(Either[String, os.Path], bsp4j.Diagnostic)]
 
+  private val suspectedClashNames = new AtomicReference(Set.empty[String])
+  private val matchedClashNames   = new AtomicReference(Set.empty[String])
+
   def setGeneratedSources(scope: Scope, newGeneratedSources: Seq[GeneratedSource]) =
     generatedSources(scope) = newGeneratedSources
   def setProjectParams(newParams: Seq[String]): Unit = {
@@ -40,6 +44,20 @@ class ConsoleBloopBuildClient(
   def diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]] =
     if (keepDiagnostics) Some(diagnostics0.result())
     else None
+
+  def setSuspectedClashNames(names: Set[String]): Unit =
+    suspectedClashNames.set(names)
+
+  def detectedShadowingCandidates: Set[String] =
+    matchedClashNames.get()
+
+  private def namesMentionedInMessage(message: String, names: Set[String]): Set[String] =
+    names.filter { name =>
+      message.contains(name) ||
+      message.contains(s"$name$$_") ||
+      message.contains(s"object $name") ||
+      message.contains(s"`$name`")
+    }
 
   private def postProcessDiagnostic(
     path: os.Path,
@@ -81,6 +99,10 @@ class ConsoleBloopBuildClient(
       val path = os.Path(Paths.get(new URI(params.getTextDocument.getUri)).toAbsolutePath)
       val (updatedPath, updatedDiag) = postProcessDiagnostic(path, diag, diagnosticMappings)
         .getOrElse((Right(path), diag))
+      if updatedDiag.getSeverity == bsp4j.DiagnosticSeverity.ERROR then
+        val mentioned = namesMentionedInMessage(updatedDiag.getMessage, suspectedClashNames.get())
+        if mentioned.nonEmpty then
+          matchedClashNames.updateAndGet(_ ++ mentioned)
       if (keepDiagnostics)
         diagnostics0 += updatedPath -> updatedDiag
       ConsoleBloopBuildClient.printFileDiagnostic(logger, updatedPath, updatedDiag)
@@ -137,6 +159,8 @@ class ConsoleBloopBuildClient(
   def clear(): Unit = {
     generatedSources.clear()
     diagnostics0.clear()
+    suspectedClashNames.set(Set.empty)
+    matchedClashNames.set(Set.empty)
     printedStart = false
   }
 }

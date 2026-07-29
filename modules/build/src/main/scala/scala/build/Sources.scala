@@ -6,7 +6,8 @@ import coursier.util.Task
 import java.nio.charset.StandardCharsets
 
 import scala.build.input.Inputs
-import scala.build.internal.{CodeWrapper, WrapperParams}
+import scala.build.internal.ScriptUtils.ScriptDescriptor
+import scala.build.internal.{AmmUtil, CodeWrapper, WrapperParams}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.preprocessing.*
 
@@ -76,6 +77,14 @@ final case class Sources(
   lazy val hasScala =
     (paths.iterator.map(_._1.last) ++ inMemory.iterator.map(_.generatedRelPath.last))
       .exists(_.endsWith(".scala"))
+
+  def scriptTopLevelNames: Seq[ScriptDescriptor] =
+    inMemory.collect {
+      case Sources.InMemory(Right((subPath, filePath)), _, _, Some(_)) =>
+        val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
+        val topLevelName   = pkg.headOption.map(_.raw).getOrElse(wrapper.raw)
+        ScriptDescriptor(topLevelName, subPath, filePath)
+    }
 }
 
 object Sources {
