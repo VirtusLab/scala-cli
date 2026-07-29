@@ -166,4 +166,81 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
         }
       }
   }
+
+  if (isScala38OrNewer)
+    for (oldJvm <- Seq(11, 8).filter(Constants.allJavaVersions.contains)) {
+      test(
+        s"auto-falls back from JAVA_HOME $oldJvm when Scala $actualScalaVersion requires a newer JDK"
+      ) {
+        TestUtil.retryOnCi() {
+          TestInputs(
+            os.rel / "check_java_version.sc" ->
+              """println(System.getProperty("java.version"))""".stripMargin
+          ).fromRoot { root =>
+            val javaHome =
+              os.Path(
+                os.proc(TestUtil.cs, "java-home", "--jvm", oldJvm).call().out.trim(),
+                os.pwd
+              )
+            val res = os
+              .proc(TestUtil.cli, "run", ".", extraOptions)
+              .call(cwd = root, env = Map("JAVA_HOME" -> javaHome.toString), stderr = os.Pipe)
+            val reportedVersion = res.out.trim()
+            expect(
+              reportedVersion.startsWith("17") ||
+              reportedVersion.startsWith("21") ||
+              reportedVersion.startsWith("23") ||
+              reportedVersion.startsWith("24") ||
+              reportedVersion.startsWith("25") ||
+              reportedVersion.startsWith("26")
+            )
+            expect(
+              res.err.text().contains(s"requires at least Java ${Constants.scala38MinJavaVersion}")
+            )
+          }
+        }
+      }
+
+      test(s"errors on explicit --jvm $oldJvm when Scala $actualScalaVersion requires a newer JDK") {
+        TestUtil.retryOnCi() {
+          TestInputs(
+            os.rel / "hello.sc" -> """println("ok")"""
+          ).fromRoot { root =>
+            val res = os
+              .proc(TestUtil.cli, "run", "hello.sc", extraOptions, "--jvm", oldJvm)
+              .call(cwd = root, check = false, stderr = os.Pipe)
+            expect(res.exitCode != 0)
+            expect(
+              res.err.text().contains(s"requires at least Java ${Constants.scala38MinJavaVersion}")
+            )
+          }
+        }
+      }
+    }
+
+  {
+    val newJavaVersion = Constants.allJavaVersions.max
+    if newJavaVersion > 17 && actualScalaVersion == Constants.defaultScala then
+      test(s"warns when JVM $newJavaVersion is newer than Scala 3.0.2 supports") {
+        TestUtil.retryOnCi() {
+          TestInputs(
+            os.rel / "hello.sc" -> """println("ok")"""
+          ).fromRoot { root =>
+            val res = os
+              .proc(
+                TestUtil.cli,
+                "run",
+                "hello.sc",
+                TestUtil.extraOptions,
+                "--jvm",
+                newJavaVersion,
+                "-S",
+                "3.0.2"
+              )
+              .call(cwd = root, check = false, stderr = os.Pipe)
+            expect(res.err.text().contains("only tested up to JDK 17"))
+          }
+        }
+      }
+  }
 }

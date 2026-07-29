@@ -629,6 +629,9 @@ object Build {
     val classesDir0                           = classesRootDir(inputs.workspace, inputs.projectName)
     val (crossSources: CrossSources, inputs0) = value(allInputs(inputs, options, logger))
     val buildOptions                          = crossSources.sharedOptions(options)
+    // Resolve JVM and emit Scala/JVM compatibility warnings before compilation.
+    if buildOptions.platform.value == Platform.JVM then
+      buildOptions.checkAndResolveJavaHome(logger)
     if !buildOptions.suppressWarningOptions.suppressDeprecatedFeatureWarning.getOrElse(false) &&
       buildOptions.scalaParams.exists(_.exists(_.scalaVersion == "2.12.4") &&
       !buildOptions.useBuildServer.contains(false))

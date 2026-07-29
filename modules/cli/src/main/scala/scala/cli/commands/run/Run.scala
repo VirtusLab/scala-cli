@@ -14,7 +14,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.input.*
-import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
+import scala.build.internal.{Constants, Runner, ScalaJdkCompat, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.EnvVar
@@ -81,9 +81,13 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse {
           runMode(options) match {
             case _: RunMode.Spark | RunMode.HadoopJar =>
-              val sparkOrHadoopDefaultJvm = "8"
+              val javaMin  = Constants.mainJavaVersions.min
+              val scalaMin = baseOptions.scalaParams.toOption.flatten
+                .flatMap(sp => ScalaJdkCompat.forScalaVersion(sp.scalaVersion).map(_.minJdk))
+                .getOrElse(javaMin)
+              val sparkOrHadoopDefaultJvm = math.max(javaMin, scalaMin).toString
               logger.message(
-                s"Defaulting the JVM to  $sparkOrHadoopDefaultJvm for Spark/Hadoop runs."
+                s"Defaulting the JVM to $sparkOrHadoopDefaultJvm for Spark/Hadoop runs."
               )
               Some(Positioned.none(sparkOrHadoopDefaultJvm))
             case RunMode.Default => None

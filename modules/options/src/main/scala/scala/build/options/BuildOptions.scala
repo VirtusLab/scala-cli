@@ -10,6 +10,7 @@ import java.io.File
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.build.EitherCps.{either, value}
 import scala.build.actionable.ActionablePreprocessor
@@ -22,7 +23,7 @@ import scala.build.internal.Regexes.{
   scala3RcNicknameRegex,
   scala3RcRegex
 }
-import scala.build.internal.{Constants, OsLibc, Util}
+import scala.build.internal.{Constants, OsLibc, ScalaJdkCompat, Util}
 import scala.build.internals.EnvVar
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned, RepositoryUtils}
@@ -260,19 +261,99 @@ final case class BuildOptions(
 
   lazy val archiveCache: ArchiveCache[Task] = ArchiveCache().withCache(finalCache)
 
-  private lazy val javaCommand0: Positioned[JavaHomeInfo] =
-    javaHomeLocation().map(JavaHomeInfo(_))
+  private def userSetJvm: Boolean =
+    javaOptions.javaHomeOpt.isDefined || javaOptions.jvmIdOpt.isDefined
+
+  private lazy val autoJvmMinOpt: Option[Int] =
+    if userSetJvm then None
+    else
+      scalaParams.toOption.flatten
+        .flatMap(sp => ScalaJdkCompat.forScalaVersion(sp.scalaVersion).map(_.minJdk))
+
+  private lazy val effectiveJavaOptions: JavaOptions =
+    autoJvmMinOpt match
+      case Some(minJdk) if !localJvmVersionOpt.exists(_ >= minJdk) =>
+        javaOptions.copy(jvmIdOpt =
+          Some(Positioned(Position.Custom("DEFAULT"), minJdk.toString))
+        )
+      case _ => javaOptions
 
   def javaHomeLocationOpt(): Option[Positioned[os.Path]] =
-    javaOptions.javaHomeLocationOpt(archiveCache, finalCache, internal.verbosityOrDefault)
+    effectiveJavaOptions.javaHomeLocationOpt(archiveCache, finalCache, internal.verbosityOrDefault)
 
   def javaHomeLocation(): Positioned[os.Path] =
-    javaOptions.javaHomeLocation(archiveCache, finalCache, internal.verbosityOrDefault)
+    effectiveJavaOptions.javaHomeLocation(archiveCache, finalCache, internal.verbosityOrDefault)
 
-  def javaHome(): Positioned[JavaHomeInfo] = javaCommand0
+  private lazy val resolvedJavaHome: Positioned[JavaHomeInfo] =
+    javaHomeLocation().map(JavaHomeInfo(_))
+
+  def javaHome(): Positioned[JavaHomeInfo] = resolvedJavaHome
+
+  /** Resolve the JVM and emit Scala/JVM compatibility warnings.
+    *
+    * Errors (`logger.exit`) fire on every call; warnings fire at most once per `BuildOptions`. Call
+    * from the top-level build pipeline (e.g. `Build.build`).
+    */
+  def checkAndResolveJavaHome(logger: Logger): Positioned[JavaHomeInfo] =
+    val home = resolvedJavaHome
+    for
+      scalaVersion <- scalaParams.toOption.flatten.map(_.scalaVersion)
+      compat       <- ScalaJdkCompat.forScalaVersion(scalaVersion)
+    do checkJvmCompat(home, scalaVersion, compat, logger)
+    home
+
+  private val compatWarningsEmitted: AtomicBoolean = AtomicBoolean(false)
+
+  private def jvmOriginDescription: String =
+    javaOptions.jvmIdOpt.map(_.value)
+      .orElse(javaOptions.javaHomeOpt.map(_.value.toString))
+      .getOrElse("the selected JVM")
+
+  private def checkJvmCompat(
+    home: Positioned[JavaHomeInfo],
+    scalaVersion: String,
+    compat: ScalaJdkCompat,
+    logger: Logger
+  ): Unit =
+    val jvmVersion = home.value.version
+    if userSetJvm && jvmVersion < compat.minJdk then
+      logger.exit(
+        ScalaJvmIncompatibleError(
+          scalaVersion,
+          jvmVersion,
+          compat.minJdk,
+          jvmOriginDescription,
+          home.positions
+        )
+      )
+    if compatWarningsEmitted.compareAndSet(false, true) then
+      if autoJvmMinOpt.isDefined && localJvmVersionOpt.exists(_ < compat.minJdk) then
+        logger.message(
+          s"""Using JDK ${compat.minJdk} because Scala $scalaVersion requires at least Java ${compat.minJdk}.""".stripMargin
+        )
+      if jvmVersion > compat.maxRecommendedJdk then
+        logger.message(
+          s"""Scala $scalaVersion is only tested up to JDK ${compat.maxRecommendedJdk}, but JDK $jvmVersion is being used.
+             |Consider passing `-S` with a newer Scala version or `--jvm` with an older JDK.""".stripMargin
+        )
+      else if !userSetJvm then
+        for localVersion <- localJvmVersionOpt if localVersion > compat.maxRecommendedJdk do
+          logger.message(
+            s"""The JVM in JAVA_HOME (Java $localVersion) is newer than what Scala $scalaVersion is tested with (up to JDK ${compat.maxRecommendedJdk}).
+               |Using Java $jvmVersion instead.""".stripMargin
+          )
+
+  private def localJvmVersionOpt: Option[Int] =
+    javaOptions.javaHomeLocationOpt(archiveCache, finalCache, internal.verbosityOrDefault)
+      .map(_.value)
+      .orElse {
+        Option(System.getenv("JAVA_HOME")).filter(_.nonEmpty).map(os.Path(_, os.pwd))
+      }
+      .orElse(sys.props.get("java.home").map(os.Path(_, os.pwd)))
+      .map(path => OsLibc.javaHomeVersion(path)._1)
 
   lazy val javaHomeManager: JavaHome =
-    javaOptions.javaHomeManager(archiveCache, finalCache, internal.verbosityOrDefault)
+    effectiveJavaOptions.javaHomeManager(archiveCache, finalCache, internal.verbosityOrDefault)
 
   private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
   private val scala3NightlyRepo = Seq(RepositoryUtils.scala3NightlyRepository.root)
