@@ -1,9 +1,13 @@
 package scala.cli.commands.publish
 
 import coursier.cache.{ArchiveCache, FileCache}
+import coursier.publish.checksum.logger.ChecksumLogger
+import coursier.publish.checksum.{ChecksumType, Checksums}
+import coursier.publish.fileset.FileSet
 import coursier.publish.signing.{GpgSigner, Signer}
 
 import java.net.URI
+import java.time.Instant
 import java.util.function.Supplier
 
 import scala.build.Ops.*
@@ -16,8 +20,35 @@ import scala.cli.config.{ConfigDb, Keys, PasswordOption, PublishCredentials}
 import scala.cli.errors.MissingPublishOptionError
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigPasswordOptionHelpers.*
+import scala.concurrent.ExecutionContextExecutorService
 
 object PublishUtils {
+
+  /** Compute checksum files for the given [[FileSet]].
+    *
+    * Signature files (`.asc`) are excluded — only raw artifacts should carry checksums.
+    */
+  def computeChecksums(
+    fileSet: FileSet,
+    types: Seq[ChecksumType],
+    now: Instant,
+    pool: ExecutionContextExecutorService,
+    logger: => ChecksumLogger
+  ): FileSet = {
+    val withoutSignatures = FileSet(
+      fileSet.elements.filterNot((path, _) =>
+        path.elements.lastOption.exists(_.endsWith(".asc"))
+      )
+    )
+    Checksums(
+      types = types,
+      fileSet = withoutSignatures,
+      now = now,
+      pool = pool,
+      logger = logger
+    ).unsafeRun()(using pool)
+  }
+
   def getBouncyCastleSigner(
     secretKey: PasswordOption,
     secretKeyPasswordOpt: Option[PasswordOption],

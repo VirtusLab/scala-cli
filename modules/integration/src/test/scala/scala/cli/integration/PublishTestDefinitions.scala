@@ -75,12 +75,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
   )
 
   val expectedArtifacts: Set[os.RelPath] = baseExpectedArtifacts
-    .flatMap { n =>
-      Seq(n, n + ".asc")
-    }
-    .flatMap { n =>
-      Seq("", ".md5", ".sha1").map(n + _)
-    }
+    .flatMap(n => Seq("", ".md5", ".sha1").map(n + _) :+ (n + ".asc"))
     .map(os.rel / _)
 
   def expectedSourceEntries(withTestScope: Boolean = false): Set[String] = Set(
