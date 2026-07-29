@@ -116,7 +116,9 @@ object Test extends ScalaCommand[TestOptions] {
               args.unparsed,
               logger,
               allowExecve = allowExit && buildsLen <= 1,
-              asJar = options.shared.asJar
+              asJar = options.shared.asJar,
+              shared = options.shared,
+              threads = threads
             )
             if (printBeforeAfterMessages && idx < buildsLen - 1)
               System.err.println()
@@ -162,27 +164,69 @@ object Test extends ScalaCommand[TestOptions] {
           maybeTest(builds, allowExit = false)
       }
       try WatchUtil.waitForCtrlC(() => watcher.schedule())
-      finally watcher.dispose()
+      finally {
+        watcher.dispose()
+        threads.shutdown()
+      }
     }
-    else {
-      val builds =
-        Build.build(
-          inputs,
-          initialBuildOptions,
-          compilerMaker,
-          None,
-          logger,
-          crossBuilds = cross,
-          buildTests = true,
-          partial = None,
-          actionableDiagnostics = actionableDiagnostics
-        )
-          .orExit(logger)
-      maybeTest(builds, allowExit = true)
-    }
+    else
+      try {
+        val builds =
+          Build.build(
+            inputs,
+            initialBuildOptions,
+            compilerMaker,
+            None,
+            logger,
+            crossBuilds = cross,
+            buildTests = true,
+            partial = None,
+            actionableDiagnostics = actionableDiagnostics
+          )
+            .orExit(logger)
+        maybeTest(builds, allowExit = true)
+      }
+      finally threads.shutdown()
   }
 
   private def testOnce(
+    build: Build.Successful,
+    requireTests: Boolean,
+    args: Seq[String],
+    logger: Logger,
+    asJar: Boolean,
+    allowExecve: Boolean,
+    shared: SharedOptions,
+    threads: BuildThreads
+  ): Either[BuildException, Int] =
+    if shouldRunTestsViaBloop(build, args) then
+      either {
+        val bloopConfig = value(shared.bloopRifleConfig(Some(build.options)))
+        value(BloopTestRunner.run(build, bloopConfig, threads, logger, requireTests, args))
+      }
+    else
+      testOnceWithoutBloop(build, requireTests, args, logger, asJar, allowExecve)
+
+  /** Bloop can run JVM tests compiled into the test project; fall back to the subprocess test
+    * runner for other platforms and cases Bloop does not handle yet (JUnit 5, JS/Native toolchains,
+    * markdown or main-scope test sources, explicit frameworks, etc.).
+    */
+  private def shouldRunTestsViaBloop(build: Build.Successful, args: Seq[String]): Boolean =
+    build.options.useBuildServer.getOrElse(true) &&
+    build.options.platform.value == Platform.JVM &&
+    build.project.sources.nonEmpty &&
+    !usesJupiter(build.options.testOptions.frameworks, build.fullClassPath) &&
+    !build.artifacts.hasJavaTestRunner &&
+    args.isEmpty &&
+    build.options.testOptions.frameworks.isEmpty &&
+    !hasZioTestWithoutSbt(build.fullClassPath)
+
+  private def hasZioTestWithoutSbt(classPath: Seq[os.Path]): Boolean = {
+    val classPathStr = classPath.map(_.toString)
+    classPathStr.exists(_.contains("zio-test")) && !classPathStr.exists(_.contains("zio-test-sbt"))
+  }
+
+  private def testOnceWithoutBloop(
     build: Build.Successful,
     requireTests: Boolean,
     args: Seq[String],
@@ -257,6 +301,15 @@ object Test extends ScalaCommand[TestOptions] {
             case Nil             =>
               findTestFramework(classPath.map(_.toNIO), logger).map(Positioned.none).toList
           }
+
+        if build.options.useBuildServer.contains(false) &&
+          build.isLegacyScala3 &&
+          usesJupiter(predefinedTestFrameworks0, classPath)
+        then
+          logger.message(
+            s"JUnit 5 on Scala < 3.3.0 is only supported with the build server enabled (without --server=false)."
+          )
+
         val testOnly = build.options.testOptions.testOnly
 
         val extraArgs =
@@ -281,6 +334,16 @@ object Test extends ScalaCommand[TestOptions] {
           allowExecve = allowExecve
         ).waitFor()
     }
+  }
+
+  private def usesJupiter(
+    frameworks: Seq[Positioned[String]],
+    classPath: Seq[os.Path]
+  ): Boolean = {
+    val classPathStr = classPath.map(_.toString)
+    frameworks.exists(_.value.contains("Jupiter")) ||
+    classPathStr.exists(_.contains("jupiter-interface")) ||
+    classPathStr.exists(_.contains("junit-jupiter"))
   }
 
   private def findTestFramework(classPath: Seq[Path], logger: Logger): Option[String] = {

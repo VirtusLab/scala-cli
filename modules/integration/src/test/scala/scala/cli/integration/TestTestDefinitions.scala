@@ -9,10 +9,14 @@ import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 
 abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  this: TestScalaVersion =>
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
-  private val utestVersion                     = "0.8.3"
-  private val zioTestVersion                   = "2.1.17"
+  this: TestScalaVersion & TestBuildServer =>
+  protected lazy val extraOptions: Seq[String] =
+    scalaVersionArgs ++ buildServerOptions ++ TestUtil.extraOptions
+  private def supportsJupiterTests: Boolean =
+    actualScalaVersion.coursierVersion >= "3.3.0".coursierVersion ||
+    (usesBloop && actualScalaVersion.startsWith("3."))
+  private val utestVersion   = "0.8.3"
+  private val zioTestVersion = "2.1.17"
 
   def successfulTestInputs(directivesString: String =
     s"//> using dep org.scalameta::munit::$munitVersion"): TestInputs = TestInputs(
@@ -629,7 +633,23 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
-  if actualScalaVersion.coursierVersion >= "3.3.0".coursierVersion then
+  if !usesBloop && actualScalaVersion.coursierVersion < "3.3.0".coursierVersion then
+    for javaVersion <- Constants.allJavaVersions.filter(_ >= 17)
+    do
+      test(s"jupiter warns without build server on Java $javaVersion") {
+        successfulJupiterInputs.fromRoot { root =>
+          val res =
+            os.proc(TestUtil.cli, "test", extraOptions, ".", "--jvm", javaVersion)
+              .call(cwd = root, stderr = os.Pipe)
+          expect(
+            res.err.text().contains(
+              "JUnit 5 on Scala < 3.3 is only supported with the build server enabled"
+            )
+          )
+        }
+      }
+
+  if supportsJupiterTests then
     for javaVersion <- Constants.allJavaVersions.filter(_ >= 17)
     do
       test(s"jupiter on Java $javaVersion") {

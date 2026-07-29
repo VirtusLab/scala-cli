@@ -65,6 +65,11 @@ object Build {
       sources.resourceDirs ++ artifacts.compileClassPath
     def fullClassPath: Seq[os.Path]        = Seq(output) ++ dependencyClassPath
     def fullCompileClassPath: Seq[os.Path] = fullClassPath ++ dependencyCompileClassPath
+    def isLegacyScala3: Boolean            =
+      scalaParams.exists { params =>
+        params.scalaVersion.startsWith("3") &&
+        params.scalaVersion.coursierVersion < "3.3.0".coursierVersion
+      }
     private lazy val mainClassesFoundInProject: Seq[String] = MainClass.find(output, logger).sorted
     private lazy val mainClassesFoundOnExtraClasspath: Seq[String] =
       options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger)).sorted
@@ -1090,7 +1095,9 @@ object Build {
       resourceDirs = sources.resourceDirs,
       scope = scope,
       javaHomeOpt = Option(options.javaHomeLocation().value),
-      javacOptions = javacOptions.toList
+      javacOptions = javacOptions.toList,
+      testFrameworkNames =
+        if scope == Scope.Test then options.testOptions.frameworks.map(_.value) else Nil
     )
     project
   }
