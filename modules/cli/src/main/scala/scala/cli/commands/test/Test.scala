@@ -265,12 +265,22 @@ object Test extends ScalaCommand[TestOptions] {
         }
       case Platform.JVM =>
         val classPath0 = build.fullClassPathMaybeAsJar(asJar)
-        val classPath  = value(
-          SlothPatcher.transformClassPath(
+        // The test runner only discovers suites in directory class path entries, so project
+        // classes have to stay directories; only dependency jars may be swapped for patched copies.
+        val classPath1 = value(
+          SlothPatcher.patchClassPathDirsInPlace(
             classPath0,
             build.options,
             logger,
-            patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(Seq(build))
+            shouldPatch = SlothPatcher.shouldPatchProjectClasses(Seq(build))
+          )
+        )
+        val classPath = value(
+          SlothPatcher.transformClassPath(
+            classPath1,
+            build.options,
+            logger,
+            patchProjectClassDirs = false
           )
         )
 

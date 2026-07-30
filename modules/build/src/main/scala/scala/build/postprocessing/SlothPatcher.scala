@@ -10,6 +10,7 @@ import java.security.MessageDigest
 import java.util.jar.{Attributes as JarAttributes, JarOutputStream, Manifest as JarManifest}
 import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
+import scala.build.Ops.EitherIteratorOps
 import scala.build.errors.BuildException
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, JarManifests}
@@ -72,6 +73,26 @@ object SlothPatcher:
 
   def wasPatchedInThisProcess(dir: os.Path): Boolean =
     patchedClassDirsInThisProcess.contains(dir)
+
+  /** Patch the class directories of `classPath` in place, keeping them as directories, and return
+    * `classPath` unchanged so it can be chained into [[transformClassPath]].
+    */
+  def patchClassPathDirsInPlace(
+    classPath: Seq[os.Path],
+    options: BuildOptions,
+    logger: Logger,
+    shouldPatch: Boolean
+  ): Either[BuildException, Seq[os.Path]] =
+    if !options.notForBloopOptions.sloth || !shouldPatch then Right(classPath)
+    else
+      classPath.iterator
+        .filter(containsClassFiles)
+        .map(patchClassDirInPlace(_, options, logger, shouldPatch = true))
+        .sequence0
+        .map(_ => classPath)
+
+  private def containsClassFiles(path: os.Path): Boolean =
+    os.isDir(path) && os.walk.stream(path).find(p => p.ext == "class" && os.isFile(p)).isDefined
 
   /** Patch `.class` files under `dir` in place when `--sloth` is enabled and `shouldPatch` is true.
     * Registers `dir` in the in-process memo once the pass completes (including when nothing needed

@@ -17,6 +17,7 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
       s"test $libScalaVersion lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava ($slothFlag)"
     ) {
       val expectedMessage = "Hello"
+      val marker          = "TEST_BODY_EXECUTED"
       TestInputs.empty.fromRoot { root =>
         val (dep, repoDir) = publishLazyValsLib(libScalaVersion, root)
         os.write(
@@ -27,6 +28,7 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
              |class LazyValsTests extends munit.FunSuite {
              |  test("lazy val from dependency") {
              |    assertEquals(lazyvalslib.LazyValsLib.greeting, "$expectedMessage")
+             |    println("$marker")
              |    println(lazyvalslib.LazyValsLib.greeting)
              |  }
              |}
@@ -44,7 +46,10 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
           "--jvm",
           latestJava
         ).call(cwd = root, stderr = os.Pipe)
-        expect(r.out.trim().contains(expectedMessage))
+        val out = r.out.trim()
+        expect(out.contains(marker))
+        expect(out.contains(expectedMessage))
+        expect(out.contains("1 total"))
         expect(!r.err.trim().contains("sun.misc.Unsafe"))
       }
     }
@@ -56,44 +61,53 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
     testLazyValsUnsafe(highest30, slothFlag)
     testLazyValsUnsafe(Constants.scala3Lts, slothFlag)
 
-  test(
-    s"test user code ${Constants.scala3Lts} lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava (--sloth)"
-  ) {
-    val expectedMessage = "Hello from user test code"
-    TestInputs.empty.fromRoot { root =>
-      os.write(
-        root / "UserLazyVal.scala",
-        s"""object UserLazyVal {
-           |  lazy val greeting: String = "$expectedMessage"
-           |}
-           |""".stripMargin
-      )
-      os.write(
-        root / "UserLazyValsTests.test.scala",
-        s"""//> using dep org.scalameta::munit::$munitVersion
-           |
-           |class UserLazyValsTests extends munit.FunSuite {
-           |  test("user code lazy val") {
-           |    assertEquals(UserLazyVal.greeting, "$expectedMessage")
-           |  }
-           |}
-           |""".stripMargin
-      )
-      val r = os.proc(
-        TestUtil.cli,
-        "test",
-        "--power",
-        "--sloth",
-        ".",
-        "--scala",
-        Constants.scala3Lts,
-        "--jvm",
-        latestJava
-      ).call(cwd = root, stderr = os.Pipe)
-      expect(r.exitCode == 0)
-      expect(!r.err.trim().contains("sun.misc.Unsafe"))
+  // project classes are only patched for Scala < 3.8, so the LTS version is what exercises
+  // patching of the very class dirs the test runner scans for suites
+  for slothFlag <- Seq("--sloth", "--sloth-agent") do
+    test(
+      s"test user code ${Constants.scala3Lts} lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava ($slothFlag)"
+    ) {
+      val expectedMessage = "Hello from user test code"
+      val marker          = "TEST_BODY_EXECUTED"
+      TestInputs.empty.fromRoot { root =>
+        os.write(
+          root / "UserLazyVal.scala",
+          s"""object UserLazyVal {
+             |  lazy val greeting: String = "$expectedMessage"
+             |}
+             |""".stripMargin
+        )
+        os.write(
+          root / "UserLazyValsTests.test.scala",
+          s"""//> using dep org.scalameta::munit::$munitVersion
+             |
+             |class UserLazyValsTests extends munit.FunSuite {
+             |  test("user code lazy val") {
+             |    println("$marker")
+             |    assertEquals(UserLazyVal.greeting, "$expectedMessage")
+             |  }
+             |}
+             |""".stripMargin
+        )
+        val r = os.proc(
+          TestUtil.cli,
+          "test",
+          extraOptions,
+          "--power",
+          slothFlag,
+          ".",
+          "--scala",
+          Constants.scala3Lts,
+          "--jvm",
+          latestJava
+        ).call(cwd = root, stderr = os.Pipe)
+        val out = r.out.trim()
+        expect(r.exitCode == 0)
+        expect(out.contains(marker))
+        expect(out.contains("1 total"))
+        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+      }
     }
-  }
 
   test("test js --sloth warns that sloth is not applicable") {
     TestInputs(

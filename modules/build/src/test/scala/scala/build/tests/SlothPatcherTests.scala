@@ -282,6 +282,115 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
           s"Expected X-Custom=yes in manifest"
         )
 
+  /** Bytecode of a class from the test class path, so patching operates on real input. */
+  private def realClassFileBytes(className: String): Array[Byte] =
+    val resourceName = className.replace('.', '/') + ".class"
+    Using.resource(getClass.getClassLoader.getResourceAsStream(resourceName))(_.readAllBytes())
+
+  private def writeRealClassFile(classDir: os.Path): os.Path =
+    val className = "scala.build.postprocessing.SlothPatcher"
+    val dest      = classDir / os.RelPath(className.replace('.', '/') + ".class")
+    os.write(dest, realClassFileBytes(className), createFolders = true)
+    dest
+
+  test("patchClassPathDirsInPlace keeps class directories as directories"):
+    TestInputs.withTmpDir("sloth-inplace-cp-"): root =>
+      val logger    = TestLogger()
+      val classDir  = root / "classes"
+      val classFile = writeRealClassFile(classDir)
+      val classPath = Seq(classDir)
+      val result    = SlothPatcher.patchClassPathDirsInPlace(
+        classPath,
+        optionsWithSloth(enabled = true),
+        logger,
+        shouldPatch = true
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
+      assert(os.isDir(classDir), s"Expected $classDir to stay a directory")
+      assert(os.isFile(classFile), s"Expected $classFile to stay in place")
+      assert(
+        SlothPatcher.wasPatchedInThisProcess(classDir),
+        s"Expected $classDir to be registered as patched"
+      )
+
+  test("patchClassPathDirsInPlace leaves jars on the classpath untouched"):
+    TestInputs.withTmpDir("sloth-inplace-cp-"): root =>
+      val logger = TestLogger()
+      val jar    = root / "lib.jar"
+      createEmptyJar(jar)
+      val jarBytesBefore = os.read.bytes(jar)
+      val classPath      = Seq(jar)
+      val result         = SlothPatcher.patchClassPathDirsInPlace(
+        classPath,
+        optionsWithSloth(enabled = true),
+        logger,
+        shouldPatch = true
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
+      assert(
+        java.util.Arrays.equals(os.read.bytes(jar), jarBytesBefore),
+        s"Expected $jar to be left untouched"
+      )
+
+  test("patchClassPathDirsInPlace skips directories without class files"):
+    TestInputs.withTmpDir("sloth-inplace-cp-"): root =>
+      val logger      = TestLogger()
+      val resourceDir = root / "resources"
+      os.write(resourceDir / "reference.conf", "answer = 42", createFolders = true)
+      val classPath = Seq(resourceDir)
+      val result    = SlothPatcher.patchClassPathDirsInPlace(
+        classPath,
+        optionsWithSloth(enabled = true),
+        logger,
+        shouldPatch = true
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
+      assert(
+        !SlothPatcher.wasPatchedInThisProcess(resourceDir),
+        s"Expected $resourceDir to be skipped"
+      )
+
+  test("patchClassPathDirsInPlace is a no-op when sloth is disabled"):
+    TestInputs.withTmpDir("sloth-inplace-cp-"): root =>
+      val logger   = TestLogger()
+      val classDir = root / "classes"
+      writeRealClassFile(classDir)
+      val classPath = Seq(classDir)
+      val result    = SlothPatcher.patchClassPathDirsInPlace(
+        classPath,
+        optionsWithSloth(enabled = false),
+        logger,
+        shouldPatch = true
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
+      assert(
+        !SlothPatcher.wasPatchedInThisProcess(classDir),
+        s"Expected $classDir to be left alone when sloth is disabled"
+      )
+
+  test("patchClassPathDirsInPlace is a no-op when shouldPatch is false"):
+    TestInputs.withTmpDir("sloth-inplace-cp-"): root =>
+      val logger   = TestLogger()
+      val classDir = root / "classes"
+      writeRealClassFile(classDir)
+      val classPath = Seq(classDir)
+      val result    = SlothPatcher.patchClassPathDirsInPlace(
+        classPath,
+        optionsWithSloth(enabled = true),
+        logger,
+        shouldPatch = false
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
+      assert(
+        !SlothPatcher.wasPatchedInThisProcess(classDir),
+        s"Expected $classDir to be left alone when shouldPatch is false"
+      )
+
   test("shouldPatchProjectClasses returns false for pure Java project"):
     val result = SlothPatcher.shouldPatchProjectClasses(
       hasJava = true,
