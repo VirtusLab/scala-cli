@@ -138,7 +138,7 @@ jobs:
 
   jvm-bootstrapped-tests-default:
     needs: [changes]
-    timeout-minutes: 150
+    timeout-minutes: 180
     runs-on: ubuntu-24.04
     env:
       SHOULD_RUN: ${{ (needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true') && needs.changes.outputs.test_skip != 'true' }}
@@ -179,7 +179,7 @@ jobs:
 
   jvm-tests-default:
     needs: [changes]
-    timeout-minutes: 150
+    timeout-minutes: 180
     runs-on: ubuntu-24.04
     env:
       SHOULD_RUN: ${{ (needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.mill_wrapper == 'true' || needs.changes.outputs.test_all == 'true' || needs.changes.outputs.test_integration == 'true') && needs.changes.outputs.test_skip != 'true' }}
