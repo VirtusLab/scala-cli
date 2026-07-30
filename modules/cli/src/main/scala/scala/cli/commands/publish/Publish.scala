@@ -3,8 +3,8 @@ package scala.cli.commands.publish
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
 import coursier.core.{Authentication, Configuration}
+import coursier.publish.checksum.ChecksumType
 import coursier.publish.checksum.logger.InteractiveChecksumLogger
-import coursier.publish.checksum.{ChecksumType, Checksums}
 import coursier.publish.fileset.{FileSet, Path}
 import coursier.publish.signing.logger.InteractiveSignerLogger
 import coursier.publish.signing.{NopSigner, Signer}
@@ -911,13 +911,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             .left.map(errors => new MalformedChecksumsError(inputs, errors))
         }
     }
-    val checksums = Checksums(
-      types = checksumTypes,
+    val checksums = PublishUtils.computeChecksums(
       fileSet = fileSet1,
+      types = checksumTypes,
       now = now,
       pool = ec,
       logger = checksumLogger
-    ).unsafeRun()(using ec)
+    )
     val fileSet2 = fileSet1 ++ checksums
 
     val finalFileSet =
