@@ -20,7 +20,13 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
     val logger    = TestLogger()
     val classPath = Seq(os.pwd / "a.jar", os.pwd / "b.jar")
     val options   = optionsWithSloth(enabled = false)
-    val result    = SlothPatcher.transformClassPath(classPath, options, logger)
+    val result    = SlothPatcher.transformClassPath(
+      classPath,
+      options,
+      logger,
+      patchProjectClassDirs = false,
+      projectClassDirs = Set.empty
+    )
     assert(result.isRight)
     assert(result.toOption.get == classPath)
 
@@ -193,7 +199,13 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       val txtFile = root / "readme.txt"
       os.write(txtFile, "hello")
       val options = optionsWithSloth(enabled = true)
-      val result  = SlothPatcher.transformClassPath(Seq(txtFile), options, logger)
+      val result  = SlothPatcher.transformClassPath(
+        Seq(txtFile),
+        options,
+        logger,
+        patchProjectClassDirs = false,
+        projectClassDirs = Set.empty
+      )
       assert(result.isRight)
       assert(result.toOption.get == Seq(txtFile))
       assert(logger.messages.isEmpty, s"Expected no message-level output, got: ${logger.messages}")
@@ -211,7 +223,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         options,
         logger,
-        patchProjectClassDirs = false
+        patchProjectClassDirs = false,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight)
       assert(result.toOption.get == classPath)
@@ -221,6 +234,7 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       val logger   = TestLogger()
       val classDir = root / "classes"
       os.makeDir.all(classDir)
+      writeRealClassFile(classDir)
       os.write(classDir / "resource.txt", "test content")
       os.write(classDir / "sub" / "nested.txt", "nested content", createFolders = true)
       val classPath = Seq(classDir)
@@ -229,7 +243,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         options,
         logger,
-        patchProjectClassDirs = true
+        patchProjectClassDirs = true,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight)
       val transformed = result.toOption.get
@@ -258,12 +273,14 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
           |X-Custom: yes
           |""".stripMargin
       )
+      writeRealClassFile(classDir)
       val options = optionsWithSloth(enabled = true)
       val result  = SlothPatcher.transformClassPath(
         Seq(classDir),
         options,
         logger,
-        patchProjectClassDirs = true
+        patchProjectClassDirs = true,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight, s"Expected Right, got: $result")
       val patchedPath = result.toOption.get.head
@@ -281,6 +298,95 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
           manifest.getMainAttributes.getValue("X-Custom") == "yes",
           s"Expected X-Custom=yes in manifest"
         )
+
+  test("transformClassPath patches external class dirs into cached directory copies"):
+    TestInputs.withTmpDir("sloth-external-dir-"): root =>
+      val logger      = TestLogger()
+      val externalDir = root / "cp"
+      val classFile   = writeRealClassFile(externalDir)
+      val before      = os.read.bytes(classFile)
+      val options     = optionsWithSloth(enabled = true)
+      val result      = SlothPatcher.transformClassPath(
+        Seq(externalDir),
+        options,
+        logger,
+        patchProjectClassDirs = false,
+        projectClassDirs = Set.empty
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      val transformed = result.toOption.get
+      assert(transformed.size == 1)
+      val patched = transformed.head
+      // Either left as-is (nothing to patch) or a cached directory under external-dirs
+      assert(os.isDir(patched), s"Expected directory, got: $patched")
+      assert(
+        java.util.Arrays.equals(os.read.bytes(classFile), before),
+        s"Expected original $classFile to be left untouched"
+      )
+      if patched != externalDir then
+        assert(
+          patched.toString.contains("external-dirs"),
+          s"Expected external-dirs cache path, got: $patched"
+        )
+
+  test("transformClassPath skips resource directories without class files"):
+    TestInputs.withTmpDir("sloth-resources-"): root =>
+      val logger      = TestLogger()
+      val resourceDir = root / "resources"
+      os.write(resourceDir / "reference.conf", "answer = 42", createFolders = true)
+      val options = optionsWithSloth(enabled = true)
+      val result  = SlothPatcher.transformClassPath(
+        Seq(resourceDir),
+        options,
+        logger,
+        patchProjectClassDirs = true,
+        projectClassDirs = Set(resourceDir)
+      )
+      assert(result.isRight)
+      assert(result.toOption.get == Seq(resourceDir))
+
+  test("patchClassPathDirsInPlace leaves non-project directories alone"):
+    TestInputs.withTmpDir("sloth-inplace-external-"): root =>
+      val logger       = TestLogger()
+      val projectDir   = root / "project"
+      val externalDir  = root / "external"
+      val projectFile  = writeRealClassFile(projectDir)
+      val externalFile = writeRealClassFile(externalDir)
+      val before       = os.read.bytes(externalFile)
+      val classPath    = Seq(projectDir, externalDir)
+      val result       = SlothPatcher.patchClassPathDirsInPlace(
+        classPath,
+        optionsWithSloth(enabled = true),
+        logger,
+        shouldPatch = true,
+        projectClassDirs = Set(projectDir)
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      assert(result.toOption.get == classPath)
+      assert(SlothPatcher.wasPatchedInThisProcess(projectDir))
+      assert(!SlothPatcher.wasPatchedInThisProcess(externalDir))
+      assert(java.util.Arrays.equals(os.read.bytes(externalFile), before))
+      assert(os.isFile(projectFile))
+
+  test("classPathEntryAsJar jars directories and patches when sloth is enabled"):
+    TestInputs.withTmpDir("sloth-as-jar-"): root =>
+      val logger = TestLogger()
+      val dir    = root / "cp"
+      writeRealClassFile(dir)
+      val result = SlothPatcher.classPathEntryAsJar(dir, optionsWithSloth(enabled = true), logger)
+      assert(result.isRight, s"Expected Right, got: $result")
+      val jar = result.toOption.get
+      assert(os.isFile(jar) && jar.ext == "jar", s"Expected jar file, got: $jar")
+
+  test("classPathEntryAsJar jars directories without sloth"):
+    TestInputs.withTmpDir("sloth-as-jar-off-"): root =>
+      val logger = TestLogger()
+      val dir    = root / "cp"
+      writeRealClassFile(dir)
+      val result = SlothPatcher.classPathEntryAsJar(dir, optionsWithSloth(enabled = false), logger)
+      assert(result.isRight, s"Expected Right, got: $result")
+      val jar = result.toOption.get
+      assert(os.isFile(jar) && jar.ext == "jar", s"Expected jar file, got: $jar")
 
   /** Bytecode of a class from the test class path, so patching operates on real input. */
   private def realClassFileBytes(className: String): Array[Byte] =
@@ -303,7 +409,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         optionsWithSloth(enabled = true),
         logger,
-        shouldPatch = true
+        shouldPatch = true,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight, s"Expected Right, got: $result")
       assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
@@ -325,7 +432,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         optionsWithSloth(enabled = true),
         logger,
-        shouldPatch = true
+        shouldPatch = true,
+        projectClassDirs = Set.empty
       )
       assert(result.isRight, s"Expected Right, got: $result")
       assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
@@ -344,7 +452,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         optionsWithSloth(enabled = true),
         logger,
-        shouldPatch = true
+        shouldPatch = true,
+        projectClassDirs = Set.empty
       )
       assert(result.isRight, s"Expected Right, got: $result")
       assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
@@ -363,7 +472,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         optionsWithSloth(enabled = false),
         logger,
-        shouldPatch = true
+        shouldPatch = true,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight, s"Expected Right, got: $result")
       assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
@@ -382,7 +492,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         optionsWithSloth(enabled = true),
         logger,
-        shouldPatch = false
+        shouldPatch = false,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight, s"Expected Right, got: $result")
       assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
@@ -637,7 +748,13 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       assert(SlothPatcher.zipStartOffset(corruptJar).contains(0L))
       val options   = optionsWithSloth(enabled = true)
       val classPath = Seq(goodJar, corruptJar)
-      val result    = SlothPatcher.transformClassPath(classPath, options, logger)
+      val result    = SlothPatcher.transformClassPath(
+        classPath,
+        options,
+        logger,
+        patchProjectClassDirs = false,
+        projectClassDirs = Set.empty
+      )
       assert(result.isRight, s"Expected Right, got: $result")
       val transformed = result.toOption.get
       assert(transformed.size == 2, s"Expected 2 entries, got: $transformed")

@@ -114,7 +114,8 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
               rawCp,
               s.options,
               logger,
-              patchProjectClassDirs = false
+              patchProjectClassDirs = false,
+              projectClassDirs = successfulBuilds.map(_.output).toSet
             ).orExit(logger)
               .map(_.toString)
               .mkString(File.pathSeparator)

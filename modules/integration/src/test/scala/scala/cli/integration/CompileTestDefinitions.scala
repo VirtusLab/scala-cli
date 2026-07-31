@@ -1343,4 +1343,90 @@ abstract class CompileTestDefinitions
       expect(!withSloth.out.trim().contains(slothAgentWarnFragment))
     }
   }
+
+  if isScala38OrNewer then
+    test(
+      s"compile --sloth --print-class-path patches external -cp class directory with ${Constants.scala3Lts} lazy vals"
+    ) {
+      TestInputs(externalLazyValsInput()).fromRoot { root =>
+        val (classDir, expectedMessage) = compileExternalLazyValClassDir(root)
+        val printed                     = os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          "--server=false",
+          "-e",
+          "def unused = 1",
+          "-cp",
+          classDir.toString,
+          slothOptions,
+          "--print-class-path",
+          extraOptions
+        ).call(cwd = root, stderr = os.Pipe).out.trim()
+        expect(printed.contains(slothCacheSegment))
+        expect(printed.contains("external-dirs"))
+
+        val run = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "--server=false",
+          "-e",
+          "println(slothful)",
+          "-cp",
+          classDir.toString,
+          slothOptions,
+          "--jvm",
+          Constants.allJavaVersions.max.toString,
+          extraOptions
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(run.out.trim() == expectedMessage)
+        expect(!run.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }
+
+  if isScala38OrNewer then
+    test(
+      s"compile --sloth -d patches pre-existing ${Constants.scala3Lts} classes merged into the output dir"
+    ) {
+      TestInputs(
+        externalLazyValsInput(),
+        os.rel / "project" / "Fresh.scala" ->
+          """object Fresh {
+            |  def hello: String = "fresh"
+            |}
+            |""".stripMargin
+      ).fromRoot { root =>
+        val (classDir, expectedMessage) = compileExternalLazyValClassDir(root)
+        // Merge a default-Scala (3.8+) project into the same -d dir that already holds LTS classes.
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          "--server=false",
+          "project",
+          slothOptions,
+          "-d",
+          classDir.toString,
+          extraOptions
+        ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+        val run = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "--server=false",
+          "-e",
+          "println(slothful)",
+          "-cp",
+          classDir.toString,
+          // No --sloth here: the -d dest itself must already contain patched bytecode.
+          "--jvm",
+          Constants.allJavaVersions.max.toString,
+          extraOptions
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(run.out.trim() == expectedMessage)
+        expect(!run.err.trim().contains("sun.misc.Unsafe"))
+      }
+    }
 }

@@ -258,7 +258,8 @@ object Doc extends ScalaCommand[DocOptions] with BuildCommandHelpers {
               userClassPath0,
               builds.head.options,
               logger,
-              patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(builds)
+              patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(builds),
+              projectClassDirs = builds.map(_.output).toSet
             ))
           else userClassPath0
         val baseArgs = Seq(

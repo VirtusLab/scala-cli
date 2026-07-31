@@ -8,10 +8,6 @@ import scala.cli.integration.Constants.munitVersion
 import scala.cli.integration.TestUtil.StringOps
 
 class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDefault {
-
-  // Sloth tests - only in default suite since they use hardcoded Scala versions
-  private val latestJava = Constants.allJavaVersions.max
-
   private def testLazyValsUnsafe(libScalaVersion: String, slothFlag: String): Unit =
     test(
       s"test $libScalaVersion lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava ($slothFlag)"
