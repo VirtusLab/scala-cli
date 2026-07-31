@@ -5,7 +5,8 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.removeAnsiColors
 import scala.util.Properties
 
-abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
+    with LazyValTests {
   this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 

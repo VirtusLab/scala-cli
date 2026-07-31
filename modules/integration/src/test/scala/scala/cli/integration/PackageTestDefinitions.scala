@@ -13,7 +13,8 @@ import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
-abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
+    with LazyValTests {
   this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected lazy val node: String              = TestUtil.fromPath("node").getOrElse("node")
@@ -1614,6 +1615,92 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
            |}
            |""".stripMargin,
       os.rel / "build.sbt" -> """name := "my-project""""
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+      val launcher = root / (if Properties.isWin then "Main.bat" else "Main")
+      expect(os.isFile(launcher))
+      val output = TestUtil.maybeUseBash(launcher)(cwd = root).out.trim()
+      expect(output == message)
+    }
+  }
+
+  test("package --library preserves user META-INF/MANIFEST.MF from resources") {
+    val message = "Hello from library"
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using resourceDir resources
+           |object Main {
+           |  def main(args: Array[String]): Unit = println("$message")
+           |}
+           |""".stripMargin,
+      os.rel / "resources" / "META-INF" / "MANIFEST.MF" -> userManifestResourceContent
+    ).fromRoot { root =>
+      val appJar = root / "app.jar"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        "--library",
+        ".",
+        "-o",
+        appJar
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val attrs = jarManifestMainAttributes(appJar)
+      expect(attrs.get("X-Custom").contains("yes"))
+      expect(attrs.get("Main-Class").contains("Main"))
+      val r = os.proc(TestUtil.cli, "run", extraOptions, appJar).call(cwd = root)
+      expect(r.out.trim() == message)
+    }
+  }
+
+  test("package --assembly preserves user META-INF/MANIFEST.MF from resources") {
+    val message = "Hello from assembly"
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using resourceDir resources
+           |object Main {
+           |  def main(args: Array[String]): Unit = println("$message")
+           |}
+           |""".stripMargin,
+      os.rel / "resources" / "META-INF" / "MANIFEST.MF" -> userManifestResourceContent
+    ).fromRoot { root =>
+      val appJar = root / "app.jar"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        "--assembly",
+        "--preamble=false",
+        ".",
+        "-o",
+        appJar
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val attrs = jarManifestMainAttributes(appJar)
+      expect(attrs.get("X-Custom").contains("yes"))
+      expect(attrs.get("Main-Class").contains("Main"))
+      val r = os.proc(TestUtil.cli, "run", extraOptions, appJar, "-M", "Main").call(cwd = root)
+      expect(r.out.trim() == message)
+    }
+  }
+
+  test("package bootstrap preserves user META-INF/MANIFEST.MF from resources") {
+    val message = "Hello from bootstrap"
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using resourceDir resources
+           |object Main {
+           |  def main(args: Array[String]): Unit = println("$message")
+           |}
+           |""".stripMargin,
+      os.rel / "resources" / "META-INF" / "MANIFEST.MF" -> userManifestResourceContent
     ).fromRoot { root =>
       os.proc(TestUtil.cli, "--power", "package", extraOptions, ".").call(
         cwd = root,

@@ -23,9 +23,11 @@ abstract class RunTestDefinitions
     with RunScalaPyTestDefinitions
     with RunZipTestDefinitions
     with RunJdkTestDefinitions
-    with CoursierScalaInstallationTestHelper { this: TestScalaVersion =>
+    with CoursierScalaInstallationTestHelper
+    with LazyValTests { this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
+  protected val latestJava                     = Constants.allJavaVersions.max
 
   override def warmUpExtraTestOptions: Seq[String] = extraOptions
 
@@ -2565,6 +2567,69 @@ abstract class RunTestDefinitions
       }
     }
 
+    for {
+      slothArgs     <- Seq(Seq("--sloth"), Seq("--sloth-agent"))
+      (input, code) <- Seq(
+        os.rel / "script.sc" ->
+          s"""//> using dep $lazyValsLibDep
+             |lazy val greeting = lazyvalslib.LazyValsLib.greeting
+             |println(greeting)""".stripMargin,
+        os.rel / "raw.scala" ->
+          s"""//> using dep $lazyValsLibDep
+             |object Main {
+             |  def main(args: Array[String]): Unit = {
+             |    lazy val greeting = lazyvalslib.LazyValsLib.greeting
+             |    println(greeting)
+             |  }
+             |}""".stripMargin
+      )
+      testInputs = TestInputs(input -> code)
+      shouldRestartBloop <- Seq(true, false)
+      restartBloopString = if (shouldRestartBloop) "with" else "without"
+      parallelInstancesCount <-
+        TestUtil.isCI -> shouldRestartBloop match {
+          case (true, false) => Seq(2, 4)
+          case (true, true)  => Seq(2)
+          case _             => Seq(5, 10)
+        }
+      if actualScalaVersion.startsWith("3")
+    }
+      test(
+        s"run $parallelInstancesCount instances of $input in parallel with ${slothArgs.mkString(" ")} ($restartBloopString restarting Bloop)"
+      ) {
+        TestUtil.retryOnCi() {
+          testInputs.fromRoot { root =>
+            // Scala 3.3 lib built on JDK 8 -> uses sun.misc.Unsafe lazy vals; sloth must patch it.
+            val (_, repoDir) = publishLazyValsLib(Constants.scala3Lts, root, buildJvm = Some("8"))
+            if (shouldRestartBloop)
+              os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+            val processes = (0 until parallelInstancesCount).map { _ =>
+              os.proc(
+                TestUtil.cli,
+                "run",
+                input.toString(),
+                extraOptions,
+                "--power",
+                slothArgs,
+                "--suppress-experimental-feature-warning",
+                "--repository",
+                repoDir.toNIO.toUri.toASCIIString,
+                "--jvm",
+                latestJava
+              ).spawn(
+                cwd = root,
+                stderr = os.Pipe,
+                env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds")
+              )
+            }
+            processes.foreach(_.waitFor())
+            processes.foreach(p => expect(p.exitCode() == 0))
+            processes.foreach(p => expect(p.stdout.trim() == "Hello"))
+            processes.foreach(p => expect(!p.stderr.trim().contains("sun.misc.Unsafe")))
+          }
+        }
+      }
+
   test("sbt file in directory does not break run") {
     val message = "Hello from run"
     TestInputs(
@@ -2579,7 +2644,6 @@ abstract class RunTestDefinitions
       expect(output == message)
     }
   }
-
   if actualScalaVersion.startsWith("3") then
     cleanBloopFixture
       .test("compilation server download respects COURSIER_REPOSITORIES for Bloop download") {
@@ -2649,4 +2713,36 @@ abstract class RunTestDefinitions
             expect(output.contains("hello"))
           }
       }
+
+  if actualScalaVersion.startsWith("3") then
+    test(s"run --sloth with signed dependency succeeds on JDK $latestJava") {
+      TestInputs(
+        os.rel / "Main.scala" ->
+          // No //> using scala - extraOptions drives the project version
+          """import signedlib.SignedLib
+            |@main def run(): Unit = println(SignedLib.greeting)
+            |""".stripMargin
+      ).fromRoot { root =>
+        // Signed dep built at 3.3 LTS (Sloth patches 3.0-3.7.x bytecode)
+        val signedJar = publishSignedLazyValsJar(Constants.scala3Lts, root, latestJava)
+
+        val r = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          extraOptions,
+          slothOptions,
+          "--classpath",
+          signedJar,
+          "--jvm",
+          latestJava.toString,
+          "."
+        ).call(cwd = root, stderr = os.Pipe)
+
+        expect(r.out.trim().contains(signedLibMessage))
+        expect(!r.err.trim().contains("SecurityException"))
+        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+        expect(r.err.trim().contains(slothSignatureStrippedWarnFragment))
+      }
+    }
 }

@@ -25,9 +25,19 @@ import scala.build.errors.*
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
 import scala.build.internal.resource.NativeResourceMapper
-import scala.build.internal.{Runner, ScalaJsLinkerConfig}
+import scala.build.internal.util.WarningMessages
+import scala.build.internal.{JarManifests, Runner, ScalaJsLinkerConfig}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.PackageType.Native
-import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalaNativeTarget, Scope}
+import scala.build.options.{
+  BuildOptions,
+  JavaOpt,
+  PackageType,
+  Platform,
+  ScalaNativeTarget,
+  Scope
+}
+import scala.build.postprocessing.SlothPatcher
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
 import scala.cli.commands.doc.Doc
@@ -104,7 +114,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         res.orReport(logger).map(_.all).foreach {
           case b if b.forall(_.success) =>
             val successfulBuilds = b.collect { case s: Build.Successful => s }
-            successfulBuilds.foreach(_.copyOutput(options.shared))
+            successfulBuilds.foreach(_.copyOutput(options.shared, logger))
             val mtimeDestPath = doPackageCrossBuilds(
               logger = logger,
               outputOpt = options.output.filter(_.nonEmpty),
@@ -144,7 +154,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         .all match {
         case b if b.forall(_.success) =>
           val successfulBuilds = b.collect { case s: Build.Successful => s }
-          successfulBuilds.foreach(_.copyOutput(options.shared))
+          successfulBuilds.foreach(_.copyOutput(options.shared, logger))
           val res0 = doPackageCrossBuilds(
             logger = logger,
             outputOpt = options.output.filter(_.nonEmpty),
@@ -279,6 +289,11 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       }
     else {
       val packageType: PackageType = value(resolvePackageType(builds, forcedPackageTypeOpt))
+      // Doc jars are the exception: the agent is attached to the scaladoc JVM.
+      if builds.head.options.notForBloopOptions.slothAgent && packageType != PackageType.DocJar then
+        logger.message(
+          s"$warnPrefix ${WarningMessages.slothNotApplicable("package", forAgent = true)}"
+        )
       // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
       def extension = packageType match {
@@ -413,17 +428,26 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
       val packageOptions = builds.head.options.notForBloopOptions.packageOptions
 
+      def warnSlothNoOp(reason: String): Unit =
+        val notForBloop = builds.head.options.notForBloopOptions
+        if notForBloop.sloth || notForBloop.slothAgent then
+          logger.message(s"$warnPrefix ${WarningMessages.slothNotApplicable(reason)}")
+
       val outputPath = packageType match {
         case PackageType.Bootstrap =>
           value(bootstrap(builds, destPath, value(mainClass), () => alreadyExistsCheck(), logger))
           destPath
         case PackageType.LibraryJar =>
-          val libraryJar = Library.libraryJar(builds)
+          val libraryJar0 = Library.libraryJar(builds, mainClassOpt)
+          val libraryJar  = value(
+            SlothPatcher.patchJarFile(libraryJar0, builds.head.options, logger)
+          )
           value(alreadyExistsCheck())
           if force then os.copy.over(libraryJar, destPath, createFolders = true)
           else os.copy(libraryJar, destPath, createFolders = true)
           destPath
         case PackageType.SourceJar =>
+          warnSlothNoOp("source jars (no bytecode)")
           val now     = System.currentTimeMillis()
           val content = sourceJar(builds, now)
           value(alreadyExistsCheck())
@@ -431,7 +455,16 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           else os.write(destPath, content, createFolders = true)
           destPath
         case PackageType.DocJar =>
-          val docJarPath = value(docJar(builds, logger, extraArgs, withTestScope))
+          // The doc jar itself carries no bytecode, but scaladoc generation runs on the JVM,
+          // so both the classpath patching and the agent apply there.
+          val docJarPath = value(docJar(
+            builds,
+            logger,
+            extraArgs,
+            withTestScope,
+            patchClassPath = true,
+            useSlothAgent = true
+          ))
           value(alreadyExistsCheck())
           if force then os.copy.over(docJarPath, destPath, createFolders = true)
           else os.copy(docJarPath, destPath, createFolders = true)
@@ -485,9 +518,11 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           destPath
 
         case PackageType.Js =>
+          warnSlothNoOp("Scala.js (compiles to JavaScript)")
           value(buildJs(builds, destPath, mainClassOpt, logger))
 
         case tpe: PackageType.Native =>
+          warnSlothNoOp("Scala Native (compiles to native)")
           import PackageType.Native.*
           val mainClassO =
             tpe match
@@ -506,14 +541,14 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           destPath
 
         case PackageType.GraalVMNativeImage =>
-          NativeImage.buildNativeImage(
+          value(NativeImage.buildNativeImage(
             builds,
             value(mainClass),
             destPath,
             nativeImageWorkDirForArtifact(builds.head.inputs.nativeImageWorkDir, destPath),
             extraArgs,
             logger
-          )
+          ))
           destPath
 
         case nativePackagerType: PackageType.NativePackagerType =>
@@ -630,7 +665,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     builds: Seq[Build.Successful],
     logger: Logger,
     extraArgs: Seq[String],
-    withTestScope: Boolean
+    withTestScope: Boolean,
+    patchClassPath: Boolean,
+    useSlothAgent: Boolean
   ): Either[BuildException, os.Path] = either {
 
     val workDir   = builds.head.inputs.docJarWorkDir
@@ -645,7 +682,16 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
     if cacheData.changed then {
 
-      val contentDir = value(Doc.generateScaladocDirPath(builds, logger, extraArgs, withTestScope))
+      val contentDir = value(
+        Doc.generateScaladocDirPath(
+          builds,
+          logger,
+          extraArgs,
+          withTestScope,
+          patchClassPath = patchClassPath,
+          useSlothAgent = useSlothAgent
+        )
+      )
 
       var outputStream: OutputStream = null
       try {
@@ -818,11 +864,12 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     alreadyExistsCheck: () => Either[BuildException, Unit],
     logger: Logger
   ): Either[BuildException, Unit] = either {
+    val options            = builds.head.options
     val byteCodeZipEntries = builds.flatMap { build =>
       os.walk(build.output)
         .filter(os.isFile(_))
         .map { path =>
-          val name         = path.relativeTo(build.output).toString
+          val name         = path.relativeTo(build.output).toString.replace('\\', '/')
           val content      = os.read.bytes(path)
           val lastModified = os.mtime(path)
           val entry        = new ZipEntry(name)
@@ -832,10 +879,19 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         }
     }
 
+    val (manifestEntries, nonManifestEntries) =
+      byteCodeZipEntries.partition((entry, _) => JarManifests.isManifestEntry(entry.getName))
+    val baseManifestOpt = manifestEntries.headOption.map(_._2)
+
+    val patchedByteCodeZipEntries = value(
+      SlothPatcher.patchByteCodeZipEntries(nonManifestEntries, options, logger)
+    )
+
     // TODO Generate that in memory
     val tmpJar       = os.temp(prefix = destPath.last.stripSuffix(".jar"), suffix = ".jar")
     val tmpJarParams = Parameters.Assembly()
-      .withExtraZipEntries(byteCodeZipEntries)
+      .withExtraZipEntries(patchedByteCodeZipEntries)
+      .withBaseManifest(baseManifestOpt)
       .withMainClass(mainClass)
     AssemblyGenerator.generate(tmpJarParams, tmpJar.toNIO)
     val tmpJarContent = os.read.bytes(tmpJar)
@@ -844,13 +900,28 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     def dependencyEntries: Seq[ClassPathEntry] =
       builds.flatMap(_.artifacts.artifacts).distinct.map {
         case (url, path) =>
-          if builds.head.options.notForBloopOptions.packageOptions.isStandalone then
-            ClassPathEntry.Resource(path.last, os.mtime(path), os.read.bytes(path))
-          else ClassPathEntry.Url(url)
+          if options.notForBloopOptions.packageOptions.isStandalone then
+            val patchedPath = value(SlothPatcher.patchJarFile(path, options, logger))
+            ClassPathEntry.Resource(
+              patchedPath.last,
+              os.mtime(patchedPath),
+              os.read.bytes(patchedPath)
+            )
+          else
+            if options.notForBloopOptions.sloth then
+              logger.message(
+                s"$warnPrefix ${WarningMessages.slothNonStandaloneBootstrapWarning}"
+              )
+            ClassPathEntry.Url(url)
       }
     val byteCodeEntry  = ClassPathEntry.Resource(s"${destPath.last}-content.jar", 0L, tmpJarContent)
     val extraClassPath = builds.head.options.classPathOptions.extraClassPath.map { classPath =>
-      ClassPathEntry.Resource(classPath.last, os.mtime(classPath), os.read.bytes(classPath))
+      val patchedPath = value(SlothPatcher.patchJarFile(classPath, options, logger))
+      ClassPathEntry.Resource(
+        patchedPath.last,
+        os.mtime(patchedPath),
+        os.read.bytes(patchedPath)
+      )
     }
 
     val allEntries    = Seq(byteCodeEntry) ++ dependencyEntries ++ extraClassPath
@@ -979,6 +1050,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     alreadyExistsCheck: () => Either[BuildException, Unit],
     logger: Logger
   ): Either[BuildException, Unit] = either {
+    val options                                       = builds.head.options
     val compiledClassesByOutputDir: Seq[(Path, Path)] =
       builds.flatMap(build =>
         os.walk(build.output).filter(os.isFile(_)).map(build.output -> _)
@@ -991,7 +1063,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val byteCodeZipEntries = (compiledClassesByOutputDir ++ extraClassesByDefaultOutputDir)
       .distinct
       .map { (outputDir, path) =>
-        val name         = path.relativeTo(outputDir).toString
+        val name         = path.relativeTo(outputDir).toString.replace('\\', '/')
         val content      = os.read.bytes(path)
         val lastModified = os.mtime(path)
         val ent          = new ZipEntry(name)
@@ -1000,7 +1072,11 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         (ent, content)
       }
 
-    val provided = builds.head.options.notForBloopOptions.packageOptions.provided ++ extraProvided
+    val (manifestEntries, nonManifestEntries) =
+      byteCodeZipEntries.partition((entry, _) => JarManifests.isManifestEntry(entry.getName))
+    val baseManifestOpt = manifestEntries.headOption.map(_._2)
+
+    val provided = options.notForBloopOptions.packageOptions.provided ++ extraProvided
     val allJars  =
       builds.flatMap(_.artifacts.runtimeArtifacts.map(_._2)) ++ extraJars.filter(os.exists(_))
     val jars =
@@ -1019,12 +1095,15 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         }
       else None
     val params = Parameters.Assembly()
-      .withExtraZipEntries(byteCodeZipEntries)
+      .withExtraZipEntries(nonManifestEntries)
+      .withBaseManifest(baseManifestOpt)
       .withFiles(jars.map(_.toIO))
       .withMainClass(mainClassOpt)
       .withPreambleOpt(preambleOpt)
     value(alreadyExistsCheck())
     AssemblyGenerator.generate(params, destPath.toNIO)
+    val patchedDest = value(SlothPatcher.patchJarFile(destPath, options, logger))
+    if patchedDest != destPath then os.copy.over(patchedDest, destPath, createFolders = true)
     ProcUtil.maybeUpdatePreamble(destPath)
   }
 

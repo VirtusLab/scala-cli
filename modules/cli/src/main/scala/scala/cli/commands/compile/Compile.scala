@@ -5,7 +5,10 @@ import caseapp.core.help.HelpFormat
 
 import java.io.File
 
+import scala.build.internal.util.WarningMessages
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.Scope
+import scala.build.postprocessing.SlothPatcher
 import scala.build.{Build, BuildThreads, Builds, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.setupide.SetupIde
@@ -53,6 +56,11 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)
 
+    if (buildOptions.notForBloopOptions.slothAgent)
+      logger.message(
+        s"$warnPrefix ${WarningMessages.slothNotApplicable("compile", forAgent = true)}"
+      )
+
     val cross = options.cross.cross.getOrElse(false)
     if (options.printClassPath && cross) {
       System.err.println(s"Error: cannot specify both --print-class-path and --cross")
@@ -79,6 +87,20 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
           sys.exit(1)
       }
       else {
+        val successfulBuilds   = builds.all.collect { case s: Build.Successful => s }
+        val shouldPatchProject =
+          SlothPatcher.shouldPatchProjectClasses(successfulBuilds)
+        for (s <- successfulBuilds)
+          for (
+              ex <- SlothPatcher.patchClassDirInPlace(
+                s.output,
+                s.options,
+                logger,
+                shouldPatch = shouldPatchProject
+              ).left
+            )
+          do logger.exit(ex)
+
         val successulBuildOpt =
           for {
             build <- builds.get(Scope.Test).orElse(builds.get(Scope.Main))
@@ -86,12 +108,19 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
           } yield s
         if (options.printClassPath)
           for (s <- successulBuildOpt) {
-            val cp = s.fullClassPathMaybeAsJar(options.shared.asJar)
+            val rawCp = s.fullClassPathMaybeAsJar(options.shared.asJar)
+            // Project class dirs are already patched in place above; only transform dependency jars.
+            val cp = SlothPatcher.transformClassPath(
+              rawCp,
+              s.options,
+              logger,
+              patchProjectClassDirs = false
+            ).orExit(logger)
               .map(_.toString)
               .mkString(File.pathSeparator)
             println(cp)
           }
-        successulBuildOpt.foreach(_.copyOutput(options.shared))
+        successulBuildOpt.foreach(_.copyOutput(options.shared, logger))
       }
     }
 

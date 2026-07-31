@@ -241,5 +241,48 @@ class CachedBinaryTests extends TestUtil.ScalaCliSuite {
           expect(cacheAfterConfigUpdate.changed)
       }
     }
+
+    for {
+      slothOpt <- Seq(Some(true), Some(false), None)
+    }
+      test(s"should rebuild when --sloth changes from $slothOpt ($additionalMessage)") {
+        inputs.withLoadedBuild(
+          defaultOptions.copy(
+            notForBloopOptions = defaultOptions.notForBloopOptions.copy(slothOpt = slothOpt)
+          ),
+          buildThreads,
+          Some(bloopConfig),
+          fromDirectory
+        ) {
+          (_, _, maybeBuild) =>
+            val build = maybeBuild.successfulOpt.get
+
+            val config = build.options.scalaNativeOptions.configCliOptions(resourcesExist = false)
+            val nativeWorkDir = build.inputs.nativeWorkDir
+            val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
+            os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
+
+            val cacheData =
+              CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
+            CachedBinary.updateProjectAndOutputSha(
+              destPath,
+              nativeWorkDir,
+              cacheData.projectSha
+            )
+            expect(cacheData.changed)
+
+            val updatedBuild = build.copy(
+              options = build.options.copy(
+                notForBloopOptions = build.options.notForBloopOptions.copy(
+                  slothOpt = Some(!slothOpt.getOrElse(false))
+                )
+              )
+            )
+
+            val cacheAfterSlothToggle =
+              CachedBinary.getCacheData(Seq(updatedBuild), config, destPath, nativeWorkDir)
+            expect(cacheAfterSlothToggle.changed)
+        }
+      }
   }
 }

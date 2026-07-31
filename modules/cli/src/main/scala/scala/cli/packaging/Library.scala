@@ -7,6 +7,7 @@ import java.util.jar.{Attributes as JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.Build
+import scala.build.internal.JarManifests
 import scala.cli.internal.CachedBinary
 
 object Library {
@@ -55,17 +56,21 @@ object Library {
     contentDirOverride: Option[os.Path] = None
   ): Unit = {
 
-    val manifest = new java.util.jar.Manifest
-    manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
+    val contentDirs  = builds.map(b => contentDirOverride.getOrElse(b.output)).distinct
+    val baseManifest = contentDirs.flatMap(JarManifests.userManifestIn).headOption
 
-    if hasActualManifest then
-      for {
-        mainClass <- mainClassOpt.orElse(builds.flatMap(_.sources.defaultMainClass).headOption)
-        if mainClass.nonEmpty
-      } manifest.getMainAttributes.put(JarAttributes.Name.MAIN_CLASS, mainClass)
+    val overlayAttributes =
+      if hasActualManifest then
+        mainClassOpt
+          .orElse(builds.flatMap(_.sources.defaultMainClass).headOption)
+          .filter(_.nonEmpty)
+          .map(JarAttributes.Name.MAIN_CLASS -> _)
+          .toSeq
+      else Nil
+
+    val manifest = JarManifests.merged(baseManifest, overlayAttributes)
 
     var zos: ZipOutputStream = null
-    val contentDirs          = builds.map(b => contentDirOverride.getOrElse(b.output)).distinct
 
     try {
       zos = new JarOutputStream(outputStream, manifest)
@@ -73,17 +78,19 @@ object Library {
         contentDir <- contentDirs
         path       <- os.walk(contentDir) if os.isFile(path)
       } {
-        val name         = path.relativeTo(contentDir).toString
-        val lastModified = os.mtime(path)
-        val ent          = new ZipEntry(name)
-        ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
+        val name = path.relativeTo(contentDir).toString.replace('\\', '/')
+        if !JarManifests.isManifestEntry(name) then {
+          val lastModified = os.mtime(path)
+          val ent          = new ZipEntry(name)
+          ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
 
-        val content = os.read.bytes(path)
-        ent.setSize(content.length)
+          val content = os.read.bytes(path)
+          ent.setSize(content.length)
 
-        zos.putNextEntry(ent)
-        zos.write(content)
-        zos.closeEntry()
+          zos.putNextEntry(ent)
+          zos.write(content)
+          zos.closeEntry()
+        }
       }
     }
     finally if (zos != null) zos.close()

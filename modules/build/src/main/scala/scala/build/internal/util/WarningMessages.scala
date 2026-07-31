@@ -169,4 +169,24 @@ object WarningMessages {
     else
       s"""Using 'latest' for toolkit is deprecated, use 'default' to get more stable behaviour:
          | $updatedValue""".stripMargin
+
+  def slothNotApplicable(context: String, forAgent: Boolean = false): String =
+    val subject = if forAgent then "The sloth agent" else "Sloth patching"
+    val suffix  = if forAgent then "; use --sloth for batch lazy-val patching" else ""
+    s"$subject is not applicable to $context$suffix."
+
+  val slothModesMutuallyRedundant: String =
+    "--sloth and --sloth-agent are mutually redundant: both batch-patch the classpath and inject the agent, which re-patches the same lazy-val bytecode at class load time."
+
+  def slothStrippedJarSignatures(jar: os.Path): String =
+    s"Sloth patched lazy vals in the signed JAR $jar; its JAR signature files were removed, as they would no longer match the patched bytecode."
+
+  def slothNotAnArchive(path: os.Path): String =
+    s"Sloth could not patch lazy vals in $path: it is not a JAR archive."
+
+  def slothCouldNotPatch(subject: String, reason: String): String =
+    s"Could not patch lazy vals in $subject, using original: $reason"
+
+  val slothNonStandaloneBootstrapWarning: String =
+    "Could not patch lazy vals in non-standalone bootstrap dependencies; use --standalone for batch patching."
 }

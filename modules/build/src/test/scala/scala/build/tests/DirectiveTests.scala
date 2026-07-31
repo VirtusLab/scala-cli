@@ -518,4 +518,70 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       (_, _, maybeBuild) => expect(maybeBuild.exists(_.success))
     }
   }
+
+  for (
+    directive <- Seq(
+      "sloth",
+      "lazyvalgrade",
+      "lazyValPatching",
+      "lazy-val-patching"
+    )
+  )
+    test(s"sloth directive ($directive)") {
+      val testInputs = TestInputs(
+        os.rel / "simple.sc" ->
+          s"""//> using $directive
+             |""".stripMargin
+      )
+      testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        expect(build.options.notForBloopOptions.slothOpt.contains(true))
+      }
+    }
+
+  test("sloth directive false") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using sloth false
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow
+      expect(build.options.notForBloopOptions.slothOpt.contains(false))
+    }
+  }
+
+  for (
+    directive <- Seq(
+      "slothAgent",
+      "sloth-agent",
+      "lazyvalgradeAgent",
+      "lazyvalgrade-agent",
+      "lazyValPatchingWithAgent",
+      "lazy-val-patching-with-agent"
+    )
+  )
+    test(s"slothAgent directive ($directive)") {
+      val testInputs = TestInputs(
+        os.rel / "simple.sc" ->
+          s"""//> using $directive
+             |""".stripMargin
+      )
+      testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        expect(build.options.notForBloopOptions.slothAgentOpt.contains(true))
+      }
+    }
+
+  test("slothAgent directive false") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using slothAgent false
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow
+      expect(build.options.notForBloopOptions.slothAgentOpt.contains(false))
+    }
+  }
 }

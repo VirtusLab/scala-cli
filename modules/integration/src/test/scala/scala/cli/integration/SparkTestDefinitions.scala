@@ -51,11 +51,13 @@ object SparkTestDefinitions {
 
 }
 
-abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
+    with LazyValTests {
   this: TestScalaVersion =>
   import SparkTestDefinitions.*
 
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  private val slothAgentNoOpWarnFragment       = "The sloth agent is not applicable to spark-submit"
 
   protected def defaultMaster                                                     = "local[4]"
   protected def simpleJobInputs(spark: Spark, withTestScope: Boolean): TestInputs = TestInputs(
@@ -214,5 +216,82 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
         expect(output.contains(expectedOutput))
       }
     }
+
+  private def minimalSparkJobInputs(sparkVersion: String = "3.3.0"): TestInputs = TestInputs(
+    os.rel / "SparkJob.scala" ->
+      s"""//> using dep org.apache.spark::spark-sql:$sparkVersion
+         |
+         |object SparkJob {
+         |  def main(args: Array[String]): Unit = ()
+         |}
+         |""".stripMargin
+  )
+
+  // These use --command only (no Spark runtime), so they are safe to run on macOS.
+  test("run --spark --sloth does not warn; --sloth-agent does") {
+    minimalSparkJobInputs().fromRoot { root =>
+      val withSloth = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        "--spark",
+        "--command",
+        ".",
+        slothOptions
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(!withSloth.out.trim().contains(slothNoOpWarnPrefix))
+      expect(!withSloth.out.trim().contains(slothAgentNoOpWarnFragment))
+      expect(withSloth.out.trim().contains("spark-submit"))
+
+      val withAgent = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        "--spark",
+        "--command",
+        ".",
+        slothAgentOptions
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(withAgent.out.trim().contains(slothAgentNoOpWarnFragment))
+      expect(!withAgent.out.trim().contains(slothNoOpWarnPrefix))
+    }
+  }
+
+  test("run --spark-standalone --sloth does not warn") {
+    minimalSparkJobInputs().fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        "--spark-standalone",
+        "--command",
+        ".",
+        slothOptions
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(!res.out.trim().contains(slothNoOpWarnPrefix))
+      expect(!res.out.trim().contains(slothAgentNoOpWarnFragment))
+    }
+  }
+
+  test("run --spark-standalone --sloth-agent attaches javaagent and does not warn") {
+    minimalSparkJobInputs().fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        "--spark-standalone",
+        "--command",
+        ".",
+        slothAgentOptions
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(!res.out.trim().contains(slothNoOpWarnPrefix))
+      expect(!res.out.trim().contains(slothAgentNoOpWarnFragment))
+      expect(res.out.lines().exists(_.startsWith("-javaagent:")))
+    }
+  }
 
 }
