@@ -8,6 +8,95 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.16.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.16.0)
+
+### Script wrappers backtick `$` identifiers
+Scala 3.9+ warns that identifiers containing `$` are reserved for internal compiler use. Script wrappers historically
+used names such as `hello$_`, `args$` and `args$set`. Scala CLI now wraps those names in backticks across all script
+wrappers, so `.sc` scripts keep working cleanly on Scala 3.9 and newer.
+
+```bash
+scala-cli -e 'println("No more $ warnings in 3.9!")' -S 3.9.0-RC4
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4378](https://github.com/VirtusLab/scala-cli/pull/4378)
+
+### Sloth support (experimental ⚡️)
+Scala CLI can now use [Sloth](https://github.com/VirtusLab/sloth) to patch Scala 3.0–3.7.x lazy val bytecode for
+compatibility with recent JDKs. Libraries built with older Scala 3 releases still rely on the terminally deprecated
+`sun.misc.Unsafe` lazy val implementation, which produces warnings on JDK 24+ and may fail on future JDKs — even when
+your own sources already target Scala 3.8+.
+
+Enable Sloth with `--sloth` / `//> using sloth` to post-process classpath bytecode, or `--sloth-agent` /
+`//> using slothAgent` to attach Sloth as a Java agent (for example when running tests). 
+
+```scala title=HelloSloth.scala
+object HelloSloth:
+  lazy val greeting: String = "Hello from Sloth!"
+  def main(args: Array[String]): Unit = println(greeting)
+```
+
+```bash
+scala-cli --power HelloSloth.scala --sloth -S 3.3 --jvm 25
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4348](https://github.com/VirtusLab/scala-cli/pull/4348)
+
+### Features
+* Add `sloth` support by [@Gedochao](https://github.com/Gedochao) in [#4348](https://github.com/VirtusLab/scala-cli/pull/4348)
+
+### Fixes
+* Wrap all names containing `$` reserved character in backticks for all script wrappers by [@Gedochao](https://github.com/Gedochao) in [#4378](https://github.com/VirtusLab/scala-cli/pull/4378)
+* Only prepend snapshot repos for `*-SNAPSHOT` Bloop versions by [@Gedochao](https://github.com/Gedochao) in [#4393](https://github.com/VirtusLab/scala-cli/pull/4393)
+* Exclude `*.asc` signature files from checksums by [@Gedochao](https://github.com/Gedochao) in [#4403](https://github.com/VirtusLab/scala-cli/pull/4403)
+
+### Documentation changes
+* Fix typo in readme CI badge link by [@SolalPirelli](https://github.com/SolalPirelli) in [#4357](https://github.com/VirtusLab/scala-cli/pull/4357)
+
+### Build and internal changes
+* Migrate integration tests off the stale `com.spotify:docker-client` to `com.github.docker-java:docker-java*` by [@Gedochao](https://github.com/Gedochao) in [#4364](https://github.com/VirtusLab/scala-cli/pull/4364)
+* Add anti-regression tests for #4339 by [@Gedochao](https://github.com/Gedochao) in [#4376](https://github.com/VirtusLab/scala-cli/pull/4376)
+* Make sure launcher download job steps are named appropriately on the CI by [@Gedochao](https://github.com/Gedochao) in [#4382](https://github.com/VirtusLab/scala-cli/pull/4382)
+* Add a `[test_skip]` override for the CI by [@Gedochao](https://github.com/Gedochao) in [#4385](https://github.com/VirtusLab/scala-cli/pull/4385)
+
+### Updates
+* Bump @algolia/client-search from 5.55.0 to 5.55.1 in /website in the npm-dependencies group by @dependabot[bot] in [#4355](https://github.com/VirtusLab/scala-cli/pull/4355)
+* Update scala-cli.sh launcher for 1.15.0 by @github-actions[bot] in [#4356](https://github.com/VirtusLab/scala-cli/pull/4356)
+* Update jsoniter-scala-core, ... to 2.38.17 by @scala-steward in [#4358](https://github.com/VirtusLab/scala-cli/pull/4358)
+* Update sbt to 2.0.1 by @scala-steward in [#4360](https://github.com/VirtusLab/scala-cli/pull/4360)
+* Update semanticdb-shared_2.13 to 4.17.1 by @scala-steward in [#4359](https://github.com/VirtusLab/scala-cli/pull/4359)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.11.3 by @scala-steward in [#4371](https://github.com/VirtusLab/scala-cli/pull/4371)
+* Update jsoniter-scala-core, ... to 2.39.1 by @scala-steward in [#4365](https://github.com/VirtusLab/scala-cli/pull/4365)
+* Update bloop-rifle_2.13 to 2.1.1 by @scala-steward in [#4362](https://github.com/VirtusLab/scala-cli/pull/4362)
+* Update munit to 1.3.4 by @scala-steward in [#4367](https://github.com/VirtusLab/scala-cli/pull/4367)
+* Bump the npm-dependencies group in /website with 5 updates by @dependabot[bot] in [#4372](https://github.com/VirtusLab/scala-cli/pull/4372)
+* Bump js-yaml from 4.1.1 to 4.3.0 in /website by @dependabot[bot] in [#4373](https://github.com/VirtusLab/scala-cli/pull/4373)
+* Update semanticdb-shared_2.13 to 4.17.2 by @scala-steward in [#4369](https://github.com/VirtusLab/scala-cli/pull/4369)
+* Bump websocket-driver from 0.7.4 to 0.7.5 in /website by @dependabot[bot] in [#4377](https://github.com/VirtusLab/scala-cli/pull/4377)
+* Update bcpkix-jdk18on to 1.85 by @scala-steward in [#4379](https://github.com/VirtusLab/scala-cli/pull/4379)
+* Update metaconfig-typesafe-config to 0.18.7 by @scala-steward in [#4380](https://github.com/VirtusLab/scala-cli/pull/4380)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.11.4 by @scala-steward in [#4381](https://github.com/VirtusLab/scala-cli/pull/4381)
+* Bump @algolia/client-search from 5.55.2 to 5.56.0 in /website in the npm-dependencies group by @dependabot[bot] in [#4387](https://github.com/VirtusLab/scala-cli/pull/4387)
+* Bump brace-expansion from 1.1.13 to 1.1.16 in /website by @dependabot[bot] in [#4389](https://github.com/VirtusLab/scala-cli/pull/4389)
+* Bump shell-quote from 1.8.4 to 1.10.0 in /website by @dependabot[bot] in [#4390](https://github.com/VirtusLab/scala-cli/pull/4390)
+* Bump body-parser from 1.20.5 to 1.20.6 in /website by @dependabot[bot] in [#4391](https://github.com/VirtusLab/scala-cli/pull/4391)
+* Bump webpack-dev-server from 5.2.5 to 5.2.6 in /website by @dependabot[bot] in [#4388](https://github.com/VirtusLab/scala-cli/pull/4388)
+* Bump the github-actions group with 2 updates by @dependabot[bot] in [#4386](https://github.com/VirtusLab/scala-cli/pull/4386)
+* Bump immutable from 5.1.5 to 5.1.9 in /website by @dependabot[bot] in [#4395](https://github.com/VirtusLab/scala-cli/pull/4395)
+* Bump Scala 3 Next RC to 3.9.0-RC4 by [@Gedochao](https://github.com/Gedochao) in [#4394](https://github.com/VirtusLab/scala-cli/pull/4394)
+* Bump svgo from 3.3.3 to 3.3.4 in /website by @dependabot[bot] in [#4396](https://github.com/VirtusLab/scala-cli/pull/4396)
+* Bump fast-uri from 3.1.2 to 3.1.4 in /website by @dependabot[bot] in [#4397](https://github.com/VirtusLab/scala-cli/pull/4397)
+* Update semanticdb-shared_2.13 to 4.17.3 by @scala-steward in [#4399](https://github.com/VirtusLab/scala-cli/pull/4399)
+* Update org.eclipse.jgit to 7.7.1.202607240634-r by @scala-steward in [#4398](https://github.com/VirtusLab/scala-cli/pull/4398)
+* Bump the npm-dependencies group in /website with 6 updates by @dependabot[bot] in [#4400](https://github.com/VirtusLab/scala-cli/pull/4400)
+* Bump postcss from 8.5.12 to 8.5.23 in /website by @dependabot[bot] in [#4401](https://github.com/VirtusLab/scala-cli/pull/4401)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.11.5 by @scala-steward in [#4402](https://github.com/VirtusLab/scala-cli/pull/4402)
+
+## New Contributors
+* [@SolalPirelli](https://github.com/SolalPirelli) made their first contribution in [#4357](https://github.com/VirtusLab/scala-cli/pull/4357)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.15.0...v1.16.0
+
 ## [v1.15.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.15.0)
 
 ### Default Scala 3.8.4, Scala Native 0.5.12 & Scala.js 1.22.0
@@ -202,7 +291,7 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#4283](https://github.com/
 * Improve error for when JVM-only dependencies are not found on other platforms by [@Gedochao](https://github.com/Gedochao) in [#4281](https://github.com/VirtusLab/scala-cli/pull/4281)
 * Don't save duplicate `.scalafmt.conf` if unnecessary by [@Gedochao](https://github.com/Gedochao) in [#4291](https://github.com/VirtusLab/scala-cli/pull/4291)
 
-## Deprecations and removals
+### Deprecations and removals
 * Drop Ammonite support by [@Gedochao](https://github.com/Gedochao) in [#4283](https://github.com/VirtusLab/scala-cli/pull/4283)
 
 ### Build and internal changes
