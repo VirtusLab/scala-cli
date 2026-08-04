@@ -9,6 +9,14 @@ description: Add or run Scala CLI integration tests. Use when adding integration
 
 **Run**: `./mill -i integration.test.jvm` (all). Filter: `./mill -i integration.test.jvm 'scala.cli.integration.RunTestsDefault.*'` or by test name. Native: `./mill -i integration.test.native`.
 
+**Always set `CI=true` when running integration tests**, unless the user explicitly asks otherwise:
+
+```bash
+CI=true ./mill -i integration.test.jvm 'scala.cli.integration.RunTestsDefault.*'
+```
+
+This disables test parallelism, so the run mirrors how the tests behave on CI. It is slower, but the extra time is an acceptable trade-off for reproducible results.
+
 **Structure**: `*TestDefinitions.scala` (abstract, holds test logic) → `*TestsDefault`, `*Tests213`, etc. (concrete, Scala version trait). Traits: `TestDefault`, `Test212`, `Test213`, `Test3Lts`, `Test3NextRc`.
 
 **Adding a test**:
