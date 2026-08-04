@@ -2098,18 +2098,10 @@
     tslib "^2.6.0"
     utility-types "^3.10.0"
 
-"@docusaurus/theme-translations@3.10.2":
+"@docusaurus/theme-translations@3.10.2", "@docusaurus/theme-translations@^2 || ^3":
   version "3.10.2"
   resolved "https://registry.yarnpkg.com/@docusaurus/theme-translations/-/theme-translations-3.10.2.tgz#cd649083babd12df324e7129008aaccacd4cfb13"
   integrity sha512-iv20wrxnyXkY89LM3TzRlzGlt5fIGO5UnaR6UL1ZVfB9RRFjxQFQ6awDrwAc6Km8Y5gD8pInuwYPF+6/TiCxXA==
-  dependencies:
-    fs-extra "^11.1.1"
-    tslib "^2.6.0"
-
-"@docusaurus/theme-translations@^2 || ^3":
-  version "3.10.1"
-  resolved "https://registry.yarnpkg.com/@docusaurus/theme-translations/-/theme-translations-3.10.1.tgz#c3119a015652290eea560ca45ac775963d6eb75b"
-  integrity sha512-cLMyaKivjBVWKMJuWqyFVVgtqe8DPJNPkog0bn8W1MDVAKcPdxRFycBfC1We1RaNp7Rdk513bmtW78RR6OBxBw==
   dependencies:
     fs-extra "^11.1.1"
     tslib "^2.6.0"
@@ -2187,10 +2179,10 @@
     cssesc "^3.0.0"
     immediate "^3.2.3"
 
-"@easyops-cn/docusaurus-search-local@^0.55.2":
-  version "0.55.2"
-  resolved "https://registry.yarnpkg.com/@easyops-cn/docusaurus-search-local/-/docusaurus-search-local-0.55.2.tgz#563ab1f8fd7bc18541d889f4d5001a3ef85c5a1e"
-  integrity sha512-dI/riu+MbDxkAjAHAdc0uahjXRaWKvbIPe9IAmA6AGcUfnVb9xd8s2I/6wEPTOXsAd6eFqn4Yis3WBWh3KUd3g==
+"@easyops-cn/docusaurus-search-local@^0.55.3":
+  version "0.55.3"
+  resolved "https://registry.yarnpkg.com/@easyops-cn/docusaurus-search-local/-/docusaurus-search-local-0.55.3.tgz#4beba8939a630a5fe4b37fd83bb41beca9923809"
+  integrity sha512-PlMKmxuonvZ1C+/zJS1hJaF1xaxD1TsUvOMzpP6DdQMtZqmTaYjcLGM12ePzl0m1rp3AgfTBeDbFNHQhwnH/dA==
   dependencies:
     "@docusaurus/plugin-content-docs" "^2 || ^3"
     "@docusaurus/theme-translations" "^2 || ^3"
@@ -2972,10 +2964,10 @@
   resolved "https://registry.yarnpkg.com/@svta/cml-cmsd/-/cml-cmsd-1.0.1.tgz#f5a70ddbae413fd6cb898af8dce8f1303691bc46"
   integrity sha512-+nIB8PuSfb/qw+xGaArPhNqPm84tBJUbe3H1DnPL5QUsjSUI7mUIUQwAtRV1ZdEu0+80g9i0op79woB0OIwr/g==
 
-"@svta/cml-cta@1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@svta/cml-cta/-/cml-cta-1.0.7.tgz#7f7ae4563c97f102f5359940b7f24d7ac8ad306b"
-  integrity sha512-U2169sIVsWTJFhEWusn7iDfxXHPnnRAUADaVzz2tkLr1mBEREl5HiuSNG4yU4xX7MeDssCBlLw0prsxH2zSv6w==
+"@svta/cml-cta@1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@svta/cml-cta/-/cml-cta-1.0.8.tgz#197d676edbc285d14313f5c3cba70cb884a3e5c8"
+  integrity sha512-ojDEpyj/70JvAoIf9bN2eetgrDiaYwoMAj5nQkzsNLAHM0yefOWZpuOm3uhhX0PS5YMQZkHJc0rvX74cTzoRJA==
 
 "@svta/cml-dash@1.0.1":
   version "1.0.1"
@@ -2992,15 +2984,15 @@
   resolved "https://registry.yarnpkg.com/@svta/cml-request/-/cml-request-1.0.1.tgz#49eb488a00fc7a8309b4cc6b10ee6007fe2001db"
   integrity sha512-enL19BuXUjFkDDDF9jdNwUclMNPRsagnjGAetVC7xcmpDMpEx+ZLgsDip6BFNg5p6izSEk/OyujTWW1r8bDNiA==
 
-"@svta/cml-structured-field-values@1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@svta/cml-structured-field-values/-/cml-structured-field-values-1.1.4.tgz#13351ca36a53e5185e20be933a54827e88aa80c1"
-  integrity sha512-hLNhR8IzMV/DWyaWzCzc79ku+y7W5+f2An5BuyTJAjrRPftQ1CZ5TDOKz4Y2N/KVipyOAYOt3xdswWYv8efj0g==
+"@svta/cml-structured-field-values@1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@svta/cml-structured-field-values/-/cml-structured-field-values-1.1.5.tgz#54ee47e0a5dbf111b3c9c8c38a4d7d49e053bcb9"
+  integrity sha512-zHa7/0R9Hx1BOWdRzVl6C25HLsqXaXtXTQP5f9IEC/etLug2RoaIC10AY65tACoR0K2R7H7mNlfjlSesc0TuVQ==
 
-"@svta/cml-utils@1.5.1":
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/@svta/cml-utils/-/cml-utils-1.5.1.tgz#75a548fdb90f55c787e270547bc2e95a25a0a0b6"
-  integrity sha512-iQ9OaOZqLPjNCyzo6jZrCyXKtfm9xv389Bbqs6ndWNid59G2vR+Bs2zPBG8iQDyRJWJjO5i2w0A9AS/ZpxctUA==
+"@svta/cml-utils@1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@svta/cml-utils/-/cml-utils-1.6.0.tgz#9e58b0aacd1aa83f5b30d186cc892c4c54ed961e"
+  integrity sha512-h8jd5Y0nrr8wHWkI7XB03Denxy6QR7dgROxchZ2S0VQ4PFINrIu6J0k9N1IGHmtJnJjG3ttszsJd4LS5V/DqcA==
 
 "@svta/cml-xml@1.0.1":
   version "1.0.1"
@@ -3258,10 +3250,10 @@
     "@types/history" "^4.7.11"
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^19.2.17":
-  version "19.2.17"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.2.17.tgz#dccac365baa0f1734ec270ff4b51c89465e8dc7f"
-  integrity sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw==
+"@types/react@*", "@types/react@^19.2.18":
+  version "19.2.18"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.2.18.tgz#eb0b6a1fb635d1a9692d5f84a3495bd8ad153707"
+  integrity sha512-AnzbBERsrLKtk2XSfTbYRLjQPdy116Sty4q+T+Bp3IC4l6jNBvreVPAHmpq9qhXQM7CXZPjLVmGMw9sy+hxQ3w==
   dependencies:
     csstype "^3.2.2"
 
