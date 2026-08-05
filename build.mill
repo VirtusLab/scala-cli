@@ -128,7 +128,6 @@ object `scala-cli-bsp` extends JavaModule
 }
 object integration extends CliIntegration {
   object test extends IntegrationScalaTests {
-    override def testParallelism: T[Boolean]           = !isCI
     override def testForkGrouping: T[Seq[Seq[String]]] =
       if isCI && System.getenv("SCALA_CLI_IT_SANITY") == null then
         discoveredTestClasses().grouped(1).toSeq
@@ -433,8 +432,7 @@ trait Core extends ScalaCliCrossSbtModule
   private def vcsState: T[String] = Task(persistent = true) {
     val isCI  = System.getenv("CI") != null
     val state = VcsVersion.vcsState().format()
-    if (isCI) state
-    else state + "-maybe-stale"
+    if isCI then state else state + "-maybe-stale"
   }
 
   def constantsFile: T[PathRef] = Task(persistent = true) {
