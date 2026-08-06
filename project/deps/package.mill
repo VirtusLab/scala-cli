@@ -123,7 +123,7 @@ object Deps {
     def coursierPublish                   = "0.4.4"
     def dockerJava                        = "3.7.1"
     def jmh                               = "1.37"
-    def jsoniterScala                     = "2.39.1"
+    def jsoniterScala                     = "2.40.1"
     def jsoup                             = "1.23.1"
     def scalaMeta                         = "4.17.3"
     def scalafmt                          = "3.11.5"
