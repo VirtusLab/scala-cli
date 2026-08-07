@@ -45,12 +45,14 @@ object SlothPatcher:
     classPath: Seq[os.Path],
     options: BuildOptions,
     logger: Logger,
-    patchProjectClassDirs: Boolean = false
+    patchProjectClassDirs: Boolean,
+    projectClassDirs: Set[os.Path]
   ): Either[BuildException, Seq[os.Path]] =
     if options.notForBloopOptions.sloth then
       Right(captureStdio(logger)(classPath.map(patchClassPathEntry(
         _,
         patchProjectClassDirs,
+        projectClassDirs,
         logger
       ))))
     else Right(classPath)
@@ -64,6 +66,31 @@ object SlothPatcher:
       Right(captureStdio(logger)(patchIfJar(jar, logger)))
     else Right(jar)
 
+  /** Turn a classpath entry into a JAR suitable for packaging (e.g. bootstrap). Files are patched
+    * when `--sloth` is on; directories are jarred (and patched when `--sloth` is on). Never mutates
+    * the original directory.
+    */
+  def classPathEntryAsJar(
+    path: os.Path,
+    options: BuildOptions,
+    logger: Logger
+  ): Either[BuildException, os.Path] =
+    if os.isDir(path) then
+      Right(captureStdio(logger):
+        if options.notForBloopOptions.sloth && containsClassFiles(path) then
+          // Prefer a cached jar of the patched directory
+          patchClassDir(path, logger) match
+            case jar if jar != path && os.isFile(jar) => jar
+            case _                                    =>
+              val dest = os.temp(prefix = "sloth-cp-entry-", suffix = ".jar", deleteOnExit = false)
+              jarDirectory(path, dest)
+              dest
+        else
+          val dest = os.temp(prefix = "sloth-cp-entry-", suffix = ".jar", deleteOnExit = false)
+          jarDirectory(path, dest)
+          dest)
+    else patchJarFile(path, options, logger)
+
   /** In-process memo of class directories covered by [[patchClassDirInPlace]] in this JVM.
     * Consulted by callers (e.g. `copyOutput`) to skip a redundant second pass over the same bytes;
     * does not short-circuit [[patchClassDirInPlace]] itself (needed under `--watch`).
@@ -74,19 +101,21 @@ object SlothPatcher:
   def wasPatchedInThisProcess(dir: os.Path): Boolean =
     patchedClassDirsInThisProcess.contains(dir)
 
-  /** Patch the class directories of `classPath` in place, keeping them as directories, and return
-    * `classPath` unchanged so it can be chained into [[transformClassPath]].
+  /** Patch the project class directories of `classPath` in place, keeping them as directories, and
+    * return `classPath` unchanged so it can be chained into [[transformClassPath]]. Only entries in
+    * `projectClassDirs` are considered.
     */
   def patchClassPathDirsInPlace(
     classPath: Seq[os.Path],
     options: BuildOptions,
     logger: Logger,
-    shouldPatch: Boolean
+    shouldPatch: Boolean,
+    projectClassDirs: Set[os.Path]
   ): Either[BuildException, Seq[os.Path]] =
     if !options.notForBloopOptions.sloth || !shouldPatch then Right(classPath)
     else
       classPath.iterator
-        .filter(containsClassFiles)
+        .filter(p => projectClassDirs.contains(p) && containsClassFiles(p))
         .map(patchClassDirInPlace(_, options, logger, shouldPatch = true))
         .sequence0
         .map(_ => classPath)
@@ -245,17 +274,83 @@ object SlothPatcher:
   private def patchClassPathEntry(
     path: os.Path,
     patchProjectClassDirs: Boolean,
+    projectClassDirs: Set[os.Path],
     logger: Logger
   ): os.Path =
     path.orOriginalOnFailure(logger):
       zipStartOffset(path) match
         case Some(offset) =>
           patchJar(path, offset, logger)
-        case None if patchProjectClassDirs && os.isDir(path) =>
-          patchClassDir(path, logger)
+        case None if containsClassFiles(path) =>
+          if projectClassDirs.contains(path) then
+            if patchProjectClassDirs then patchClassDir(path, logger)
+            else path
+          else
+            patchExternalClassDir(path, logger)
         case None =>
           logger.debug(s"Sloth skipping classpath entry: $path")
           path
+
+  /** Patch an externally supplied class directory into a cached directory copy. Never mutates the
+    * user's files; keeps the entry as a directory so test-suite discovery (which only scans
+    * directory classpath entries) still works.
+    */
+  private def patchExternalClassDir(dir: os.Path, logger: Logger): os.Path =
+    dir.orOriginalOnFailure(logger):
+      val dirHash         = sha1OfDir(dir)
+      val cachedDir       = cacheDir / Constants.slothVersion / "external-dirs" / dirHash
+      val cached          = cachedDir / dir.last
+      val unpatchedMarker = cachedDir / unpatchedMarkerName
+      if os.exists(cached) then cached
+      else if os.exists(unpatchedMarker) then dir
+      else
+        os.makeDir.all(cachedDir)
+        val tmpInput =
+          os.temp(
+            prefix = "sloth-external-",
+            suffix = ".jar",
+            dir = cachedDir,
+            deleteOnExit = false
+          )
+        val tmpOutput =
+          os.temp(
+            prefix = "sloth-external-out-",
+            suffix = ".jar",
+            dir = cachedDir,
+            deleteOnExit = false
+          )
+        try
+          jarDirectory(dir, tmpInput)
+          runJarProcessor(tmpInput, tmpOutput) match
+            case Left(errorMsg) =>
+              logger.message(
+                s"$warnPrefix ${WarningMessages.slothCouldNotPatch(dir.toString, errorMsg)}"
+              )
+              dir
+            case Right(result) if result.patchedClasses == 0 =>
+              os.write(unpatchedMarker, "", createFolders = true)
+              logger.debug(s"No lazy vals to patch in external class directory $dir")
+              dir
+            case Right(_) =>
+              val staging =
+                cachedDir / s"${dir.last}.staging-${java.util.UUID.randomUUID().toString}"
+              try
+                os.copy(dir, staging, createFolders = true)
+                writeBackPatchedClasses(staging, tmpInput, tmpOutput, logger)
+                try
+                  os.move(staging, cached, atomicMove = true, replaceExisting = false)
+                catch
+                  case _: FileAlreadyExistsException | _: AtomicMoveNotSupportedException =>
+                    try os.move(staging, cached, replaceExisting = false)
+                    catch case _: FileAlreadyExistsException => ()
+                if os.exists(cached) then
+                  logger.debug(s"Patched lazy vals in external class directory $dir -> $cached")
+                  cached
+                else dir
+              finally if os.exists(staging) then os.remove.all(staging)
+        finally
+          if os.exists(tmpInput) then os.remove(tmpInput)
+          if os.exists(tmpOutput) then os.remove(tmpOutput)
 
   private def patchClassDir(dir: os.Path, logger: Logger): os.Path =
     dir.orOriginalOnFailure(logger):

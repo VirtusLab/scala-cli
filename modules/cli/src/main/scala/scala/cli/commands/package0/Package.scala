@@ -916,7 +916,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       }
     val byteCodeEntry  = ClassPathEntry.Resource(s"${destPath.last}-content.jar", 0L, tmpJarContent)
     val extraClassPath = builds.head.options.classPathOptions.extraClassPath.map { classPath =>
-      val patchedPath = value(SlothPatcher.patchJarFile(classPath, options, logger))
+      val patchedPath = value(SlothPatcher.classPathEntryAsJar(classPath, options, logger))
       ClassPathEntry.Resource(
         patchedPath.last,
         os.mtime(patchedPath),

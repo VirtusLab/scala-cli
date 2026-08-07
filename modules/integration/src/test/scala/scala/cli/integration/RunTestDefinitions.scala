@@ -2745,4 +2745,54 @@ abstract class RunTestDefinitions
         expect(r.err.trim().contains(slothSignatureStrippedWarnFragment))
       }
     }
+
+    if isScala38OrNewer then {
+      test(
+        s"run --sloth patches external -cp class directory with ${Constants.scala3Lts} lazy vals on JDK $latestJava"
+      ) {
+        TestInputs(externalLazyValsInput()).fromRoot { root =>
+          val (classDir, expectedMessage) = compileExternalLazyValClassDir(root)
+          val r                           = os.proc(
+            TestUtil.cli,
+            "--power",
+            "run",
+            "--server=false",
+            "-e",
+            "println(slothful)",
+            "-cp",
+            classDir.toString,
+            slothOptions,
+            "--jvm",
+            latestJava.toString,
+            extraOptions
+          ).call(cwd = root, stderr = os.Pipe)
+          expect(r.out.trim() == expectedMessage)
+          expect(!r.err.trim().contains("sun.misc.Unsafe"))
+        }
+      }
+
+      test(
+        s"run --sloth-agent patches external -cp class directory with ${Constants.scala3Lts} lazy vals on JDK $latestJava"
+      ) {
+        TestInputs(externalLazyValsInput()).fromRoot { root =>
+          val (classDir, expectedMessage) = compileExternalLazyValClassDir(root)
+          val r                           = os.proc(
+            TestUtil.cli,
+            "--power",
+            "run",
+            "--server=false",
+            "-e",
+            "println(slothful)",
+            "-cp",
+            classDir.toString,
+            slothAgentOptions,
+            "--jvm",
+            latestJava.toString,
+            extraOptions
+          ).call(cwd = root, stderr = os.Pipe)
+          expect(r.out.trim() == expectedMessage)
+          expect(!r.err.trim().contains("sun.misc.Unsafe"))
+        }
+      }
+    }
 }

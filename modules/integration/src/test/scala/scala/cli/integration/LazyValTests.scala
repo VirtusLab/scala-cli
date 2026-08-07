@@ -95,10 +95,15 @@ trait LazyValTests:
       |X-Custom: yes
       |""".stripMargin
 
-  protected def expectScaladocClasspathContains(output: String, fragment: String): Unit =
+  protected def expectScaladocClasspathContains(
+    output: String,
+    fragment: String,
+    shouldContain: Boolean = true
+  ): Unit =
     val marker       = "dotty.tools.scaladoc.Main -classpath "
     val classpathOpt = output.split(marker).lift(1).map(_.takeWhile(c => c != ' ' && c != '\n'))
-    expect(classpathOpt.exists(_.contains(fragment)))
+    expect(classpathOpt.isDefined)
+    expect(classpathOpt.exists(_.contains(fragment)) == shouldContain)
 
   protected def classpathEntries(classpath: String): Seq[os.Path] =
     classpath.split(File.pathSeparator).toSeq.filter(_.nonEmpty).map(os.Path(_))
@@ -121,6 +126,46 @@ trait LazyValTests:
     val isClass = os.isFile(path)
     expect(isClass)
     os.read.bytes(path)
+
+  /** Compiles a lazy-val source with an older Scala (default: LTS) to an external class directory.
+    * Returns `(classDir, expectedMessage)`. The class dir mimics a `-cp` / `--extra-jar` directory
+    * entry produced outside the consuming project.
+    *
+    * The source must already be present under `workspace / sourceDirName` (use
+    * [[externalLazyValsInput]] in the surrounding `TestInputs`).
+    */
+  protected val externalLazyValsDirName: String = "external"
+
+  protected def externalLazyValsSource(expectedMessage: String = "true"): String =
+    s"""lazy val hah = $expectedMessage
+       |def slothful: Boolean = hah
+       |""".stripMargin
+
+  protected def externalLazyValsInput(expectedMessage: String = "true"): (os.RelPath, String) =
+    os.rel / externalLazyValsDirName / "lazy.scala" -> externalLazyValsSource(expectedMessage)
+
+  protected def compileExternalLazyValClassDir(
+    workspace: os.Path,
+    scalaVersion: String = Constants.scala3Lts,
+    buildJvm: String = "8",
+    classDirName: String = "cp",
+    sourceDirName: String = externalLazyValsDirName,
+    expectedMessage: String = "true"
+  ): (os.Path, String) =
+    val classDir = workspace / classDirName
+    os.proc(
+      TestUtil.cli,
+      "compile",
+      "--server=false",
+      sourceDirName,
+      "-S",
+      scalaVersion,
+      "--jvm",
+      buildJvm,
+      "-d",
+      classDir.toString
+    ).call(cwd = workspace, stdin = os.Inherit, stdout = os.Inherit)
+    (classDir, expectedMessage)
 
   protected def publishLazyValsLib(
     scalaVersion: String,

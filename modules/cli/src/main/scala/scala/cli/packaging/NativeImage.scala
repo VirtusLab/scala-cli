@@ -104,7 +104,13 @@ object NativeImage {
       val mainJar           = value(SlothPatcher.patchJarFile(mainJar0, options, logger))
       val deps              = builds.flatMap(_.dependencyClassPath).distinct
       val originalClassPath =
-        mainJar +: value(SlothPatcher.transformClassPath(deps, options, logger))
+        mainJar +: value(SlothPatcher.transformClassPath(
+          deps,
+          options,
+          logger,
+          patchProjectClassDirs = false,
+          projectClassDirs = Set.empty
+        ))
 
       ManifestJar.maybeWithManifestClassPath(
         createManifest = Properties.isWin,
