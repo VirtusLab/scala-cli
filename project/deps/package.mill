@@ -142,7 +142,7 @@ object Deps {
     def bloop                             = "2.1.1"
     def bouncycastle                      = "1.85"
     def sbt1Version                       = "1.12.5"
-    def sbt2Version                       = "2.0.1"
+    def sbt2Version                       = "2.0.5"
     def sbtVersion                        = sbt2Version
     def mill012Version                    = "0.12.17"
     def mill1Version                      = BuildInfo.millVersion
