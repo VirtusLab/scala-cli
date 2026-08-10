@@ -93,6 +93,8 @@ object Java {
   def minimumBloopJava: Int    = 17
   def minimumScala38Java: Int  = 17
   def minimumInternalJava: Int = 16
+  def minimumJep512Java: Int        = 25
+  def minimumJep512PreviewJava: Int = 21
   def defaultJava: Int         = minimumBloopJava
   def cliKeyJavaVersions       = Seq(
     minimumBloopJava,

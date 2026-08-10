@@ -424,7 +424,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           case b if b.forall(_.success) && mainClassOptions.mainClassLs.contains(true) =>
             mainClassOptions.maybePrintMainClasses(
               mainClasses = builds0.flatMap(_.foundMainClasses()).distinct,
-              shouldExit = allowExit
+              shouldExit = allowExit,
+              unsupportedMainMethodsNote =
+                builds0.flatMap(_.unsupportedMainMethodsNote).headOption
             )
           case _ => prepareFilesAndUpload(
               builds = builds0,

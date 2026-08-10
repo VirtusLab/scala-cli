@@ -53,6 +53,25 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
+  for (javaVersion <- Constants.allJavaVersions.filter(_ >= Constants.jep512MinJavaVersion))
+    test(s"correctly run a compact java snippet on JDK $javaVersion") {
+      TestUtil.retryOnCi() {
+        emptyInputs.fromRoot { root =>
+          val quotation = TestUtil.argQuotationMark
+          val msg       = "snippet"
+          val res       = os.proc(
+            TestUtil.cli,
+            "run",
+            "--java-snippet",
+            s"void main() { System.out.println($quotation$msg$quotation); }",
+            "--jvm",
+            javaVersion
+          ).call(cwd = root)
+          expect(res.out.trim() == msg)
+        }
+      }
+    }
+
   test("correctly run a markdown snippet") {
     emptyInputs.fromRoot { root =>
       val msg       = "Hello world"

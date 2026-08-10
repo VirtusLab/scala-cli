@@ -1238,6 +1238,75 @@ abstract class RunTestDefinitions
     }
   }
 
+  test("instance main on an older JVM explains the JDK 25 requirement") {
+    TestUtil.retryOnCi() {
+      TestInputs(
+        os.rel / "T.scala" ->
+          s"""//> using jvm ${Constants.defaultJvmVersion}
+             |class A { def main(): Unit = println(1) }
+             |""".stripMargin
+      ).fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "run", ".", extraOptions)
+          .call(cwd = root, mergeErrIntoOut = true, check = false)
+        expect(res.exitCode != 0)
+        val out = res.out.text()
+        expect(out.contains("No main class found"))
+        expect(out.contains("JEP 512"))
+        expect(out.contains(Constants.jep512MinJavaVersion.toString))
+      }
+    }
+  }
+
+  for (javaVersion <- Constants.allJavaVersions.filter(_ >= Constants.jep512MinJavaVersion)) {
+    test(s"run a Scala class with a no-arg main method on JDK $javaVersion") {
+      TestUtil.retryOnCi() {
+        TestInputs(
+          os.rel / "T.scala" -> "class A { def main(): Unit = println(1) }"
+        ).fromRoot { root =>
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+            .call(cwd = root)
+          expect(res.out.trim() == "1")
+        }
+      }
+    }
+
+    test(s"run a Java compact source with an instance main on JDK $javaVersion") {
+      TestUtil.retryOnCi() {
+        TestInputs(
+          os.rel / "Hello.java" ->
+            """void main() {
+              |    System.out.println("Hello");
+              |}
+              |""".stripMargin
+        ).fromRoot { root =>
+          val res = os.proc(TestUtil.cli, "run", ".", "--jvm", javaVersion)
+            .call(cwd = root)
+          expect(res.out.trim() == "Hello")
+        }
+      }
+    }
+
+    if hasLatestRunnerModule then
+      test(s"run an instance main with --runner on JDK $javaVersion") {
+        TestUtil.retryOnCi() {
+          TestInputs(
+            os.rel / "T.scala" -> "class A { def main(): Unit = println(1) }"
+          ).fromRoot { root =>
+            val res = os.proc(
+              TestUtil.cli,
+              "run",
+              ".",
+              extraOptions,
+              "--jvm",
+              javaVersion,
+              "--runner"
+            ).call(cwd = root)
+            expect(res.out.trim() == "1")
+          }
+        }
+      }
+  }
+
   test("correctly list main classes") {
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val scriptsDir                           = "scripts"

@@ -1713,4 +1713,58 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(output == message)
     }
   }
+
+  for (javaVersion <- Constants.allJavaVersions.filter(_ >= Constants.jep512MinJavaVersion)) {
+    test(s"package --assembly of an instance main runs on JDK $javaVersion") {
+      TestUtil.retryOnCi() {
+        TestInputs(
+          os.rel / "A.scala" -> "class A { def main(): Unit = println(1) }"
+        ).fromRoot { root =>
+          os.proc(
+            TestUtil.cli,
+            "--power",
+            "package",
+            extraOptions,
+            ".",
+            "--assembly",
+            "--jvm",
+            javaVersion,
+            "-o",
+            "app.jar"
+          ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+          val javaHome = os.Path(
+            os.proc(TestUtil.cs, "java-home", "--jvm", javaVersion).call().out.trim(),
+            os.pwd
+          )
+          val res = os.proc(javaHome / "bin" / "java", "-jar", root / "app.jar")
+            .call(cwd = root)
+          expect(res.out.trim() == "1")
+        }
+      }
+    }
+
+    test(s"package bootstrap rejects an instance main on JDK $javaVersion") {
+      TestUtil.retryOnCi() {
+        TestInputs(
+          os.rel / "A.scala" -> "class A { def main(): Unit = println(1) }"
+        ).fromRoot { root =>
+          val res = os.proc(
+            TestUtil.cli,
+            "--power",
+            "package",
+            extraOptions,
+            ".",
+            "--jvm",
+            javaVersion,
+            "-o",
+            "app"
+          ).call(cwd = root, mergeErrIntoOut = true, check = false)
+          expect(res.exitCode != 0)
+          val out = res.out.text()
+          expect(out.contains("JEP 512") || out.contains("instance/no-arg"))
+          expect(out.contains("--assembly") || out.contains("--library"))
+        }
+      }
+    }
+  }
 }

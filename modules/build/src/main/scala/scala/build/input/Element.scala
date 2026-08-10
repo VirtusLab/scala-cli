@@ -51,8 +51,20 @@ sealed abstract class VirtualSourceFile extends Virtual {
   def isSnippet: Boolean = source.startsWith("<snippet>")
 
   protected def generatedSourceFileName(fileSuffix: String): String =
-    if (isStdin) s"stdin$fileSuffix"
-    else if (isSnippet) s"${source.stripPrefix("<snippet>-")}$fileSuffix"
+    if isStdin then s"stdin$fileSuffix"
+    else if isSnippet then {
+      val rawBase = source.stripPrefix("<snippet>-")
+      // Compact Java source files (JEP 512) name the implicit class after the file base name,
+      // which must be a valid Java identifier — replace '-' and other illegal chars.
+      val safeBase = rawBase.map {
+        case c if Character.isJavaIdentifierPart(c) => c
+        case _                                      => '_'
+      }
+      val startingSafe =
+        if safeBase.isEmpty || !Character.isJavaIdentifierStart(safeBase.head) then s"_$safeBase"
+        else safeBase
+      s"$startingSafe$fileSuffix"
+    }
     else s"virtual$fileSuffix"
 }
 
