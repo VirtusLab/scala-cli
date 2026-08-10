@@ -7,7 +7,6 @@ import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.file.NoSuchFileException
 import java.util.jar.{Attributes, JarFile}
 
-import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.{Logger, retry}
 
 object MainClass {
@@ -73,24 +72,8 @@ object MainClass {
     finally is.close()
 
   private def findInJar(path: os.Path, logger: Logger): Iterator[String] =
-    try retry()(logger) {
-        val content        = os.read.bytes(path)
-        val jarInputStream = WrappedZipInputStream.create(new ByteArrayInputStream(content))
-        jarInputStream.entries().flatMap(ent =>
-          if !ent.isDirectory && ent.getName.endsWith(".class") then {
-            val content     = jarInputStream.readAllBytes()
-            val inputStream = new ByteArrayInputStream(content)
-            findInClass(inputStream, logger)
-          }
-          else Iterator.empty
-        )
-      }
-    catch {
-      case e: NoSuchFileException =>
-        logger.debugStackTrace(e)
-        logger.log(s"JAR file $path not found: $e, trying to recover...")
-        logger.log("Are you trying to run too many builds at once? Trying to recover...")
-        Iterator.empty
+    JarUtils.walkClassEntries(path, logger) { (_, bytes) =>
+      findInClass(new ByteArrayInputStream(bytes()), logger)
     }
 
   def findInDependency(jar: os.Path): Option[String] =

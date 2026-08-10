@@ -105,7 +105,6 @@ case object ScriptPreprocessor extends Preprocessor {
         inputArgPath.getOrElse(subPath.toString)
       )
 
-      (pkg :+ wrapper).map(_.raw).mkString(".")
       val relPath = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
 
       val file = PreprocessedSource.UnwrappedScript(

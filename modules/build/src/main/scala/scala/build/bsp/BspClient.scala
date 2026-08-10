@@ -115,6 +115,8 @@ class BspClient(
   }
 
   def setProjectParams(newParams: Seq[String]): Unit                    = {}
+  def setSuspectedClashNames(names: Set[String]): Unit                  = {}
+  def detectedShadowingCandidates: Set[String]                          = Set.empty
   def diagnostics: Option[Seq[(Either[String, os.Path], b.Diagnostic)]] = None
   def clear(): Unit                                                     = {}
 
