@@ -1,0 +1,452 @@
+name: Release
+on:
+  workflow_call:
+
+jobs:
+  publish:
+    if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        submodules: true
+        ssh-key: ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      with:
+        jvm: "temurin:17"
+    - name: GPG setup
+      run: .github/scripts/gpg-setup.sh
+      env:
+        PGP_SECRET: ${{ secrets.PGP_SECRET }}
+    - name: Set publish flag
+      run: ./mill -i ci.setShouldPublish
+    - name: Print version
+      run: ./mill -i show project.publish.finalPublishVersion
+    - name: Publish to Sonatype Central
+      run: ./mill mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts '{__[],_}.publishArtifacts'
+      if: env.SHOULD_PUBLISH == 'true'
+      env:
+        MILL_PGP_SECRET_BASE64: ${{ secrets.PGP_SECRET }}
+        MILL_PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+    - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+      with:
+        ssh-private-key: |
+          ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
+    - name: Update stable branch
+      if: env.SHOULD_PUBLISH == 'true' && startsWith(github.ref, 'refs/tags/v')
+      run: |
+        git config user.name gh-actions
+        git config user.email actions@github.com
+        git checkout stable
+        git merge origin/main -m "Back port of documentation changes to stable"
+        git push origin stable
+
+  launchers:
+    timeout-minutes: 20
+    needs:
+      - publish
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      with:
+        jvm: "temurin:17"
+    - run: ./mill -i ci.setShouldPublish
+    - name: Download Linux x64 launchers
+      uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: linux-launchers
+        path: artifacts/
+    - name: Download Linux ARM64 (AArch64) launchers
+      uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: linux-aarch64-launchers
+        path: artifacts/
+    - name: Download MacOS x64 launchers
+      uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: macos-launchers
+        path: artifacts/
+    - name: Download Linux ARM64 (AArch64) launchers
+      uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: macos-arm64-launchers
+        path: artifacts/
+    - name: Download Windows launchers
+      uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: windows-launchers
+        path: artifacts/
+    - name: Download mostly static launchers
+      uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: mostly-static-launchers
+        path: artifacts/
+    - name: Download static launchers
+      uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: static-launchers
+        path: artifacts/
+    - name: Download JVM launchers
+      uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: jvm-launchers
+        path: artifacts/
+    - name: Download Visual Studio launchers
+      uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: vc-redist-launchers
+        path: artifacts/
+    - run: ./mill -i uploadLaunchers --directory artifacts/
+      if: env.SHOULD_PUBLISH == 'true'
+      env:
+        UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-installation-script:
+    name: Update installation script
+    needs:
+      - launchers
+      - publish
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: scala-cli-packages-${{ github.ref }}
+      cancel-in-progress: false
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+        with:
+          ssh-private-key: ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
+      - run: ./mill -i ci.updateInstallationScript
+
+  update-scala-cli-brew:
+    name: Update scala-cli brew formula
+    needs:
+      - launchers
+      - publish
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - name: Download MacOS x86 launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: macos-launchers
+          path: artifacts/
+      - name: Download MacOS ARM64 (AArch64) launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: macos-arm64-launchers
+          path: artifacts/
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+        with:
+          ssh-private-key: ${{ secrets.HOMEBREW_SCALA_CLI_KEY }}
+      - run: ./mill -i ci.updateScalaCliBrewFormula
+
+  update-debian:
+    name: Update Debian packages
+    needs:
+      - launchers
+      - publish
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: scala-cli-packages-${{ github.ref }}
+      cancel-in-progress: false
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - name: Download Linux x86 launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-launchers
+          path: artifacts/
+      - name: Download MacOS ARM64 (AArch 64) launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-aarch64-launchers
+          path: artifacts/
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+        with:
+          ssh-private-key: ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
+      - name: GPG setup
+        run: .github/scripts/gpg-setup.sh
+        env:
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+      - run: ./mill -i ci.updateDebianPackages
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
+
+  update-centos:
+    name: Update CentOS packages
+    needs:
+      - launchers
+      - publish
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: scala-cli-packages-${{ github.ref }}
+      cancel-in-progress: false
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - name: Download Linux x86 launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-launchers
+          path: artifacts/
+      - name: Download MacOS ARM64 (AArch64) launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-aarch64-launchers
+          path: artifacts/
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+        with:
+          ssh-private-key: ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
+      - name: GPG setup
+        run: .github/scripts/gpg-setup.sh
+        env:
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+      - run: ./mill -i ci.updateCentOsPackages
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
+
+  update-standalone-launcher:
+    name: Update standalone launcher
+    needs:
+      - launchers
+      - publish
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - name: Download Linux x86 launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-launchers
+          path: artifacts/
+      - name: Download Linux ARM64 (AArch64) launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-aarch64-launchers
+          path: artifacts/
+      - name: Download MacOS x86 launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: macos-launchers
+          path: artifacts/
+      - name: Download MacOS ARM64 (AArch64) launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: macos-arm64-launchers
+          path: artifacts/
+      - name: Download Windows launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-launchers
+          path: artifacts/
+      - name: Download mostly static launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: mostly-static-launchers
+          path: artifacts/
+      - name: Download static launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: static-launchers
+          path: artifacts/
+      - name: Download JVM launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: jvm-launchers
+          path: artifacts/
+      - run: ./mill -i ci.updateStandaloneLauncher
+        env:
+          UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-sdkman:
+    name: Publish to SDKMAN
+    needs:
+      - launchers
+      - publish
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - run: .github/scripts/publish-sdkman.sh
+        shell: bash
+        env:
+          SDKMAN_KEY: ${{ secrets.SDKMAN_KEY }}
+          SDKMAN_TOKEN: ${{ secrets.SDKMAN_TOKEN }}
+
+  update-scala-cli-setup:
+    name: Update scala-cli setup
+    needs:
+      - launchers
+      - publish
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+        with:
+          ssh-private-key: ${{ secrets.SCALA_CLI_SETUP_KEY }}
+      - run: ./mill -i ci.updateScalaCliSetup
+
+  update-experimental-brew:
+    name: Update scala-experimental brew formula
+    needs:
+      - launchers
+      - publish
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        with:
+          jvm: "temurin:17"
+      - name: Download MacOS x86 launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: macos-launchers
+          path: artifacts/
+      - name: Download MacOS ARM64 (AArch64) launchers
+        uses: actions/download-artifact@v8
+        with:
+          name: macos-arm64-launchers
+          path: artifacts/
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+        with:
+          ssh-private-key: ${{ secrets.HOMEBREW_SCALA_EXPERIMENTAL_KEY }}
+      - run: ./mill -i ci.updateScalaExperimentalBrewFormula
+
+  update-windows-packages:
+    name: Update Windows packages
+    needs:
+      - launchers
+      - publish
+    runs-on: "windows-2025"
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        submodules: true
+    - name: Import custom registry and verify
+      uses: ./.github/actions/windows-reg-import
+      with:
+        reg-file: .github/ci/windows/custom.reg
+    - uses: coursier/cache-action@v8
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      with:
+        jvm: "temurin:17"
+    - name: Download Windows launchers
+      uses: actions/download-artifact@v8
+      with:
+        name: windows-launchers
+        path: artifacts/
+    - name: Publish to chocolatey
+      run: ./mill -i ci.updateChocolateyPackage
+      continue-on-error: true
+      env:
+        CHOCO_SECRET: ${{ secrets.CHOCO_SECRET_KEY }}
+    - uses: vedantmgoyal9/winget-releaser@main
+      with:
+        identifier: VirtusLab.ScalaCLI
+        installers-regex: '\.msi$'
+        fork-user: scala-steward
+        token: ${{ secrets.STEWARD_WINGET_TOKEN }}

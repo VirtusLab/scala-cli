@@ -1,0 +1,277 @@
+name: Misc Checks
+on:
+  workflow_call:
+    inputs:
+      code:
+        type: string
+        required: true
+      docs:
+        type: string
+        required: true
+      ci:
+        type: string
+        required: true
+      format_config:
+        type: string
+        required: true
+      benchmark:
+        type: string
+        required: true
+      gifs:
+        type: string
+        required: true
+      mill_wrapper:
+        type: string
+        required: true
+      test_all:
+        type: string
+        required: true
+      test_docs:
+        type: string
+        required: true
+      test_format:
+        type: string
+        required: true
+      test_skip:
+        type: string
+        required: true
+
+jobs:
+  test-fish-shell:
+    timeout-minutes: 120
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping fish shell test -- changes do not affect compiled code, CI, or mill wrapper."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - name: Install fish
+      if: env.SHOULD_RUN == 'true'
+      run: |
+        sudo apt-add-repository ppa:fish-shell/release-3
+        sudo apt update
+        sudo apt install fish
+    - name: Test mill script in fish shell
+      if: env.SHOULD_RUN == 'true'
+      run: |
+        fish -c './mill __.compile'
+
+  docs-tests:
+    # for now, let's run those tests only on ubuntu
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.docs == 'true' || inputs.ci == 'true' || inputs.gifs == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_docs == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping docs tests -- changes do not affect code, docs, CI, or gifs."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "zulu:17"
+    - uses: actions/setup-node@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        node-version: 24
+    - uses: denoland/setup-deno@v2
+      if: env.SHOULD_RUN == 'true'
+      with:
+        deno-version: v2.x
+    - uses: oven-sh/setup-bun@v2
+      if: env.SHOULD_RUN == 'true'
+    - name: Build documentation
+      if: env.SHOULD_RUN == 'true'
+      run: .github/scripts/build-website.sh
+    - name: Verify release notes formatting
+      if: env.SHOULD_RUN == 'true'
+      run: .github/scripts/process_release_notes.sc verify website/docs/release_notes.md
+    - name: Test documentation
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i 'docs-tests[]'.test
+    - name: Convert Mill test reports to JUnit XML format
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      run: .github/scripts/generate-junit-reports.sc docs-tests 'Scala CLI Docs Tests' test-report.xml out/
+    - name: Upload test report
+      uses: actions/upload-artifact@v7
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      with:
+        name: test-results-docs-tests
+        path: test-report.xml
+
+  checks:
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ inputs.code == 'true' || inputs.docs == 'true' || inputs.ci == 'true' || inputs.format_config == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping checks -- changes do not affect code, docs, CI, or format config."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - name: Check Scala / Scala.js versions in doc
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i ci.checkScalaVersions
+    - name: Check native-image config format
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i __.checkNativeImageConfFormat
+    - name: Check for cross Scala version conflicts
+      if: env.SHOULD_RUN == 'true'
+      run: .github/scripts/check-cross-version-deps.sc
+    - name: Scalafix check
+      if: env.SHOULD_RUN == 'true'
+      run: |
+        ./mill -i __.fix --check || (
+          echo "To remove unused import run"
+          echo "  ./mill -i __.fix"
+          exit 1
+        )
+
+  format:
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ inputs.code == 'true' || inputs.docs == 'true' || inputs.ci == 'true' || inputs.format_config == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_format == 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping format check -- changes do not affect code, docs, CI, or format config."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+    - run: scala-cli fmt . --check
+      if: env.SHOULD_RUN == 'true'
+
+  reference-doc:
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.docs == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping reference doc check -- changes do not affect code, docs, or CI."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - name: Check that reference doc is up-to-date
+      if: env.SHOULD_RUN == 'true'
+      run: |
+        ./mill -i 'generate-reference-doc[]'.run --check || (
+          echo "Reference doc is not up-to-date. Run"
+          echo "  ./mill -i 'generate-reference-doc[]'.run"
+          echo "to update it, then commit the result."
+          exit 1
+        )
+
+  bloop-memory-footprint:
+    timeout-minutes: 120
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.benchmark == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping bloop memory footprint benchmark -- changes do not affect code, CI, or benchmarks."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - name: Java Version
+      if: env.SHOULD_RUN == 'true'
+      run: java -version
+    - name: Java Home
+      if: env.SHOULD_RUN == 'true'
+      run: echo "$JAVA_HOME"
+    - name: Build Scala CLI
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill copyJvmLauncher --directory build
+    - name: Build Benchmark
+      if: env.SHOULD_RUN == 'true'
+      run: java -jar ./build/scala-cli --power package --standalone gcbenchmark/gcbenchmark.scala -o gc
+    - name: Run Benchmark
+      if: env.SHOULD_RUN == 'true'
+      run: ./gc $(realpath ./build/scala-cli)
+
+  test-hypothetical-sbt-export:
+    timeout-minutes: 120
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping sbt export test -- changes do not affect compiled code or CI."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - name: Try to export to SBT
+      if: env.SHOULD_RUN == 'true'
+      run: scala-cli --power export --sbt .

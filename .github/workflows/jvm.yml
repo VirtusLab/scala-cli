@@ -1,0 +1,337 @@
+name: JVM Tests
+on:
+  workflow_call:
+    inputs:
+      code:
+        type: string
+        required: true
+      ci:
+        type: string
+        required: true
+      mill_wrapper:
+        type: string
+        required: true
+      test_all:
+        type: string
+        required: true
+      test_integration:
+        type: string
+        required: true
+      test_skip:
+        type: string
+        required: true
+
+jobs:
+  unit-tests:
+    timeout-minutes: 120
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping unit tests -- changes do not affect compiled code, CI, or mill wrapper."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - name: Copy launcher
+      run: ./mill -i copyJvmLauncher --directory artifacts/
+      if: runner.os == 'Linux' && env.SHOULD_RUN == 'true'
+    - name: Copy bootstrapped launcher
+      run: ./mill -i copyJvmBootstrappedLauncher --directory artifacts/
+      if: runner.os == 'Linux' && env.SHOULD_RUN == 'true'
+    - uses: actions/upload-artifact@v7
+      if: runner.os == 'Linux' && env.SHOULD_RUN == 'true'
+      with:
+        name: jvm-launchers
+        path: artifacts/
+        if-no-files-found: error
+        retention-days: 2
+    - name: Cross compile everything
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i '__[_].compile'
+    - name: Build macros negative compilation tests
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i build-macros[_].test.testNegativeCompilation
+    - name: Unit tests
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i unitTests
+    - name: Convert Mill test reports to JUnit XML format
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      run: .github/scripts/generate-junit-reports.sc unit-tests 'Scala CLI Unit Tests' test-report.xml out/
+    - name: Upload test report
+      uses: actions/upload-artifact@v7
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      with:
+        name: test-results-unit-tests
+        path: test-report.xml
+
+  jvm-bootstrapped-tests-default:
+    timeout-minutes: 180
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_integration == 'true') && inputs.test_skip != 'true' }}
+    steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping JVM bootstrapped integration tests -- changes do not affect compiled code or CI."
+      - uses: actions/checkout@v7
+        if: env.SHOULD_RUN == 'true'
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
+        with:
+          jvm: "temurin:17"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: JVM integration tests
+        if: env.SHOULD_RUN == 'true'
+        run: ./mill -i integration.test.jvmBootstrapped
+        env:
+          SCALA_CLI_IT_GROUP: 1
+      - name: Convert Mill test reports to JUnit XML format
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-junit-reports.sc jvm-bootstrapped-tests-default 'Scala CLI JVM Bootstrapped Tests' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        with:
+          name: test-results-jvm-bootstrapped-tests-default
+          path: test-report.xml
+
+  jvm-tests-default:
+    timeout-minutes: 180
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_integration == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping JVM integration tests (default) -- changes do not affect compiled code or CI."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+    - uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
+    - uses: oven-sh/setup-bun@v2
+    - name: JVM integration tests
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i integration.test.jvm
+      env:
+        SCALA_CLI_IT_GROUP: 1
+    - name: Convert Mill test reports to JUnit XML format
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      run: .github/scripts/generate-junit-reports.sc jvm-tests-default 'Scala CLI JVM Tests (default)' test-report.xml out/
+    - name: Upload test report
+      uses: actions/upload-artifact@v7
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      with:
+        name: test-results-jvm-tests-default
+        path: test-report.xml
+
+  jvm-tests-scala-2-13:
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_integration == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping JVM integration tests (Scala 2.13) -- changes do not affect compiled code or CI."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+    - uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
+    - uses: oven-sh/setup-bun@v2
+    - name: JVM integration tests
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i integration.test.jvm
+      env:
+        SCALA_CLI_IT_GROUP: 2
+    - name: Convert Mill test reports to JUnit XML format
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      run: .github/scripts/generate-junit-reports.sc jvm-tests-scala-2-13 'Scala CLI JVM Tests (Scala 2.13)' test-report.xml out/
+    - name: Upload test report
+      uses: actions/upload-artifact@v7
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      with:
+        name: test-results-jvm-tests-scala-2-13
+        path: test-report.xml
+
+  jvm-tests-scala-2-12:
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_integration == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping JVM integration tests (Scala 2.12) -- changes do not affect compiled code or CI."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+    - uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
+    - uses: oven-sh/setup-bun@v2
+    - name: JVM integration tests
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i integration.test.jvm
+      env:
+        SCALA_CLI_IT_GROUP: 3
+    - name: Convert Mill test reports to JUnit XML format
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      run: .github/scripts/generate-junit-reports.sc jvm-tests-scala-2-12 'Scala CLI JVM Tests (Scala 2.12)' test-report.xml out/
+    - name: Upload test report
+      uses: actions/upload-artifact@v7
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      with:
+        name: test-results-jvm-tests-scala-2-12
+        path: test-report.xml
+
+  jvm-tests-lts:
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_integration == 'true') && inputs.test_skip != 'true' }}
+    steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping JVM integration tests (Scala 3 LTS) -- changes do not affect compiled code or CI."
+      - uses: actions/checkout@v7
+        if: env.SHOULD_RUN == 'true'
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
+        with:
+          jvm: "temurin:17"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - uses: oven-sh/setup-bun@v2
+      - name: JVM integration tests
+        if: env.SHOULD_RUN == 'true'
+        run: ./mill -i integration.test.jvm
+        env:
+          SCALA_CLI_IT_GROUP: 4
+      - name: Convert Mill test reports to JUnit XML format
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-junit-reports.sc jvm-tests-lts 'Scala CLI JVM Tests (Scala 3 LTS)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        with:
+          name: test-results-jvm-tests-lts
+          path: test-report.xml
+
+  jvm-tests-rc:
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_integration == 'true') && inputs.test_skip != 'true' }}
+    steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping JVM integration tests (RC) -- changes do not affect compiled code or CI."
+      - uses: actions/checkout@v7
+        if: env.SHOULD_RUN == 'true'
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
+        with:
+          jvm: "temurin:17"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - uses: oven-sh/setup-bun@v2
+      - name: JVM integration tests
+        if: env.SHOULD_RUN == 'true'
+        run: ./mill -i integration.test.jvm
+        env:
+          SCALA_CLI_IT_GROUP: 5
+      - name: Convert Mill test reports to JUnit XML format
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-junit-reports.sc jvm-tests-rc 'Scala CLI JVM Tests (5)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        with:
+          name: test-results-jvm-tests-rc
+          path: test-report.xml

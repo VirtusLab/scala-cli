@@ -1,0 +1,78 @@
+name: Detect Changes
+on:
+  workflow_call:
+    outputs:
+      code:
+        description: 'code change/override flag'
+        value: ${{ jobs.changes.outputs.code }}
+      docs:
+        description: 'docs change/override flag'
+        value: ${{ jobs.changes.outputs.docs }}
+      ci:
+        description: 'ci change/override flag'
+        value: ${{ jobs.changes.outputs.ci }}
+      format_config:
+        description: 'format_config change/override flag'
+        value: ${{ jobs.changes.outputs.format_config }}
+      benchmark:
+        description: 'benchmark change/override flag'
+        value: ${{ jobs.changes.outputs.benchmark }}
+      gifs:
+        description: 'gifs change/override flag'
+        value: ${{ jobs.changes.outputs.gifs }}
+      mill_wrapper:
+        description: 'mill_wrapper change/override flag'
+        value: ${{ jobs.changes.outputs.mill_wrapper }}
+      test_all:
+        description: 'test_all change/override flag'
+        value: ${{ jobs.changes.outputs.test_all }}
+      test_native:
+        description: 'test_native change/override flag'
+        value: ${{ jobs.changes.outputs.test_native }}
+      test_integration:
+        description: 'test_integration change/override flag'
+        value: ${{ jobs.changes.outputs.test_integration }}
+      test_docs:
+        description: 'test_docs change/override flag'
+        value: ${{ jobs.changes.outputs.test_docs }}
+      test_format:
+        description: 'test_format change/override flag'
+        value: ${{ jobs.changes.outputs.test_format }}
+      test_skip:
+        description: 'test_skip change/override flag'
+        value: ${{ jobs.changes.outputs.test_skip }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.classify.outputs.code }}
+      docs: ${{ steps.classify.outputs.docs }}
+      ci: ${{ steps.classify.outputs.ci }}
+      format_config: ${{ steps.classify.outputs.format_config }}
+      benchmark: ${{ steps.classify.outputs.benchmark }}
+      gifs: ${{ steps.classify.outputs.gifs }}
+      mill_wrapper: ${{ steps.classify.outputs.mill_wrapper }}
+      test_all: ${{ steps.overrides.outputs.test_all }}
+      test_native: ${{ steps.overrides.outputs.test_native }}
+      test_integration: ${{ steps.overrides.outputs.test_integration }}
+      test_docs: ${{ steps.overrides.outputs.test_docs }}
+      test_format: ${{ steps.overrides.outputs.test_format }}
+      test_skip: ${{ steps.overrides.outputs.test_skip }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+    - name: Classify changes
+      id: classify
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
+      run: .github/scripts/classify-changes.sh
+    - name: Check override keywords
+      id: overrides
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        PR_BODY: ${{ github.event.pull_request.body }}
+      run: .github/scripts/check-override-keywords.sh
