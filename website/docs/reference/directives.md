@@ -698,6 +698,15 @@ Patch Scala 3.0-3.7.x lazy val bytecode at class load time via the sloth Java ag
 #### Examples
 `//> using slothAgent`
 
+### SlothStrict
+
+Fail when Sloth cannot resolve class hierarchies while patching dependency jars (requires --sloth or --sloth-agent)
+
+`//> using slothStrict`
+
+#### Examples
+`//> using slothStrict`
+
 ### Test framework
 
 Set the test framework

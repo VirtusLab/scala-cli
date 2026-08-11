@@ -1720,6 +1720,12 @@ Aliases: `--lazyvalgrade-agent`, `--patch-lazy-vals-with-agent`
 
 Patch Scala 3.0-3.7.x lazy val bytecode at class load time via the sloth Java agent for JDK 26+ compatibility
 
+### `--sloth-strict`
+
+Aliases: `--lazyvalgrade-strict`, `--patch-lazy-vals-strict`
+
+Fail when Sloth cannot resolve class hierarchies while patching dependency jars (requires --sloth or --sloth-agent)
+
 ### `--auto-setup-ide`
 
 Aliases: `--auto-setup-bsp`

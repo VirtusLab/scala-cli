@@ -8,6 +8,7 @@ import scala.util.Properties
 abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
     with LazyValTests {
   this: TestScalaVersion =>
+  protected lazy val latestJava                = Constants.allJavaVersions.max.toString
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   protected lazy val canRunInRepl: Boolean =
@@ -27,13 +28,14 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     check: Boolean = true,
     skipScalaVersionArgs: Boolean = false,
     env: Map[String, String] = Map.empty,
-    initScriptFromFile: Boolean = false
+    initScriptFromFile: Boolean = false,
+    inputArgs: Seq[os.Shellable] = Seq(".")
   )(
     runAfterRepl: os.CommandResult => Unit,
-    runBeforeReplAndGetExtraCliOpts: () => Seq[os.Shellable] = () => Seq.empty
+    runBeforeReplAndGetExtraCliOpts: os.Path => Seq[os.Shellable] = _ => Seq.empty
   ): Unit = {
     testInputs.fromRoot { root =>
-      val potentiallyExtraCliOpts = runBeforeReplAndGetExtraCliOpts()
+      val potentiallyExtraCliOpts = runBeforeReplAndGetExtraCliOpts(root)
       val initScriptArgs          =
         if initScriptFromFile then {
           val initScriptFile = root / ".scala-cli-repl-init.sc"
@@ -45,7 +47,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         os.proc(
           TestUtil.cli,
           "repl",
-          ".",
+          inputArgs,
           "--repl-quit-after-init",
           initScriptArgs,
           if skipScalaVersionArgs then TestUtil.extraOptions else extraOptions,
@@ -322,7 +324,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         runInRepl(codeToRunInRepl =
           """import shapeless._; println("Here's an HList: " + (2 :: true :: "a" :: HNil))"""
         )(
-          runBeforeReplAndGetExtraCliOpts = () =>
+          runBeforeReplAndGetExtraCliOpts = _ =>
             val shapelessJar =
               os.proc(TestUtil.cs, "fetch", "--intransitive", "com.chuusai:shapeless_2.13:2.3.7")
                 .call()
@@ -364,6 +366,40 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           }
 
         }
+    }
+    test(
+      s"$runInReplPrefix --sloth patches external -cp class directory with ${Constants.scala3Lts} lazy vals on JDK $latestJava"
+    ) {
+      runInRepl(
+        codeToRunInRepl = "println(slothful)",
+        testInputs = TestInputs(externalLazyValsInput()),
+        cliOptions = Seq("--server=false", "--jvm", latestJava, "--power") ++ slothOptions,
+        shouldPipeStdErr = true,
+        inputArgs = Nil
+      )(
+        runBeforeReplAndGetExtraCliOpts = root =>
+          val (classDir, _) = compileExternalLazyValClassDir(root)
+          Seq("-cp", classDir.toString)
+        ,
+        runAfterRepl = res =>
+          expect(res.out.trim().contains("true"))
+          expect(!res.err.trim().contains("sun.misc.Unsafe"))
+      )
+    }
+    // Catches a corrupted *compiler* jar from --sloth even without an external -cp.
+    // On Scala < 3.8 the REPL classpath includes scala3-compiler which Sloth patches;
+    // a broken getCommonSuperClass fallback produces VerifyError in ReplDriver.
+    test(s"$runInReplPrefix --sloth starts the REPL without VerifyError on JDK $latestJava") {
+      runInRepl(
+        codeToRunInRepl = "println(1 + 1)",
+        cliOptions = Seq("--server=false", "--jvm", latestJava, "--power") ++ slothOptions,
+        shouldPipeStdErr = true,
+        inputArgs = Nil
+      ) { res =>
+        expect(res.out.trim().contains("2"))
+        expect(!res.err.trim().contains("VerifyError"))
+        expect(!res.err.trim().contains("sun.misc.Unsafe"))
+      }
     }
   }
 }

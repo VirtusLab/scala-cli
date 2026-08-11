@@ -7,9 +7,6 @@ class ReplTestsDefault extends ReplTestDefinitions
     with LazyValTests
     with TestDefault {
 
-  // Sloth tests - only in default suite since they use hardcoded Scala versions
-  private val latestJava = Constants.allJavaVersions.max.toString
-
   private def replNoDepUnsafeTest(slothFlag: String): Unit =
     test(
       s"$runInReplPrefix dont warn about sun.misc.Unsafe on JDK $latestJava (no dependency, $slothFlag)"

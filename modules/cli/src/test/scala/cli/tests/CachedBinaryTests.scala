@@ -284,5 +284,51 @@ class CachedBinaryTests extends TestUtil.ScalaCliSuite {
             expect(cacheAfterSlothToggle.changed)
         }
       }
+
+    for {
+      slothStrictOpt <- Seq(Some(true), Some(false), None)
+    }
+      test(s"should rebuild when --sloth-strict changes from $slothStrictOpt ($additionalMessage)") {
+        inputs.withLoadedBuild(
+          defaultOptions.copy(
+            notForBloopOptions = defaultOptions.notForBloopOptions.copy(
+              slothOpt = Some(true),
+              slothStrictOpt = slothStrictOpt
+            )
+          ),
+          buildThreads,
+          Some(bloopConfig),
+          fromDirectory
+        ) {
+          (_, _, maybeBuild) =>
+            val build = maybeBuild.successfulOpt.get
+
+            val config = build.options.scalaNativeOptions.configCliOptions(resourcesExist = false)
+            val nativeWorkDir = build.inputs.nativeWorkDir
+            val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
+            os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
+
+            val cacheData =
+              CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
+            CachedBinary.updateProjectAndOutputSha(
+              destPath,
+              nativeWorkDir,
+              cacheData.projectSha
+            )
+            expect(cacheData.changed)
+
+            val updatedBuild = build.copy(
+              options = build.options.copy(
+                notForBloopOptions = build.options.notForBloopOptions.copy(
+                  slothStrictOpt = Some(!slothStrictOpt.getOrElse(false))
+                )
+              )
+            )
+
+            val cacheAfterStrictToggle =
+              CachedBinary.getCacheData(Seq(updatedBuild), config, destPath, nativeWorkDir)
+            expect(cacheAfterStrictToggle.changed)
+        }
+      }
   }
 }

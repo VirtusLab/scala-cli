@@ -11,7 +11,7 @@ import java.util.jar.{Attributes as JarAttributes, JarOutputStream, Manifest as 
 import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
 import scala.build.Ops.EitherIteratorOps
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, SlothHierarchyError}
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, JarManifests}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
@@ -22,6 +22,10 @@ import scala.util.Using
 import scala.util.control.NonFatal
 
 object SlothPatcher:
+
+  /** Whether a classpath entry is the project's own output or a dependency / external artifact. */
+  enum SlothSource:
+    case Project, Dependency
 
   private val cacheDir = Directories.directories.cacheDir / "sloth"
 
@@ -41,28 +45,87 @@ object SlothPatcher:
       scalaVersions = builds.flatMap(_.scalaParams).map(_.scalaVersion)
     )
 
+  private def warnIfStrictWithoutPatching(options: BuildOptions, logger: Logger): Unit =
+    if options.notForBloopOptions.slothStrict &&
+      !options.notForBloopOptions.sloth &&
+      !options.notForBloopOptions.slothAgent
+    then
+      logger.message(s"$warnPrefix ${WarningMessages.slothStrictRequiresPatching}")
+
   def transformClassPath(
     classPath: Seq[os.Path],
     options: BuildOptions,
     logger: Logger,
-    patchProjectClassDirs: Boolean = false
+    patchProjectClassDirs: Boolean,
+    projectClassDirs: Set[os.Path]
   ): Either[BuildException, Seq[os.Path]] =
+    warnIfStrictWithoutPatching(options, logger)
     if options.notForBloopOptions.sloth then
-      Right(captureStdio(logger)(classPath.map(patchClassPathEntry(
-        _,
-        patchProjectClassDirs,
-        logger
-      ))))
+      try
+        Right(captureStdio(logger)(classPath.map(patchClassPathEntry(
+          _,
+          patchProjectClassDirs,
+          projectClassDirs,
+          classPath,
+          options.notForBloopOptions.slothStrict,
+          logger
+        ))))
+      catch
+        case e: SlothHierarchyError => Left(e)
     else Right(classPath)
 
   def patchJarFile(
     jar: os.Path,
     options: BuildOptions,
-    logger: Logger
+    logger: Logger,
+    hierarchyClassPath: Seq[os.Path] = Nil,
+    source: SlothSource = SlothSource.Dependency
   ): Either[BuildException, os.Path] =
+    warnIfStrictWithoutPatching(options, logger)
     if options.notForBloopOptions.sloth then
-      Right(captureStdio(logger)(patchIfJar(jar, logger)))
+      try
+        Right(captureStdio(logger)(patchIfJar(
+          jar,
+          hierarchyClassPath,
+          source,
+          options.notForBloopOptions.slothStrict,
+          logger
+        )))
+      catch
+        case e: SlothHierarchyError => Left(e)
     else Right(jar)
+
+  /** Turn a classpath entry into a JAR suitable for packaging (e.g. bootstrap). Files are patched
+    * when `--sloth` is on; directories are jarred (and patched when `--sloth` is on). Never mutates
+    * the original directory. Directory jars are content-addressed under the Sloth cache so
+    * packaging stays deterministic across runs.
+    */
+  def classPathEntryAsJar(
+    path: os.Path,
+    options: BuildOptions,
+    logger: Logger,
+    hierarchyClassPath: Seq[os.Path] = Nil,
+    source: SlothSource = SlothSource.Dependency
+  ): Either[BuildException, os.Path] =
+    warnIfStrictWithoutPatching(options, logger)
+    if os.isDir(path) then
+      try
+        Right(captureStdio(logger):
+          if options.notForBloopOptions.sloth && containsClassFiles(path) then
+            // Prefer a cached jar of the patched directory
+            patchClassDir(
+              path,
+              hierarchyClassPath,
+              source,
+              options.notForBloopOptions.slothStrict,
+              logger
+            ) match
+              case jar if jar != path && os.isFile(jar) => jar
+              case _                                    => jarDirectoryCached(path)
+          else jarDirectoryCached(path))
+      catch
+        case e: SlothHierarchyError => Left(e)
+    else patchJarFile(path, options, logger, hierarchyClassPath, source)
 
   /** In-process memo of class directories covered by [[patchClassDirInPlace]] in this JVM.
     * Consulted by callers (e.g. `copyOutput`) to skip a redundant second pass over the same bytes;
@@ -74,22 +137,34 @@ object SlothPatcher:
   def wasPatchedInThisProcess(dir: os.Path): Boolean =
     patchedClassDirsInThisProcess.contains(dir)
 
-  /** Patch the class directories of `classPath` in place, keeping them as directories, and return
-    * `classPath` unchanged so it can be chained into [[transformClassPath]].
+  /** Patch the project class directories of `classPath` in place, keeping them as directories, and
+    * return `classPath` unchanged so it can be chained into [[transformClassPath]]. Only entries in
+    * `projectClassDirs` are considered.
     */
   def patchClassPathDirsInPlace(
     classPath: Seq[os.Path],
     options: BuildOptions,
     logger: Logger,
-    shouldPatch: Boolean
+    shouldPatch: Boolean,
+    projectClassDirs: Set[os.Path]
   ): Either[BuildException, Seq[os.Path]] =
+    warnIfStrictWithoutPatching(options, logger)
     if !options.notForBloopOptions.sloth || !shouldPatch then Right(classPath)
     else
-      classPath.iterator
-        .filter(containsClassFiles)
-        .map(patchClassDirInPlace(_, options, logger, shouldPatch = true))
-        .sequence0
-        .map(_ => classPath)
+      try
+        classPath.iterator
+          .filter(p => projectClassDirs.contains(p) && containsClassFiles(p))
+          .map(patchClassDirInPlace(
+            _,
+            options,
+            logger,
+            shouldPatch = true,
+            hierarchyClassPath = classPath
+          ))
+          .sequence0
+          .map(_ => classPath)
+      catch
+        case e: SlothHierarchyError => Left(e)
 
   private def containsClassFiles(path: os.Path): Boolean =
     os.isDir(path) && os.walk.stream(path).find(p => p.ext == "class" && os.isFile(p)).isDefined
@@ -102,35 +177,46 @@ object SlothPatcher:
     dir: os.Path,
     options: BuildOptions,
     logger: Logger,
-    shouldPatch: Boolean
+    shouldPatch: Boolean,
+    hierarchyClassPath: Seq[os.Path] = Nil
   ): Either[BuildException, Unit] =
     if !options.notForBloopOptions.sloth || !shouldPatch || !os.isDir(dir) then Right(())
     else
-      Right:
-        captureStdio(logger):
-          try
-            withOriginalFallback(dir.toString, (), logger):
-              val tmpInput =
-                os.temp(prefix = "sloth-inplace-", suffix = ".jar", deleteOnExit = false)
-              val tmpOutput =
-                os.temp(prefix = "sloth-inplace-out-", suffix = ".jar", deleteOnExit = false)
-              try
-                jarDirectory(dir, tmpInput)
-                runJarProcessor(tmpInput, tmpOutput) match
-                  case Left(errorMsg) =>
-                    logger.message(
-                      s"$warnPrefix ${WarningMessages.slothCouldNotPatch(dir.toString, errorMsg)}"
-                    )
-                  case Right(result) if result.patchedClasses == 0 =>
-                    logger.debug(s"No lazy vals to patch in place in $dir")
-                  case Right(_) =>
-                    writeBackPatchedClasses(dir, tmpInput, tmpOutput, logger)
-                    logger.debug(s"Patched lazy vals in place in $dir")
-              finally
-                if os.exists(tmpInput) then os.remove(tmpInput)
-                if os.exists(tmpOutput) then os.remove(tmpOutput)
-          finally
-            patchedClassDirsInThisProcess.add(dir)
+      try
+        Right:
+          captureStdio(logger):
+            try
+              withOriginalFallback(dir.toString, (), logger):
+                val tmpInput =
+                  os.temp(prefix = "sloth-inplace-", suffix = ".jar", deleteOnExit = false)
+                val tmpOutput =
+                  os.temp(prefix = "sloth-inplace-out-", suffix = ".jar", deleteOnExit = false)
+                try
+                  jarDirectory(dir, tmpInput)
+                  runJarProcessor(
+                    tmpInput,
+                    tmpOutput,
+                    hierarchyClassPath,
+                    SlothSource.Project,
+                    strictRequested = options.notForBloopOptions.slothStrict,
+                    logger
+                  ) match
+                    case Left(errorMsg) =>
+                      logger.message(
+                        s"$warnPrefix ${WarningMessages.slothCouldNotPatch(dir.toString, errorMsg)}"
+                      )
+                    case Right(result) if result.patchedClasses == 0 =>
+                      logger.debug(s"No lazy vals to patch in place in $dir")
+                    case Right(_) =>
+                      writeBackPatchedClasses(dir, tmpInput, tmpOutput, logger)
+                      logger.debug(s"Patched lazy vals in place in $dir")
+                finally
+                  if os.exists(tmpInput) then os.remove(tmpInput)
+                  if os.exists(tmpOutput) then os.remove(tmpOutput)
+            finally
+              patchedClassDirsInThisProcess.add(dir)
+      catch
+        case e: SlothHierarchyError => Left(e)
 
   private def writeBackPatchedClasses(
     dir: os.Path,
@@ -151,15 +237,25 @@ object SlothPatcher:
   def patchByteCodeZipEntries(
     entries: Seq[(ZipEntry, Array[Byte])],
     options: BuildOptions,
-    logger: Logger
+    logger: Logger,
+    hierarchyClassPath: Seq[os.Path] = Nil
   ): Either[BuildException, Seq[(ZipEntry, Array[Byte])]] =
+    warnIfStrictWithoutPatching(options, logger)
     if !options.notForBloopOptions.sloth || entries.isEmpty then Right(entries)
     else
       val tmpJar = os.temp(prefix = "sloth-entries-", suffix = ".jar", deleteOnExit = false)
       try
         withOriginalFallback("bytecode zip entries", Right(entries), logger):
           writeZipEntries(tmpJar, entries)
-          patchJarFile(tmpJar, options, logger).map(readZipEntries)
+          patchJarFile(
+            tmpJar,
+            options,
+            logger,
+            hierarchyClassPath,
+            SlothSource.Project
+          ).map(readZipEntries)
+      catch
+        case e: SlothHierarchyError => Left(e)
       finally if os.exists(tmpJar) then os.remove(tmpJar)
 
   /** ZIP local-file / empty-archive / spanned signatures. */
@@ -230,11 +326,17 @@ object SlothPatcher:
       ((bytes(offset + 2) & 0xff).toLong << 16) |
       ((bytes(offset + 3) & 0xff).toLong << 24)
 
-  private def patchIfJar(path: os.Path, logger: Logger): os.Path =
+  private def patchIfJar(
+    path: os.Path,
+    hierarchyClassPath: Seq[os.Path],
+    source: SlothSource,
+    strictRequested: Boolean,
+    logger: Logger
+  ): os.Path =
     path.orOriginalOnFailure(logger):
       zipStartOffset(path) match
         case Some(offset) =>
-          patchJar(path, offset, logger)
+          patchJar(path, offset, hierarchyClassPath, source, strictRequested, logger)
         case None =>
           if os.isFile(path) then
             logger.message(s"$warnPrefix ${WarningMessages.slothNotAnArchive(path)}")
@@ -245,19 +347,116 @@ object SlothPatcher:
   private def patchClassPathEntry(
     path: os.Path,
     patchProjectClassDirs: Boolean,
+    projectClassDirs: Set[os.Path],
+    hierarchyClassPath: Seq[os.Path],
+    strictRequested: Boolean,
     logger: Logger
   ): os.Path =
     path.orOriginalOnFailure(logger):
       zipStartOffset(path) match
         case Some(offset) =>
-          patchJar(path, offset, logger)
-        case None if patchProjectClassDirs && os.isDir(path) =>
-          patchClassDir(path, logger)
+          val source =
+            if projectClassDirs.contains(path) then SlothSource.Project
+            else
+              SlothSource.Dependency
+          patchJar(path, offset, hierarchyClassPath, source, strictRequested, logger)
+        case None if containsClassFiles(path) =>
+          if projectClassDirs.contains(path) then
+            if patchProjectClassDirs then
+              patchClassDir(
+                path,
+                hierarchyClassPath,
+                SlothSource.Project,
+                strictRequested,
+                logger
+              )
+            else path
+          else
+            patchExternalClassDir(path, hierarchyClassPath, strictRequested, logger)
         case None =>
           logger.debug(s"Sloth skipping classpath entry: $path")
           path
 
-  private def patchClassDir(dir: os.Path, logger: Logger): os.Path =
+  /** Patch an externally supplied class directory into a cached directory copy. Never mutates the
+    * user's files; keeps the entry as a directory so test-suite discovery (which only scans
+    * directory classpath entries) still works.
+    */
+  private def patchExternalClassDir(
+    dir: os.Path,
+    hierarchyClassPath: Seq[os.Path],
+    strictRequested: Boolean,
+    logger: Logger
+  ): os.Path =
+    dir.orOriginalOnFailure(logger):
+      val dirHash         = sha1OfDir(dir)
+      val cachedDir       = cacheDir / Constants.slothVersion / "external-dirs" / dirHash
+      val cached          = cachedDir / dir.last
+      val unpatchedMarker = cachedDir / unpatchedMarkerName
+      if os.exists(cached) then cached
+      else if os.exists(unpatchedMarker) then dir
+      else
+        os.makeDir.all(cachedDir)
+        val tmpInput =
+          os.temp(
+            prefix = "sloth-external-",
+            suffix = ".jar",
+            dir = cachedDir,
+            deleteOnExit = false
+          )
+        val tmpOutput =
+          os.temp(
+            prefix = "sloth-external-out-",
+            suffix = ".jar",
+            dir = cachedDir,
+            deleteOnExit = false
+          )
+        try
+          jarDirectory(dir, tmpInput)
+          runJarProcessor(
+            tmpInput,
+            tmpOutput,
+            hierarchyClassPath,
+            SlothSource.Dependency,
+            strictRequested,
+            logger
+          ) match
+            case Left(errorMsg) =>
+              logger.message(
+                s"$warnPrefix ${WarningMessages.slothCouldNotPatch(dir.toString, errorMsg)}"
+              )
+              dir
+            case Right(result) if result.patchedClasses == 0 =>
+              os.write(unpatchedMarker, "", createFolders = true)
+              logger.debug(s"No lazy vals to patch in external class directory $dir")
+              dir
+            case Right(_) =>
+              val staging =
+                cachedDir / s"${dir.last}.staging-${java.util.UUID.randomUUID().toString}"
+              try
+                os.copy(dir, staging, createFolders = true)
+                writeBackPatchedClasses(staging, tmpInput, tmpOutput, logger)
+                try
+                  os.move(staging, cached, atomicMove = true, replaceExisting = false)
+                catch
+                  case _: FileAlreadyExistsException | _: AtomicMoveNotSupportedException =>
+                    try os.move(staging, cached, replaceExisting = false)
+                    catch case _: FileAlreadyExistsException => ()
+                if os.exists(cached) then
+                  logger.debug(s"Patched lazy vals in external class directory $dir -> $cached")
+                  cached
+                else dir
+              finally if os.exists(staging) then os.remove.all(staging)
+        finally
+          if os.exists(tmpInput) then os.remove(tmpInput)
+          if os.exists(tmpOutput) then os.remove(tmpOutput)
+
+  private def patchClassDir(
+    dir: os.Path,
+    hierarchyClassPath: Seq[os.Path],
+    source: SlothSource,
+    strictRequested: Boolean,
+    logger: Logger
+  ): os.Path =
     dir.orOriginalOnFailure(logger):
       val dirHash   = sha1OfDir(dir)
       val cachedDir = cacheDir / Constants.slothVersion / "dirs" / dirHash
@@ -288,7 +487,15 @@ object SlothPatcher:
               publishCached(
                 cachedDir,
                 cached,
-                out => runJarProcessor(tmpInput, out).map(_ => ())
+                out =>
+                  runJarProcessor(
+                    tmpInput,
+                    out,
+                    hierarchyClassPath,
+                    source,
+                    strictRequested,
+                    logger
+                  ).map(_ => ())
               ) match
                 case Right(cachedPath) =>
                   logger.debug(s"Patched lazy vals in class directory $dir -> $cachedPath")
@@ -316,6 +523,23 @@ object SlothPatcher:
           jos.putNextEntry(entry)
           jos.write(content)
           jos.closeEntry()
+
+  /** Content-addressed jar of a classpath directory, for deterministic packaging. */
+  private def jarDirectoryCached(dir: os.Path): os.Path =
+    val cachedDir = cacheDir / Constants.slothVersion / "cp-entries" / sha1OfDir(dir)
+    val cached    = cachedDir / s"${dir.last}.jar"
+    publishCached(
+      cachedDir,
+      cached,
+      out =>
+        try
+          jarDirectory(dir, out)
+          Right(())
+        catch case NonFatal(e) => Left(Option(e.getMessage).getOrElse(e.toString))
+    ).getOrElse:
+      val dest = os.temp(prefix = "sloth-cp-entry-", suffix = ".jar", deleteOnExit = false)
+      jarDirectory(dir, dest)
+      dest
 
   private def sha1OfDir(dir: os.Path): String =
     val md    = MessageDigest.getInstance("SHA-1")
@@ -431,7 +655,8 @@ object SlothPatcher:
   private def withOriginalFallback[T](subject: String, original: => T, logger: Logger)(f: => T): T =
     try f
     catch
-      case NonFatal(e) =>
+      case e: SlothHierarchyError => throw e
+      case NonFatal(e)            =>
         logger.message(
           s"$warnPrefix ${WarningMessages.slothCouldNotPatch(
               subject,
@@ -444,7 +669,14 @@ object SlothPatcher:
     private def orOriginalOnFailure(logger: Logger)(patch: => os.Path): os.Path =
       withOriginalFallback(path.toString, path, logger)(patch)
 
-  private def patchJar(jar: os.Path, zipOffset: Long, logger: Logger): os.Path =
+  private def patchJar(
+    jar: os.Path,
+    zipOffset: Long,
+    hierarchyClassPath: Seq[os.Path],
+    source: SlothSource,
+    strictRequested: Boolean,
+    logger: Logger
+  ): os.Path =
     jar.orOriginalOnFailure(logger):
       val jarHash         = sha1(jar)
       val cachedDir       = cacheDir / Constants.slothVersion / jarHash
@@ -475,7 +707,14 @@ object SlothPatcher:
         val tmpOutput =
           os.temp(prefix = "sloth-patch-", suffix = ".tmp", dir = cachedDir, deleteOnExit = false)
         try
-          runJarProcessor(payloadJar, tmpOutput) match
+          runJarProcessor(
+            payloadJar,
+            tmpOutput,
+            hierarchyClassPath,
+            source,
+            strictRequested,
+            logger
+          ) match
             case Left(message) =>
               logger.message(
                 s"$warnPrefix ${WarningMessages.slothCouldNotPatch(jar.toString, message)}"
@@ -591,17 +830,50 @@ object SlothPatcher:
 
   private def runJarProcessor(
     input: os.Path,
-    output: os.Path
+    output: os.Path,
+    hierarchyClassPath: Seq[os.Path],
+    source: SlothSource,
+    strictRequested: Boolean,
+    logger: Logger
   ): Either[String, JarProcessor.JarResult] =
     try
-      val result = JarProcessor.process(input.toNIO, output.toNIO)
-      if result.errors.nonEmpty then
-        Left(
-          s"Failed to patch lazy vals in $input (${result.failedClasses} failed classes): ${result.errors.mkString("; ")}"
+      val hierarchyNio = hierarchyClassPath.map(_.toNIO)
+      val strictResult =
+        JarProcessor.process(
+          input.toNIO,
+          output.toNIO,
+          hierarchyClasspath = hierarchyNio,
+          strictHierarchy = true
         )
-      else Right(result)
+      if strictResult.errors.isEmpty then Right(strictResult)
+      else
+        val details = strictResult.errors.mkString("; ")
+        source match
+          case SlothSource.Project =>
+            Left(WarningMessages.slothUnresolvedHierarchyStrict(input.toString, details))
+          case SlothSource.Dependency if strictRequested =>
+            throw SlothHierarchyError(
+              WarningMessages.slothUnresolvedHierarchyStrict(input.toString, details)
+            )
+          case SlothSource.Dependency =>
+            logger.message(
+              s"$warnPrefix ${WarningMessages.slothUnresolvedHierarchy(input.toString, details)}"
+            )
+            val lenientResult =
+              JarProcessor.process(
+                input.toNIO,
+                output.toNIO,
+                hierarchyClasspath = hierarchyNio,
+                strictHierarchy = false
+              )
+            if lenientResult.errors.nonEmpty then
+              Left(
+                s"Failed to patch lazy vals in $input (${lenientResult.failedClasses} failed classes): ${lenientResult.errors.mkString("; ")}"
+              )
+            else Right(lenientResult)
     catch
-      case NonFatal(e) =>
+      case e: SlothHierarchyError => throw e
+      case NonFatal(e)            =>
         Left(s"Failed to patch lazy vals in $input: ${e.getMessage}")
 
   private def sha1(path: os.Path): String =

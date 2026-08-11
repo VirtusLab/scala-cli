@@ -14,6 +14,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   private val utestVersion                     = "0.8.3"
   private val zioTestVersion                   = "2.1.17"
+  protected val latestJava                     = Constants.allJavaVersions.max
 
   def successfulTestInputs(directivesString: String =
     s"//> using dep org.scalameta::munit::$munitVersion"): TestInputs = TestInputs(
@@ -1315,6 +1316,52 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           val err = res.err.trim()
           expect(err.contains(expectedWarning))
           expect(err.countOccurrences(expectedWarning) == 1)
+      }
+    }
+
+  if actualScalaVersion.startsWith("3") then
+    test(
+      s"test --sloth patches external -cp class directory with ${Constants.scala3Lts} lazy vals on JDK $latestJava"
+    ) {
+      val marker          = "TEST_BODY_EXECUTED"
+      val expectedMessage = "true"
+      TestInputs(
+        externalLazyValsInput(expectedMessage),
+        os.rel / "project" / "ExternalCpTests.test.scala" ->
+          s"""//> using dep org.scalameta::munit::$munitVersion
+             |
+             |class ExternalCpTests extends munit.FunSuite {
+             |  test("lazy val from external -cp") {
+             |    println("$marker")
+             |    assertEquals(slothful, $expectedMessage)
+             |  }
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        val (classDir, _) = compileExternalLazyValClassDir(root, expectedMessage = expectedMessage)
+        val classBytesBefore = os.walk(classDir).filter(_.ext == "class").map { p =>
+          p -> os.read.bytes(p)
+        }.toMap
+        val r = os.proc(
+          TestUtil.cli,
+          "test",
+          "--power",
+          extraOptions,
+          slothOptions,
+          "-cp",
+          classDir.toString,
+          "--jvm",
+          latestJava.toString,
+          "project"
+        ).call(cwd = root, stderr = os.Pipe)
+        val out = r.out.trim()
+        expect(r.exitCode == 0)
+        expect(out.contains(marker))
+        expect(out.contains("1 total"))
+        expect(!r.err.trim().contains("sun.misc.Unsafe"))
+        // External class dir must not be mutated in place
+        for (p, before) <- classBytesBefore do
+          expect(java.util.Arrays.equals(os.read.bytes(p), before))
       }
     }
 }

@@ -50,6 +50,7 @@ object BuildCommandHelpers {
         .orElse(sharedOptions.scalacOptions.getScalacOption("-d"))
         .filter(_.nonEmpty)
         .map(os.Path(_, Os.pwd)).foreach { output =>
+          val destExisted = os.exists(output)
           os.copy(
             successfulBuild.output,
             output,
@@ -57,7 +58,10 @@ object BuildCommandHelpers {
             mergeFolders = true,
             replaceExisting = true
           )
-          if SlothPatcher.wasPatchedInThisProcess(successfulBuild.output) then
+          // Skip re-patching only when the destination is a fresh copy of an already-patched
+          // source. If the dest already existed (merge), it may hold older bytecode that still
+          // needs patching regardless of the project's Scala version.
+          if !destExisted && SlothPatcher.wasPatchedInThisProcess(successfulBuild.output) then
             logger.debug(
               s"Skipping Sloth patch of $output: source ${successfulBuild.output} already patched"
             )
@@ -67,7 +71,9 @@ object BuildCommandHelpers {
                 output,
                 successfulBuild.options,
                 logger,
-                shouldPatch = SlothPatcher.shouldPatchProjectClasses(Seq(successfulBuild))
+                shouldPatch =
+                  destExisted || SlothPatcher.shouldPatchProjectClasses(Seq(successfulBuild)),
+                hierarchyClassPath = successfulBuild.fullClassPath
               ).left
             do logger.exit(ex)
         }

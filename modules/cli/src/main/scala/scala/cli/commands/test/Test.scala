@@ -100,6 +100,8 @@ object Test extends ScalaCommand[TestOptions] {
         val builds0     = optionsKeys.flatMap { optionsKey =>
           builds.map.get(CrossKey(optionsKey, Scope.Test))
         }
+        val projectClassDirs =
+          builds.all.collect { case s: Build.Successful => s.output }.toSet
         val buildsLen                = builds0.length
         val printBeforeAfterMessages =
           buildsLen > 1 && options.shared.logging.verbosity >= 0
@@ -119,7 +121,8 @@ object Test extends ScalaCommand[TestOptions] {
               args.unparsed,
               logger,
               allowExecve = allowExit && buildsLen <= 1,
-              asJar = options.shared.asJar
+              asJar = options.shared.asJar,
+              projectClassDirs = projectClassDirs
             )
             if (printBeforeAfterMessages && idx < buildsLen - 1)
               System.err.println()
@@ -191,7 +194,8 @@ object Test extends ScalaCommand[TestOptions] {
     args: Seq[String],
     logger: Logger,
     asJar: Boolean,
-    allowExecve: Boolean
+    allowExecve: Boolean,
+    projectClassDirs: Set[os.Path]
   ): Either[BuildException, Int] = either {
 
     val predefinedTestFrameworks = build.options.testOptions.frameworks
@@ -267,12 +271,14 @@ object Test extends ScalaCommand[TestOptions] {
         val classPath0 = build.fullClassPathMaybeAsJar(asJar)
         // The test runner only discovers suites in directory class path entries, so project
         // classes have to stay directories; only dependency jars may be swapped for patched copies.
+        // External class directories are patched into cached directory copies by transformClassPath.
         val classPath1 = value(
           SlothPatcher.patchClassPathDirsInPlace(
             classPath0,
             build.options,
             logger,
-            shouldPatch = SlothPatcher.shouldPatchProjectClasses(Seq(build))
+            shouldPatch = SlothPatcher.shouldPatchProjectClasses(Seq(build)),
+            projectClassDirs = projectClassDirs
           )
         )
         val classPath = value(
@@ -280,7 +286,8 @@ object Test extends ScalaCommand[TestOptions] {
             classPath1,
             build.options,
             logger,
-            patchProjectClassDirs = false
+            patchProjectClassDirs = false,
+            projectClassDirs = projectClassDirs
           )
         )
 

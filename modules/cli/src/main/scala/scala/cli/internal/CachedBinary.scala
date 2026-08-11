@@ -81,6 +81,8 @@ object CachedBinary {
     for build <- builds do
       md.update(build.options.notForBloopOptions.sloth.toString.getBytes(charset))
       md.update(0: Byte)
+      md.update(build.options.notForBloopOptions.slothStrict.toString.getBytes(charset))
+      md.update(0: Byte)
     md.update("</sloth>".getBytes(charset))
     for (h <- builds.map(_.options).reduce(_.orElse(_)).hash) {
       md.update(h.getBytes(charset))
