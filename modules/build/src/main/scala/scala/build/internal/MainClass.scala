@@ -17,8 +17,11 @@ object MainClass {
     * Case declaration order is the JEP 512 resolution order: `main(String[])` before `main()`, and
     * within each signature the static form before the instance form.
     *
-    * Inherited mains are still not detected — the ASM scan is per-class and has no classpath-wide
-    * hierarchy resolution. The JVM launcher does support that.
+    * Detection is per-class: the scan only sees methods declared in the class file it reads. A
+    * `main` inherited from a superclass or a Java interface is not detected, even though the JVM
+    * launcher resolves it through the hierarchy (the same already holds for a classic inherited
+    * `static main(String[])`). Scala traits are an exception: the compiler emits a mixin forwarder
+    * into the implementing class, so that class declares `main` itself and is detected.
     */
   enum MainMethodKind(val requiresJep512: Boolean):
     case StaticWithArgs   extends MainMethodKind(false)

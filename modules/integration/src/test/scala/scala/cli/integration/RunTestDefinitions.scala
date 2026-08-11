@@ -1270,6 +1270,21 @@ abstract class RunTestDefinitions
       }
     }
 
+    test(s"run a class inheriting a no-arg main from a Scala trait on JDK $javaVersion") {
+      TestUtil.retryOnCi() {
+        TestInputs(
+          os.rel / "T.scala" ->
+            """trait T { def main(): Unit = println("hello from a trait") }
+              |class A extends T
+              |""".stripMargin
+        ).fromRoot { root =>
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+            .call(cwd = root)
+          expect(res.out.trim() == "hello from a trait")
+        }
+      }
+    }
+
     test(s"run a Java compact source with an instance main on JDK $javaVersion") {
       TestUtil.retryOnCi() {
         TestInputs(
