@@ -1257,6 +1257,21 @@ abstract class RunTestDefinitions
     }
   }
 
+  test("run an object with a dollar-underscore suffixed name") {
+    TestUtil.retryOnCi() {
+      TestInputs(
+        os.rel / "Test.scala" ->
+          """object `Test$_` {
+            |  def main(args: Array[String]): Unit = println("hello from a user class")
+            |}
+            |""".stripMargin
+      ).fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "run", ".", extraOptions).call(cwd = root)
+        expect(res.out.trim() == "hello from a user class")
+      }
+    }
+  }
+
   for (javaVersion <- Constants.allJavaVersions.filter(_ >= Constants.jep512MinJavaVersion)) {
     test(s"run a Scala class with a no-arg main method on JDK $javaVersion") {
       TestUtil.retryOnCi() {
@@ -1317,6 +1332,28 @@ abstract class RunTestDefinitions
               "--runner"
             ).call(cwd = root)
             expect(res.out.trim() == "1")
+          }
+        }
+      }
+
+    if actualScalaVersion.startsWith("3") then
+      test(s"do not list the dollar-underscore script wrapper class on JDK $javaVersion") {
+        TestUtil.retryOnCi() {
+          TestInputs(
+            os.rel / "hello.sc" -> "def main(): Unit = println(1)"
+          ).fromRoot { root =>
+            val res = os.proc(
+              TestUtil.cli,
+              "run",
+              ".",
+              extraOptions,
+              "--jvm",
+              javaVersion,
+              "--main-class-ls"
+            ).call(cwd = root, mergeErrIntoOut = true)
+            val out = res.out.text()
+            expect(out.contains("hello_sc"))
+            expect(!out.contains("hello$_"))
           }
         }
       }
