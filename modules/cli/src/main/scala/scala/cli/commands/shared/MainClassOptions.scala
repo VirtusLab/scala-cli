@@ -31,14 +31,15 @@ final case class MainClassOptions(
 
   def maybePrintMainClasses(
     mainClasses: Seq[String],
-    shouldExit: Boolean = true
+    shouldExit: Boolean = true,
+    unsupportedMainMethodsNote: Option[String] = None
   ): Either[MainClassError, Unit] =
     mainClassLs match {
       case Some(true) if mainClasses.nonEmpty =>
         println(mainClasses.mkString(" "))
         if (shouldExit) sys.exit(0)
         else Right(())
-      case Some(true) => Left(new NoMainClassFoundError)
+      case Some(true) => Left(new NoMainClassFoundError(unsupportedMainMethodsNote))
       case _          => Right(())
     }
 }

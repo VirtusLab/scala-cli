@@ -165,7 +165,12 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       if options.sharedRun.mainClass.mainClassLs.contains(true) then
         value {
           options.sharedRun.mainClass
-            .maybePrintMainClasses(potentialMainClasses, shouldExit = allowTerminate)
+            .maybePrintMainClasses(
+              potentialMainClasses,
+              shouldExit = allowTerminate,
+              unsupportedMainMethodsNote =
+                builds.flatMap(_.unsupportedMainMethodsNote).headOption
+            )
             .map(_ => Seq.empty)
         }
       else {

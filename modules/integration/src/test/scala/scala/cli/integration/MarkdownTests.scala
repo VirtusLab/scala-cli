@@ -304,6 +304,23 @@ class MarkdownTests extends ScalaCliSuite {
     }
   }
 
+  for (javaVersion <- Constants.allJavaVersions.filter(_ >= Constants.jep512MinJavaVersion))
+    test(s"run a .md file with a compact java snippet on JDK $javaVersion") {
+      TestUtil.retryOnCi() {
+        TestInputs(
+          os.rel / "sample.md" ->
+            """# Sample
+              |```java
+              |void main() { System.out.println("md-compact"); }
+              |```
+              |""".stripMargin
+        ).fromRoot { root =>
+          val result = os.proc(TestUtil.cli, "sample.md", "--jvm", javaVersion).call(cwd = root)
+          expect(result.out.trim() == "md-compact")
+        }
+      }
+    }
+
   test("run a .md file with scala and java snippets") {
     val expectedOutput = "Hello world"
     TestInputs(

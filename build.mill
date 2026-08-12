@@ -544,6 +544,8 @@ trait Core extends ScalaCliCrossSbtModule
           .map(s => s"\"$s\"")
           .mkString(", ")})
          |  def scala38MinJavaVersion = ${Java.minimumScala38Java}
+         |  def jep512MinJavaVersion = ${Java.minimumJep512Java}
+         |  def jep512PreviewMinJavaVersion = ${Java.minimumJep512PreviewJava}
          |
          |  def workspaceDirName = "$workspaceDirName"
          |  def projectFileName = "$projectFileName"
@@ -1089,6 +1091,7 @@ trait CliIntegration extends SbtModule
             .map(s => s"\"$s\"")
             .mkString(", ")})
            |  def scala38MinJavaVersion        = ${Java.minimumScala38Java}
+           |  def jep512MinJavaVersion         = ${Java.minimumJep512Java}
            |  def defaultScalafmtVersion       = "${Deps.scalafmtCli.dep.versionConstraint.asString}"
            |  def legacyScala3Versions         = Seq(${Scala.legacyScala3Versions.map(p =>
             s"\"$p\""
@@ -1313,6 +1316,7 @@ trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with Has
 trait Runner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
+    with HasTests
     with LocatedInModules {
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-deprecation")
@@ -1324,6 +1328,7 @@ trait Runner extends CrossSbtModule
     val extraDirs = Seq(PathRef(moduleDir / "src" / "main" / scala3DirName))
     super.sources() ++ extraDirs
   }
+  object test extends ScalaCliTests with ScalaCliScalafixModule
 }
 
 trait TestRunner extends CrossSbtModule

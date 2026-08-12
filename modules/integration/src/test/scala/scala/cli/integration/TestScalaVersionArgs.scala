@@ -27,6 +27,8 @@ trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
   def isScala39OrNewer: Boolean =
     actualScalaVersion.coursierVersion >= "3.9.0-RC1".coursierVersion
 
+  def hasLatestRunnerModule: Boolean = actualScalaVersion.coursierVersion > "3.3.0".coursierVersion
+
   def retrieveScalaVersionCode: String =
     if actualScalaVersion.startsWith("2.") || isScala38OrNewer then
       "scala.util.Properties.versionNumberString"

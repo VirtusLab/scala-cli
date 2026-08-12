@@ -65,14 +65,76 @@ object Build {
       sources.resourceDirs ++ artifacts.compileClassPath
     def fullClassPath: Seq[os.Path]        = Seq(output) ++ dependencyClassPath
     def fullCompileClassPath: Seq[os.Path] = fullClassPath ++ dependencyCompileClassPath
-    private lazy val mainClassesFoundInProject: Seq[String] = MainClass.find(output, logger).sorted
-    private lazy val mainClassesFoundOnExtraClasspath: Seq[String] =
-      options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger)).sorted
+    private lazy val mainClassCandidatesInProject: Seq[MainClass.MainClassCandidate] =
+      MainClass.find(output, logger).filterNot(isScriptWrapperUserCodeClass)
+    private lazy val mainClassCandidatesOnExtraClasspath: Seq[MainClass.MainClassCandidate] =
+      options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger))
     private lazy val mainClassesFoundInUserExtraDependencies: Seq[String] =
       artifacts.jarsForUserExtraDependencies.flatMap(MainClass.findInDependency).sorted
+
+    private def isScriptWrapperUserCodeClass(candidate: MainClass.MainClassCandidate): Boolean =
+      // ClassCodeWrapper puts user code in a class named `{script}$_`; its instance main must not
+      // surface as a selectable entry point alongside the real `{script}_sc` wrapper main.
+      candidate.className.endsWith("$_")
+
+    private lazy val hasEnablePreview: Boolean =
+      options.javaOptions.javaOpts.toSeq.exists(_.value.value == "--enable-preview")
+
+    private lazy val isJvmPlatform: Boolean = options.platform.value == Platform.JVM
+
+    private lazy val jvmVersion: Int = options.javaHome().value.version
+
+    /** JEP 512 main method shapes are only launchable by a new enough JVM; a classic
+      * `static void main(String[])` is launchable on every platform.
+      */
+    private def isMainMethodSupportedByTargetRuntime(kind: MainClass.MainMethodKind): Boolean =
+      !kind.requiresJep512 ||
+      (isJvmPlatform && kind.isSupportedByJvm(jvmVersion, hasEnablePreview))
+
+    private lazy val allMainClassCandidates: Seq[MainClass.MainClassCandidate] =
+      mainClassCandidatesInProject ++ mainClassCandidatesOnExtraClasspath
+
+    private def supportedMainClassNames(candidates: Seq[MainClass.MainClassCandidate])
+      : Seq[String] =
+      candidates.collect {
+        case c if isMainMethodSupportedByTargetRuntime(c.kind) => c.className
+      }.sorted
+
+    private lazy val mainClassesFoundInProject: Seq[String] =
+      supportedMainClassNames(mainClassCandidatesInProject)
+    private lazy val mainClassesFoundOnExtraClasspath: Seq[String] =
+      supportedMainClassNames(mainClassCandidatesOnExtraClasspath)
+
     def foundMainClasses(): Seq[String] = {
       val found = mainClassesFoundInProject ++ mainClassesFoundOnExtraClasspath
       if inputs.isEmpty && found.isEmpty then mainClassesFoundInUserExtraDependencies else found
+    }
+
+    def mainClassKind(className: String): Option[MainClass.MainMethodKind] =
+      allMainClassCandidates.find(_.className == className).map(_.kind).orElse {
+        if mainClassesFoundInUserExtraDependencies.contains(className) then
+          Some(MainClass.MainMethodKind.StaticWithArgs)
+        else None
+      }
+
+    /** Explains why detected main methods cannot be launched by the target runtime (wrong platform
+      * for JEP 512 shapes, or JVM older than JEP 512).
+      */
+    def unsupportedMainMethodsNote: Option[String] = {
+      val rejected =
+        allMainClassCandidates.filterNot(c => isMainMethodSupportedByTargetRuntime(c.kind))
+      if rejected.isEmpty || foundMainClasses().nonEmpty then None
+      else
+        val names     = rejected.map(_.className).distinct.sorted
+        val classList =
+          if names.size == 1 then s"Class ${names.head}"
+          else s"Classes ${names.mkString(", ")}"
+        val reason =
+          if options.platform.value != Platform.JVM then
+            s"$classList declare(s) a main method that is only launchable on the JVM (JEP 512)."
+          else
+            s"$classList declare(s) a main method that requires JDK ${Constants.jep512MinJavaVersion} or newer (JEP 512); the current JVM is $jvmVersion."
+        Some(reason)
     }
     def retainedMainClass(
       mainClasses: Seq[String],
@@ -83,7 +145,7 @@ object Build {
         .filter(name => mainClasses.contains(name))
       def foundMainClass: Either[BuildException, String] =
         mainClasses match {
-          case Seq()          => Left(new NoMainClassFoundError)
+          case Seq()          => Left(new NoMainClassFoundError(unsupportedMainMethodsNote))
           case Seq(mainClass) => Right(mainClass)
           case _              =>
             inferredMainClass(mainClasses, logger)

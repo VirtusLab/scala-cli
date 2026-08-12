@@ -283,7 +283,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         mainClassOptions
           .maybePrintMainClasses(
             builds.flatMap(_.foundMainClasses()).distinct,
-            shouldExit = allowTerminate
+            shouldExit = allowTerminate,
+            unsupportedMainMethodsNote =
+              builds.flatMap(_.unsupportedMainMethodsNote).headOption
           )
           .map(_ => None)
       }
@@ -426,6 +428,17 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
       def mainClassOpt: Option[String] = mainClass.toOption
 
+      def bootstrapCompatibleMainClass: Either[BuildException, String] = either {
+        val cls = value(mainClass)
+        // TODO: the coursier bootstrap launcher (Bootstrap.java in coursier-launcher)
+        // only looks up public static void main(String[]) via reflection. Once coursier
+        // implements the JEP 512 launch protocol, remove this guard and allow packaging
+        // instance / no-arg mains as bootstrap launchers.
+        if builds.view.flatMap(_.mainClassKind(cls)).exists(_.requiresJep512) then
+          value(Left(new Jep512MainUnsupportedForBootstrapError(cls)))
+        else cls
+      }
+
       val packageOptions = builds.head.options.notForBloopOptions.packageOptions
 
       def warnSlothNoOp(reason: String): Unit =
@@ -435,7 +448,13 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
       val outputPath = packageType match {
         case PackageType.Bootstrap =>
-          value(bootstrap(builds, destPath, value(mainClass), () => alreadyExistsCheck(), logger))
+          value(bootstrap(
+            builds,
+            destPath,
+            value(bootstrapCompatibleMainClass),
+            () => alreadyExistsCheck(),
+            logger
+          ))
           destPath
         case PackageType.LibraryJar =>
           val libraryJar0 = Library.libraryJar(builds, mainClassOpt)
@@ -557,7 +576,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             bootstrap(
               builds,
               bootstrapPath,
-              value(mainClass),
+              value(bootstrapCompatibleMainClass),
               () => alreadyExistsCheck(),
               logger
             )
@@ -1110,6 +1129,11 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   final class NoMainClassFoundForAssemblyError(cause: NoMainClassFoundError) extends BuildException(
         "No main class found for assembly. Either pass one with --main-class, or make the assembly non-runnable with --preamble=false",
         cause = cause
+      )
+
+  final class Jep512MainUnsupportedForBootstrapError(mainClass: String) extends BuildException(
+        s"""Main class $mainClass uses a JDK ${scala.build.internal.Constants.jep512MinJavaVersion} instance/no-arg main method (JEP 512), which the bootstrap launcher cannot invoke.
+           |Use --assembly or --library instead.""".stripMargin
       )
 
   private object LinkingDir {

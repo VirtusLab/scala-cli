@@ -202,4 +202,17 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
       }
     }
   }
+
+  test("java snippet fallback file name is a valid Java identifier") {
+    val v = VirtualJavaFile(Array.emptyByteArray, "<snippet>-java-snippet")
+    expect(v.generatedSourceFileName == "java_snippet.java")
+    val base = v.generatedSourceFileName.stripSuffix(".java")
+    expect(Character.isJavaIdentifierStart(base.head))
+    expect(base.forall(Character.isJavaIdentifierPart))
+  }
+
+  test("stdin java fallback file name is a valid Java identifier") {
+    val v = VirtualJavaFile(Array.emptyByteArray, "<stdin>-java-file")
+    expect(v.generatedSourceFileName == "stdin.java")
+  }
 }

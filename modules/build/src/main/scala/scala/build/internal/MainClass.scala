@@ -12,12 +12,42 @@ import scala.build.{Logger, retry}
 
 object MainClass {
 
-  private def stringArrayDescriptor = "([Ljava/lang/String;)V"
+  /** Shape of a `main` entry point recognised in bytecode.
+    *
+    * Case declaration order is the JEP 512 resolution order: `main(String[])` before `main()`, and
+    * within each signature the static form before the instance form.
+    *
+    * Detection is per-class: the scan only sees methods declared in the class file it reads. A
+    * `main` inherited from a superclass or a Java interface is not detected, even though the JVM
+    * launcher resolves it through the hierarchy (the same already holds for a classic inherited
+    * `static main(String[])`). Scala traits are an exception: the compiler emits a mixin forwarder
+    * into the implementing class, so that class declares `main` itself and is detected.
+    */
+  enum MainMethodKind(val requiresJep512: Boolean):
+    case StaticWithArgs   extends MainMethodKind(false)
+    case InstanceWithArgs extends MainMethodKind(true)
+    case StaticNoArgs     extends MainMethodKind(true)
+    case InstanceNoArgs   extends MainMethodKind(true)
+
+    /** Whether a JVM of version `jvmVersion` can launch this main method shape. The JEP 512 shapes
+      * need JDK 25 or newer, or JDK 21 or newer with `--enable-preview`.
+      */
+    def isSupportedByJvm(jvmVersion: Int, previewEnabled: Boolean): Boolean =
+      !requiresJep512 ||
+      jvmVersion >= Constants.jep512MinJavaVersion ||
+      (previewEnabled && jvmVersion >= Constants.jep512PreviewMinJavaVersion)
+
+  final case class MainClassCandidate(className: String, kind: MainMethodKind)
+
+  private val stringArrayDescriptor = "([Ljava/lang/String;)V"
+  private val noArgDescriptor       = "()V"
 
   private class MainMethodChecker extends asm.ClassVisitor(asm.Opcodes.ASM9) {
-    private var foundMainClass = false
-    private var nameOpt        = Option.empty[String]
-    def found: Boolean         = foundMainClass
+    private var nameOpt: Option[String]         = None
+    private var classAccess: Int                = 0
+    private var hasNonPrivateNoArgCtor: Boolean = false
+    private var mainKinds: Set[MainMethodKind]  = Set.empty
+
     override def visit(
       version: Int,
       access: Int,
@@ -26,8 +56,10 @@ object MainClass {
       superName: String,
       interfaces: Array[String]
     ): Unit = {
+      classAccess = access
       nameOpt = Some(name.replace('/', '.').replace('\\', '.'))
     }
+
     override def visitMethod(
       access: Int,
       name: String,
@@ -35,16 +67,38 @@ object MainClass {
       signature: String,
       exceptions: Array[String]
     ): asm.MethodVisitor = {
-      def isStatic = (access & asm.Opcodes.ACC_STATIC) != 0
-      if (name == "main" && descriptor == stringArrayDescriptor && isStatic)
-        foundMainClass = true
+      val isStatic  = (access & asm.Opcodes.ACC_STATIC) != 0
+      val isPrivate = (access & asm.Opcodes.ACC_PRIVATE) != 0
+      if name == "<init>" && descriptor == noArgDescriptor && !isPrivate then
+        hasNonPrivateNoArgCtor = true
+      else if name == "main" && !isPrivate then
+        (isStatic, descriptor) match {
+          case (true, `stringArrayDescriptor`)  => mainKinds += MainMethodKind.StaticWithArgs
+          case (false, `stringArrayDescriptor`) => mainKinds += MainMethodKind.InstanceWithArgs
+          case (true, `noArgDescriptor`)        => mainKinds += MainMethodKind.StaticNoArgs
+          case (false, `noArgDescriptor`)       => mainKinds += MainMethodKind.InstanceNoArgs
+          case _                                => ()
+        }
       null
     }
-    def mainClassOpt: Option[String] =
-      if (foundMainClass) nameOpt else None
+
+    def candidateOpt: Option[MainClassCandidate] = {
+      val isAbstractOrInterface = (classAccess & asm.Opcodes.ACC_ABSTRACT) != 0 ||
+        (classAccess & asm.Opcodes.ACC_INTERFACE) != 0
+      if isAbstractOrInterface then None
+      else
+        // Instance shapes are only invocable when a non-private zero-arg constructor exists.
+        val invocableKinds = mainKinds.filter {
+          case MainMethodKind.StaticWithArgs | MainMethodKind.StaticNoArgs     => true
+          case MainMethodKind.InstanceWithArgs | MainMethodKind.InstanceNoArgs =>
+            hasNonPrivateNoArgCtor
+        }
+        MainMethodKind.values.find(invocableKinds.contains)
+          .flatMap(kind => nameOpt.map(MainClassCandidate(_, kind)))
+    }
   }
 
-  private def findInClass(path: os.Path, logger: Logger): Iterator[String] =
+  private def findInClass(path: os.Path, logger: Logger): Iterator[MainClassCandidate] =
     try {
       val is = retry()(logger)(os.read.inputStream(path))
       findInClass(is, logger)
@@ -56,12 +110,13 @@ object MainClass {
         logger.log("Are you trying to run too many builds at once? Trying to recover...")
         Iterator.empty
     }
-  private def findInClass(is: InputStream, logger: Logger): Iterator[String] =
+
+  private def findInClass(is: InputStream, logger: Logger): Iterator[MainClassCandidate] =
     try retry()(logger) {
         val reader  = new ClassReader(is)
         val checker = new MainMethodChecker
         reader.accept(checker, 0)
-        checker.mainClassOpt.iterator
+        checker.candidateOpt.iterator
       }
     catch {
       case e: ArrayIndexOutOfBoundsException =>
@@ -69,10 +124,14 @@ object MainClass {
         logger.log(s"Class input stream could not be created: $e")
         logger.log("Are you trying to run too many builds at once? Trying to recover...")
         Iterator.empty
+      case e: IllegalArgumentException =>
+        e.getStackTrace.foreach(ste => logger.debug(ste.toString))
+        logger.log(s"Class file could not be read (unsupported class file version?): $e")
+        Iterator.empty
     }
     finally is.close()
 
-  private def findInJar(path: os.Path, logger: Logger): Iterator[String] =
+  private def findInJar(path: os.Path, logger: Logger): Iterator[MainClassCandidate] =
     try retry()(logger) {
         val content        = os.read.bytes(path)
         val jarInputStream = WrappedZipInputStream.create(new ByteArrayInputStream(content))
@@ -104,7 +163,7 @@ object MainClass {
       case _ => None
     }
 
-  def find(output: os.Path, logger: Logger): Seq[String] =
+  def find(output: os.Path, logger: Logger): Seq[MainClassCandidate] =
     output match {
       case o if os.isFile(o) && o.last.endsWith(".class") =>
         findInClass(o, logger).toVector

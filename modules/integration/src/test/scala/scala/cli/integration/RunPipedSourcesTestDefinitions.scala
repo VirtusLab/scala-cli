@@ -70,6 +70,19 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
         expect(output == expectedOutput)
       }
     }
+
+    for (javaVersion <- Constants.allJavaVersions.filter(_ >= Constants.jep512MinJavaVersion))
+      test(s"piped compact Java source runs on JDK $javaVersion") {
+        TestUtil.retryOnCi() {
+          val pipedInput = """void main() { System.out.println("piped"); }"""
+          emptyInputs.fromRoot { root =>
+            val output = os.proc(TestUtil.cli, "_.java", "--jvm", javaVersion)
+              .call(cwd = root, stdin = pipedInput)
+              .out.trim()
+            expect(output == "piped")
+          }
+        }
+      }
     test("Java code with multiple classes accepted as piped input") {
       val expectedOutput = "Hello"
       val pipedInput     =
