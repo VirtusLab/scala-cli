@@ -1331,6 +1331,74 @@ abstract class RunTestDefinitions
       }
     }
 
+    test(s"run a Scala class inheriting a no-arg main from a Java class on JDK $javaVersion") {
+      TestUtil.retryOnCi() {
+        TestInputs(
+          os.rel / "AbstractBase.java" ->
+            """public abstract class AbstractBase {
+              |    public void main() { System.out.println("hello from " + getClass().getSimpleName()); }
+              |}
+              |""".stripMargin,
+          os.rel / "A.scala" -> "class A extends AbstractBase"
+        ).fromRoot { root =>
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+            .call(cwd = root)
+          expect(res.out.trim() == "hello from A")
+        }
+      }
+    }
+
+    test(s"run a Scala class inheriting a no-arg main from a Java interface on JDK $javaVersion") {
+      TestUtil.retryOnCi() {
+        TestInputs(
+          os.rel / "Iface.java" ->
+            """public interface Iface {
+              |    default void main() { System.out.println("hello from " + getClass().getSimpleName()); }
+              |}
+              |""".stripMargin,
+          os.rel / "B.scala" -> "class B extends Iface"
+        ).fromRoot { root =>
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+            .call(cwd = root)
+          expect(res.out.trim() == "hello from B")
+        }
+      }
+    }
+
+    test(s"run a Java class inheriting a no-arg main from a Java class on JDK $javaVersion") {
+      TestUtil.retryOnCi() {
+        TestInputs(
+          os.rel / "AbstractBase.java" ->
+            """public abstract class AbstractBase {
+              |    public void main() { System.out.println("hello from " + getClass().getSimpleName()); }
+              |}
+              |""".stripMargin,
+          os.rel / "JChild.java" -> "public class JChild extends AbstractBase {}"
+        ).fromRoot { root =>
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+            .call(cwd = root)
+          expect(res.out.trim() == "hello from JChild")
+        }
+      }
+    }
+
+    test(s"run a Java class inheriting a no-arg main from a Java interface on JDK $javaVersion") {
+      TestUtil.retryOnCi() {
+        TestInputs(
+          os.rel / "Iface.java" ->
+            """public interface Iface {
+              |    default void main() { System.out.println("hello from " + getClass().getSimpleName()); }
+              |}
+              |""".stripMargin,
+          os.rel / "JImpl.java" -> "public class JImpl implements Iface {}"
+        ).fromRoot { root =>
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+            .call(cwd = root)
+          expect(res.out.trim() == "hello from JImpl")
+        }
+      }
+    }
+
     test(s"run a Java compact source with an instance main on JDK $javaVersion") {
       TestUtil.retryOnCi() {
         TestInputs(
