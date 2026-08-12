@@ -222,6 +222,13 @@ final case class SharedOptions(
   @Name("lazyvalgrade-agent")
   @Name("patch-lazy-vals-with-agent")
     slothAgent: Option[Boolean] = None,
+  @HelpMessage(
+    "Fail when Sloth cannot resolve class hierarchies while patching dependency jars (requires --sloth or --sloth-agent)"
+  )
+  @Tag(tags.experimental)
+  @Name("lazyvalgrade-strict")
+  @Name("patch-lazy-vals-strict")
+    slothStrict: Option[Boolean] = None,
   @Group(HelpGroup.Scala.toString)
   @HelpMessage(
     "Automatically generate BSP configuration in `.bsp/` when running build commands. Enabled by default."
@@ -504,7 +511,8 @@ final case class SharedOptions(
           pythonSetup = sharedPython.pythonSetup,
           scalaPyVersion = sharedPython.scalaPyVersion,
           slothOpt = sloth,
-          slothAgentOpt = slothAgent
+          slothAgentOpt = slothAgent,
+          slothStrictOpt = slothStrict
         ),
         useBuildServer = compilationServer.server
       ).orElse(watchOptions.buildOptions())

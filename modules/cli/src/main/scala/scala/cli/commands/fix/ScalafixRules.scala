@@ -92,7 +92,8 @@ object ScalafixRules extends CommandHelpers {
               classPaths0,
               buildOptions,
               logger,
-              patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(successfulBuilds)
+              patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(successfulBuilds),
+              projectClassDirs = successfulBuilds.map(_.output).toSet
             )
           )
           val artifacts =

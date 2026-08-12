@@ -70,4 +70,14 @@ class RunOptionsTests extends munit.FunSuite {
     val buildOptions = Run.buildOptions(runOptions).value
     expect(buildOptions.notForBloopOptions.slothAgentOpt.contains(true))
   }
+
+  test("sloth-strict option") {
+    val runOptions = RunOptions(
+      shared = SharedOptions(
+        slothStrict = Some(true)
+      )
+    )
+    val buildOptions = Run.buildOptions(runOptions).value
+    expect(buildOptions.notForBloopOptions.slothStrictOpt.contains(true))
+  }
 }

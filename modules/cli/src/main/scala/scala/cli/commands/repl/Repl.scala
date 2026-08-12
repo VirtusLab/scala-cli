@@ -356,7 +356,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         classPath,
         options,
         logger,
-        patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(successfulBuilds)
+        patchProjectClassDirs = SlothPatcher.shouldPatchProjectClasses(successfulBuilds),
+        projectClassDirs = successfulBuilds.map(_.output).toSet
       ))
 
     def maybeRunRepl(

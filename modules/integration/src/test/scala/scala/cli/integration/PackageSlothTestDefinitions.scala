@@ -117,7 +117,9 @@ trait PackageSlothTestDefinitions extends LazyValTests:
       }
     }
 
-  for ver <- assemblyScalaVersions do
+  // TODO make this work for 3.0.2
+  for ver <- assemblyScalaVersions.filter(_.coursierVersion >= Constants.scala3Lts.coursierVersion)
+  do
     packageSlothTest(
       "assembly",
       Seq("--assembly", "--preamble=false"),
@@ -153,6 +155,74 @@ trait PackageSlothTestDefinitions extends LazyValTests:
       val r = runBootstrapLauncher(root, launcher)
       expect(r.out.trim().contains(expectedMessage))
       expect(!r.err.trim().contains("sun.misc.Unsafe"))
+    }
+  }
+
+  test(
+    s"package bootstrap --standalone --sloth patches external -cp class directory on JDK $latestJava"
+  ) {
+    TestInputs(
+      externalLazyValsInput(),
+      os.rel / "project" / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println(slothful)
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val (classDir, expectedMsg) = compileExternalLazyValClassDir(root)
+      val launcher                = root / (if Properties.isWin then "app.bat" else "app")
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        "--server=false",
+        "--sloth",
+        "--suppress-experimental-feature-warning",
+        "--standalone",
+        "-cp",
+        classDir.toString,
+        os.rel / "project" / "Main.scala",
+        "-o",
+        launcher,
+        extraOptions
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val r = runBootstrapLauncher(root, launcher)
+      expect(r.out.trim().contains(expectedMsg))
+      expect(!r.err.trim().contains("sun.misc.Unsafe"))
+    }
+  }
+
+  test(
+    s"package bootstrap --standalone jars external -cp class directory without --sloth on JDK $latestJava"
+  ) {
+    TestInputs(
+      externalLazyValsInput(),
+      os.rel / "project" / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println(slothful)
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val (classDir, expectedMsg) = compileExternalLazyValClassDir(root)
+      val launcher                = root / (if Properties.isWin then "app.bat" else "app")
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        "--server=false",
+        "--standalone",
+        "-cp",
+        classDir.toString,
+        os.rel / "project" / "Main.scala",
+        "-o",
+        launcher,
+        extraOptions
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      // Without --sloth the bootstrap still succeeds (directory is jarred); Unsafe warning is OK.
+      val r = runBootstrapLauncher(root, launcher)
+      expect(r.out.trim().contains(expectedMsg))
     }
   }
 

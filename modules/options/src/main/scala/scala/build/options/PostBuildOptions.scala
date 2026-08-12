@@ -13,7 +13,8 @@ final case class PostBuildOptions(
   scalaPyVersion: Option[String] = None,
   addRunnerDependencyOpt: Option[Boolean] = None,
   slothOpt: Option[Boolean] = None,
-  slothAgentOpt: Option[Boolean] = None
+  slothAgentOpt: Option[Boolean] = None,
+  slothStrictOpt: Option[Boolean] = None
 ) {
 
   def doSetupPython: Option[Boolean] =
@@ -24,6 +25,9 @@ final case class PostBuildOptions(
 
   def slothAgent: Boolean =
     slothAgentOpt.getOrElse(false)
+
+  def slothStrict: Boolean =
+    slothStrictOpt.getOrElse(false)
 }
 
 object PostBuildOptions:

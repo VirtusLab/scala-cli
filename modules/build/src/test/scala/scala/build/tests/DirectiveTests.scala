@@ -584,4 +584,38 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       expect(build.options.notForBloopOptions.slothAgentOpt.contains(false))
     }
   }
+
+  for (
+    directive <- Seq(
+      "slothStrict",
+      "sloth-strict",
+      "lazyvalgradeStrict",
+      "lazyvalgrade-strict",
+      "lazyValPatchingStrict",
+      "lazy-val-patching-strict"
+    )
+  )
+    test(s"slothStrict directive ($directive)") {
+      val testInputs = TestInputs(
+        os.rel / "simple.sc" ->
+          s"""//> using $directive
+             |""".stripMargin
+      )
+      testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        expect(build.options.notForBloopOptions.slothStrictOpt.contains(true))
+      }
+    }
+
+  test("slothStrict directive false") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using slothStrict false
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow
+      expect(build.options.notForBloopOptions.slothStrictOpt.contains(false))
+    }
+  }
 }

@@ -1,9 +1,13 @@
 package scala.build.tests
 
+import java.io.File
+import java.net.URLClassLoader
+import java.nio.file.attribute.FileTime
 import java.util.concurrent.{Callable, CyclicBarrier, Executors}
 import java.util.jar.{Attributes as JarAttributes, JarOutputStream, Manifest as JarManifest}
 import java.util.zip.{ZipEntry, ZipFile}
 
+import scala.build.internal.Constants
 import scala.build.internal.util.WarningMessages
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.{BuildOptions, PostBuildOptions}
@@ -13,14 +17,22 @@ import scala.util.Using
 
 class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
 
-  private def optionsWithSloth(enabled: Boolean): BuildOptions =
-    BuildOptions(notForBloopOptions = PostBuildOptions(slothOpt = Some(enabled)))
+  private def optionsWithSloth(enabled: Boolean, strict: Boolean = false): BuildOptions =
+    BuildOptions(notForBloopOptions =
+      PostBuildOptions(slothOpt = Some(enabled), slothStrictOpt = Some(strict))
+    )
 
   test("transformClassPath returns unchanged when sloth disabled"):
     val logger    = TestLogger()
     val classPath = Seq(os.pwd / "a.jar", os.pwd / "b.jar")
     val options   = optionsWithSloth(enabled = false)
-    val result    = SlothPatcher.transformClassPath(classPath, options, logger)
+    val result    = SlothPatcher.transformClassPath(
+      classPath,
+      options,
+      logger,
+      patchProjectClassDirs = false,
+      projectClassDirs = Set.empty
+    )
     assert(result.isRight)
     assert(result.toOption.get == classPath)
 
@@ -193,7 +205,13 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       val txtFile = root / "readme.txt"
       os.write(txtFile, "hello")
       val options = optionsWithSloth(enabled = true)
-      val result  = SlothPatcher.transformClassPath(Seq(txtFile), options, logger)
+      val result  = SlothPatcher.transformClassPath(
+        Seq(txtFile),
+        options,
+        logger,
+        patchProjectClassDirs = false,
+        projectClassDirs = Set.empty
+      )
       assert(result.isRight)
       assert(result.toOption.get == Seq(txtFile))
       assert(logger.messages.isEmpty, s"Expected no message-level output, got: ${logger.messages}")
@@ -211,7 +229,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         options,
         logger,
-        patchProjectClassDirs = false
+        patchProjectClassDirs = false,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight)
       assert(result.toOption.get == classPath)
@@ -221,6 +240,7 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       val logger   = TestLogger()
       val classDir = root / "classes"
       os.makeDir.all(classDir)
+      writeRealClassFile(classDir)
       os.write(classDir / "resource.txt", "test content")
       os.write(classDir / "sub" / "nested.txt", "nested content", createFolders = true)
       val classPath = Seq(classDir)
@@ -229,7 +249,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         options,
         logger,
-        patchProjectClassDirs = true
+        patchProjectClassDirs = true,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight)
       val transformed = result.toOption.get
@@ -258,12 +279,14 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
           |X-Custom: yes
           |""".stripMargin
       )
+      writeRealClassFile(classDir)
       val options = optionsWithSloth(enabled = true)
       val result  = SlothPatcher.transformClassPath(
         Seq(classDir),
         options,
         logger,
-        patchProjectClassDirs = true
+        patchProjectClassDirs = true,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight, s"Expected Right, got: $result")
       val patchedPath = result.toOption.get.head
@@ -281,6 +304,112 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
           manifest.getMainAttributes.getValue("X-Custom") == "yes",
           s"Expected X-Custom=yes in manifest"
         )
+
+  test("transformClassPath patches external class dirs into cached directory copies"):
+    TestInputs.withTmpDir("sloth-external-dir-"): root =>
+      val logger      = TestLogger()
+      val externalDir = root / "cp"
+      val classFile   = writeRealClassFile(externalDir)
+      val before      = os.read.bytes(classFile)
+      val options     = optionsWithSloth(enabled = true)
+      val result      = SlothPatcher.transformClassPath(
+        Seq(externalDir),
+        options,
+        logger,
+        patchProjectClassDirs = false,
+        projectClassDirs = Set.empty
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      val transformed = result.toOption.get
+      assert(transformed.size == 1)
+      val patched = transformed.head
+      // Either left as-is (nothing to patch) or a cached directory under external-dirs
+      assert(os.isDir(patched), s"Expected directory, got: $patched")
+      assert(
+        java.util.Arrays.equals(os.read.bytes(classFile), before),
+        s"Expected original $classFile to be left untouched"
+      )
+      if patched != externalDir then
+        assert(
+          patched.toString.contains("external-dirs"),
+          s"Expected external-dirs cache path, got: $patched"
+        )
+
+  test("transformClassPath skips resource directories without class files"):
+    TestInputs.withTmpDir("sloth-resources-"): root =>
+      val logger      = TestLogger()
+      val resourceDir = root / "resources"
+      os.write(resourceDir / "reference.conf", "answer = 42", createFolders = true)
+      val options = optionsWithSloth(enabled = true)
+      val result  = SlothPatcher.transformClassPath(
+        Seq(resourceDir),
+        options,
+        logger,
+        patchProjectClassDirs = true,
+        projectClassDirs = Set(resourceDir)
+      )
+      assert(result.isRight)
+      assert(result.toOption.get == Seq(resourceDir))
+
+  test("patchClassPathDirsInPlace leaves non-project directories alone"):
+    TestInputs.withTmpDir("sloth-inplace-external-"): root =>
+      val logger       = TestLogger()
+      val projectDir   = root / "project"
+      val externalDir  = root / "external"
+      val projectFile  = writeRealClassFile(projectDir)
+      val externalFile = writeRealClassFile(externalDir)
+      val before       = os.read.bytes(externalFile)
+      val classPath    = Seq(projectDir, externalDir)
+      val result       = SlothPatcher.patchClassPathDirsInPlace(
+        classPath,
+        optionsWithSloth(enabled = true),
+        logger,
+        shouldPatch = true,
+        projectClassDirs = Set(projectDir)
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      assert(result.toOption.get == classPath)
+      assert(SlothPatcher.wasPatchedInThisProcess(projectDir))
+      assert(!SlothPatcher.wasPatchedInThisProcess(externalDir))
+      assert(java.util.Arrays.equals(os.read.bytes(externalFile), before))
+      assert(os.isFile(projectFile))
+
+  test("classPathEntryAsJar jars directories and patches when sloth is enabled"):
+    TestInputs.withTmpDir("sloth-as-jar-"): root =>
+      val logger = TestLogger()
+      val dir    = root / "cp"
+      writeRealClassFile(dir)
+      val result = SlothPatcher.classPathEntryAsJar(dir, optionsWithSloth(enabled = true), logger)
+      assert(result.isRight, s"Expected Right, got: $result")
+      val jar = result.toOption.get
+      assert(os.isFile(jar) && jar.ext == "jar", s"Expected jar file, got: $jar")
+      assert(jar.last == "cp.jar", s"Expected stable name cp.jar, got: ${jar.last}")
+      assert(
+        !jar.last.startsWith("sloth-cp-entry-"),
+        s"Expected content-addressed path, not temp name: $jar"
+      )
+      val again = SlothPatcher.classPathEntryAsJar(dir, optionsWithSloth(enabled = true), logger)
+      assert(again.isRight, s"Expected Right, got: $again")
+      assert(again.toOption.get == jar, s"Expected same cached path across calls, got: $again")
+
+  test("classPathEntryAsJar jars directories without sloth"):
+    TestInputs.withTmpDir("sloth-as-jar-off-"): root =>
+      val logger = TestLogger()
+      val dir    = root / "cp"
+      writeRealClassFile(dir)
+      val result = SlothPatcher.classPathEntryAsJar(dir, optionsWithSloth(enabled = false), logger)
+      assert(result.isRight, s"Expected Right, got: $result")
+      val jar = result.toOption.get
+      assert(os.isFile(jar) && jar.ext == "jar", s"Expected jar file, got: $jar")
+      assert(jar.last == "cp.jar", s"Expected stable name cp.jar, got: ${jar.last}")
+      assert(
+        !jar.last.startsWith("sloth-cp-entry-"),
+        s"Expected content-addressed path, not temp name: $jar"
+      )
+      val again =
+        SlothPatcher.classPathEntryAsJar(dir, optionsWithSloth(enabled = false), logger)
+      assert(again.isRight, s"Expected Right, got: $again")
+      assert(again.toOption.get == jar, s"Expected same cached path across calls, got: $again")
 
   /** Bytecode of a class from the test class path, so patching operates on real input. */
   private def realClassFileBytes(className: String): Array[Byte] =
@@ -303,7 +432,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         optionsWithSloth(enabled = true),
         logger,
-        shouldPatch = true
+        shouldPatch = true,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight, s"Expected Right, got: $result")
       assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
@@ -325,7 +455,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         optionsWithSloth(enabled = true),
         logger,
-        shouldPatch = true
+        shouldPatch = true,
+        projectClassDirs = Set.empty
       )
       assert(result.isRight, s"Expected Right, got: $result")
       assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
@@ -344,7 +475,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         optionsWithSloth(enabled = true),
         logger,
-        shouldPatch = true
+        shouldPatch = true,
+        projectClassDirs = Set.empty
       )
       assert(result.isRight, s"Expected Right, got: $result")
       assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
@@ -363,7 +495,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         optionsWithSloth(enabled = false),
         logger,
-        shouldPatch = true
+        shouldPatch = true,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight, s"Expected Right, got: $result")
       assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
@@ -382,7 +515,8 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
         classPath,
         optionsWithSloth(enabled = true),
         logger,
-        shouldPatch = false
+        shouldPatch = false,
+        projectClassDirs = Set(classDir)
       )
       assert(result.isRight, s"Expected Right, got: $result")
       assert(result.toOption.get == classPath, s"Expected $classPath, got: ${result.toOption.get}")
@@ -637,7 +771,13 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       assert(SlothPatcher.zipStartOffset(corruptJar).contains(0L))
       val options   = optionsWithSloth(enabled = true)
       val classPath = Seq(goodJar, corruptJar)
-      val result    = SlothPatcher.transformClassPath(classPath, options, logger)
+      val result    = SlothPatcher.transformClassPath(
+        classPath,
+        options,
+        logger,
+        patchProjectClassDirs = false,
+        projectClassDirs = Set.empty
+      )
       assert(result.isRight, s"Expected Right, got: $result")
       val transformed = result.toOption.get
       assert(transformed.size == 2, s"Expected 2 entries, got: $transformed")
@@ -683,3 +823,279 @@ class SlothPatcherTests extends TestUtil.ScalaCliBuildSuite:
       (os.isDir(p) && os.list(p).exists(_.last.startsWith("sloth-entries-")))
     }
     assert(leaked.isEmpty, s"Leaked temp entries: $leaked")
+
+  // --- Hierarchy classpath resolution (native-image-safe getCommonSuperClass) ---
+
+  /** Sources for a jar whose types are *not* on the test JVM classpath. lib-b holds Base/SubA/SubB;
+    * lib-a holds a lazy val whose initializer merges SubA and SubB, forcing ASM COMPUTE_FRAMES to
+    * call getCommonSuperClass(SubA, SubB) while patching.
+    */
+  private val hierarchyFixtureInputs: TestInputs = TestInputs(
+    os.rel / "libb" / "Base.scala" ->
+      """package sloth.hierarchy
+        |
+        |class Base
+        |class SubA extends Base
+        |class SubB extends Base
+        |""".stripMargin,
+    os.rel / "liba" / "Lazies.scala" ->
+      """package sloth.hierarchy
+        |
+        |object Lazies:
+        |  // Lazy val so Sloth rewrites the class (COMPUTE_FRAMES for *all* methods).
+        |  lazy val x: Base =
+        |    if sys.props.contains("sloth.hierarchy.useA") then new SubA else new SubB
+        |  def get: Base = x
+        |  // Non-lazy method returning Base with a SubA/SubB merge into a local (not
+        |  // early-return). When ASM cannot resolve SubA/SubB, getCommonSuperClass
+        |  // falls back to Object and this method VerifyErrors on areturn of Base.
+        |  def pick(useA: Boolean): Base =
+        |    val chosen: Base = if useA then new SubA else new SubB
+        |    chosen
+        |""".stripMargin
+  )
+
+  private lazy val scala33CompilerClasspath: Seq[os.Path] =
+    val out = os.proc(
+      "cs",
+      "fetch",
+      s"org.scala-lang:scala3-compiler_3:${Constants.scala3Lts}"
+    ).call().out.trim()
+    out.split(System.lineSeparator()).toSeq.filter(_.nonEmpty).map(os.Path(_))
+
+  private def jarDirectory(dir: os.Path, dest: os.Path): Unit =
+    val manifest = JarManifest()
+    manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
+    Using.resource(JarOutputStream(os.write.outputStream(dest), manifest)): jos =>
+      for
+        path <- os.walk(dir)
+        if os.isFile(path)
+      do
+        val relativePath = path.relativeTo(dir).toString.replace('\\', '/')
+        val entry        = ZipEntry(relativePath)
+        entry.setLastModifiedTime(FileTime.fromMillis(os.mtime(path)))
+        val content = os.read.bytes(path)
+        entry.setSize(content.length)
+        jos.putNextEntry(entry)
+        jos.write(content)
+        jos.closeEntry()
+
+  /** Compile `srcDir` with Scala 3 LTS (pre-3.8 lazy vals) against `extraCp`, jar into `destJar`.
+    */
+  private def compileScala33ToJar(
+    root: os.Path,
+    srcDir: os.Path,
+    destJar: os.Path,
+    extraCp: Seq[os.Path] = Nil
+  ): Unit =
+    val outDir = root / s"${srcDir.last}-classes"
+    os.makeDir.all(outDir)
+    val sources = os.walk(srcDir).filter(p => p.ext == "scala" && os.isFile(p))
+    assert(sources.nonEmpty, s"Expected sources under $srcDir")
+    // Compiler boot CP and user -classpath both need scala3-library; extraCp is layered on top.
+    val compilerCp = scala33CompilerClasspath.mkString(File.pathSeparator)
+    val userCp     = (scala33CompilerClasspath ++ extraCp).mkString(File.pathSeparator)
+    val res        = os.proc(
+      "java",
+      "-cp",
+      compilerCp,
+      "dotty.tools.dotc.Main",
+      "-d",
+      outDir.toString,
+      "-classpath",
+      userCp,
+      sources.map(_.toString)
+    ).call(cwd = root, check = false, mergeErrIntoOut = true)
+    assert(
+      res.exitCode == 0,
+      s"Failed to compile $srcDir with Scala ${Constants.scala3Lts}:\n${res.out.text()}"
+    )
+    jarDirectory(outDir, destJar)
+
+  /** Build lib-a.jar (lazy vals) and lib-b.jar (hierarchy types) under `root`. */
+  private def buildHierarchyFixtureJars(root: os.Path): (os.Path, os.Path) =
+    val libB = root / "lib-b.jar"
+    val libA = root / "lib-a.jar"
+    compileScala33ToJar(root, root / "libb", libB)
+    compileScala33ToJar(root, root / "liba", libA, extraCp = Seq(libB))
+    (libA, libB)
+
+  /** Load `sloth.hierarchy.Lazies$` from the given jars and force lazy-val initialization. */
+  private def forceInitLazies(jars: Seq[os.Path]): Unit =
+    // scala3-library (and scala-library) come from the compiler fetch; platform CL has neither.
+    val scalaLibs = scala33CompilerClasspath.filter { p =>
+      val n = p.last
+      n.startsWith("scala3-library") || n.startsWith("scala-library")
+    }
+    val urls = (jars ++ scalaLibs).map(_.toNIO.toUri.toURL).toArray
+    Using.resource(URLClassLoader(urls, ClassLoader.getPlatformClassLoader)): cl =>
+      // Class.forName verifies all methods; pick()'s SubA/SubB merge is the VerifyError trigger
+      // when those types were invisible to Sloth's COMPUTE_FRAMES.
+      val cls    = Class.forName("sloth.hierarchy.Lazies$", true, cl)
+      val module = cls.getField("MODULE$").get(null)
+      cls.getMethod("get").invoke(module)
+      cls.getMethod("pick", classOf[Boolean]).invoke(module, java.lang.Boolean.FALSE)
+      ()
+
+  test("transformClassPath keeps hierarchy frames valid across jars"):
+    hierarchyFixtureInputs.fromRoot: root =>
+      val (libA, libB) = buildHierarchyFixtureJars(root)
+      // Precondition: unpatched jars load and initialize fine.
+      forceInitLazies(Seq(libA, libB))
+
+      val logger  = TestLogger()
+      val options = optionsWithSloth(enabled = true)
+      val result  = SlothPatcher.transformClassPath(
+        Seq(libA, libB),
+        options,
+        logger,
+        patchProjectClassDirs = false,
+        projectClassDirs = Set.empty
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      val transformed = result.toOption.get
+      assert(transformed.size == 2, s"Expected 2 entries, got: $transformed")
+      val patchedA = transformed.head
+      assert(
+        patchedA != libA,
+        s"Expected lib-a.jar to be rewritten (it has lazy vals), got unchanged: $patchedA"
+      )
+      // Loading the patched lib-a against lib-b must not throw VerifyError. Today JarProcessor
+      // only sees lib-a, so getCommonSuperClass(SubA, SubB) falls back to Object and this fails.
+      forceInitLazies(Seq(patchedA, libB))
+
+  test("dependency jar without hierarchy warns and still patches"):
+    hierarchyFixtureInputs.fromRoot: root =>
+      val (libA, _) = buildHierarchyFixtureJars(root)
+      val logger    = RecordingLogger()
+      val options   = optionsWithSloth(enabled = true)
+      // Dependency source, hierarchy classpath omits lib-b so SubA/SubB are unresolvable.
+      val result = SlothPatcher.patchJarFile(
+        libA,
+        options,
+        logger,
+        hierarchyClassPath = Nil,
+        source = SlothPatcher.SlothSource.Dependency
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      val patched = result.toOption.get
+      assert(patched != libA, s"Expected lib-a to be rewritten, got unchanged: $patched")
+      assert(
+        logger.messages.exists(_.contains("could not resolve class hierarchies")),
+        s"Expected hierarchy warning, got: ${logger.messages}"
+      )
+      assert(
+        logger.messages.exists(_.contains("--sloth-strict")),
+        s"Expected --sloth-strict hint, got: ${logger.messages}"
+      )
+
+  test("dependency jar without hierarchy fails under slothStrict"):
+    hierarchyFixtureInputs.fromRoot: root =>
+      val (libA, _) = buildHierarchyFixtureJars(root)
+      val logger    = RecordingLogger()
+      val options   = optionsWithSloth(enabled = true, strict = true)
+      val result    = SlothPatcher.patchJarFile(
+        libA,
+        options,
+        logger,
+        hierarchyClassPath = Nil,
+        source = SlothPatcher.SlothSource.Dependency
+      )
+      assert(result.isLeft, s"Expected Left under slothStrict, got: $result")
+      val err = result.swap.toOption.get.getMessage
+      assert(
+        err.contains("could not resolve class hierarchies") || err.contains("Cannot resolve class"),
+        s"Expected hierarchy error message, got: $err"
+      )
+
+  test("project bytecode without hierarchy is left unpatched"):
+    hierarchyFixtureInputs.fromRoot: root =>
+      val (libA, _) = buildHierarchyFixtureJars(root)
+      val logger    = RecordingLogger()
+      val options   = optionsWithSloth(enabled = true)
+      val result    = SlothPatcher.patchJarFile(
+        libA,
+        options,
+        logger,
+        hierarchyClassPath = Nil,
+        source = SlothPatcher.SlothSource.Project
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      val patched = result.toOption.get
+      assert(
+        patched == libA,
+        s"Expected project jar to stay unpatched when hierarchy is incomplete, got: $patched"
+      )
+      assert(
+        logger.messages.exists(m =>
+          m.contains("could not resolve class hierarchies") || m.contains("using original")
+        ),
+        s"Expected hierarchy / using-original warning, got: ${logger.messages}"
+      )
+
+  test("transformClassPath keeps ZipFile frames in scala3-compiler openZipFile"):
+    // FileZipArchive.openZipFile merges JarFile and ZipFile; a broken JDK Class.forName path
+    // under native image collapses that merge to Object and VerifyErrors. Assert the patched
+    // frames stay ZipFile when hierarchy includes scala3-library.
+    TestInputs.withTmpDir("sloth-compiler-frames-"): _ =>
+      val compilerJar = scala33CompilerClasspath
+        .find(_.last.startsWith("scala3-compiler"))
+        .getOrElse(sys.error("scala3-compiler jar not found on compiler classpath"))
+      val logger  = TestLogger()
+      val options = optionsWithSloth(enabled = true)
+      val result  = SlothPatcher.transformClassPath(
+        scala33CompilerClasspath,
+        options,
+        logger,
+        patchProjectClassDirs = false,
+        projectClassDirs = Set.empty
+      )
+      assert(result.isRight, s"Expected Right, got: $result")
+      val patchedCompiler = result.toOption.get
+        .find(_.last.startsWith("scala3-compiler"))
+        .getOrElse(sys.error(s"No scala3-compiler in ${result.toOption.get}"))
+      assert(
+        patchedCompiler != compilerJar,
+        s"Expected scala3-compiler to be rewritten, got unchanged: $patchedCompiler"
+      )
+      val openZipFrames = stackMapTypesAtMerge(
+        patchedCompiler,
+        "dotty/tools/io/FileZipArchive.class",
+        "openZipFile"
+      )
+      assert(
+        openZipFrames.exists(_.contains("java/util/zip/ZipFile")),
+        s"Expected ZipFile on openZipFile stack map frames, got: $openZipFrames"
+      )
+      assert(
+        !openZipFrames.exists(f => f.contains("java/lang/Object") && !f.contains("ZipFile")),
+        s"openZipFile frames must not collapse JarFile/ZipFile merge to Object: $openZipFrames"
+      )
+
+  /** Stack-map stack types from frames of `methodNameSubstring` inside a class entry of `jar`. */
+  private def stackMapTypesAtMerge(
+    jar: os.Path,
+    classEntry: String,
+    methodNameSubstring: String
+  ): Seq[String] =
+    import org.objectweb.asm.ClassReader
+    import org.objectweb.asm.tree.{ClassNode, FrameNode, LabelNode}
+    Using.resource(ZipFile(jar.toIO)): zf =>
+      val entry = zf.getEntry(classEntry)
+      assert(entry != null, s"Missing $classEntry in $jar")
+      val bytes = Using.resource(zf.getInputStream(entry))(_.readAllBytes())
+      val cn    = ClassNode()
+      ClassReader(bytes).accept(cn, 0)
+      val method = cn.methods.asScala
+        .find(_.name.contains(methodNameSubstring))
+        .getOrElse(sys.error(s"No method *$methodNameSubstring* in $classEntry"))
+      method.instructions.toArray.toSeq.collect {
+        case f: FrameNode =>
+          Option(f.stack).map(_.asScala.map {
+            case null         => "null"
+            case s: String    => s
+            case n: Integer   => s"int($n)"
+            case _: LabelNode => "label"
+            case other        => String.valueOf(other)
+          }.mkString(",")).getOrElse("-")
+      }

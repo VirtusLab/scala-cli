@@ -31,6 +31,11 @@ object SlothAgent:
   ): Unit =
     if options.notForBloopOptions.sloth && options.notForBloopOptions.slothAgent then
       logger.message(s"$warnPrefix ${WarningMessages.slothModesMutuallyRedundant}")
+    if options.notForBloopOptions.slothStrict &&
+      !options.notForBloopOptions.sloth &&
+      !options.notForBloopOptions.slothAgent
+    then
+      logger.message(s"$warnPrefix ${WarningMessages.slothStrictRequiresPatching}")
 
   private def fetchAgentJar(
     options: BuildOptions,
@@ -57,6 +62,11 @@ object SlothAgent:
   ): Either[BuildException, os.Path] =
     val expectedJarName =
       s"${Constants.slothAgentModuleName}-${Constants.slothAgentVersion}.jar"
+    val plainJarName = s"${Constants.slothAgentModuleName}.jar"
     artifacts
-      .collectFirst { case (_, path) if path.last == expectedJarName => path }
+      .collectFirst {
+        // Maven-style: sloth-agent-<version>.jar; Ivy publishLocal often keeps sloth-agent.jar.
+        case (_, path)
+            if path.last == expectedJarName || path.last == plainJarName => path
+      }
       .toRight(SlothAgentError(s"Could not resolve sloth agent ${Constants.slothAgentVersion}"))

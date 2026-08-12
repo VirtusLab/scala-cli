@@ -2829,4 +2829,110 @@ abstract class RunTestDefinitions
         expect(r.err.trim().contains(slothSignatureStrippedWarnFragment))
       }
     }
+
+    if isScala38OrNewer then {
+      test(
+        s"run --sloth patches external -cp class directory with ${Constants.scala3Lts} lazy vals on JDK $latestJava"
+      ) {
+        TestInputs(externalLazyValsInput()).fromRoot { root =>
+          val (classDir, expectedMessage) = compileExternalLazyValClassDir(root)
+          val r                           = os.proc(
+            TestUtil.cli,
+            "--power",
+            "run",
+            "--server=false",
+            "-e",
+            "println(slothful)",
+            "-cp",
+            classDir.toString,
+            slothOptions,
+            "--jvm",
+            latestJava.toString,
+            extraOptions
+          ).call(cwd = root, stderr = os.Pipe)
+          expect(r.out.trim() == expectedMessage)
+          expect(!r.err.trim().contains("sun.misc.Unsafe"))
+        }
+      }
+
+      test(
+        s"run --sloth-agent patches external -cp class directory with ${Constants.scala3Lts} lazy vals on JDK $latestJava"
+      ) {
+        TestInputs(externalLazyValsInput()).fromRoot { root =>
+          val (classDir, expectedMessage) = compileExternalLazyValClassDir(root)
+          val r                           = os.proc(
+            TestUtil.cli,
+            "--power",
+            "run",
+            "--server=false",
+            "-e",
+            "println(slothful)",
+            "-cp",
+            classDir.toString,
+            slothAgentOptions,
+            "--jvm",
+            latestJava.toString,
+            extraOptions
+          ).call(cwd = root, stderr = os.Pipe)
+          expect(r.out.trim() == expectedMessage)
+          expect(!r.err.trim().contains("sun.misc.Unsafe"))
+        }
+      }
+    }
+
+    test("run --sloth warns when a dependency jar has an incomplete class hierarchy") {
+      TestInputs.empty.fromRoot { root =>
+        val (libA, _) = packageHierarchyFixtureJars(root)
+        // Only lib-a on the classpath: SubA/SubB live in lib-b, so Sloth cannot resolve the
+        // merge while patching. The snippet itself does not need those types — patching runs
+        // over the whole -cp before the user code starts.
+        val r = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "--server=false",
+          "-e",
+          """println("ok")""",
+          "-cp",
+          libA.toString,
+          slothOptions,
+          "--jvm",
+          latestJava.toString,
+          extraOptions
+        ).call(cwd = root, stderr = os.Pipe, check = false)
+        expect(r.exitCode == 0)
+        expect(r.out.trim() == "ok")
+        expect(r.err.trim().contains(slothHierarchyWarnFragment))
+        expect(r.err.trim().contains("--sloth-strict"))
+      }
+    }
+
+    test(
+      "run --sloth --sloth-strict fails when a dependency jar has an incomplete class hierarchy"
+    ) {
+      TestInputs(
+        os.rel / "Main.scala" ->
+          """//> using slothStrict
+            |@main def main(): Unit = println("ok")
+            |""".stripMargin
+      ).fromRoot { root =>
+        val (libA, _) = packageHierarchyFixtureJars(root)
+        val r         = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          ".",
+          "--server=false",
+          "-cp",
+          libA.toString,
+          slothOptions,
+          "--jvm",
+          latestJava.toString,
+          extraOptions
+        ).call(cwd = root, stderr = os.Pipe, check = false)
+        expect(r.exitCode != 0)
+        val err = r.err.trim() + "\n" + r.out.trim()
+        expect(err.contains(slothHierarchyWarnFragment))
+      }
+    }
 }

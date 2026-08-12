@@ -16,12 +16,14 @@ class SlothAgentTests extends TestUtil.ScalaCliBuildSuite:
 
   private def optionsWith(
     sloth: Boolean = false,
-    slothAgent: Boolean = false
+    slothAgent: Boolean = false,
+    slothStrict: Boolean = false
   ): BuildOptions =
     BuildOptions(notForBloopOptions =
       PostBuildOptions(
         slothOpt = Some(sloth).filter(identity),
-        slothAgentOpt = Some(slothAgent).filter(identity)
+        slothAgentOpt = Some(slothAgent).filter(identity),
+        slothStrictOpt = Some(slothStrict).filter(identity)
       )
     )
 
@@ -37,6 +39,13 @@ class SlothAgentTests extends TestUtil.ScalaCliBuildSuite:
 
     assert(result.isRight, s"Expected Right but got $result")
     assert(result.toOption.get == agentJar, s"Expected $agentJar but got ${result.toOption.get}")
+
+  test("selectAgentJar accepts Ivy-style sloth-agent.jar without the version suffix"):
+    val ivyJar    = os.root / "ivy2" / "local" / s"${Constants.slothAgentModuleName}.jar"
+    val artifacts = Seq((s"file://$ivyJar", ivyJar))
+    val result    = SlothAgent.selectAgentJar(artifacts)
+    assert(result.isRight, s"Expected Right but got $result")
+    assert(result.toOption.get == ivyJar)
 
   test("selectAgentJar returns error when agent jar not found"):
     val decoyJar  = os.root / "cache" / "asm-9.10.1.jar"
@@ -66,3 +75,9 @@ class SlothAgentTests extends TestUtil.ScalaCliBuildSuite:
     SlothAgent.warnIfRedundantWithBatchPatching(optionsWith(sloth = true), logger)
     SlothAgent.warnIfRedundantWithBatchPatching(optionsWith(slothAgent = true), logger)
     expect(logger.messages.isEmpty)
+
+  test("warnIfRedundantWithBatchPatching warns when slothStrict is set without patching"):
+    val logger = RecordingLogger()
+    SlothAgent.warnIfRedundantWithBatchPatching(optionsWith(slothStrict = true), logger)
+    expect(logger.messages.exists(_.contains(WarningMessages.slothStrictRequiresPatching)))
+    expect(logger.messages.exists(_.startsWith(warnPrefix)))

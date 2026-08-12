@@ -16,9 +16,12 @@ trait LazyValTests:
 
   protected val slothNoOpWarnPrefix: String                = "Sloth patching is not applicable to"
   protected val slothSignatureStrippedWarnFragment: String = "signature files were removed"
+  protected val slothHierarchyWarnFragment: String         = "could not resolve class hierarchies"
   protected val slothCacheSegment: String = s"${File.separator}sloth${File.separator}"
   protected val slothOptions: Seq[String] =
     Seq("--sloth", "--suppress-experimental-feature-warning")
+  protected val slothStrictOptions: Seq[String] =
+    Seq("--sloth", "--sloth-strict", "--suppress-experimental-feature-warning")
   protected val slothAgentOptions: Seq[String] =
     Seq("--sloth-agent", "--suppress-experimental-feature-warning")
 
@@ -95,10 +98,15 @@ trait LazyValTests:
       |X-Custom: yes
       |""".stripMargin
 
-  protected def expectScaladocClasspathContains(output: String, fragment: String): Unit =
+  protected def expectScaladocClasspathContains(
+    output: String,
+    fragment: String,
+    shouldContain: Boolean = true
+  ): Unit =
     val marker       = "dotty.tools.scaladoc.Main -classpath "
     val classpathOpt = output.split(marker).lift(1).map(_.takeWhile(c => c != ' ' && c != '\n'))
-    expect(classpathOpt.exists(_.contains(fragment)))
+    expect(classpathOpt.isDefined)
+    expect(classpathOpt.exists(_.contains(fragment)) == shouldContain)
 
   protected def classpathEntries(classpath: String): Seq[os.Path] =
     classpath.split(File.pathSeparator).toSeq.filter(_.nonEmpty).map(os.Path(_))
@@ -121,6 +129,46 @@ trait LazyValTests:
     val isClass = os.isFile(path)
     expect(isClass)
     os.read.bytes(path)
+
+  /** Compiles a lazy-val source with an older Scala (default: LTS) to an external class directory.
+    * Returns `(classDir, expectedMessage)`. The class dir mimics a `-cp` / `--extra-jar` directory
+    * entry produced outside the consuming project.
+    *
+    * The source must already be present under `workspace / sourceDirName` (use
+    * [[externalLazyValsInput]] in the surrounding `TestInputs`).
+    */
+  protected val externalLazyValsDirName: String = "external"
+
+  protected def externalLazyValsSource(expectedMessage: String = "true"): String =
+    s"""lazy val hah = $expectedMessage
+       |def slothful: Boolean = hah
+       |""".stripMargin
+
+  protected def externalLazyValsInput(expectedMessage: String = "true"): (os.RelPath, String) =
+    os.rel / externalLazyValsDirName / "lazy.scala" -> externalLazyValsSource(expectedMessage)
+
+  protected def compileExternalLazyValClassDir(
+    workspace: os.Path,
+    scalaVersion: String = Constants.scala3Lts,
+    buildJvm: String = "8",
+    classDirName: String = "cp",
+    sourceDirName: String = externalLazyValsDirName,
+    expectedMessage: String = "true"
+  ): (os.Path, String) =
+    val classDir = workspace / classDirName
+    os.proc(
+      TestUtil.cli,
+      "compile",
+      "--server=false",
+      sourceDirName,
+      "-S",
+      scalaVersion,
+      "--jvm",
+      buildJvm,
+      "-d",
+      classDir.toString
+    ).call(cwd = workspace, stdin = os.Inherit, stdout = os.Inherit)
+    (classDir, expectedMessage)
 
   protected def publishLazyValsLib(
     scalaVersion: String,
@@ -217,6 +265,61 @@ trait LazyValTests:
       .call(cwd = workspace, stdin = os.Inherit, stdout = os.Inherit)
     os.remove.all(libDir)
     dest
+
+  /** Builds two interdependent JARs for hierarchy-resolution tests:
+    *   - lib-b.jar: `Base` / `SubA` / `SubB`
+    *   - lib-a.jar: lazy val whose initializer merges SubA and SubB (compiled against lib-b)
+    *
+    * Both are compiled with [[Constants.scala3Lts]] so they contain pre-3.8 lazy vals.
+    */
+  protected def packageHierarchyFixtureJars(
+    workspace: os.Path,
+    scalaVersion: String = Constants.scala3Lts
+  ): (os.Path, os.Path) =
+    val libBSrc = workspace / "hier-libb-src"
+    val libASrc = workspace / "hier-liba-src"
+    val libBJar = workspace / "hier-lib-b.jar"
+    val libAJar = workspace / "hier-lib-a.jar"
+    os.write(
+      libBSrc / "Base.scala",
+      s"""//> using scala $scalaVersion
+         |package hier
+         |class Base
+         |class SubA extends Base
+         |class SubB extends Base
+         |""".stripMargin,
+      createFolders = true
+    )
+    os.proc(TestUtil.cli, "--power", "package", "--library", libBSrc, "-o", libBJar)
+      .call(cwd = workspace, stdin = os.Inherit, stdout = os.Inherit)
+    os.write(
+      libASrc / "Lazies.scala",
+      s"""//> using scala $scalaVersion
+         |package hier
+         |object Lazies:
+         |  lazy val x: Base =
+         |    if sys.props.contains("hier.useA") then new SubA else new SubB
+         |  def get: Base = x
+         |  def pick(useA: Boolean): Base =
+         |    val chosen: Base = if useA then new SubA else new SubB
+         |    chosen
+         |""".stripMargin,
+      createFolders = true
+    )
+    os.proc(
+      TestUtil.cli,
+      "--power",
+      "package",
+      "--library",
+      libASrc,
+      "-cp",
+      libBJar.toString,
+      "-o",
+      libAJar
+    ).call(cwd = workspace, stdin = os.Inherit, stdout = os.Inherit)
+    os.remove.all(libBSrc)
+    os.remove.all(libASrc)
+    (libAJar, libBJar)
 
   /** Publishes a library JAR without lazy vals (pure Java or Scala 3.8+) and signs it. Returns the
     * path to the signed JAR.

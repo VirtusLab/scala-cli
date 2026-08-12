@@ -187,6 +187,16 @@ object WarningMessages {
   def slothCouldNotPatch(subject: String, reason: String): String =
     s"Could not patch lazy vals in $subject, using original: $reason"
 
+  def slothUnresolvedHierarchy(subject: String, details: String): String =
+    s"Sloth could not resolve class hierarchies while patching $subject ($details). " +
+      "Patching continued with widened frames; use --sloth-strict to fail instead."
+
+  def slothUnresolvedHierarchyStrict(subject: String, details: String): String =
+    s"Sloth could not resolve class hierarchies while patching $subject ($details)."
+
+  val slothStrictRequiresPatching: String =
+    "--sloth-strict requires --sloth or --sloth-agent; hierarchy checking has no effect without lazy-val patching."
+
   val slothNonStandaloneBootstrapWarning: String =
     "Could not patch lazy vals in non-standalone bootstrap dependencies; use --standalone for batch patching."
 }

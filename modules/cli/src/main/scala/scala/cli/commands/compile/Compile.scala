@@ -96,7 +96,8 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
                 s.output,
                 s.options,
                 logger,
-                shouldPatch = shouldPatchProject
+                shouldPatch = shouldPatchProject,
+                hierarchyClassPath = s.fullClassPath
               ).left
             )
           do logger.exit(ex)
@@ -114,7 +115,8 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
               rawCp,
               s.options,
               logger,
-              patchProjectClassDirs = false
+              patchProjectClassDirs = false,
+              projectClassDirs = successfulBuilds.map(_.output).toSet
             ).orExit(logger)
               .map(_.toString)
               .mkString(File.pathSeparator)

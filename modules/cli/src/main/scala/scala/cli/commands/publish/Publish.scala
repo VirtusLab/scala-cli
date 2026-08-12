@@ -518,7 +518,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       logger.debug(s"Retained main class: ${mainClassOpt.getOrElse("(no main class found)")}")
       val libraryJar0: os.Path = Library.libraryJar(builds, mainClassOpt)
       val libraryJar: os.Path  = value(
-        SlothPatcher.patchJarFile(libraryJar0, builds.head.options, logger)
+        SlothPatcher.patchJarFile(
+          libraryJar0,
+          builds.head.options,
+          logger,
+          hierarchyClassPath = builds.flatMap(_.fullClassPath).distinct,
+          source = SlothPatcher.SlothSource.Project
+        )
       )
       val dest: os.Path = workingDir / org / s"$moduleName-$ver.jar"
       logger.debug(s"Copying library jar from $libraryJar to $dest...")

@@ -459,7 +459,13 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         case PackageType.LibraryJar =>
           val libraryJar0 = Library.libraryJar(builds, mainClassOpt)
           val libraryJar  = value(
-            SlothPatcher.patchJarFile(libraryJar0, builds.head.options, logger)
+            SlothPatcher.patchJarFile(
+              libraryJar0,
+              builds.head.options,
+              logger,
+              hierarchyClassPath = builds.flatMap(_.fullClassPath).distinct,
+              source = SlothPatcher.SlothSource.Project
+            )
           )
           value(alreadyExistsCheck())
           if force then os.copy.over(libraryJar, destPath, createFolders = true)
@@ -902,8 +908,15 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       byteCodeZipEntries.partition((entry, _) => JarManifests.isManifestEntry(entry.getName))
     val baseManifestOpt = manifestEntries.headOption.map(_._2)
 
+    val hierarchyCp = builds.flatMap(_.fullClassPath).distinct
+
     val patchedByteCodeZipEntries = value(
-      SlothPatcher.patchByteCodeZipEntries(nonManifestEntries, options, logger)
+      SlothPatcher.patchByteCodeZipEntries(
+        nonManifestEntries,
+        options,
+        logger,
+        hierarchyClassPath = hierarchyCp
+      )
     )
 
     // TODO Generate that in memory
@@ -920,12 +933,10 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       builds.flatMap(_.artifacts.artifacts).distinct.map {
         case (url, path) =>
           if options.notForBloopOptions.packageOptions.isStandalone then
-            val patchedPath = value(SlothPatcher.patchJarFile(path, options, logger))
-            ClassPathEntry.Resource(
-              patchedPath.last,
-              os.mtime(patchedPath),
-              os.read.bytes(patchedPath)
+            val patchedPath = value(
+              SlothPatcher.patchJarFile(path, options, logger, hierarchyClassPath = hierarchyCp)
             )
+            classPathResource(path, patchedPath)
           else
             if options.notForBloopOptions.sloth then
               logger.message(
@@ -935,12 +946,15 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       }
     val byteCodeEntry  = ClassPathEntry.Resource(s"${destPath.last}-content.jar", 0L, tmpJarContent)
     val extraClassPath = builds.head.options.classPathOptions.extraClassPath.map { classPath =>
-      val patchedPath = value(SlothPatcher.patchJarFile(classPath, options, logger))
-      ClassPathEntry.Resource(
-        patchedPath.last,
-        os.mtime(patchedPath),
-        os.read.bytes(patchedPath)
+      val patchedPath = value(
+        SlothPatcher.classPathEntryAsJar(
+          classPath,
+          options,
+          logger,
+          hierarchyClassPath = hierarchyCp
+        )
       )
+      classPathResource(classPath, patchedPath)
     }
 
     val allEntries    = Seq(byteCodeEntry) ++ dependencyEntries ++ extraClassPath
@@ -984,6 +998,13 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     BootstrapGenerator.generate(params, destPath.toNIO)
     ProcUtil.maybeUpdatePreamble(destPath)
   }
+
+  /** Resource entry for a bootstrap classpath jar. Name comes from the original entry (with a
+    * `.jar` suffix for directories); mtime is fixed at 0 for determinism.
+    */
+  private def classPathResource(original: os.Path, patched: os.Path): ClassPathEntry.Resource =
+    val name = if os.isDir(original) then s"${original.last}.jar" else original.last
+    ClassPathEntry.Resource(name, 0L, os.read.bytes(patched))
 
   /** Returns the dependency sub-graph of the provided modules, that is, all their JARs and their
     * transitive dependencies' JARs.
@@ -1121,7 +1142,15 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       .withPreambleOpt(preambleOpt)
     value(alreadyExistsCheck())
     AssemblyGenerator.generate(params, destPath.toNIO)
-    val patchedDest = value(SlothPatcher.patchJarFile(destPath, options, logger))
+    val patchedDest = value(
+      SlothPatcher.patchJarFile(
+        destPath,
+        options,
+        logger,
+        hierarchyClassPath = (destPath +: jars).distinct,
+        source = SlothPatcher.SlothSource.Project
+      )
+    )
     if patchedDest != destPath then os.copy.over(patchedDest, destPath, createFolders = true)
     ProcUtil.maybeUpdatePreamble(destPath)
   }
