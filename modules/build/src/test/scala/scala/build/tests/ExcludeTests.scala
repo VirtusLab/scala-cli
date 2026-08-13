@@ -249,4 +249,126 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("exclude in a script") {
+    val testInputs = TestInputs(
+      os.rel / "Hello.scala" -> "object Hello",
+      os.rel / "Other.scala" -> "object Other",
+      os.rel / "main.sc"     ->
+        """//> using exclude Other.scala
+          |println("hi")
+          |""".stripMargin
+    )
+    testInputs.withInputs { (root, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )(using ScalaCliInvokeData.dummy).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       =
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        ).orThrow
+
+      val onDiskPaths    = sources.paths.map(_._2)
+      val expectedOnDisk = Seq(os.rel / "Hello.scala")
+      expect(onDiskPaths == expectedOnDisk)
+      val inMemoryPaths    = sources.inMemory.map(_.generatedRelPath)
+      val expectedInMemory = Seq(os.rel / "main.scala")
+      expect(inMemoryPaths == expectedInMemory)
+    }
+  }
+
+  test("exclude in a script pulling sources via using file") {
+    val testInputs = TestInputs(
+      os.rel / "Helper.scala" -> "object Helper",
+      os.rel / "Other.scala"  -> "object Other",
+      os.rel / "main.sc"      ->
+        """//> using file Helper.scala
+          |//> using exclude Other.scala
+          |println(Helper)
+          |""".stripMargin
+    )
+    testInputs.withInputs { (root, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )(using ScalaCliInvokeData.dummy).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       =
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        ).orThrow
+
+      val onDiskPaths    = sources.paths.map(_._2)
+      val expectedOnDisk = Seq(os.rel / "Helper.scala")
+      expect(onDiskPaths == expectedOnDisk)
+      val inMemoryPaths    = sources.inMemory.map(_.generatedRelPath)
+      val expectedInMemory = Seq(os.rel / "main.scala")
+      expect(inMemoryPaths == expectedInMemory)
+    }
+  }
+
+  test("error message when exclude is in an unsupported file") {
+    val testInputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """//> using exclude Other.scala
+          |""".stripMargin,
+      os.rel / "Other.scala" -> "object Other"
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )(using ScalaCliInvokeData.dummy)
+      crossSources match {
+        case Left(e: ExcludeDefinitionError) =>
+          val msg = e.message
+          expect(msg.contains("`.sc` script"))
+          expect(msg.contains("project.scala"))
+        case o => fail("Exception expected", clues(o))
+      }
+    }
+  }
+
+  test("error when exclude is declared in both project.scala and a script") {
+    val testInputs = TestInputs(
+      os.rel / "project.scala" -> "//> using exclude Other.scala",
+      os.rel / "main.sc"       ->
+        """//> using exclude Hello.scala
+          |println("hi")
+          |""".stripMargin,
+      os.rel / "Hello.scala" -> "object Hello",
+      os.rel / "Other.scala" -> "object Other"
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )(using ScalaCliInvokeData.dummy)
+      crossSources match {
+        case Left(e: ExcludeDefinitionError) =>
+          expect(e.message.contains("single source file"))
+        case o => fail("Exception expected", clues(o))
+      }
+    }
+  }
+
 }

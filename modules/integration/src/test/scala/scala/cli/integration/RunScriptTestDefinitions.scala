@@ -33,6 +33,27 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
     simpleScriptTest(extraArgs = Seq("-v"))
   }
 
+  test("exclude directive in a script") {
+    val message = "Hello from script"
+    val inputs  = TestInputs(
+      os.rel / "main.sc" ->
+        s"""//> using exclude Other.scala
+           |println("$message")
+           |""".stripMargin,
+      os.rel / "Other.scala" ->
+        """object Other {
+          |  val x: Int = "this would not compile"
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "main.sc", "Other.scala")
+        .call(cwd = root)
+        .out.trim()
+      expect(output == message)
+    }
+  }
+
   test("Multiple scripts") {
     val message = "Hello"
     val inputs  = TestInputs(

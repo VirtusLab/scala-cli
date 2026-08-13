@@ -18,7 +18,9 @@ import scala.cli.commands.SpecificationLevel
     |`//> using exclude` _pattern1_ _pattern2_ …
     |""".stripMargin
 )
-@DirectiveDescription("Exclude sources from the project")
+@DirectiveDescription(
+  "Exclude sources from the project. Must be declared in a single source file: either the project configuration file (`project.scala`) or a `.sc` script."
+)
 @DirectiveLevel(SpecificationLevel.SHOULD)
 final case class Exclude(exclude: List[Positioned[String]] = Nil) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = either {
