@@ -194,8 +194,8 @@ final case class SharedOptions(
   @Name("destination")
   @Name("compileOutput")
   @Name("compileOut")
-  @HelpMessage("Copy compilation results to output directory using either relative or absolute path")
-  @ValueDescription("/example/path")
+  @HelpMessage("Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar")
+  @ValueDescription("/example/path|/example/path.jar")
   @Tag(tags.must)
     compilationOutput: Option[String] = None,
   @Group(HelpGroup.Scala.toString)

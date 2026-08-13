@@ -6,6 +6,7 @@ import scala.build.{Build, Builds, CrossBuildParams, Logger, Os}
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.ScalacOptionsUtil.*
+import scala.cli.packaging.Library
 
 trait BuildCommandHelpers { self: ScalaCommand[?] =>
   extension (b: Seq[Build.Successful]) {
@@ -41,6 +42,11 @@ object BuildCommandHelpers {
   extension (successfulBuild: Build.Successful) {
 
     /** -O -d defaults to --compile-output; if both are defined, --compile-output takes precedence.
+      *
+      * When the destination path ends with `.jar`, compilation results are packaged as a library
+      * JAR (same logic as `package --library`), matching `scalac -d out.jar` behaviour. Otherwise
+      * class files are copied into the destination directory.
+      *
       * When `--sloth` is enabled, the destination is patched unless the source build output was
       * already patched in this process (e.g. by `compile`), so the same bytes are not scanned
       * twice.
@@ -50,26 +56,39 @@ object BuildCommandHelpers {
         .orElse(sharedOptions.scalacOptions.getScalacOption("-d"))
         .filter(_.nonEmpty)
         .map(os.Path(_, Os.pwd)).foreach { output =>
-          os.copy(
-            successfulBuild.output,
-            output,
-            createFolders = true,
-            mergeFolders = true,
-            replaceExisting = true
-          )
-          if SlothPatcher.wasPatchedInThisProcess(successfulBuild.output) then
-            logger.debug(
-              s"Skipping Sloth patch of $output: source ${successfulBuild.output} already patched"
-            )
-          else
-            for
-              ex <- SlothPatcher.patchClassDirInPlace(
-                output,
-                successfulBuild.options,
-                logger,
-                shouldPatch = SlothPatcher.shouldPatchProjectClasses(Seq(successfulBuild))
-              ).left
-            do logger.exit(ex)
+          if output.last.endsWith(".jar") then copyOutputAsJar(output, logger)
+          else copyOutputAsDirectory(output, logger)
         }
+
+    private def copyOutputAsJar(output: os.Path, logger: Logger): Unit =
+      val mainClassOpt = successfulBuild.options.mainClass.filter(_.nonEmpty)
+      val libraryJar0  = Library.libraryJar(Seq(successfulBuild), mainClassOpt)
+      val libraryJar   = SlothPatcher.patchJarFile(libraryJar0, successfulBuild.options, logger)
+        .fold(logger.exit, identity)
+      if os.exists(output) then
+        logger.log(s"Overwriting existing destination $output")
+      os.copy.over(libraryJar, output, createFolders = true)
+
+    private def copyOutputAsDirectory(output: os.Path, logger: Logger): Unit =
+      os.copy(
+        successfulBuild.output,
+        output,
+        createFolders = true,
+        mergeFolders = true,
+        replaceExisting = true
+      )
+      if SlothPatcher.wasPatchedInThisProcess(successfulBuild.output) then
+        logger.debug(
+          s"Skipping Sloth patch of $output: source ${successfulBuild.output} already patched"
+        )
+      else
+        for
+          ex <- SlothPatcher.patchClassDirInPlace(
+            output,
+            successfulBuild.options,
+            logger,
+            shouldPatch = SlothPatcher.shouldPatchProjectClasses(Seq(successfulBuild))
+          ).left
+        do logger.exit(ex)
   }
 }

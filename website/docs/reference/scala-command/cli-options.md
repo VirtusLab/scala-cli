@@ -1184,7 +1184,7 @@ Aliases: `--compile-out`, `--compile-output`, `-d`, `--destination`, `--output-d
 
 `MUST have` per Scala Runner specification
 
-Copy compilation results to output directory using either relative or absolute path
+Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar
 
 ### `--with-toolkit`
 

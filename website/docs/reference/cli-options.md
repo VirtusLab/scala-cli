@@ -1692,7 +1692,7 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 
 Aliases: `--compile-out`, `--compile-output`, `-d`, `--destination`, `--output-directory`
 
-Copy compilation results to output directory using either relative or absolute path
+Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar
 
 ### `--with-toolkit`
 
