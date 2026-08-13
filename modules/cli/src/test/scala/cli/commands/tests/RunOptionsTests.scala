@@ -2,6 +2,7 @@ package scala.cli.commands.tests
 
 import com.eed3si9n.expecty.Expecty.assert as expect
 
+import scala.build.errors.MalformedInputError
 import scala.cli.commands.run.{Run, RunOptions}
 import scala.cli.commands.shared.{SharedOptions, SharedPythonOptions}
 
@@ -49,6 +50,14 @@ class RunOptionsTests extends munit.FunSuite {
     expect(toolkitDep.organization == "org.typelevel")
     expect(toolkitDep.name == "toolkit")
     expect(toolkitDep.version == "latest.release")
+  }
+
+  test("reject malformed toolkit coordinates") {
+    SharedOptions(withToolkit = Some("scala:")).buildOptions() match
+      case Left(error: MalformedInputError) =>
+        expect(error.input == "scala:")
+      case result =>
+        fail(s"Expected malformed toolkit coordinates error, got $result")
   }
 
   test("sloth option") {

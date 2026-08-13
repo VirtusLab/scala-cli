@@ -8,6 +8,7 @@ import scala.build.errors.{
   CompositeBuildException,
   DependencyFormatError,
   FetchingDependenciesError,
+  MalformedInputError,
   ToolkitDirectiveMissingVersionError
 }
 import scala.build.options.{
@@ -18,6 +19,7 @@ import scala.build.options.{
   ScalacOpt,
   Scope
 }
+import scala.build.preprocessing.directives.Toolkit
 import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
 
@@ -136,6 +138,20 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
             case _ => sys.error("should not happen")
       }
     }
+
+  for (
+    toolkitCoords <-
+      Seq("", ":1.0.0", "scala:", "scala:1.0.0:extra", "scala", "typelevel", "org.typelevel")
+  )
+    test(s"reject malformed toolkit coordinates '$toolkitCoords'") {
+      Toolkit.resolveDependenciesWithRequirements(Positioned.commandLine(toolkitCoords)) match
+        case Left(error: MalformedInputError) =>
+          expect(error.input == toolkitCoords)
+          expect(error.expectedShape == "version or flavor:version")
+        case result =>
+          fail(s"Expected malformed toolkit coordinates error, got $result")
+    }
+
   for (scope <- Scope.all) {
     def withProjectFile[T](projectFileContent: String)(f: (Build, Boolean) => T): T = TestInputs(
       os.rel / "project.scala"    -> projectFileContent,

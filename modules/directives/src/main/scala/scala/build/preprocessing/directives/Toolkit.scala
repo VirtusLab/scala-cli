@@ -5,7 +5,7 @@ import dependency.*
 
 import scala.build.Positioned
 import scala.build.directives.*
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, MalformedInputError}
 import scala.build.internal.Constants
 import scala.build.options.*
 import scala.build.options.WithBuildRequirements.*
@@ -64,22 +64,47 @@ object Toolkit {
     typelevelToolkitExplicitVersion: Option[String] = None
   )
 
+  private val knownFlavors =
+    Set(scala, typelevel, Constants.toolkitOrganization, Constants.typelevelOrganization)
+
+  private def parseFlavorAndVersion(
+    toolkitCoords: Positioned[String]
+  ): Either[BuildException, (Option[String], String)] =
+    toolkitCoords.value.split(":", -1).toList match
+      // e.g. //> using toolkit typelevel would otherwise be treated as version `typelevel`
+      // and fail during resolution with a cryptic error, so we reject it early
+      case version :: Nil if version.nonEmpty && !knownFlavors.contains(version) =>
+        Right(None -> version)
+      case flavor :: version :: Nil if flavor.nonEmpty && version.nonEmpty =>
+        Right(Some(flavor) -> version)
+      case _ =>
+        Left(
+          new MalformedInputError(
+            "toolkit",
+            input = toolkitCoords.value,
+            expectedShape = "version or flavor:version",
+            positions = toolkitCoords.positions
+          )
+        )
+
   /** @param toolkitCoords
     *   the toolkit coordinates
     * @return
     *   the `toolkit` and `toolkit-test` dependencies with the appropriate build requirements
     */
-  def resolveDependenciesWithRequirements(toolkitCoords: Positioned[String]): List[(
-    WithBuildRequirements[Positioned[DependencyLike[NameAttributes, NameAttributes]]],
-    ToolkitDefinitions
-  )] =
-    toolkitCoords match
-      case Positioned(positions, coords) =>
-        val tokens            = coords.split(':')
-        val rawVersion        = tokens.last
+  def resolveDependenciesWithRequirements(
+    toolkitCoords: Positioned[String]
+  ): Either[
+    BuildException,
+    List[(
+      WithBuildRequirements[Positioned[DependencyLike[NameAttributes, NameAttributes]]],
+      ToolkitDefinitions
+    )]
+  ] =
+    parseFlavorAndVersion(toolkitCoords).map:
+      case (flavor, rawVersion) =>
         def isDefault         = rawVersion == "default"
         val notDefaultVersion = if rawVersion == "latest" then "latest.release" else rawVersion
-        val flavor            = tokens.dropRight(1).headOption
         val (org, v, trv: ToolkitDefinitions) = flavor match {
           case TypelevelToolkit() =>
             val typelevelToolkitVersion =
@@ -112,9 +137,9 @@ object Toolkit {
           case Some(org) => (org, notDefaultVersion, ToolkitDefinitions())
         }
         List(
-          Positioned(positions, dep"$org::${Constants.toolkitName}::$v,toolkit")
+          Positioned(toolkitCoords.positions, dep"$org::${Constants.toolkitName}::$v,toolkit")
             .withEmptyRequirements -> trv,
-          Positioned(positions, dep"$org::${Constants.toolkitTestName}::$v,toolkit")
+          Positioned(toolkitCoords.positions, dep"$org::${Constants.toolkitTestName}::$v,toolkit")
             .withScopeRequirement(Scope.Test) -> trv
         )
   val handler: DirectiveHandler[Toolkit] = DirectiveHandler.derive
@@ -140,9 +165,20 @@ object Toolkit {
   private def buildOptionsWithScopeRequirement(
     t: Option[Positioned[String]],
     defaultScope: Option[Scope]
-  ): List[Either[BuildException, WithBuildRequirements[BuildOptions]]] = t
-    .toList
-    .flatMap(resolveDependenciesWithRequirements) // resolve dependencies
+  ): List[Either[BuildException, WithBuildRequirements[BuildOptions]]] =
+    t.toList.flatMap: toolkitCoords =>
+      resolveDependenciesWithRequirements(toolkitCoords).fold(
+        error => List(Left(error)),
+        buildOptionsForResolvedDependencies(_, defaultScope)
+      )
+
+  private def buildOptionsForResolvedDependencies(
+    resolvedDependencies: List[(
+      WithBuildRequirements[Positioned[DependencyLike[NameAttributes, NameAttributes]]],
+      ToolkitDefinitions
+    )],
+    defaultScope: Option[Scope]
+  ): List[Either[BuildException, WithBuildRequirements[BuildOptions]]] = resolvedDependencies
     .map {
       case (
             WithBuildRequirements(requirements, positionedDep),
