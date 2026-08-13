@@ -66,16 +66,22 @@ object Build {
     def fullClassPath: Seq[os.Path]        = Seq(output) ++ dependencyClassPath
     def fullCompileClassPath: Seq[os.Path] = fullClassPath ++ dependencyCompileClassPath
     private lazy val mainClassCandidatesInProject: Seq[MainClass.MainClassCandidate] =
-      MainClass.find(output, logger).filterNot(isScriptWrapperUserCodeClass)
+      MainClass.find(output, logger)
+        .filterNot(c => scriptWrapperUserCodeClasses.contains(c.className))
     private lazy val mainClassCandidatesOnExtraClasspath: Seq[MainClass.MainClassCandidate] =
       options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger))
     private lazy val mainClassesFoundInUserExtraDependencies: Seq[String] =
       artifacts.jarsForUserExtraDependencies.flatMap(MainClass.findInDependency).sorted
 
-    private def isScriptWrapperUserCodeClass(candidate: MainClass.MainClassCandidate): Boolean =
-      // ClassCodeWrapper puts user code in a class named `{script}$_`; its instance main must not
-      // surface as a selectable entry point alongside the real `{script}_sc` wrapper main.
-      candidate.className.endsWith("$_")
+    /** `ClassCodeWrapper` puts the script body in a `{script}$_` class next to the real
+      * `{script}_sc` main; only those generated classes must be hidden as entry points. A user
+      * class that merely happens to end with `$_` stays a legitimate main class.
+      */
+    private lazy val scriptWrapperUserCodeClasses: Set[String] =
+      generatedSources.flatMap(_.wrapperParamsOpt.map(_.mainClass)).collect {
+        case wrapperMainClass if wrapperMainClass.endsWith("_sc") =>
+          s"${wrapperMainClass.stripSuffix("_sc")}$$_"
+      }.toSet
 
     private lazy val hasEnablePreview: Boolean =
       options.javaOptions.javaOpts.toSeq.exists(_.value.value == "--enable-preview")
