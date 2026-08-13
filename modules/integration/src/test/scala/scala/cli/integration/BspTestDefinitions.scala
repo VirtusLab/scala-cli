@@ -376,7 +376,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
   test("invalid diagnostics at startup") {
     val inputs = TestInputs(
       os.rel / "A.scala" ->
-        s"""//> using resource ./resources
+        s"""//> using invalidX ./resources
            |
            |object A {}
            |""".stripMargin
@@ -392,7 +392,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         checkDiagnostic(
           diagnostic = diagnosticsParams.getDiagnostics.asScala.toSeq.head,
-          expectedMessage = "Unrecognized directive: resource with values: ./resources",
+          expectedMessage = "Unrecognized directive: invalidX with values: ./resources",
           expectedSeverity = b.DiagnosticSeverity.ERROR,
           expectedStartLine = 0,
           expectedStartCharacter = 10,

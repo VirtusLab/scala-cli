@@ -110,9 +110,9 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 
 **--resource-dirs**
 
-Add a resource directory
+Add a resource file or directory
 
-Aliases: `--resource-dir`
+Aliases: `--resource` ,`--resource-dir`
 
 **--with-compiler**
 
@@ -925,9 +925,9 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 
 **--resource-dirs**
 
-Add a resource directory
+Add a resource file or directory
 
-Aliases: `--resource-dir`
+Aliases: `--resource` ,`--resource-dir`
 
 **--with-compiler**
 
@@ -1556,9 +1556,9 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 
 **--resource-dirs**
 
-Add a resource directory
+Add a resource file or directory
 
-Aliases: `--resource-dir`
+Aliases: `--resource` ,`--resource-dir`
 
 **--with-compiler**
 
@@ -2211,9 +2211,9 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 
 **--resource-dirs**
 
-Add a resource directory
+Add a resource file or directory
 
-Aliases: `--resource-dir`
+Aliases: `--resource` ,`--resource-dir`
 
 **--with-compiler**
 
@@ -2881,9 +2881,9 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 
 **--resource-dirs**
 
-Add a resource directory
+Add a resource file or directory
 
-Aliases: `--resource-dir`
+Aliases: `--resource` ,`--resource-dir`
 
 **--with-compiler**
 
@@ -3539,9 +3539,9 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 
 **--resource-dirs**
 
-Add a resource directory
+Add a resource file or directory
 
-Aliases: `--resource-dir`
+Aliases: `--resource` ,`--resource-dir`
 
 **--with-compiler**
 
@@ -4216,9 +4216,9 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 
 **--resource-dirs**
 
-Add a resource directory
+Add a resource file or directory
 
-Aliases: `--resource-dir`
+Aliases: `--resource` ,`--resource-dir`
 
 **--with-compiler**
 
@@ -4965,9 +4965,9 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 
 **--resource-dirs**
 
-Add a resource directory
+Add a resource file or directory
 
-Aliases: `--resource-dir`
+Aliases: `--resource` ,`--resource-dir`
 
 **--with-compiler**
 
@@ -5964,9 +5964,9 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 
 **--resource-dirs**
 
-Add a resource directory
+Add a resource file or directory
 
-Aliases: `--resource-dir`
+Aliases: `--resource` ,`--resource-dir`
 
 **--with-compiler**
 

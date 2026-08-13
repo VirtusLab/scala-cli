@@ -636,7 +636,8 @@ abstract class RunTestDefinitions
 
   protected def resourcesInputs(
     directive: String = "",
-    resourceContent: String = "Hello from resources"
+    resourceContent: String = "Hello from resources",
+    classPathResourcePath: String = "test/data"
   ): TestInputs =
     TestInputs(
       os.rel / "src" / "proj" / "resources" / "test" / "data" -> resourceContent,
@@ -645,7 +646,7 @@ abstract class RunTestDefinitions
            |object Example {
            |  def main(args: Array[String]): Unit = {
            |    val cl = Thread.currentThread().getContextClassLoader
-           |    val is = cl.getResourceAsStream("test/data")
+           |    val is = cl.getResourceAsStream("$classPathResourcePath")
            |    val content = scala.io.Source.fromInputStream(is)(scala.io.Codec.UTF8).mkString
            |    println(content)
            |  }
@@ -687,6 +688,36 @@ abstract class RunTestDefinitions
           .call(cwd = root)
         expect(res.out.trim() == expectedMessage)
       }
+  }
+
+  test("resource file via command line") {
+    val expectedMessage = "hello"
+    resourcesInputs(
+      resourceContent = expectedMessage,
+      classPathResourcePath = "data"
+    ).fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        "src",
+        "--resource",
+        "./src/proj/resources/test/data"
+      ).call(cwd = root)
+      expect(res.out.trim() == expectedMessage)
+    }
+  }
+
+  test("resource file via directive") {
+    val expectedMessage = "hello"
+    resourcesInputs(
+      directive = "//> using resource ./resources/test/data",
+      resourceContent = expectedMessage,
+      classPathResourcePath = "data"
+    ).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", extraOptions, ".").call(cwd = root)
+      expect(res.out.trim() == expectedMessage)
+    }
   }
 
   def argsAsIsTest(): Unit = {

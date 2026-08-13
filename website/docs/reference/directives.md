@@ -491,13 +491,17 @@ Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`
 
 `//> using repository https://maven-central.storage-download.googleapis.com/maven2`
 
-### Resource directories
+### Resources
 
-Manually add a resource directory to the class path
+Manually add a resource file or directory to the class path
+
+`//> using resource` _path_
 
 `//> using resourceDir` _path_
 
 `//> using resourceDirs` _path1_ _path2_ …
+
+`//> using test.resource` _path_
 
 `//> using test.resourceDir` _path_
 
@@ -506,7 +510,11 @@ Manually add a resource directory to the class path
 
 
 #### Examples
+`//> using resource ./data`
+
 `//> using resourceDir ./resources`
+
+`//> using test.resource ./test-data`
 
 `//> using test.resourceDir ./resources`
 

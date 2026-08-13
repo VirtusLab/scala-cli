@@ -247,6 +247,19 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
         expect(if isTestScope then hasTestResources else !hasTestResources)
       }
     }
+    test(s"resolve test scope resource file correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent =
+        """//> using resource ./main-resource
+          |//> using test.resource ./test-resource
+          |//> using test.dep org.scalameta::munit::0.7.29
+          |""".stripMargin
+      ) { (build, isTestScope) =>
+        val resources = build.options.classPathOptions.resourcesDir
+        expect(resources.exists(_.last == "main-resource"))
+        val hasTestResource = resources.exists(_.last == "test-resource")
+        expect(if isTestScope then hasTestResource else !hasTestResource)
+      }
+    }
     test(s"resolve test scope toolkit dependency correctly when building for ${scope.name} scope") {
       withProjectFile(
         projectFileContent =

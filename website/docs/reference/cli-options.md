@@ -1653,9 +1653,9 @@ Add extra source JARs
 
 ### `--resource-dirs`
 
-Aliases: `--resource-dir`
+Aliases: `--resource`, `--resource-dir`
 
-Add a resource directory
+Add a resource file or directory
 
 ### `--as-jar`
 

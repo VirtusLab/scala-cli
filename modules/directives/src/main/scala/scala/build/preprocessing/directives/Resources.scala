@@ -7,16 +7,24 @@ import scala.build.options.WithBuildRequirements.*
 import scala.build.options.{BuildOptions, ClassPathOptions, Scope, WithBuildRequirements}
 import scala.cli.commands.SpecificationLevel
 
-@DirectiveGroupName("Resource directories")
+@DirectiveGroupName("Resources")
+@DirectiveExamples("//> using resource ./data")
 @DirectiveExamples("//> using resourceDir ./resources")
+@DirectiveExamples("//> using test.resource ./test-data")
 @DirectiveExamples("//> using test.resourceDir ./resources")
 @DirectiveUsage(
-  """//> using resourceDir _path_
+  """//> using resource _path_
+    |
+    |//> using resourceDir _path_
     |
     |//> using resourceDirs _path1_ _path2_ …""".stripMargin,
-  """`//> using resourceDir` _path_
+  """`//> using resource` _path_
+    |
+    |`//> using resourceDir` _path_
     |
     |`//> using resourceDirs` _path1_ _path2_ …
+    |
+    |`//> using test.resource` _path_
     |
     |`//> using test.resourceDir` _path_
     |
@@ -24,12 +32,14 @@ import scala.cli.commands.SpecificationLevel
     |
     |""".stripMargin
 )
-@DirectiveDescription("Manually add a resource directory to the class path")
+@DirectiveDescription("Manually add a resource file or directory to the class path")
 @DirectiveLevel(SpecificationLevel.SHOULD)
 final case class Resources(
+  @DirectiveName("resource")
   @DirectiveName("resourceDir")
   resourceDirs: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(Nil),
+  @DirectiveName("test.resource")
   @DirectiveName("test.resourceDir")
   @DirectiveName("test.resourceDirs")
   testResourceDirs: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =

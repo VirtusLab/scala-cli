@@ -1138,11 +1138,11 @@ Add extra source JARs
 
 ### `--resource-dirs`
 
-Aliases: `--resource-dir`
+Aliases: `--resource`, `--resource-dir`
 
 `MUST have` per Scala Runner specification
 
-Add a resource directory
+Add a resource file or directory
 
 ### `--platform`
 
