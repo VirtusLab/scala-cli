@@ -6,6 +6,34 @@ import scala.util.Properties
 
 /** For the `run` counterpart, refer to [[RunScalacCompatTestDefinitions]] */
 trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
+
+  test("compile-destination-jar-usable-as-classpath") {
+    val expectedOutput = "Hello"
+    TestInputs(
+      os.rel / "Lib.scala"  -> "case class Message(value: String)",
+      os.rel / "Main.scala" ->
+        s"""object Main {
+           |  def main(args: Array[String]): Unit = println(Message("$expectedOutput").value)
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      val outputJar = root / "out.jar"
+      os.proc(TestUtil.cli, "compile", "Lib.scala", "-d", outputJar.toString, extraOptions)
+        .call(cwd = root)
+      // must be a file, not a directory named out.jar (the mistake PR #2943 made)
+      expect(os.isFile(outputJar))
+      val runRes = os.proc(
+        TestUtil.cli,
+        "run",
+        "Main.scala",
+        "-cp",
+        outputJar.toString,
+        extraOptions
+      ).call(cwd = root)
+      expect(runRes.out.trim() == expectedOutput)
+    }
+  }
+
   if (actualScalaVersion.startsWith("3"))
     test("consecutive -language:* flags are not ignored") {
       val sourceFileName = "example.scala"

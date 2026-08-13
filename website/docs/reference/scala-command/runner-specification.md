@@ -122,7 +122,7 @@ Aliases: `--with-scala-compiler` ,`-with-compiler`
 
 **--compilation-output**
 
-Copy compilation results to output directory using either relative or absolute path
+Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar
 
 Aliases: `-d` ,`--output-directory` ,`--destination` ,`--compile-output` ,`--compile-out`
 
@@ -937,7 +937,7 @@ Aliases: `--with-scala-compiler` ,`-with-compiler`
 
 **--compilation-output**
 
-Copy compilation results to output directory using either relative or absolute path
+Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar
 
 Aliases: `-d` ,`--output-directory` ,`--destination` ,`--compile-output` ,`--compile-out`
 
@@ -1568,7 +1568,7 @@ Aliases: `--with-scala-compiler` ,`-with-compiler`
 
 **--compilation-output**
 
-Copy compilation results to output directory using either relative or absolute path
+Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar
 
 Aliases: `-d` ,`--output-directory` ,`--destination` ,`--compile-output` ,`--compile-out`
 
@@ -2223,7 +2223,7 @@ Aliases: `--with-scala-compiler` ,`-with-compiler`
 
 **--compilation-output**
 
-Copy compilation results to output directory using either relative or absolute path
+Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar
 
 Aliases: `-d` ,`--output-directory` ,`--destination` ,`--compile-output` ,`--compile-out`
 
@@ -2893,7 +2893,7 @@ Aliases: `--with-scala-compiler` ,`-with-compiler`
 
 **--compilation-output**
 
-Copy compilation results to output directory using either relative or absolute path
+Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar
 
 Aliases: `-d` ,`--output-directory` ,`--destination` ,`--compile-output` ,`--compile-out`
 
@@ -3551,7 +3551,7 @@ Aliases: `--with-scala-compiler` ,`-with-compiler`
 
 **--compilation-output**
 
-Copy compilation results to output directory using either relative or absolute path
+Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar
 
 Aliases: `-d` ,`--output-directory` ,`--destination` ,`--compile-output` ,`--compile-out`
 
@@ -4228,7 +4228,7 @@ Aliases: `--with-scala-compiler` ,`-with-compiler`
 
 **--compilation-output**
 
-Copy compilation results to output directory using either relative or absolute path
+Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar
 
 Aliases: `-d` ,`--output-directory` ,`--destination` ,`--compile-output` ,`--compile-out`
 
@@ -4977,7 +4977,7 @@ Aliases: `--with-scala-compiler` ,`-with-compiler`
 
 **--compilation-output**
 
-Copy compilation results to output directory using either relative or absolute path
+Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar
 
 Aliases: `-d` ,`--output-directory` ,`--destination` ,`--compile-output` ,`--compile-out`
 
@@ -5976,7 +5976,7 @@ Aliases: `--with-scala-compiler` ,`-with-compiler`
 
 **--compilation-output**
 
-Copy compilation results to output directory using either relative or absolute path
+Copy compilation results to output directory, or package them as a library JAR when the path ends with .jar
 
 Aliases: `-d` ,`--output-directory` ,`--destination` ,`--compile-output` ,`--compile-out`
 

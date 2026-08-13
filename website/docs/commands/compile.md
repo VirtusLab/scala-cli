@@ -306,6 +306,15 @@ Those include:
 - `-classpath` being redirected to `--classpath`
 - `-d` being redirected to `--compilation-output`
 
+When the destination passed to `-d` / `--compilation-output` ends with `.jar`, Scala CLI packages the
+compilation results as a library JAR (same contents as `package --library`), matching `scalac -d out.jar`
+behaviour. An existing file at that path is overwritten. Otherwise, class files are copied into the
+destination directory.
+
+```bash
+scala-cli compile Hello.scala -d out.jar
+```
+
 ### Scala compiler help
 
 Certain compiler options allow to view relevant help. Inputs aren't required when those are passed.
