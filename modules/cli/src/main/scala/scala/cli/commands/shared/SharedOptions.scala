@@ -399,11 +399,12 @@ final case class SharedOptions(
         Keys.suppressDeprecatedFeatureWarning
       )
       val (resolvedToolkitDependency, toolkitMaxDefaultScalaNativeVersions) =
-        SharedOptions.resolveToolkitDependencyAndScalaNativeVersionReqs(
-          withToolkit,
-          shouldSuppressDeprecatedWarnings.getOrElse(false),
-          logger
-        )
+        value:
+          SharedOptions.resolveToolkitDependencyAndScalaNativeVersionReqs(
+            withToolkit,
+            shouldSuppressDeprecatedWarnings.getOrElse(false),
+            logger
+          )
       val scalapyMaxDefaultScalaNativeVersions =
         if sharedPython.python.contains(true) then
           List(Constants.scalaPyMaxScalaNative -> Python.maxScalaNativeWarningMsg)
@@ -828,7 +829,7 @@ object SharedOptions {
     toolkitVersion: Option[String],
     shouldSuppressDeprecatedWarnings: Boolean,
     logger: Logger
-  ): (Seq[Positioned[AnyDependency]], Seq[(String, String)]) = {
+  ): Either[BuildException, (Seq[Positioned[AnyDependency]], Seq[(String, String)])] = either:
     if (
       !shouldSuppressDeprecatedWarnings &&
       (toolkitVersion.contains("latest")
@@ -842,10 +843,14 @@ object SharedOptions {
       )
     )
 
-    val (dependencies, toolkitDefinitions) =
-      toolkitVersion.toList.map(Positioned.commandLine)
-        .flatMap(Toolkit.resolveDependenciesWithRequirements(_).map((wbr, td) => wbr.value -> td))
-        .unzip
+    val resolvedDependencies = value:
+      toolkitVersion
+        .map(Positioned.commandLine)
+        .map(Toolkit.resolveDependenciesWithRequirements)
+        .sequence
+    val (dependencies, toolkitDefinitions) = resolvedDependencies.toList.flatten
+      .map((wbr, td) => wbr.value -> td)
+      .unzip
     val maxScalaNativeVersions =
       toolkitDefinitions.flatMap {
         case Toolkit.ToolkitDefinitions(
@@ -881,5 +886,4 @@ object SharedOptions {
           st ++ tlt
       }
     dependencies -> maxScalaNativeVersions
-  }
 }
