@@ -1132,7 +1132,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       )
 
   final class Jep512MainUnsupportedForBootstrapError(mainClass: String) extends BuildException(
-        s"""Main class $mainClass uses a JDK ${scala.build.internal.Constants.jep512MinJavaVersion} instance/no-arg main method (JEP 512), which the bootstrap launcher cannot invoke.
+        s"""Main class $mainClass uses a main method that requires the JDK ${scala.build.internal.Constants.jep512MinJavaVersion} or newer (JEP 512), which the bootstrap launcher cannot invoke.
            |Use --assembly or --library instead.""".stripMargin
       )
 

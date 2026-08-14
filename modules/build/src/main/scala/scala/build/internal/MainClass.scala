@@ -24,10 +24,11 @@ object MainClass {
     * into the implementing class, so that class declares `main` itself and is detected.
     */
   enum MainMethodKind(val requiresJep512: Boolean):
-    case StaticWithArgs   extends MainMethodKind(false)
-    case InstanceWithArgs extends MainMethodKind(true)
-    case StaticNoArgs     extends MainMethodKind(true)
-    case InstanceNoArgs   extends MainMethodKind(true)
+    case StaticWithArgs          extends MainMethodKind(false)
+    case NonPublicStaticWithArgs extends MainMethodKind(true)
+    case InstanceWithArgs        extends MainMethodKind(true)
+    case StaticNoArgs            extends MainMethodKind(true)
+    case InstanceNoArgs          extends MainMethodKind(true)
 
     /** Whether a JVM of version `jvmVersion` can launch this main method shape. The JEP 512 shapes
       * need JDK 25 or newer, or JDK 21 or newer with `--enable-preview`.
@@ -67,31 +68,34 @@ object MainClass {
       signature: String,
       exceptions: Array[String]
     ): asm.MethodVisitor = {
+      import MainMethodKind.*
       val isStatic  = (access & asm.Opcodes.ACC_STATIC) != 0
       val isPrivate = (access & asm.Opcodes.ACC_PRIVATE) != 0
+      val isPublic  = (access & asm.Opcodes.ACC_PUBLIC) != 0
       if name == "<init>" && descriptor == noArgDescriptor && !isPrivate then
         hasNonPrivateNoArgCtor = true
       else if name == "main" && !isPrivate then
-        (isStatic, descriptor) match {
-          case (true, `stringArrayDescriptor`)  => mainKinds += MainMethodKind.StaticWithArgs
-          case (false, `stringArrayDescriptor`) => mainKinds += MainMethodKind.InstanceWithArgs
-          case (true, `noArgDescriptor`)        => mainKinds += MainMethodKind.StaticNoArgs
-          case (false, `noArgDescriptor`)       => mainKinds += MainMethodKind.InstanceNoArgs
-          case _                                => ()
+        (isStatic, descriptor, isPublic) match {
+          case (true, `stringArrayDescriptor`, true)  => mainKinds += StaticWithArgs
+          case (true, `stringArrayDescriptor`, false) => mainKinds += NonPublicStaticWithArgs
+          case (false, `stringArrayDescriptor`, _)    => mainKinds += InstanceWithArgs
+          case (true, `noArgDescriptor`, _)           => mainKinds += StaticNoArgs
+          case (false, `noArgDescriptor`, _)          => mainKinds += InstanceNoArgs
+          case _                                      => ()
         }
       null
     }
 
     def candidateOpt: Option[MainClassCandidate] = {
+      import MainMethodKind.*
       val isAbstractOrInterface = (classAccess & asm.Opcodes.ACC_ABSTRACT) != 0 ||
         (classAccess & asm.Opcodes.ACC_INTERFACE) != 0
       if isAbstractOrInterface then None
       else
         // Instance shapes are only invocable when a non-private zero-arg constructor exists.
         val invocableKinds = mainKinds.filter {
-          case MainMethodKind.StaticWithArgs | MainMethodKind.StaticNoArgs     => true
-          case MainMethodKind.InstanceWithArgs | MainMethodKind.InstanceNoArgs =>
-            hasNonPrivateNoArgCtor
+          case StaticWithArgs | NonPublicStaticWithArgs | StaticNoArgs => true
+          case InstanceWithArgs | InstanceNoArgs                       => hasNonPrivateNoArgCtor
         }
         MainMethodKind.values.find(invocableKinds.contains)
           .flatMap(kind => nameOpt.map(MainClassCandidate(_, kind)))
