@@ -17,6 +17,7 @@ class MainClassTests extends TestUtil.ScalaCliBuildSuite {
 
   private val jep512MinJava        = scala.build.internal.Constants.jep512MinJavaVersion
   private val jep512PreviewMinJava = scala.build.internal.Constants.jep512PreviewMinJavaVersion
+  private val preJep512Java        = jep512MinJava - 1
   private val defaultJvm           = scala.build.internal.Constants.defaultJavaVersion
 
   val buildThreads: BuildThreads = BuildThreads.create()
@@ -47,6 +48,7 @@ class MainClassTests extends TestUtil.ScalaCliBuildSuite {
 
   test("MainMethodKind.isSupportedByJvm covers the JEP 512 version matrix") {
     val jep512Kinds = Seq(
+      MainMethodKind.NonPublicStaticWithArgs,
       MainMethodKind.InstanceWithArgs,
       MainMethodKind.StaticNoArgs,
       MainMethodKind.InstanceNoArgs
@@ -105,7 +107,7 @@ class MainClassTests extends TestUtil.ScalaCliBuildSuite {
       expect(
         findKinds(build.output).toMap == Map(
           "Classic"          -> MainMethodKind.StaticWithArgs,
-          "ProtectedStatic"  -> MainMethodKind.StaticWithArgs,
+          "ProtectedStatic"  -> MainMethodKind.NonPublicStaticWithArgs,
           "StaticNoArgs"     -> MainMethodKind.StaticNoArgs,
           "InstanceWithArgs" -> MainMethodKind.InstanceWithArgs,
           "InstanceNoArgs"   -> MainMethodKind.InstanceNoArgs,
@@ -113,6 +115,31 @@ class MainClassTests extends TestUtil.ScalaCliBuildSuite {
           "Both"             -> MainMethodKind.InstanceWithArgs
         )
       )
+    }
+  }
+
+  test("non-public static main methods with arguments require JEP 512") {
+    TestInputs(
+      os.rel / "ProtectedStatic.java" ->
+        s"""//> using jvm $preJep512Java
+           |public class ProtectedStatic {
+           |  protected static void main(String[] args) {}
+           |}
+           |""".stripMargin,
+      os.rel / "PackagePrivateStatic.java" ->
+        """public class PackagePrivateStatic {
+          |  static void main(String[] args) {}
+          |}
+          |""".stripMargin
+    ).withBuild(baseOptions, buildThreads, None, buildTests = false) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow.successfulOpt.get
+      expect(
+        findKinds(build.output).toMap == Map(
+          "ProtectedStatic"      -> MainMethodKind.NonPublicStaticWithArgs,
+          "PackagePrivateStatic" -> MainMethodKind.NonPublicStaticWithArgs
+        )
+      )
+      expect(build.foundMainClasses().isEmpty)
     }
   }
 
