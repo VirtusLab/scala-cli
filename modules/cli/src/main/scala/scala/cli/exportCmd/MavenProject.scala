@@ -4,6 +4,11 @@ import java.nio.charset.StandardCharsets
 import scala.build.options.ConfigMonoid
 import scala.xml.{Elem, NodeSeq, PrettyPrinter}
 
+final case class MavenResource(
+  directory: String,
+  includes: Seq[String] = Nil
+)
+
 final case class MavenProject(
   groupId: Option[String] = None,
   artifactId: Option[String] = None,
@@ -14,7 +19,7 @@ final case class MavenProject(
   dependencies: Seq[MavenLibraryDependency] = Nil,
   mainSources: Seq[(os.SubPath, String, Array[Byte])] = Nil,
   testSources: Seq[(os.SubPath, String, Array[Byte])] = Nil,
-  resourceDirectories: Seq[String] = Nil
+  resources: Seq[MavenResource] = Nil
 ) extends Project {
 
   def +(other: MavenProject): MavenProject =
@@ -32,7 +37,7 @@ final case class MavenProject(
       version.getOrElse("0.1-SNAPSHOT"),
       dependencies,
       plugins,
-      resourceDirectories
+      resources
     )
 
     val prettyPrinter = new PrettyPrinter(width = 80, step = 2)
@@ -66,24 +71,32 @@ final case class MavenModel(
   version: String,
   dependencies: Seq[MavenLibraryDependency],
   plugins: Seq[MavenPlugin],
-  resourceDirectories: Seq[String]
+  resources: Seq[MavenResource]
 ) {
 
   private def resourceNodes: NodeSeq =
-    if (resourceDirectories.isEmpty)
+    if resources.isEmpty then
       NodeSeq.Empty
-    else {
-      val resourceNodes = resourceDirectories.map { path =>
-        <resource>
-          <directory>
-            {path}
-          </directory>
-        </resource>
+    else
+      val nodes = resources.map { res =>
+        val includeNodes: NodeSeq =
+          if res.includes.isEmpty then NodeSeq.Empty
+          else
+            <includes>
+              {res.includes.map(inc => <include>{inc}</include>)}
+            </includes>
+        val resourceNode: Elem =
+          <resource>
+            <directory>
+              {res.directory}
+            </directory>
+            {includeNodes}
+          </resource>
+        resourceNode
       }
       <resources>
-        {resourceNodes}
+        {nodes}
       </resources>
-    }
 
   def toXml: Elem =
     <project>

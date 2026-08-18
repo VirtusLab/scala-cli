@@ -246,13 +246,16 @@ final case class MavenProjectDescriptor(
     )
 
   private def customResourcesSettings(options: BuildOptions): MavenProject = {
-    val resourceDirs =
-      if (options.classPathOptions.resourcePaths.isEmpty) Nil
+    val resources = options.classPathOptions.resourcePaths.map { path =>
+      if os.isFile(path) then
+        MavenResource(
+          directory = (path / os.up).toNIO.toAbsolutePath.toString,
+          includes = Seq(path.last)
+        )
       else
-        options.classPathOptions.resourcePaths.map(_.toNIO.toAbsolutePath.toString)
-    MavenProject(
-      resourceDirectories = resourceDirs
-    )
+        MavenResource(directory = path.toNIO.toAbsolutePath.toString)
+    }
+    MavenProject(resources = resources)
   }
 
   def `export`(

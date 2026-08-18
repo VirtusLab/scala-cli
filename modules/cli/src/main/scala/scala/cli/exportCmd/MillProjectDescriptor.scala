@@ -106,7 +106,7 @@ final case class MillProjectDescriptor(
   }
 
   private def customResourcesSettings(options: BuildOptions): MillProject =
-    MillProject(resourcesDirs = options.classPathOptions.resourcePaths)
+    MillProject(resourcePaths = options.classPathOptions.resourcePaths)
 
   private def customJarsSettings(options: BuildOptions): MillProject = {
 

@@ -23,7 +23,7 @@ final case class MillProject(
   mainSources: Seq[(os.SubPath, String, Array[Byte])] = Nil,
   testSources: Seq[(os.SubPath, String, Array[Byte])] = Nil,
   extraDecls: Seq[String] = Nil,
-  resourcesDirs: Seq[os.Path] = Nil,
+  resourcePaths: Seq[os.Path] = Nil,
   extraTestDecls: Seq[String] = Nil,
   mainClass: Option[String] = None
 ) extends Project {
@@ -121,18 +121,36 @@ final case class MillProject(
       s"""def mainClass = Some("$mc")"""
     }
     val customResourcesDecls =
-      if (resourcesDirs.isEmpty) Nil
-      else {
-        val resources =
-          resourcesDirs.map {
-            case p if isMill1OrNewer =>
-              s"""mill.api.BuildCtx.workspaceRoot / os.RelPath("${p.relativeTo(dir)}")"""
-            case p => s"""T.workspace / os.RelPath("${p.relativeTo(dir)}")"""
-          }
-        Seq("def runClasspath = super.runClasspath() ++ Seq(") ++
-          resources.map(resource => s"  $resource").appendOnInit(",") ++
-          Seq(").map(PathRef(_))")
-      }
+      val (resourceFiles, resourceDirectories) = resourcePaths.partition(os.isFile)
+      if resourcePaths.isEmpty then Nil
+      else
+        def millPath(p: os.Path): String =
+          if isMill1OrNewer then
+            s"""mill.api.BuildCtx.workspaceRoot / os.RelPath("${p.relativeTo(dir)}")"""
+          else
+            s"""T.workspace / os.RelPath("${p.relativeTo(dir)}")"""
+        val fileTask =
+          Option.when(resourceFiles.nonEmpty) {
+            val (taskKw, destKw) =
+              if isMill1OrNewer then ("Task", "Task.dest") else ("T", "T.dest")
+            val files = resourceFiles.map(millPath).mkString(", ")
+            Seq(
+              s"def scalaCliResourceFiles = $taskKw {",
+              s"  val dest = $destKw",
+              s"  Seq($files).foreach { p =>",
+              "    os.copy.over(p, dest / p.last, createFolders = true)",
+              "  }",
+              "  PathRef(dest)",
+              "}"
+            )
+          }.toSeq.flatten
+        val classpathEntries =
+          resourceDirectories.map(p => s"  PathRef(${millPath(p)})") ++
+            Option.when(resourceFiles.nonEmpty)("  scalaCliResourceFiles()").toSeq
+        fileTask ++
+          Seq("def runClasspath = super.runClasspath() ++ Seq(") ++
+          classpathEntries.appendOnInit(",") ++
+          Seq(")")
     val millScalaTestPlatform = if (scalaJsVersion.nonEmpty) "ScalaJSTests"
     else if (scalaNativeVersion.nonEmpty) "ScalaNativeTests"
     else "ScalaTests"
