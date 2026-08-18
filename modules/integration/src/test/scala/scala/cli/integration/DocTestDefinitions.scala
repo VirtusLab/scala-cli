@@ -191,7 +191,7 @@ abstract class DocTestDefinitions
     }
   }
 
-  //`-scalajs` triggers JS codegen phases (e.g. JUnitBootstrappers) that crash on valid code
+  // `-scalajs` triggers JS codegen phases (e.g. JUnitBootstrappers) that crash on valid code
   if (!actualScalaVersion.startsWith("2."))
     test("generate scala doc for a Scala.js project") {
       val dest = os.rel / "doc-js"
