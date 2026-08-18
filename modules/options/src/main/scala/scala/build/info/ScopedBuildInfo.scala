@@ -97,7 +97,7 @@ object ScopedBuildInfo {
   }
 
   private def customResourcesSettings(options: BuildOptions): ScopedBuildInfo =
-    ScopedBuildInfo(resourceDirs = options.classPathOptions.resourcesDir.map(_.toNIO.toString))
+    ScopedBuildInfo(resourceDirs = options.classPathOptions.resourcePaths.map(_.toNIO.toString))
 
   private def customJarsSettings(options: BuildOptions): ScopedBuildInfo = {
 

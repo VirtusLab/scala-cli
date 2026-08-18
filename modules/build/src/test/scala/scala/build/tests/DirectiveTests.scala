@@ -241,7 +241,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
           |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
-        val resourcesDirs = build.options.classPathOptions.resourcesDir
+        val resourcesDirs = build.options.classPathOptions.resourcePaths
         expect(resourcesDirs.exists(_.last == "mainResources"))
         val hasTestResources = resourcesDirs.exists(_.last == "testResources")
         expect(if isTestScope then hasTestResources else !hasTestResources)
@@ -254,7 +254,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
           |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
-        val resources = build.options.classPathOptions.resourcesDir
+        val resources = build.options.classPathOptions.resourcePaths
         expect(resources.exists(_.last == "main-resource"))
         val hasTestResource = resources.exists(_.last == "test-resource")
         expect(if isTestScope then hasTestResource else !hasTestResource)

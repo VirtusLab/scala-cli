@@ -12,8 +12,8 @@ final case class ClassPathOptions(
   fetchSources: Option[Boolean] = None,
   extraDependencies: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty,
   extraCompileOnlyDependencies: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty,
-  resourcesDir: Seq[os.Path] = Nil,
-  resourcesVirtualDir: Seq[os.SubPath] = Nil,
+  resourcePaths: Seq[os.Path] = Nil,
+  virtualResourcePaths: Seq[os.SubPath] = Nil,
   scalafixDependencies: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty
 ) {
   def allExtraDependencies: ShadowingSeq[Positioned[AnyDependency]] =

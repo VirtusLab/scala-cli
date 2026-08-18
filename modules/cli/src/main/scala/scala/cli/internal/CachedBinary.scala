@@ -37,7 +37,7 @@ object CachedBinary {
     val classpathResourceDirsIt =
       build.options
         .classPathOptions
-        .resourcesDir
+        .resourcePaths
         .flatMap(dir => hashResourceDir(dir))
         .iterator ++
         Iterator("\n")

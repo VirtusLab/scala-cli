@@ -247,9 +247,9 @@ final case class MavenProjectDescriptor(
 
   private def customResourcesSettings(options: BuildOptions): MavenProject = {
     val resourceDirs =
-      if (options.classPathOptions.resourcesDir.isEmpty) Nil
+      if (options.classPathOptions.resourcePaths.isEmpty) Nil
       else
-        options.classPathOptions.resourcesDir.map(_.toNIO.toAbsolutePath.toString)
+        options.classPathOptions.resourcePaths.map(_.toNIO.toAbsolutePath.toString)
     MavenProject(
       resourceDirectories = resourceDirs
     )

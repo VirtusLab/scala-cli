@@ -157,9 +157,9 @@ final case class SbtProjectDescriptor(
 
   private def customResourcesSettings(options: BuildOptions): SbtProject = {
     val customResourceSettings =
-      if (options.classPathOptions.resourcesDir.isEmpty) Nil
+      if (options.classPathOptions.resourcePaths.isEmpty) Nil
       else {
-        val resources = options.classPathOptions.resourcesDir.map(p => s"""file("$p")""")
+        val resources = options.classPathOptions.resourcePaths.map(p => s"""file("$p")""")
         Seq(
           s"""Compile / unmanagedResourceDirectories ++= Seq(${resources.mkString(", ")})"""
         )

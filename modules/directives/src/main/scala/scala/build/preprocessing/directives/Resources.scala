@@ -73,8 +73,8 @@ object Resources {
 
     BuildOptions(
       classPathOptions = ClassPathOptions(
-        resourcesDir = paths0,
-        resourcesVirtualDir = virtualPaths.toList.flatten
+        resourcePaths = paths0,
+        virtualResourcePaths = virtualPaths.toList.flatten
       )
     )
   }
