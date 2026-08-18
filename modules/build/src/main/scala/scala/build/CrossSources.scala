@@ -165,8 +165,10 @@ object CrossSources {
     download: BuildOptions.Download = BuildOptions.Download.notSupported
   )(using ScalaCliInvokeData): Either[BuildException, (CrossSources, Inputs)] = either {
 
-    def preprocessSources(elems: Seq[SingleElement])
-      : Either[BuildException, Seq[PreprocessedSource]] =
+    def preprocessSources(
+      elems: Seq[SingleElement],
+      preprocessLogger: Logger = logger
+    ): Either[BuildException, Seq[PreprocessedSource]] =
       elems
         .map { elem =>
           preprocessors
@@ -174,7 +176,7 @@ object CrossSources {
             .flatMap(p =>
               p.preprocess(
                 elem,
-                logger,
+                preprocessLogger,
                 maybeRecoverOnError,
                 inputs.allowRestrictedFeatures,
                 suppressWarningOptions
@@ -190,14 +192,16 @@ object CrossSources {
         .map(_.flatten)
 
     val flattenedInputs = inputs.flattened()
-    val allExclude = { // supports only one exclude directive in one source file, which should be the project file.
-      val projectScalaFileOpt = flattenedInputs.collectFirst {
-        case f: ProjectScalaFile => f
-      }
-      val excludeFromProjectFile =
-        value(preprocessSources(projectScalaFileOpt.toSeq))
+    // Exclude may be declared in exactly one source: the project file or a script.
+    val allExclude = {
+      def excludesFrom(elements: Seq[SingleElement]): Seq[Positioned[String]] =
+        value(preprocessSources(elements, Logger.nop))
           .flatMap(_.options).flatMap(_.internal.exclude)
-      exclude ++ excludeFromProjectFile
+      val fromProjectFile =
+        excludesFrom(flattenedInputs.collectFirst { case f: ProjectScalaFile => f }.toSeq)
+      val remaining =
+        value(excludeSources(flattenedInputs, inputs.workspace, exclude ++ fromProjectFile))
+      exclude ++ fromProjectFile ++ excludesFrom(remaining.collect { case s: Script => s })
     }
 
     val preprocessedInputFromArgs: Seq[PreprocessedSource] =
@@ -488,7 +492,8 @@ object CrossSources {
     }
   }
 
-  /** Validates that exclude directives are defined only in the one source.
+  /** Validates that exclude directives are defined in exactly one allowed source: the workspace
+    * project file or a script.
     */
   def validateExcludeDirectives(
     sources: Seq[PreprocessedSource],
@@ -503,13 +508,19 @@ object CrossSources {
 
     val expectedProjectFilePath = workspaceDir / Constants.projectFileName
 
-    val singleSourceAtProject = excludePositions.forall {
-      case Position.File(Left(s), _, _, _)  => workspaceDir / s == expectedProjectFilePath
-      case Position.File(Right(p), _, _, _) => p == expectedProjectFilePath
-      case _                                => false
-    }
-    if (singleSourceAtProject) Right(sources)
-    else Left(new ExcludeDefinitionError(excludePositions, expectedProjectFilePath))
+    def declaringPath(position: Position): Option[os.Path] = position match
+      case Position.File(Left(s), _, _, _)  => Try(workspaceDir / os.RelPath(s)).toOption
+      case Position.File(Right(p), _, _, _) => Some(p)
+      case _                                => None
+
+    val declaringPaths = excludePositions.map(declaringPath).distinct
+    declaringPaths match
+      case Nil                                                        => Right(sources)
+      case Seq(Some(p)) if p == expectedProjectFilePath || p.isScript => Right(sources)
+      case Seq(_)                                                     =>
+        Left(ExcludeDefinitionError.inUnsupportedFile(excludePositions, expectedProjectFilePath))
+      case _ =>
+        Left(ExcludeDefinitionError.inMultipleFiles(excludePositions, expectedProjectFilePath))
   }
 
   /** When a source file added by a `using file` directive, itself, contains `using file` directives

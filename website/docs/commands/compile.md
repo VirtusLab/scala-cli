@@ -505,13 +505,13 @@ line parameter `--exclude` along with a pattern:
 - a glob pattern: `*.sc`
 
 :::note
-The `exclude` directive should be placed in your `project.scala` file, which Scala CLI uses to determine the project
-root directory.
-For more details on `project.file`, see [the `Project root directory` reference](../reference/root-dir.md).
+The `exclude` directive must be declared in a single source file: either your `project.scala` file
+(which Scala CLI uses to determine the project root directory) or a `.sc` script.
+For more details on `project.scala`, see [the `Project root directory` reference](../reference/root-dir.md).
 :::
 
 For example, to exclude all files in the `example/scala` directory, add the following directive to your
- `project.file` file:
+ `project.scala` file:
 
 ```scala title=project.scala
 //> using exclude example/scala

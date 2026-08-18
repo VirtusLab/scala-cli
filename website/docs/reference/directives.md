@@ -172,7 +172,7 @@ Add dependencies
 
 ### Exclude sources
 
-Exclude sources from the project
+Exclude sources from the project. Must be declared in a single source file: either the project configuration file (`project.scala`) or a `.sc` script.
 
 `//> using exclude` _pattern_
 
