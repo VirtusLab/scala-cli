@@ -1,0 +1,173 @@
+name: Mostly-Static Native Tests
+on:
+  workflow_call:
+    inputs:
+      code:
+        type: string
+        required: true
+      ci:
+        type: string
+        required: true
+      mill_wrapper:
+        type: string
+        required: true
+      test_all:
+        type: string
+        required: true
+      test_native:
+        type: string
+        required: true
+      test_skip:
+        type: string
+        required: true
+
+jobs:
+  generate-mostly-static-launcher:
+    timeout-minutes: 120
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping mostly-static native launcher generation -- changes do not affect compiled code or CI."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - name: Generate native launcher
+      if: env.SHOULD_RUN == 'true'
+      run: .github/scripts/generate-native-image.sh mostly-static
+      shell: bash
+    - name: Copy artifacts
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i copyMostlyStaticLauncher --directory artifacts/
+    - uses: actions/upload-artifact@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        name: mostly-static-launchers
+        path: artifacts/
+        if-no-files-found: error
+        retention-days: 2
+
+  native-mostly-static-tests-default:
+    needs: [generate-mostly-static-launcher]
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping native mostly-static integration tests (default) -- changes do not affect compiled code or CI."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - uses: actions/download-artifact@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        name: mostly-static-launchers
+        path: artifacts/
+    - name: Build slim docker image
+      if: env.SHOULD_RUN == 'true'
+      run: .github/scripts/generate-slim-docker-image.sh
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+    - name: Native integration tests
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i integration.test.nativeMostlyStatic
+      env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 1
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
+    - name: Docker integration tests
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      run: ./mill integration.docker-slim.test
+    - name: Convert Mill test reports to JUnit XML format
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-default 'Scala CLI Native Mostly Static Tests (default)' test-report.xml out/
+    - name: Upload test report
+      uses: actions/upload-artifact@v7
+      if: (success() || failure()) && env.SHOULD_RUN == 'true'
+      with:
+        name: test-results-native-mostly-static-tests-default
+        path: test-report.xml
+    - name: Login to GitHub Container Registry
+      if: startsWith(github.ref, 'refs/tags/v') && env.SHOULD_RUN == 'true'
+      uses: docker/login-action@v4
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Push slim scala-cli image to github container registry
+      if: startsWith(github.ref, 'refs/tags/v') && env.SHOULD_RUN == 'true'
+      run: .github/scripts/publish-slim-docker-images.sh
+
+  native-mostly-static-tests-rc:
+    needs: [generate-mostly-static-launcher]
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' }}
+    steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native mostly-static integration tests (RC) -- changes do not affect compiled code or CI."
+      - uses: actions/checkout@v7
+        if: env.SHOULD_RUN == 'true'
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
+        with:
+          jvm: "temurin:17"
+      - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          name: mostly-static-launchers
+          path: artifacts/
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
+        run: ./mill -i integration.test.nativeMostlyStatic
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_IT_GROUP: 5
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+      - name: Convert Mill test reports to JUnit XML format
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-rc 'Scala CLI Native Mostly Static Tests (5)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        with:
+          name: test-results-native-mostly-static-tests-rc
+          path: test-report.xml
