@@ -184,6 +184,64 @@ class MainClassTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("a private main of the same signature hides an inherited main further up the hierarchy") {
+    TestInputs(
+      os.rel / "far" / "FarBase.java" ->
+        s"""//> using jvm $jep512MinJava
+           |package far;
+           |public abstract class FarBase {
+           |  static void main(String[] args) {}
+           |}
+           |""".stripMargin,
+      os.rel / "near" / "NearBase.java" ->
+        """package near;
+          |public abstract class NearBase extends far.FarBase {
+          |  private static void main(String[] args) {}
+          |}
+          |""".stripMargin,
+      os.rel / "near" / "Child.java" ->
+        """package near;
+          |public class Child extends NearBase {}
+          |""".stripMargin,
+      os.rel / "near" / "DirectChild.java" ->
+        """package near;
+          |public class DirectChild extends far.FarBase {}
+          |""".stripMargin
+    ).withBuild(baseOptions, buildThreads, None, buildTests = false) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow.successfulOpt.get
+      val found = findKinds(build.output).toMap
+      expect(!found.contains("near.Child"))
+      expect(found.get("near.DirectChild").contains(MainMethodKind.NonPublicStaticWithArgs))
+    }
+  }
+
+  test("a private main(String[]) does not hide an inherited no-arg main") {
+    TestInputs(
+      os.rel / "far" / "FarBase.java" ->
+        s"""//> using jvm $jep512MinJava
+           |package far;
+           |public abstract class FarBase {
+           |  void main() {}
+           |}
+           |""".stripMargin,
+      os.rel / "near" / "NearBase.java" ->
+        """package near;
+          |public abstract class NearBase extends far.FarBase {
+          |  private static void main(String[] args) {}
+          |}
+          |""".stripMargin,
+      os.rel / "near" / "Child.java" ->
+        """package near;
+          |public class Child extends NearBase {}
+          |""".stripMargin
+    ).withBuild(baseOptions, buildThreads, None, buildTests = false) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow.successfulOpt.get
+      expect(
+        findKinds(build.output).toMap.get("near.Child").contains(MainMethodKind.InstanceNoArgs)
+      )
+    }
+  }
+
   test("detect instance mains inside a jar of compiled classes") {
     TestInputs(
       os.rel / "Hello.java" ->

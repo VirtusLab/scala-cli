@@ -19,9 +19,12 @@ object MainClass {
     *
     * Hierarchy is resolved within the scanned classpath entry: a `main` declared on a superclass or
     * Java interface in that entry is visible on concrete subclasses. Static methods are not
-    * inherited from interfaces. Ancestors that live outside the scanned entry (dependency JARs, the
-    * JDK) are still unresolved. Scala traits remain a special case: the compiler emits a mixin
-    * forwarder into the implementing class, so that class declares `main` itself.
+    * inherited from interfaces. A private `main` on a nearer class hides a `main` of the same
+    * parameter signature further up the superclass chain; the search does not continue past it. A
+    * private declaration does not hide a `main` of the other signature. Ancestors that live outside
+    * the scanned entry (dependency JARs, the JDK) are still unresolved. Scala traits remain a
+    * special case: the compiler emits a mixin forwarder into the implementing class, so that class
+    * declares `main` itself.
     */
   enum MainMethodKind(val requiresJep512: Boolean, val isStatic: Boolean):
     case StaticWithArgs          extends MainMethodKind(false, true)
@@ -49,16 +52,29 @@ object MainClass {
     interfaces: Seq[String],
     isInstantiable: Boolean,
     hasNonPrivateNoArgCtor: Boolean,
-    declaredMainKinds: Set[MainMethodKind]
+    declaredMains: Map[Boolean, Option[MainMethodKind]]
   )
 
   private class MainMethodChecker extends asm.ClassVisitor(asm.Opcodes.ASM9) {
-    private var nameOpt: Option[String]         = None
-    private var superClassOpt: Option[String]   = None
-    private var interfaces: Seq[String]         = Nil
-    private var classAccess: Int                = 0
-    private var hasNonPrivateNoArgCtor: Boolean = false
-    private var mainKinds: Set[MainMethodKind]  = Set.empty
+    private var nameOpt: Option[String]                             = None
+    private var superClassOpt: Option[String]                       = None
+    private var interfaces: Seq[String]                             = Nil
+    private var classAccess: Int                                    = 0
+    private var hasNonPrivateNoArgCtor: Boolean                     = false
+    private var declaredMains: Map[Boolean, Option[MainMethodKind]] = Map.empty
+
+    private def recordMain(
+      hasArgs: Boolean,
+      kindOpt: Option[MainMethodKind]
+    ): Unit =
+      declaredMains.get(hasArgs) match {
+        case None                 => declaredMains += hasArgs -> kindOpt
+        case Some(None)           => kindOpt.foreach(kind => declaredMains += hasArgs -> Some(kind))
+        case Some(Some(existing)) =>
+          for kind <- kindOpt do
+            val best = MainMethodKind.values.find(k => k == existing || k == kind).get
+            declaredMains += hasArgs -> Some(best)
+      }
 
     private def dotted(internalName: String): String =
       internalName.replace('/', '.').replace('\\', '.')
@@ -90,15 +106,23 @@ object MainClass {
       val isPublic  = (access & asm.Opcodes.ACC_PUBLIC) != 0
       if name == "<init>" && descriptor == noArgDescriptor && !isPrivate then
         hasNonPrivateNoArgCtor = true
-      else if name == "main" && !isPrivate then
-        (isStatic, descriptor, isPublic) match {
-          case (true, `stringArrayDescriptor`, true)  => mainKinds += StaticWithArgs
-          case (true, `stringArrayDescriptor`, false) => mainKinds += NonPublicStaticWithArgs
-          case (false, `stringArrayDescriptor`, _)    => mainKinds += InstanceWithArgs
-          case (true, `noArgDescriptor`, _)           => mainKinds += StaticNoArgs
-          case (false, `noArgDescriptor`, _)          => mainKinds += InstanceNoArgs
-          case _                                      => ()
+      else if name == "main" then
+        val hasArgsOpt = descriptor match {
+          case `stringArrayDescriptor` => Some(true)
+          case `noArgDescriptor`       => Some(false)
+          case _                       => None
         }
+        for hasArgs <- hasArgsOpt do
+          val kindOpt = Option.unless(isPrivate) {
+            (hasArgs, isStatic, isPublic) match {
+              case (true, true, true)  => StaticWithArgs
+              case (true, true, false) => NonPublicStaticWithArgs
+              case (true, false, _)    => InstanceWithArgs
+              case (false, true, _)    => StaticNoArgs
+              case (false, false, _)   => InstanceNoArgs
+            }
+          }
+          recordMain(hasArgs, kindOpt)
       null
     }
 
@@ -112,7 +136,7 @@ object MainClass {
           interfaces = interfaces,
           isInstantiable = !isAbstractOrInterface,
           hasNonPrivateNoArgCtor = hasNonPrivateNoArgCtor,
-          declaredMainKinds = mainKinds
+          declaredMains = declaredMains
         )
       }
   }
@@ -120,22 +144,46 @@ object MainClass {
   private def candidates(classInfos: Seq[ClassInfo]): Seq[MainClassCandidate] = {
     val byName = classInfos.map(info => info.className -> info).toMap
 
-    def visibleMainKinds(className: String, seen: Set[String]): Set[MainMethodKind] =
-      if seen.contains(className) then Set.empty
+    def fromClassChain(
+      className: String,
+      hasArgs: Boolean,
+      seen: Set[String]
+    ): Option[Option[MainMethodKind]] =
+      if seen.contains(className) then None
       else
-        byName.get(className).fold(Set.empty[MainMethodKind]) { info =>
-          val seen0          = seen + className
-          val fromSuper      = info.superClassOpt.toSet.flatMap(visibleMainKinds(_, seen0))
-          val fromInterfaces = info.interfaces.toSet
-            .flatMap(visibleMainKinds(_, seen0))
-            .filterNot(_.isStatic)
-          info.declaredMainKinds ++ fromSuper ++ fromInterfaces
+        byName.get(className).flatMap { info =>
+          info.declaredMains.get(hasArgs).orElse(
+            info.superClassOpt.flatMap(fromClassChain(_, hasArgs, seen + className))
+          )
         }
+
+    def fromInterfaces(
+      className: String,
+      hasArgs: Boolean,
+      seen: Set[String]
+    ): Option[MainMethodKind] =
+      if seen.contains(className) then None
+      else
+        byName.get(className).flatMap { info =>
+          val seen0 = seen + className
+          info.declaredMains.get(hasArgs).flatten.filterNot(_.isStatic).orElse {
+            info.interfaces.view.flatMap(fromInterfaces(_, hasArgs, seen0)).headOption
+              .orElse(info.superClassOpt.flatMap(fromInterfaces(_, hasArgs, seen0)))
+          }
+        }
+
+    def visibleKind(className: String, hasArgs: Boolean): Option[MainMethodKind] =
+      fromClassChain(className, hasArgs, Set.empty) match {
+        case Some(kindOpt) => kindOpt
+        case None          => fromInterfaces(className, hasArgs, Set.empty)
+      }
 
     classInfos.filter(_.isInstantiable).flatMap { info =>
       // constructors are not inherited, so instance shapes depend on this class's own constructor
-      val invocableKinds = visibleMainKinds(info.className, Set.empty)
+      val invocableKinds = Seq(true, false)
+        .flatMap(visibleKind(info.className, _))
         .filter(kind => kind.isStatic || info.hasNonPrivateNoArgCtor)
+        .toSet
       MainMethodKind.values.find(invocableKinds.contains)
         .map(MainClassCandidate(info.className, _))
     }

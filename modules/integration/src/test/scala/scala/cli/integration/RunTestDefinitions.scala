@@ -1399,6 +1399,40 @@ abstract class RunTestDefinitions
       }
     }
 
+    test(
+      s"do not treat a class as a main class when a nearer private main hides an inherited one on JDK $javaVersion"
+    ) {
+      TestUtil.retryOnCi() {
+        TestInputs(
+          os.rel / "far" / "FarBase.java" ->
+            """package far;
+              |public abstract class FarBase {
+              |  static void main(String[] args) {
+              |    System.out.println("FarBase.main");
+              |  }
+              |}
+              |""".stripMargin,
+          os.rel / "near" / "NearBase.java" ->
+            """package near;
+              |public abstract class NearBase extends far.FarBase {
+              |  private static void main(String[] args) {
+              |    System.out.println("NearBase.main");
+              |  }
+              |}
+              |""".stripMargin,
+          os.rel / "near" / "Child.java" ->
+            """package near;
+              |public class Child extends NearBase {}
+              |""".stripMargin
+        ).fromRoot { root =>
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+            .call(cwd = root, mergeErrIntoOut = true, check = false)
+          expect(res.exitCode != 0)
+          expect(res.out.text().contains("No main class found"))
+        }
+      }
+    }
+
     test(s"run a Java compact source with an instance main on JDK $javaVersion") {
       TestUtil.retryOnCi() {
         TestInputs(
