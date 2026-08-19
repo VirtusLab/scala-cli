@@ -89,14 +89,14 @@ object Scala {
 }
 
 object Java {
-  def minimumJavaLauncherJava  = 11
-  def minimumBloopJava: Int    = 17
-  def minimumScala38Java: Int  = 17
-  def minimumInternalJava: Int = 16
+  def minimumJavaLauncherJava       = 11
+  def minimumBloopJava: Int         = 17
+  def minimumScala38Java: Int       = 17
+  def minimumInternalJava: Int      = 16
   def minimumJep512Java: Int        = 25
   def minimumJep512PreviewJava: Int = 21
-  def defaultJava: Int         = minimumBloopJava
-  def cliKeyJavaVersions       = Seq(
+  def defaultJava: Int              = minimumBloopJava
+  def cliKeyJavaVersions            = Seq(
     minimumBloopJava,
     minimumInternalJava,
     defaultJava,
@@ -206,7 +206,7 @@ object Deps {
         "org.jline" -> "jline-terminal-jna"
       )
   def jgit                 = mvn"org.eclipse.jgit:org.eclipse.jgit:7.7.1.202607240634-r"
-  def jimfs                = mvn"com.google.jimfs:jimfs:1.3.1"
+  def jimfs                = mvn"com.google.jimfs:jimfs:1.3.2"
   def jmhGeneratorBytecode = mvn"org.openjdk.jmh:jmh-generator-bytecode:${Versions.jmh}"
   def jmhCore              = mvn"org.openjdk.jmh:jmh-core:${Versions.jmh}"
   def jniUtils             = mvn"io.get-coursier.jniutils:windows-jni-utils:0.3.4"
