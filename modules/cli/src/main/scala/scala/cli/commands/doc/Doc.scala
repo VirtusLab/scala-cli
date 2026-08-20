@@ -217,9 +217,11 @@ object Doc extends ScalaCommand[DocOptions] with BuildCommandHelpers {
     Seq(
       "-snippet-compiler:compile",
       "-Ygenerate-inkuire",
+      // scaladoc matches these against a whole classpath entry path; before 3.9 that path was
+      // prefixed with the enclosing archive, since 3.9 it is the archive-relative entry name
       "-external-mappings:" +
-        s".*/scala/.*::scaladoc3::${scaladocBaseUrl(scalaVersion)}," +
-        s".*/java/.*::javadoc::${javadocBaseUrl(javaVersion)}",
+        s"(.*/)?scala/.*::scaladoc3::${scaladocBaseUrl(scalaVersion)}," +
+        s"(.*/)?java/.*::javadoc::${javadocBaseUrl(javaVersion)}",
       "-author",
       "-groups"
     )
