@@ -46,6 +46,51 @@ class MainClassTests extends TestUtil.ScalaCliBuildSuite {
   private def findKinds(dir: os.Path): Seq[(String, MainMethodKind)] =
     MainClass.find(dir, TestLogger()).map(c => c.className -> c.kind)
 
+  /** Builds a `far.FarBase` <- `near.NearBase` <- `near.Child` hierarchy in which `NearBase`
+    * declares a `main` narrower than the one on `FarBase`, and passes the directory holding all
+    * three classes to `f`. javac rejects such a declaration, so `NearBase` and `Child` are compiled
+    * against a `FarBase` that declares no `main` and the real `FarBase` class file replaces the
+    * stub afterwards.
+    */
+  private def withNarrowedMainHierarchy[T](
+    farBaseMain: String,
+    nearBaseMain: String
+  )(f: os.Path => T): T =
+    TestInputs(
+      os.rel / "far" / "FarBase.java" ->
+        s"""//> using jvm $jep512MinJava
+           |package far;
+           |public abstract class FarBase {
+           |  $farBaseMain
+           |}
+           |""".stripMargin
+    ).withBuild(baseOptions, buildThreads, None, buildTests = false) { (root, _, maybeFarBuild) =>
+      val farBaseClassFile = maybeFarBuild.orThrow.successfulOpt.get.output / "far" /
+        "FarBase.class"
+      TestInputs(
+        os.rel / "far" / "FarBase.java" ->
+          s"""//> using jvm $jep512MinJava
+             |package far;
+             |public abstract class FarBase {}
+             |""".stripMargin,
+        os.rel / "near" / "NearBase.java" ->
+          s"""package near;
+             |public abstract class NearBase extends far.FarBase {
+             |  $nearBaseMain
+             |}
+             |""".stripMargin,
+        os.rel / "near" / "Child.java" ->
+          """package near;
+            |public class Child extends NearBase {}
+            |""".stripMargin
+      ).withBuild(baseOptions, buildThreads, None, buildTests = false) { (_, _, maybeNearBuild) =>
+        val merged = root / "merged"
+        os.copy(maybeNearBuild.orThrow.successfulOpt.get.output, merged, createFolders = true)
+        os.copy.over(farBaseClassFile, merged / "far" / "FarBase.class")
+        f(merged)
+      }
+    }
+
   test("MainMethodKind.isSupportedByJvm covers the JEP 512 version matrix") {
     val jep512Kinds = Seq(
       MainMethodKind.NonPublicStaticWithArgs,
@@ -297,6 +342,33 @@ class MainClassTests extends TestUtil.ScalaCliBuildSuite {
       expect(
         findKinds(build.output).toMap.get("near.Child").contains(MainMethodKind.InstanceNoArgs)
       )
+    }
+  }
+
+  test("a public main is not hidden by a nearer private main of the same signature") {
+    withNarrowedMainHierarchy(
+      farBaseMain = "public static void main(String[] args) {}",
+      nearBaseMain = "private static void main(String[] args) {}"
+    ) { output =>
+      expect(findKinds(output).toMap.get("near.Child").contains(MainMethodKind.StaticWithArgs))
+    }
+  }
+
+  test("a public main is not hidden by a nearer non-public main of the same signature") {
+    withNarrowedMainHierarchy(
+      farBaseMain = "public static void main(String[] args) {}",
+      nearBaseMain = "protected static void main(String[] args) {}"
+    ) { output =>
+      expect(findKinds(output).toMap.get("near.Child").contains(MainMethodKind.StaticWithArgs))
+    }
+  }
+
+  test("a public no-arg main is not hidden by a nearer private one") {
+    withNarrowedMainHierarchy(
+      farBaseMain = "public void main() {}",
+      nearBaseMain = "private void main() {}"
+    ) { output =>
+      expect(findKinds(output).toMap.get("near.Child").contains(MainMethodKind.InstanceNoArgs))
     }
   }
 

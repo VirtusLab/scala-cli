@@ -7,6 +7,7 @@ import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.file.NoSuchFileException
 import java.util.jar.{Attributes, JarFile}
 
+import scala.annotation.tailrec
 import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.{Logger, retry}
 
@@ -19,12 +20,13 @@ object MainClass {
     *
     * Hierarchy is resolved within the scanned classpath entry: a `main` declared on a superclass or
     * Java interface in that entry is visible on concrete subclasses. Static methods are not
-    * inherited from interfaces. A private `main` on a nearer class hides a `main` of the same
-    * parameter signature further up the superclass chain; the search does not continue past it . A
-    * private declaration does not hide a `main` of the other signature. Ancestors that live outside
-    * the scanned entry (dependency JARs, the JDK) are still unresolved. Scala traits remain a
-    * special case: the compiler emits a mixin forwarder into the implementing class, so that class
-    * declares `main` itself.
+    * inherited from interfaces. Hiding works per visibility tier: the nearest declaration of a
+    * parameter signature hides same-or-narrower declarations further up the superclass chain, so a
+    * private or non-void `main` makes that signature unusable, whereas a public `main` is never
+    * hidden by a narrower declaration below it. Hiding never crosses parameter signatures.
+    * Ancestors that live outside the scanned entry (dependency JARs, the JDK) are still unresolved.
+    * Scala traits remain a special case: the compiler emits a mixin forwarder into the implementing
+    * class, so that class declares `main` itself.
     */
   enum MainMethodKind(val requiresJep512: Boolean, val isStatic: Boolean):
     case StaticWithArgs          extends MainMethodKind(false, true)
@@ -47,35 +49,40 @@ object MainClass {
   private val noArgParams       = "()"
   private val noArgDescriptor   = "()V"
 
+  /** A `main` declared by a single class, for a single parameter signature. `kindOpt` is empty when
+    * the declaration cannot be launched, in which case it only ever hides.
+    */
+  private final case class MainDeclaration(isPublic: Boolean, kindOpt: Option[MainMethodKind]):
+    /** Only reachable for bytecode declaring several `main` methods of one parameter signature,
+      * which javac cannot emit; keeps the shape that would resolve first.
+      */
+    def merge(other: MainDeclaration): MainDeclaration =
+      val mergedKindOpt = (kindOpt, other.kindOpt) match {
+        case (Some(kind), Some(otherKind)) =>
+          MainMethodKind.values.find(k => k == kind || k == otherKind)
+        case _ => kindOpt.orElse(other.kindOpt)
+      }
+      MainDeclaration(isPublic || other.isPublic, mergedKindOpt)
+
   private final case class ClassInfo(
     className: String,
     superClassOpt: Option[String],
     interfaces: Seq[String],
     isInstantiable: Boolean,
     hasNonPrivateNoArgCtor: Boolean,
-    declaredMains: Map[Boolean, Option[MainMethodKind]]
+    declaredMains: Map[Boolean, MainDeclaration]
   )
 
   private class MainMethodChecker extends asm.ClassVisitor(asm.Opcodes.ASM9) {
-    private var nameOpt: Option[String]                             = None
-    private var superClassOpt: Option[String]                       = None
-    private var interfaces: Seq[String]                             = Nil
-    private var classAccess: Int                                    = 0
-    private var hasNonPrivateNoArgCtor: Boolean                     = false
-    private var declaredMains: Map[Boolean, Option[MainMethodKind]] = Map.empty
+    private var nameOpt: Option[String]                      = None
+    private var superClassOpt: Option[String]                = None
+    private var interfaces: Seq[String]                      = Nil
+    private var classAccess: Int                             = 0
+    private var hasNonPrivateNoArgCtor: Boolean              = false
+    private var declaredMains: Map[Boolean, MainDeclaration] = Map.empty
 
-    private def recordMain(
-      hasArgs: Boolean,
-      kindOpt: Option[MainMethodKind]
-    ): Unit =
-      declaredMains.get(hasArgs) match {
-        case None                 => declaredMains += hasArgs -> kindOpt
-        case Some(None)           => kindOpt.foreach(kind => declaredMains += hasArgs -> Some(kind))
-        case Some(Some(existing)) =>
-          for kind <- kindOpt do
-            val best = MainMethodKind.values.find(k => k == existing || k == kind).get
-            declaredMains += hasArgs -> Some(best)
-      }
+    private def recordMain(hasArgs: Boolean, declaration: MainDeclaration): Unit =
+      declaredMains += hasArgs -> declaredMains.get(hasArgs).fold(declaration)(_.merge(declaration))
 
     private def dotted(internalName: String): String =
       internalName.replace('/', '.').replace('\\', '.')
@@ -122,7 +129,7 @@ object MainClass {
               case (false, false, _)   => InstanceNoArgs
             }
           }
-          recordMain(hasArgs, kindOpt)
+          recordMain(hasArgs, MainDeclaration(isPublic, kindOpt))
       null
     }
 
@@ -144,18 +151,27 @@ object MainClass {
   private def candidates(classInfos: Seq[ClassInfo]): Seq[MainClassCandidate] = {
     val byName = classInfos.map(info => info.className -> info).toMap
 
-    def fromClassChain(
+    /** The declaration of `main` that `className` sees for the given parameter signature, looking
+      * only at declarations visible enough for `publicOnly`. The nearest one wins and hides
+      * everything further up the superclass chain.
+      */
+    def nearestDeclaration(
       className: String,
       hasArgs: Boolean,
-      seen: Set[String]
-    ): Option[Option[MainMethodKind]] =
-      if seen.contains(className) then None
-      else
-        byName.get(className).flatMap { info =>
-          info.declaredMains.get(hasArgs).orElse(
-            info.superClassOpt.flatMap(fromClassChain(_, hasArgs, seen + className))
-          )
+      publicOnly: Boolean
+    ): Option[MainDeclaration] = {
+      @tailrec
+      def loop(pending: Option[String], seen: Set[String]): Option[MainDeclaration] =
+        pending.flatMap(byName.get).filterNot(info => seen.contains(info.className)) match {
+          case None       => None
+          case Some(info) =>
+            info.declaredMains.get(hasArgs).filter(_.isPublic || !publicOnly) match {
+              case None            => loop(info.superClassOpt, seen + info.className)
+              case someDeclaration => someDeclaration
+            }
         }
+      loop(Some(className), Set.empty)
+    }
 
     def fromInterfaces(
       className: String,
@@ -166,17 +182,17 @@ object MainClass {
       else
         byName.get(className).flatMap { info =>
           val seen0 = seen + className
-          info.declaredMains.get(hasArgs).flatten.filterNot(_.isStatic).orElse {
+          info.declaredMains.get(hasArgs).flatMap(_.kindOpt).filterNot(_.isStatic).orElse {
             info.interfaces.view.flatMap(fromInterfaces(_, hasArgs, seen0)).headOption
               .orElse(info.superClassOpt.flatMap(fromInterfaces(_, hasArgs, seen0)))
           }
         }
 
     def visibleKind(className: String, hasArgs: Boolean): Option[MainMethodKind] =
-      fromClassChain(className, hasArgs, Set.empty) match {
-        case Some(kindOpt) => kindOpt
-        case None          => fromInterfaces(className, hasArgs, Set.empty)
-      }
+      // a public `main` stays reachable however narrow a declaration below it is
+      nearestDeclaration(className, hasArgs, publicOnly = true)
+        .orElse(nearestDeclaration(className, hasArgs, publicOnly = false))
+        .fold(fromInterfaces(className, hasArgs, Set.empty))(_.kindOpt)
 
     classInfos.filter(_.isInstantiable).flatMap { info =>
       // constructors are not inherited, so instance shapes depend on this class's own constructor
