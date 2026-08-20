@@ -1784,6 +1784,28 @@ abstract class RunTestDefinitions
     }
   }
 
+  test("exclude nested directory with its own project file") {
+    val message = "Hello"
+    val inputs  = TestInputs(
+      os.rel / "project.scala" -> "//> using exclude foo",
+      os.rel / "Hello.scala"   ->
+        s"""object Hello extends App {
+           |  println("$message")
+           |}""".stripMargin,
+      os.rel / "foo" / "project.scala" ->
+        """//> using dep org.nonexistent::does-not-exist:0.0.1
+          |""".stripMargin,
+      os.rel / "foo" / "Foo.scala" ->
+        """object Foo {
+          |  val msg: String = 1 // would fail compilation if not excluded
+          |}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root)
+      expect(res.out.trim() == message)
+    }
+  }
+
   test("decoded classNames in interactive ask") {
     val fileName = "watch.scala"
 

@@ -152,6 +152,11 @@ object CrossSources {
       }
     }
 
+  private def outermostProjectFile(
+    elements: Seq[SingleElement]
+  ): Option[ProjectScalaFile] =
+    elements.collect { case f: ProjectScalaFile => f }.minByOption(_.path.segmentCount)
+
   /** @return
     *   a CrossSources and Inputs which contains element processed from using directives
     */
@@ -198,7 +203,7 @@ object CrossSources {
         value(preprocessSources(elements, Logger.nop))
           .flatMap(_.options).flatMap(_.internal.exclude)
       val fromProjectFile =
-        excludesFrom(flattenedInputs.collectFirst { case f: ProjectScalaFile => f }.toSeq)
+        excludesFrom(outermostProjectFile(flattenedInputs).toSeq)
       val remaining =
         value(excludeSources(flattenedInputs, inputs.workspace, exclude ++ fromProjectFile))
       exclude ++ fromProjectFile ++ excludesFrom(remaining.collect { case s: Script => s })
