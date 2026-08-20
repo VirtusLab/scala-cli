@@ -20,7 +20,7 @@ object MainClass {
     * Hierarchy is resolved within the scanned classpath entry: a `main` declared on a superclass or
     * Java interface in that entry is visible on concrete subclasses. Static methods are not
     * inherited from interfaces. A private `main` on a nearer class hides a `main` of the same
-    * parameter signature further up the superclass chain; the search does not continue past it. A
+    * parameter signature further up the superclass chain; the search does not continue past it . A
     * private declaration does not hide a `main` of the other signature. Ancestors that live outside
     * the scanned entry (dependency JARs, the JDK) are still unresolved. Scala traits remain a
     * special case: the compiler emits a mixin forwarder into the implementing class, so that class
@@ -43,8 +43,9 @@ object MainClass {
 
   final case class MainClassCandidate(className: String, kind: MainMethodKind)
 
-  private val stringArrayDescriptor = "([Ljava/lang/String;)V"
-  private val noArgDescriptor       = "()V"
+  private val stringArrayParams = "([Ljava/lang/String;)"
+  private val noArgParams       = "()"
+  private val noArgDescriptor   = "()V"
 
   private final case class ClassInfo(
     className: String,
@@ -107,13 +108,12 @@ object MainClass {
       if name == "<init>" && descriptor == noArgDescriptor && !isPrivate then
         hasNonPrivateNoArgCtor = true
       else if name == "main" then
-        val hasArgsOpt = descriptor match {
-          case `stringArrayDescriptor` => Some(true)
-          case `noArgDescriptor`       => Some(false)
-          case _                       => None
-        }
+        val hasArgsOpt =
+          if descriptor.startsWith(stringArrayParams) then Some(true)
+          else if descriptor.startsWith(noArgParams) then Some(false)
+          else None
         for hasArgs <- hasArgsOpt do
-          val kindOpt = Option.unless(isPrivate) {
+          val kindOpt = Option.when(!isPrivate && descriptor.endsWith(")V")) {
             (hasArgs, isStatic, isPublic) match {
               case (true, true, true)  => StaticWithArgs
               case (true, true, false) => NonPublicStaticWithArgs
