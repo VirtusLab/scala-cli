@@ -156,17 +156,31 @@ final case class SbtProjectDescriptor(
   }
 
   private def customResourcesSettings(options: BuildOptions): SbtProject = {
-    val customResourceSettings =
-      if (options.classPathOptions.resourcesDir.isEmpty) Nil
-      else {
-        val resources = options.classPathOptions.resourcesDir.map(p => s"""file("$p")""")
-        Seq(
-          s"""Compile / unmanagedResourceDirectories ++= Seq(${resources.mkString(", ")})"""
-        )
-      }
+    val (resourceFiles, resourceDirectories) =
+      options.classPathOptions.resourcePaths.partition(os.isFile)
+    val directorySettings =
+      Option.when(resourceDirectories.nonEmpty) {
+        val dirs = resourceDirectories.map(p => s"""file("$p")""")
+        s"""Compile / unmanagedResourceDirectories ++= Seq(${dirs.mkString(", ")})"""
+      }.toSeq
+    val fileSettings =
+      Option.when(resourceFiles.nonEmpty) {
+        val files = resourceFiles.map(p => s"""file("$p")""")
+        if isSbt2 then
+          s"""Compile / resourceGenerators += Def.task {
+             |  val dest = (Compile / resourceManaged).value
+             |  Seq(${files.mkString(", ")}).map { src =>
+             |    val out = dest / src.getName
+             |    IO.copyFile(src, out)
+             |    out
+             |  }
+             |}.taskValue""".stripMargin
+        else
+          s"""Compile / unmanagedResources ++= Seq(${files.mkString(", ")})"""
+      }.toSeq
 
     SbtProject(
-      settings = Seq(customResourceSettings)
+      settings = Seq(directorySettings ++ fileSettings)
     )
   }
 

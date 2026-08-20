@@ -25,28 +25,30 @@ object CachedBinary {
   }
 
   private def hashResources(build: Build.Successful) = {
-    def hashResourceDir(path: os.Path) =
-      os.walk(path)
-        .filter(os.isFile(_))
-        .map { filePath =>
-          val md = MessageDigest.getInstance("SHA-1")
-          md.update(os.read.bytes(filePath))
-          s"$filePath:" + new BigInteger(1, md.digest()).toString()
-        }
+    def hashFile(filePath: os.Path): String =
+      val md = MessageDigest.getInstance("SHA-1")
+      md.update(os.read.bytes(filePath))
+      s"$filePath:" + new BigInteger(1, md.digest()).toString()
 
-    val classpathResourceDirsIt =
+    // a resource path may point at a single file, a directory, or nothing at all
+    def hashResourcePath(path: os.Path): Seq[String] =
+      if os.isFile(path) then Seq(hashFile(path))
+      else if os.isDir(path) then os.walk(path).filter(os.isFile(_)).map(hashFile)
+      else Nil
+
+    val classpathResourcesIt =
       build.options
         .classPathOptions
-        .resourcesDir
-        .flatMap(dir => hashResourceDir(dir))
+        .resourcePaths
+        .flatMap(hashResourcePath)
         .iterator ++
         Iterator("\n")
 
-    val projectResourceDirsIt = build.inputs.elements.iterator.flatMap {
+    val projectResourcesIt = build.inputs.elements.iterator.flatMap {
       case elem: OnDisk =>
         val content = elem match {
-          case resDirInput: ResourceDirectory =>
-            hashResourceDir(resDirInput.path)
+          case resourceInput: ResourceDirectory =>
+            hashResourcePath(resourceInput.path)
           case _ => List.empty
         }
         Iterator(elem.path.toString) ++ content.iterator ++ Iterator("\n")
@@ -54,7 +56,7 @@ object CachedBinary {
         Iterator.empty
     }
 
-    (classpathResourceDirsIt ++ projectResourceDirsIt)
+    (classpathResourcesIt ++ projectResourcesIt)
       .map(_.getBytes(StandardCharsets.UTF_8))
   }
 

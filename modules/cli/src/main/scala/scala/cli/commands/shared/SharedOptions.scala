@@ -137,8 +137,9 @@ final case class SharedOptions(
     extraSourceJars: List[String] = Nil,
 
   @Group(HelpGroup.Java.toString)
-  @HelpMessage("Add a resource directory")
+  @HelpMessage("Add a resource file or directory")
   @ValueDescription("paths")
+  @Name("resource")
   @Name("resourceDir")
   @Tag(tags.must)
     resourceDirs: List[String] = Nil,
@@ -756,7 +757,7 @@ object SharedOptions {
       .map(os.Path(_, Os.pwd))
       .map { path =>
         if (!os.exists(path))
-          logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
+          logger.message(s"WARNING: provided resource path doesn't exist: $path")
         path
       }
       .map(ResourceDirectory.apply)

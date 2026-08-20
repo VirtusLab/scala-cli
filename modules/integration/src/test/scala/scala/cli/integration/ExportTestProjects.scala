@@ -10,6 +10,7 @@ object ExportTestProjects {
       if scalaVersion.startsWith("3.") then
         s"""//> using scala $scalaVersion
            |//> using resourceDir ./input
+           |//> using resource ./data/message.txt
            |//> using dep org.scala-lang::scala3-compiler:$scalaVersion
            |//> using option -deprecation
            |
@@ -21,12 +22,15 @@ object ExportTestProjects {
            |    println(message)
            |    val inputs = Source.fromResource("input").getLines().map(_.toInt).toSeq
            |    println(s"resource:$${inputs.mkString(",")}")
+           |    val fileResource = Source.fromResource("message.txt").mkString
+           |    println(s"resource-file:$$fileResource")
            |  }
            |}
            |""".stripMargin
       else
         s"""//> using scala $scalaVersion
            |//> using resourceDir ./input
+           |//> using resource ./data/message.txt
            |//> using option -deprecation
            |//> using plugins com.olegpy::better-monadic-for:0.3.1
            |
@@ -38,12 +42,15 @@ object ExportTestProjects {
            |    println(message)
            |    val inputs = Source.fromResource("input").getLines().map(_.toInt).toSeq
            |    println(s"resource:$${inputs.mkString(",")}")
+           |    val fileResource = Source.fromResource("message.txt").mkString
+           |    println(s"resource-file:$$fileResource")
            |  }
            |}
            |""".stripMargin
 
     TestInputs(
       os.rel / s"$mainClassName.scala" -> mainFile,
+      os.rel / "data" / "message.txt"  -> "hello from resource file",
       os.rel / "Zio.test.scala"        ->
         """|//> using dep dev.zio::zio::1.0.8
            |//> using dep dev.zio::zio-test-sbt::1.0.8

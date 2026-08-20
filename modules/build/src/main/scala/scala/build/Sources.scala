@@ -28,7 +28,7 @@ final case class Sources(
   def withVirtualDir(inputs: Inputs, scope: Scope, options: BuildOptions): Sources = {
 
     val srcRootPath   = inputs.generatedSrcRoot(scope)
-    val resourceDirs0 = options.classPathOptions.resourcesVirtualDir.map { path =>
+    val resourceDirs0 = options.classPathOptions.virtualResourcePaths.map { path =>
       srcRootPath / path
     }
 

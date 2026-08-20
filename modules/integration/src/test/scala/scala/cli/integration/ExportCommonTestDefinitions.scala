@@ -58,6 +58,7 @@ trait ExportCommonTestDefinitions { this: ScalaCliSuite & TestScalaVersionArgs =
         expect(output.contains("Hello from " + actualScalaVersion))
         // resource
         expect(output.contains("resource:1,2"))
+        expect(output.contains("resource-file:hello from resource file"))
         // test
         val testRes =
           buildToolCommand(root, Some(mainClassName), testArgs*).call(cwd = root / outputDir)

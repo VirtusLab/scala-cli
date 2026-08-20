@@ -403,11 +403,11 @@ object CrossSources {
       .collect { case r: ResourceDirectory => WithBuildRequirements(BuildRequirements(), r.path) }
     val fromSources =
       preprocessedSources.flatMap(_.options)
-        .flatMap(_.classPathOptions.resourcesDir)
+        .flatMap(_.classPathOptions.resourcePaths)
         .map(r => WithBuildRequirements(BuildRequirements(), r))
     val fromSourcesWithRequirements = preprocessedSources
       .flatMap(_.optionsWithTargetRequirements)
-      .flatMap(_.map(_.classPathOptions.resourcesDir).flatten)
+      .flatMap(_.map(_.classPathOptions.resourcePaths).flatten)
     fromInputs ++ fromSources ++ fromSourcesWithRequirements
   }
 
