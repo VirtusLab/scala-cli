@@ -69,6 +69,31 @@ class DocTests extends munit.FunSuite {
     )
   }
 
+  test("external mapping regexes match classpath entries across scaladoc versions") {
+    val args = Doc.defaultScaladocArgs(Constants.defaultScalaVersion, Constants.defaultJavaVersion)
+    val mappingsArg  = args.find(_.startsWith("-external-mappings:")).get
+    val regexesByUrl = mappingsArg.stripPrefix("-external-mappings:").split(",").toSeq
+      .map(_.split("::").toSeq)
+      .collect { case Seq(regex, _, url) => url -> regex.r }
+      .toMap
+    val scalaRegex =
+      regexesByUrl.collectFirst { case (url, r) if url.contains("scala-lang.org") => r }.get
+    val javaRegex =
+      regexesByUrl.collectFirst { case (url, r) if url.contains("docs.oracle.com") => r }.get
+
+    // scaladoc 3.9+ matches the archive-relative entry name
+    expect(scalaRegex.matches("scala/Option.class"))
+    expect(javaRegex.matches("java/util/HashMap.class"))
+    // scaladoc < 3.9 prefixed the entry name with the enclosing archive path
+    expect(scalaRegex.matches("cache/scala-library.jar/scala/Option.class"))
+    expect(javaRegex.matches("cache/rt.jar/java/util/HashMap.class"))
+    // JDK classes come from the jrt filesystem
+    expect(javaRegex.matches("/modules/java.base/java/util/HashMap.class"))
+    // user classes must not be mapped, even when a directory name contains 'scala' or 'java'
+    expect(!scalaRegex.matches("my-scala-project/classes/mylib/Lib.class"))
+    expect(!javaRegex.matches("my-java-project/classes/mylib/Lib.class"))
+  }
+
   test(s"correct external mappings for default Scala (${Constants.defaultScalaVersion})") {
     val args =
       Doc.defaultScaladocArgs(Constants.defaultScalaVersion, Constants.defaultJavaVersion)
