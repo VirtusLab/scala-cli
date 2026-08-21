@@ -6,7 +6,7 @@ import org.jsoup.*
 import scala.jdk.CollectionConverters.*
 
 abstract class DocTestDefinitions
-    extends ScalaCliSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite with TestScalaVersionArgs with DocScalaJsTestDefinitions {
   this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
@@ -190,26 +190,4 @@ abstract class DocTestDefinitions
       }
     }
   }
-
-  // `-scalajs` triggers JS codegen phases (e.g. JUnitBootstrappers) that crash on valid code
-  if (!actualScalaVersion.startsWith("2."))
-    test("generate scala doc for a Scala.js project") {
-      val dest = os.rel / "doc-js"
-      TestInputs(
-        os.rel / "Hello.scala" ->
-          """/** Greeter. */
-            |object Hello {
-            |  def greet: String = "hi"
-            |}
-            |""".stripMargin
-      ).fromRoot { root =>
-        os.proc(TestUtil.cli, "doc", extraOptions, "--js", ".", "-o", dest).call(
-          cwd = root,
-          stdin = os.Inherit,
-          stdout = os.Inherit
-        )
-        expect(os.isDir(root / dest))
-        expect(os.list(root / dest).exists(_.last.endsWith(".html")))
-      }
-    }
 }

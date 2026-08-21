@@ -275,19 +275,8 @@ object Doc extends ScalaCommand[DocOptions] with BuildCommandHelpers {
               .getOrElse(true)
           then defaultScaladocArgs(scalaParams.scalaVersion, javaVersion)
           else Nil
-        // scaladoc has its own `-scalajs` flag, but passing it on triggers JS backend
-        // codegen phases (e.g. JUnitBootstrappers) that crash on otherwise valid code
-        // (VirtusLab/scala-cli#3006). The doc content is platform-agnostic, so drop it.
-        val (scalaJsScalacOptions, otherScalacOptions) = builds.head.project.scalaCompiler
-          .map(_.scalacOptions).getOrElse(Nil)
-          .partition(_ == "-scalajs")
-        if scalaJsScalacOptions.nonEmpty then
-          logger.log(
-            s"Not passing ${scalaJsScalacOptions.mkString(", ")} to scaladoc, " +
-              "as it can cause it to crash on valid code (VirtusLab/scala-cli#3006)"
-          )
         val args = baseArgs ++
-          otherScalacOptions ++
+          builds.head.project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil) ++
           extraArgs ++
           defaultArgs ++
           builds.map(_.output.toString)
