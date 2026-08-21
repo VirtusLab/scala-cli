@@ -371,4 +371,90 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  // Regression for https://github.com/VirtusLab/scala-cli/issues/3546:
+  // when the workspace is passed as a directory, nested project.scala files sort before the
+  // root one and used to be picked as the exclude source. Use a directory name that sorts
+  // before "project.scala" (e.g. "foo") so the bug is reproducible.
+  test("exclude a nested directory that contains its own project.scala") {
+    val testInputs = TestInputs(
+      os.rel / "project.scala"         -> "//> using exclude foo",
+      os.rel / "Main.scala"            -> "object Main",
+      os.rel / "foo" / "project.scala" -> "//> using scala 3",
+      os.rel / "foo" / "Foo.scala"     -> "object Foo"
+    )
+    testInputs.withCustomInputs(viaDirectory = true, forcedWorkspaceOpt = None) { (root, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )(using ScalaCliInvokeData.dummy).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       =
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        ).orThrow
+
+      val paths         = sources.paths.map(_._2)
+      val expectedPaths = Seq(os.rel / "Main.scala", os.rel / "project.scala")
+      expect(paths == expectedPaths)
+    }
+  }
+
+  test("directives from a project.scala inside an excluded directory are not applied") {
+    val testInputs = TestInputs(
+      os.rel / "project.scala"         -> "//> using exclude foo",
+      os.rel / "Main.scala"            -> "object Main",
+      os.rel / "foo" / "project.scala" ->
+        """//> using dep com.lihaoyi::os-lib:0.9.1
+          |""".stripMargin,
+      os.rel / "foo" / "Foo.scala" -> "object Foo"
+    )
+    testInputs.withCustomInputs(viaDirectory = true, forcedWorkspaceOpt = None) { (_, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )(using ScalaCliInvokeData.dummy).orThrow
+      val shared = crossSources.sharedOptions(BuildOptions())
+      val deps   = shared.classPathOptions.extraDependencies.toSeq.map(_.value)
+      expect(!deps.exists(d => d.organization == "com.lihaoyi" && d.name == "os-lib"))
+    }
+  }
+
+  test("earlier input takes precedence between same-depth project files") {
+    val testInputs = TestInputs(
+      files = Seq(
+        os.rel / "a" / "project.scala" -> "//> using exclude *B.scala",
+        os.rel / "a" / "A.scala"       -> "object A",
+        os.rel / "b" / "project.scala" -> "",
+        os.rel / "b" / "B.scala"       -> "object B"
+      ),
+      inputArgs = Seq(
+        "a/project.scala",
+        "b/project.scala",
+        "a/A.scala",
+        "b/B.scala"
+      )
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )(using ScalaCliInvokeData.dummy).orThrow
+
+      val sourceNames = crossSources.paths.map(_.value._1.last)
+      expect(!sourceNames.contains("B.scala"))
+    }
+  }
+
 }

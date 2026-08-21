@@ -1,5 +1,7 @@
 package scala.build
 
+import java.io.File
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{
@@ -152,6 +154,11 @@ object CrossSources {
       }
     }
 
+  private def outermostProjectFile(
+    elements: Seq[SingleElement]
+  ): Option[ProjectScalaFile] =
+    elements.collect { case f: ProjectScalaFile => f }.minByOption(_.path.segmentCount)
+
   /** @return
     *   a CrossSources and Inputs which contains element processed from using directives
     */
@@ -198,7 +205,7 @@ object CrossSources {
         value(preprocessSources(elements, Logger.nop))
           .flatMap(_.options).flatMap(_.internal.exclude)
       val fromProjectFile =
-        excludesFrom(flattenedInputs.collectFirst { case f: ProjectScalaFile => f }.toSeq)
+        excludesFrom(outermostProjectFile(flattenedInputs).toSeq)
       val remaining =
         value(excludeSources(flattenedInputs, inputs.workspace, exclude ++ fromProjectFile))
       exclude ++ fromProjectFile ++ excludesFrom(remaining.collect { case s: Script => s })
@@ -475,7 +482,7 @@ object CrossSources {
       maybeRelPath match {
         case Some(relPath) if os.isDir(workspaceDir / relPath) =>
           // exclude relative directory paths, add * to exclude all files in the directory
-          Seq(p, (workspaceDir / relPath / "*").toString)
+          Seq(p, s"${workspaceDir / relPath}${File.separator}*")
         case Some(relPath) =>
           Seq(p, (workspaceDir / relPath).toString) // exclude relative paths
         case None => Seq(p)
