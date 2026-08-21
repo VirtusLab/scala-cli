@@ -1,5 +1,7 @@
 package scala.build
 
+import java.io.File
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{
@@ -480,7 +482,7 @@ object CrossSources {
       maybeRelPath match {
         case Some(relPath) if os.isDir(workspaceDir / relPath) =>
           // exclude relative directory paths, add * to exclude all files in the directory
-          Seq(p, (workspaceDir / relPath / "*").toString)
+          Seq(p, s"${workspaceDir / relPath}${File.separator}*")
         case Some(relPath) =>
           Seq(p, (workspaceDir / relPath).toString) // exclude relative paths
         case None => Seq(p)
