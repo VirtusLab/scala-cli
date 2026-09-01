@@ -6,6 +6,7 @@ import coursier.util.Task
 import dependency.*
 
 import java.io.File
+import java.nio.file.Paths
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
@@ -87,26 +88,7 @@ object ReplArtifacts {
       replArtifacts
         .map(_._2.toString)
         .filter(_.contains("jline"))
-    val jlineJavaOpts: Seq[String] =
-      if javaVersion >= 24 && jlineArtifacts.nonEmpty then {
-        val modulePath    = Seq("--module-path", jlineArtifacts.mkString(File.pathSeparator))
-        val remainingOpts =
-          if isScala2 then
-            Seq(
-              "--add-modules",
-              "org.jline",
-              "--enable-native-access=org.jline"
-            )
-          else
-            Seq(
-              "--add-modules",
-              "org.jline.terminal",
-              "--enable-native-access=org.jline.nativ"
-            )
-        modulePath ++ remainingOpts
-      }
-      else Seq.empty
-    val replJavaOpts = defaultReplJavaOpts ++ jlineJavaOpts
+    val replJavaOpts = defaultReplJavaOpts ++ jlineJavaOpts(jlineArtifacts, javaVersion)
     ReplArtifacts(
       replArtifacts = replArtifacts,
       depArtifacts = depArtifacts,
@@ -117,4 +99,29 @@ object ReplArtifacts {
       addSourceJars = false
     )
   }
+
+  /** Puts JLine on the module path, to avoid restricted method warnings on JDK 24+.
+    *
+    * Scala ships JLine either as the `org.jline:jline` uber-jar (module `org.jline`, 2.13.18 and
+    * earlier) or as the individual modules (Scala 3, 2.13.19+), so no single module name works for
+    * `--add-modules`; `ALL-MODULE-PATH` adds whatever is on the module path instead, see
+    * https://openjdk.org/jeps/261. `--enable-native-access` has no equivalent, hence the check.
+    */
+  private[build] def jlineJavaOpts(
+    jlineArtifacts: Seq[String],
+    javaVersion: Int
+  ): Seq[String] =
+    if javaVersion >= 24 && jlineArtifacts.nonEmpty then {
+      val hasJLineNative =
+        jlineArtifacts.exists(Paths.get(_).getFileName.toString.startsWith("jline-native"))
+      val nativeAccessModule = if hasJLineNative then "org.jline.nativ" else "org.jline"
+      Seq(
+        "--module-path",
+        jlineArtifacts.mkString(File.pathSeparator),
+        "--add-modules",
+        "ALL-MODULE-PATH",
+        s"--enable-native-access=$nativeAccessModule"
+      )
+    }
+    else Seq.empty
 }
