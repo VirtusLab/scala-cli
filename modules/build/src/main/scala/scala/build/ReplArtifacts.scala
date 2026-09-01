@@ -112,9 +112,9 @@ object ReplArtifacts {
     javaVersion: Int
   ): Seq[String] =
     if javaVersion >= 24 && jlineArtifacts.nonEmpty then {
-      val hasSplitModules =
+      val hasJLineNative =
         jlineArtifacts.exists(Paths.get(_).getFileName.toString.startsWith("jline-native"))
-      val nativeAccessModule = if hasSplitModules then "org.jline.nativ" else "org.jline"
+      val nativeAccessModule = if hasJLineNative then "org.jline.nativ" else "org.jline"
       Seq(
         "--module-path",
         jlineArtifacts.mkString(File.pathSeparator),
