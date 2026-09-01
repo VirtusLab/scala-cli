@@ -11,8 +11,8 @@ trait PackageSlothTestDefinitions extends LazyValTests:
   this: PackageTestDefinitions & TestScalaVersion =>
 
   private val latestJava             = Constants.allJavaVersions.max
-  private val assemblyScalaVersions  = Seq("3.0.2", Constants.scala3Lts)
-  private val ltsOnlyScalaVersion    = Constants.scala3Lts
+  private val assemblyScalaVersions  = Seq("3.0.2", Constants.scala3LegacyLts)
+  private val ltsOnlyScalaVersion    = Constants.scala3LegacyLts
   private val expectedMessage        = "Hello"
   private val slothAgentWarnFragment = "is not applicable to package"
 
@@ -461,7 +461,7 @@ trait PackageSlothTestDefinitions extends LazyValTests:
             |""".stripMargin
       ).fromRoot { root =>
         // Signed dep built at 3.3 LTS
-        val signedJar = publishSignedLazyValsJar(Constants.scala3Lts, root, latestJava)
+        val signedJar = publishSignedLazyValsJar(Constants.scala3LegacyLts, root, latestJava)
         val appJar    = root / "app.jar"
 
         os.proc(

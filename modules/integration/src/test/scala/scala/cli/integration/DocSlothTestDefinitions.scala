@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 trait DocSlothTestDefinitions extends LazyValTests:
   this: DocTestDefinitions & TestScalaVersion =>
 
-  private val docScalaVersion = Constants.scala3Lts
+  private val docScalaVersion = Constants.scala3LegacyLts
 
   private def lazyValProjFile: String =
     s"""//> using scala $docScalaVersion

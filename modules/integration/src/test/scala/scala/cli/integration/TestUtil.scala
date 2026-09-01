@@ -29,7 +29,7 @@ object TestUtil {
   val debugPortOpt: Option[String]  = sys.props.get("test.scala-cli.debug.port")
   val detectCliPath: String         = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
   val cli: Seq[String]              = cliCommand(cliPath)
-  val ltsEqualsNext: Boolean        = Constants.scala3Lts equals Constants.scala3Next
+  val ltsEqualsNext: Boolean        = Constants.scala3LegacyLts equals Constants.scala3Next
 
   lazy val legacyScalaVersionsOnePerMinor: Seq[String] =
     Constants.legacyScala3Versions.sorted.reverse.distinctBy(_.split('.').take(2).mkString("."))

@@ -6,7 +6,7 @@ trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
   override def group: ScalaCliSuite.TestGroup =
     if (actualScalaVersion.startsWith("2.12.")) ScalaCliSuite.TestGroup.Third
     else if (actualScalaVersion.startsWith("2.13.")) ScalaCliSuite.TestGroup.Second
-    else if (actualScalaVersion.startsWith(Constants.scala3LtsPrefix))
+    else if (actualScalaVersion.startsWith(Constants.scala3LegacyLtsPrefix))
       ScalaCliSuite.TestGroup.Fourth
     else if (actualScalaVersion.startsWith(Constants.scala3NextRc))
       ScalaCliSuite.TestGroup.Fifth
@@ -51,7 +51,7 @@ trait Test212 extends TestScalaVersion { this: TestScalaVersionArgs =>
   override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala212)
 }
 trait Test3Lts extends TestScalaVersion { this: TestScalaVersionArgs =>
-  override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala3Lts)
+  override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala3LegacyLts)
 }
 trait Test3NextRc extends TestScalaVersion { this: TestScalaVersionArgs =>
   override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala3NextRc)

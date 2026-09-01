@@ -14,7 +14,7 @@ class RunTests3NextRc extends RunTestDefinitions with Test3NextRc {
     }
 
   for {
-    label <- List("rc", "3.rc", "3.lts.rc", "lts.rc", s"${Constants.scala3LtsPrefix}.rc", "3.7.rc")
+    label <- List("rc", "3.rc", s"${Constants.scala3LegacyLtsPrefix}.rc", "3.7.rc")
   }
     test(s"$label is valid and works as expected") {
       TestInputs.empty.fromRoot { root =>

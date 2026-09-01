@@ -42,7 +42,7 @@ class RunTestsDefault extends RunTestDefinitions
     .maxBy(_.coursierVersion)
   for slothFlag <- Seq("--sloth", "--sloth-agent") do
     lazyValsUnsafeTest(highest30, slothFlag)
-    lazyValsUnsafeTest(Constants.scala3Lts, slothFlag)
+    lazyValsUnsafeTest(Constants.scala3LegacyLts, slothFlag)
 
   test("--sloth and --sloth-agent together warn they are mutually redundant") {
     val expectedMessage = "Hello"
@@ -63,7 +63,7 @@ class RunTestsDefault extends RunTestDefinitions
   }
 
   test(
-    s"user code ${Constants.scala3Lts} lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava (--sloth)"
+    s"user code ${Constants.scala3LegacyLts} lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava (--sloth)"
   ) {
     val expectedMessage = "Hello from user code"
     TestInputs.empty.fromRoot { root =>
@@ -81,7 +81,7 @@ class RunTestsDefault extends RunTestDefinitions
         "--sloth",
         ".",
         "--scala",
-        Constants.scala3Lts,
+        Constants.scala3LegacyLts,
         "--jvm",
         latestJava
       ).call(cwd = root, mergeErrIntoOut = true)
@@ -91,7 +91,7 @@ class RunTestsDefault extends RunTestDefinitions
   }
 
   test(
-    s"run reflects --sloth toggle for ${Constants.scala3Lts} lazy vals on JDK $latestJava"
+    s"run reflects --sloth toggle for ${Constants.scala3LegacyLts} lazy vals on JDK $latestJava"
   ) {
     val expectedMessage = "Hello from toggle"
     TestInputs(
@@ -109,7 +109,7 @@ class RunTestsDefault extends RunTestDefinitions
         extraOptions,
         slothOptions,
         "--scala",
-        Constants.scala3Lts,
+        Constants.scala3LegacyLts,
         "--jvm",
         latestJava.toString,
         "."
@@ -123,7 +123,7 @@ class RunTestsDefault extends RunTestDefinitions
         "run",
         extraOptions,
         "--scala",
-        Constants.scala3Lts,
+        Constants.scala3LegacyLts,
         "--jvm",
         latestJava.toString,
         "."
@@ -136,7 +136,7 @@ class RunTestsDefault extends RunTestDefinitions
   test("run js --sloth warns that sloth is not applicable") {
     TestInputs(
       os.rel / "Main.scala" ->
-        s"""//> using scala ${Constants.scala3Lts}
+        s"""//> using scala ${Constants.scala3LegacyLts}
            |//> using platform scala-js
            |import scala.scalajs.js
            |
@@ -165,7 +165,7 @@ class RunTestsDefault extends RunTestDefinitions
     TestUtil.retryOnCi() {
       TestInputs(
         os.rel / "Main.scala" ->
-          s"""//> using scala ${Constants.scala3Lts}
+          s"""//> using scala ${Constants.scala3LegacyLts}
              |//> using platform scala-native
              |object Main {
              |  def main(args: Array[String]): Unit = println("Hello")
@@ -189,7 +189,7 @@ class RunTestsDefault extends RunTestDefinitions
   }
 
   test(
-    s"run --sloth preserves user META-INF/MANIFEST.MF for ${Constants.scala3Lts}"
+    s"run --sloth preserves user META-INF/MANIFEST.MF for ${Constants.scala3LegacyLts}"
   ) {
     val expectedMessage = "Hello with manifest"
     TestInputs(
@@ -209,7 +209,7 @@ class RunTestsDefault extends RunTestDefinitions
         extraOptions,
         slothOptions,
         "--scala",
-        Constants.scala3Lts,
+        Constants.scala3LegacyLts,
         "."
       ).call(cwd = root, stderr = os.Pipe)
       expect(r.out.trim().contains(expectedMessage))
@@ -229,7 +229,7 @@ class RunTestsDefault extends RunTestDefinitions
     ).fromRoot { root =>
       // Use a .zip suffix so the compiler accepts the archive on --classpath, while Sloth
       // must still recognize it by content rather than a `.jar` extension.
-      val lib = packageLazyValsLibrary(Constants.scala3Lts, root, root / "lib.zip")
+      val lib = packageLazyValsLibrary(Constants.scala3LegacyLts, root, root / "lib.zip")
       val r   = os.proc(
         TestUtil.cli,
         "--power",
@@ -259,7 +259,7 @@ class RunTestsDefault extends RunTestDefinitions
             |}
             |""".stripMargin
       ).fromRoot { root =>
-        val plainLib = packageLazyValsLibrary(Constants.scala3Lts, root, root / "lib.jar")
+        val plainLib = packageLazyValsLibrary(Constants.scala3LegacyLts, root, root / "lib.jar")
         val preamble =
           """#!/usr/bin/env sh
             |exec java -jar "$0" "$@"

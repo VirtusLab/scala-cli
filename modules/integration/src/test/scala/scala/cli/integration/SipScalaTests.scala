@@ -508,7 +508,7 @@ class SipScalaTests extends ScalaCliSuite
     anotherVersion =
       if (sv.startsWith("2.13")) Constants.scala212
       else if (sv.startsWith("2.12")) Constants.scala213
-      else Constants.scala3Lts
+      else Constants.scala3LegacyLts
   } {
     test(
       s"default Scala version overridden with $sv by a launcher parameter is respected when running a script"
@@ -871,7 +871,7 @@ class SipScalaTests extends ScalaCliSuite
 
   // this check is just to ensure this isn't being run for LTS RC jobs
   // should be adjusted when a new LTS line is released
-  if (!Constants.scala3NextRc.startsWith(Constants.scala3LtsPrefix))
+  if (!Constants.scala3NextRc.startsWith(Constants.scala3LegacyLtsPrefix))
     test("scalac help respects --cli-default-scala-version") {
       TestInputs.empty.fromRoot { root =>
         val sv                          = Constants.scala3NextRc

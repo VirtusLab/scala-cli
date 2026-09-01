@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 trait FixSlothTestDefinitions extends LazyValTests:
   this: FixTestDefinitions & TestScalaVersion =>
 
-  private val fixScalaVersion = Constants.scala3Lts
+  private val fixScalaVersion = Constants.scala3LegacyLts
 
   private def expectScalafixClasspathContains(output: String, fragment: String): Unit =
     val cpOpt = output.split("--classpath ").lift(1).map(_.takeWhile(c => c != ' ' && c != '\n'))

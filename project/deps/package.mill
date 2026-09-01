@@ -13,19 +13,22 @@ object Cli {
 }
 
 object Scala {
-  def scala212         = "2.12.21"
-  def scala213         = "2.13.18"
-  def scala3LtsPrefix  = "3.3"                  // used for the LTS version tags
-  def scala3Lts        = s"$scala3LtsPrefix.8"  // the LTS version currently used in the build
-  def runnerScala3     = scala3Lts
-  def scala3NextPrefix = "3.9"
-  def scala3Next       = s"$scala3NextPrefix.0" // the newest/next version of Scala
+  def scala212              = "2.12.21"
+  def scala213              = "2.13.18"
+  def scala3LtsPrefix       = "3.9"                  // current LTS
+  def scala3Lts             = s"$scala3LtsPrefix.0"
+  def scala3LegacyLtsPrefix = "3.3"                  // old LTS, still used to build the CLI itself
+  def scala3LtsPrefixes     = Seq(scala3LegacyLtsPrefix, scala3LtsPrefix).distinct
+  def scala3LegacyLts       = s"$scala3LegacyLtsPrefix.8"
+  def runnerScala3          = scala3LegacyLts
+  def scala3NextPrefix      = "3.9"
+  def scala3Next            = s"$scala3NextPrefix.0" // the newest/next version of Scala
   def scala3NextAnnounced   = "3.8.4"     // the newest/next version of Scala that's been announced
   def scala3NextRc          = "3.9.0-RC6" // the latest RC version of Scala Next
   def scala3NextRcAnnounced = "3.9.0-RC6" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
-  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
+  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3LegacyLts)
 
   // The Scala version used by default to compile user input.
   def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3Next)
@@ -38,10 +41,10 @@ object Scala {
   // respectively
   def scala38Versions = Seq("3.8.0", "3.8.0-RC1", "3.8.0-RC1-bin-20250901-ca400bd-NIGHTLY")
 
-  val allScala2           = Seq(scala213, scala212)
-  val defaults            = Seq(defaultInternal, defaultUser).distinct
-  val allScala3           = Seq(scala3Lts, scala3Next, scala3NextAnnounced, scala3NextRc).distinct
-  val all                 = (allScala2 ++ allScala3 ++ defaults).distinct
+  val allScala2 = Seq(scala213, scala212)
+  val defaults  = Seq(defaultInternal, defaultUser).distinct
+  val allScala3 = Seq(scala3LegacyLts, scala3Next, scala3NextAnnounced, scala3NextRc).distinct
+  val all       = (allScala2 ++ allScala3 ++ defaults).distinct
   val scala3MainVersions  = (defaults ++ allScala3).distinct
   val runnerScalaVersions = (Seq(runnerScala3) ++ scala3MainVersions).distinct
 
@@ -60,7 +63,7 @@ object Scala {
     val max30  = 2
     val max31  = 3
     val max32  = 2
-    val max33  = patchVer(scala3Lts)
+    val max33  = patchVer(scala3LegacyLts)
     val max34  = 3
     val max35  = 2
     val max36  = 4
@@ -85,7 +88,7 @@ object Scala {
     listAll
       .filter(_.startsWith("3"))
       .distinct
-      .filter(minorVer(_) < minorVer(scala3Lts))
+      .filter(minorVer(_) < minorVer(scala3LegacyLts))
 
 }
 

@@ -2876,7 +2876,8 @@ abstract class RunTestDefinitions
         TestUtil.retryOnCi() {
           testInputs.fromRoot { root =>
             // Scala 3.3 lib built on JDK 8 -> uses sun.misc.Unsafe lazy vals; sloth must patch it.
-            val (_, repoDir) = publishLazyValsLib(Constants.scala3Lts, root, buildJvm = Some("8"))
+            val (_, repoDir) =
+              publishLazyValsLib(Constants.scala3LegacyLts, root, buildJvm = Some("8"))
             if (shouldRestartBloop)
               os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
             val processes = (0 until parallelInstancesCount).map { _ =>
@@ -3000,7 +3001,7 @@ abstract class RunTestDefinitions
             |""".stripMargin
       ).fromRoot { root =>
         // Signed dep built at 3.3 LTS (Sloth patches 3.0-3.7.x bytecode)
-        val signedJar = publishSignedLazyValsJar(Constants.scala3Lts, root, latestJava)
+        val signedJar = publishSignedLazyValsJar(Constants.scala3LegacyLts, root, latestJava)
 
         val r = os.proc(
           TestUtil.cli,
