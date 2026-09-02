@@ -25,13 +25,13 @@
     - [ ] Wait for the `Update dist` PR to be automatically created after the previous one has been merged, and then
       proceed to merge it.
     - [ ] Make a release with the updated Scala CLI version.
-    - [ ] Update the `v1` & `v1.16` tags to the latest release commit.
+    - [ ] Update the `v1` & `v1.17` tags to the latest release commit.
       ```bash
       git fetch --all
-      git checkout origin v1.16.x
-      git tag -d v1.16
-      git tag v1.16
-      git push origin v1.16 -f 
+      git checkout origin v1.17.x
+      git tag -d v1.17
+      git tag v1.17
+      git push origin v1.17 -f 
       git tag -d v1
       git tag v1
       git push origin v1 -f
