@@ -15,7 +15,7 @@ import scala.build.errors.{
   UnsupportedScalaVersionError
 }
 import scala.build.internal.Constants.*
-import scala.build.internal.Regexes.{scala2NightlyRegex, scala3LtsRegex}
+import scala.build.internal.Regexes.scala2NightlyRegex
 import scala.build.options.*
 import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Positioned, RepositoryUtils}
@@ -240,8 +240,8 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
     val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
     assert(
-      scala3LtsRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
-      "-S 3.lts argument does not lead to scala3 LTS"
+      scalaParams.scalaVersion.startsWith(s"$scala3LtsPrefix."),
+      "-S 3.lts argument does not lead to the latest scala3 LTS"
     )
   }
 

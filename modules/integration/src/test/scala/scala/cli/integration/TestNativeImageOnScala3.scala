@@ -42,7 +42,7 @@ class TestNativeImageOnScala3 extends ScalaCliSuite {
 
   for {
     scalaVersion <- TestUtil.legacyScalaVersionsOnePerMinor.sorted ++ Seq(
-      Constants.scala3Lts,
+      Constants.scala3LegacyLts,
       Constants.scala3Next,
       Constants.scala3NextRc
     )

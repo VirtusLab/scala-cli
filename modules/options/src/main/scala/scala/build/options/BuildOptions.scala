@@ -379,12 +379,20 @@ final case class BuildOptions(
         case (Some(MaybeScalaVersion(Some(svInput))), _) =>
           val sv = value {
             svInput match {
-              case sv if ScalaVersionUtil.scala3Lts.contains(sv) =>
-                ScalaVersionUtil.validateStable(Constants.scala3LtsPrefix, cache, repositories)
+              case sv if ScalaVersionUtil.scala3Lts.contains(sv.toLowerCase) =>
+                ScalaVersionUtil.validateStable(
+                  Constants.scala3LtsPrefix,
+                  cache,
+                  repositories
+                )
+              case ScalaVersionUtil.VersionedLts(ltsPrefix) =>
+                ScalaVersionUtil.validateStable(ltsPrefix, cache, repositories)
               case sv if ScalaVersionUtil.scala3LatestRc.contains(sv.toLowerCase) =>
                 ScalaVersionUtil.validateRc("3", cache, repositories)
               case sv if ScalaVersionUtil.scala3LtsLatestRc.contains(sv.toLowerCase) =>
                 ScalaVersionUtil.validateRc(Constants.scala3LtsPrefix, cache, repositories)
+              case ScalaVersionUtil.VersionedLtsRc(ltsPrefix) =>
+                ScalaVersionUtil.validateRc(ltsPrefix, cache, repositories)
               case scala3RcRegex(threeSubBinarySuffix) =>
                 ScalaVersionUtil.validateRc(s"3.$threeSubBinarySuffix", cache, repositories)
               case scala3RcNicknameRegex(threeSubBinarySuffix) =>
@@ -404,6 +412,8 @@ final case class BuildOptions(
                   Constants.scala3LtsPrefix.split('.').last,
                   cache
                 )
+              case ScalaVersionUtil.VersionedLtsNightly(ltsPrefix) =>
+                ScalaVersionUtil.GetNightly.scala3X(ltsPrefix.split('.').last, cache)
               case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
                 ScalaVersionUtil.GetNightly.scala3X(threeSubBinaryNum, cache)
               case vs if ScalaVersionUtil.scala213Nightly.contains(vs) =>

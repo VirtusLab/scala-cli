@@ -238,7 +238,7 @@ trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with LocatedI
 }
 
 object packager extends ScalaModule {
-  override def scalaVersion: T[String] = Scala.scala3Lts
+  override def scalaVersion: T[String] = Scala.scala3LegacyLts
   override def mvnDeps: T[Seq[Dep]]    = Seq(
     Deps.scalaPackagerCli
   )
@@ -537,7 +537,11 @@ trait Core extends ScalaCliCrossSbtModule
          |  def scala3NextRcVersion = "${Scala.scala3NextRc}"
          |  def scala3NextPrefix = "${Scala.scala3NextPrefix}"
          |  def scala3LtsPrefix = "${Scala.scala3LtsPrefix}"
-         |  def scala3Lts       = "${Scala.scala3Lts}"
+         |  def scala3LegacyLtsPrefix = "${Scala.scala3LegacyLtsPrefix}"
+         |  def scala3LegacyLts       = "${Scala.scala3LegacyLts}"
+         |  def scala3LtsPrefixes = Seq(${Scala.scala3LtsPrefixes
+          .map(p => s"\"$p\"")
+          .mkString(", ")})
          |  
          |  def scala38Versions = Seq(${Scala.scala38Versions
           .sorted
@@ -1016,7 +1020,7 @@ trait CliIntegration extends SbtModule
     with LocatedInModules {
   override def scalaVersion: T[String] = sv
 
-  def sv: String = Scala.scala3Lts
+  def sv: String = Scala.scala3LegacyLts
 
   def tmpDirBase: T[PathRef] = Task(persistent = true) {
     PathRef(Task.dest / "working-dir")
@@ -1080,6 +1084,11 @@ trait CliIntegration extends SbtModule
            |  def scala213                     = "${Scala.scala213}"
            |  def scala3LtsPrefix              = "${Scala.scala3LtsPrefix}"
            |  def scala3Lts                    = "${Scala.scala3Lts}"
+           |  def scala3LegacyLtsPrefix        = "${Scala.scala3LegacyLtsPrefix}"
+           |  def scala3LegacyLts              = "${Scala.scala3LegacyLts}"
+           |  def scala3LtsPrefixes            = Seq(${Scala.scala3LtsPrefixes
+            .map(p => s"\"$p\"")
+            .mkString(", ")})
            |  def scala3NextPrefix             = "${Scala.scala3NextPrefix}"
            |  def scala3NextRc                 = "${Scala.scala3NextRc}"
            |  def scala3NextRcAnnounced        = "${Scala.scala3NextRcAnnounced}"
@@ -1307,7 +1316,7 @@ trait CliIntegration extends SbtModule
 }
 
 trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with HasTests {
-  override def scalaVersion: T[String] = Scala.scala3Lts
+  override def scalaVersion: T[String] = Scala.scala3LegacyLts
   override def mvnDeps: T[Seq[Dep]]    = super.mvnDeps() ++ Seq(
     Deps.osLib
   )

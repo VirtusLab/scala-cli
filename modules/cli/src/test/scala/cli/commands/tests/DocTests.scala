@@ -23,17 +23,17 @@ class DocTests extends munit.FunSuite {
   }
 
   test("crossDocSubdirName: multiple groups, single platform uses only Scala version") {
-    val params = CrossBuildParams(Constants.scala3Lts, "jvm")
+    val params = CrossBuildParams(Constants.scala3LegacyLts, "jvm")
     expect(
       Doc.crossDocSubdirName(params, multipleCrossGroups = true, needsPlatformInSuffix = false) ==
-        Constants.scala3Lts
+        Constants.scala3LegacyLts
     )
   }
 
   test("crossDocSubdirName: multiple groups and platforms include platform in suffix") {
     val paramsJvm = CrossBuildParams(Constants.defaultScala213Version, "jvm")
     val paramsJs  = CrossBuildParams(Constants.defaultScala213Version, "js")
-    val paramsNat = CrossBuildParams(Constants.scala3Lts, "native")
+    val paramsNat = CrossBuildParams(Constants.scala3LegacyLts, "native")
     expect(
       Doc.crossDocSubdirName(paramsJvm, multipleCrossGroups = true, needsPlatformInSuffix = true) ==
         s"${Constants.defaultScala213Version}_jvm"
@@ -44,7 +44,7 @@ class DocTests extends munit.FunSuite {
     )
     expect(
       Doc.crossDocSubdirName(paramsNat, multipleCrossGroups = true, needsPlatformInSuffix = true) ==
-        s"${Constants.scala3Lts}_native"
+        s"${Constants.scala3LegacyLts}_native"
     )
   }
 
@@ -60,10 +60,10 @@ class DocTests extends munit.FunSuite {
       expect(mappingsArg.contains(s"scala-lang.org/api/${Constants.defaultScalaVersion}/"))
     }
 
-  test(s"correct external mappings for Scala 3 LTS (${Constants.scala3Lts})") {
-    val args        = Doc.defaultScaladocArgs(Constants.scala3Lts, Constants.defaultJavaVersion)
+  test(s"correct external mappings for Scala 3 LTS (${Constants.scala3LegacyLts})") {
+    val args = Doc.defaultScaladocArgs(Constants.scala3LegacyLts, Constants.defaultJavaVersion)
     val mappingsArg = args.find(_.startsWith("-external-mappings:")).get
-    expect(mappingsArg.contains(s"scala-lang.org/api/${Constants.scala3Lts}/"))
+    expect(mappingsArg.contains(s"scala-lang.org/api/${Constants.scala3LegacyLts}/"))
     expect(
       mappingsArg.contains(s"javase/${Constants.defaultJavaVersion}/docs/api/java.base/")
     )

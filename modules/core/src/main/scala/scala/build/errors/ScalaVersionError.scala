@@ -20,6 +20,9 @@ object ScalaVersionError {
        |In addition, you can request compilation with the last nightly versions of Scala,
        |by passing the 2.nightly, 2.12.nightly, 2.13.nightly, or 3.nightly arguments.
        |Specific Scala 2 or Scala 3 nightly versions are also accepted.
-       |You can also request the latest Scala 3 LTS by passing lts or 3.lts.
+       |You can also request the latest Scala 3 LTS (the $scala3LtsPrefix line) by passing lts or 3.lts.
+       |A particular LTS line can be requested with one of: ${scala3LtsPrefixes.map(p =>
+        s"$p.lts"
+      ).mkString(", ")}.
        |""".stripMargin
 }

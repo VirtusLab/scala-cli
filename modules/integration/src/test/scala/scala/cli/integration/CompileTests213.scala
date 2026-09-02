@@ -52,14 +52,14 @@ class CompileTests213 extends CompileTestDefinitions with Test213 {
       val separator           = if (Properties.isWin) "\\" else "/"
       val graalVmVersion      = Constants.defaultGraalVMJavaVersion
       val legacyRunnerVersion = Constants.runnerScala2LegacyVersion
-      val ltsPrefix           = Constants.scala3LtsPrefix
+      val legacyLtsPrefix     = Constants.scala3LegacyLtsPrefix
 
       val expectedOutput =
         s"""|Compiling project (Scala $actualScalaVersion, JVM ($graalVmVersion))
             |Compiled project (Scala $actualScalaVersion, JVM ($graalVmVersion))
             |[warn] Scala $actualScalaVersion is no longer supported by the test-runner module.
             |[warn] Defaulting to a legacy test-runner module version: $legacyRunnerVersion.
-            |[warn] To use the latest test-runner, upgrade Scala to at least $ltsPrefix.
+            |[warn] To use the latest test-runner, upgrade Scala to at least $legacyLtsPrefix.
             |Compiling project (test, Scala $actualScalaVersion, JVM ($graalVmVersion))
             |[info] .${separator}Test.test.scala:6:5
             |[info] scala.Predef.ArrowAssoc[Int](1).->[String]("test")

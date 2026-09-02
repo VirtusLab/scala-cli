@@ -4,34 +4,36 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class ReplTests3Lts extends ReplTestDefinitions with Test3Lts
     with ReplJShellTestDefinitions {
-  import Constants.scala3LtsPrefix
-  if canRunInRepl then
-    for { ltsNightlyTag <- List("3.lts.nightly", "lts.nightly") }
+  import Constants.{scala3LtsPrefix, scala3LegacyLtsPrefix}
+  if canRunInRepl then {
+    val versionCode = s"""println($retrieveScalaVersionCode)"""
+
+    def replScalaVersion(tag: String)(check: String => Unit): Unit =
+      runInRepl(
+        versionCode,
+        cliOptions = Seq("-S", tag, "--with-compiler"),
+        skipScalaVersionArgs = true
+      )(r => check(r.out.trim()))
+
+    for {
+      (ltsNightlyTag, expectedPrefix) <- List(
+        "3.lts.nightly"                       -> scala3LtsPrefix,
+        "lts.nightly"                         -> scala3LtsPrefix,
+        s"$scala3LegacyLtsPrefix.lts.nightly" -> scala3LegacyLtsPrefix
+      ).distinct
+    }
       test(
-        s"$runInReplPrefix $ltsNightlyTag returns the same Scala version as $scala3LtsPrefix.nightly"
+        s"$runInReplPrefix $ltsNightlyTag returns the same Scala version as $expectedPrefix.nightly"
       ) {
-        val code = s"""println($retrieveScalaVersionCode)"""
-        runInRepl(
-          code,
-          cliOptions = Seq("-S", ltsNightlyTag, "--with-compiler"),
-          skipScalaVersionArgs = true
-        ) { r1 =>
-          val version1 = r1.out.trim()
+        replScalaVersion(ltsNightlyTag) { version1 =>
           System.err.println(s"$ltsNightlyTag returns the following nightly: $version1")
-          runInRepl(
-            code,
-            cliOptions = Seq("-S", s"$scala3LtsPrefix.nightly", "--with-compiler"),
-            skipScalaVersionArgs = true
-          ) { r2 =>
-            val version2 = r2.out.trim()
+          replScalaVersion(s"$expectedPrefix.nightly") { version2 =>
             expect(version1 == version2)
-            val major = version1.split('.').take(1).head.toInt
-            expect(major == 3)
-            val minor = version1.split('.').take(2).last.toInt
-            expect(minor >= scala3LtsPrefix.split('.').last.toInt)
+            expect(version1.startsWith(s"$expectedPrefix."))
             val patch = version1.split('.').take(3).last.takeWhile(_.isDigit).toInt
-            if minor == 3 then expect(patch >= 8) // new nightly repo
+            if expectedPrefix == "3.3" then expect(patch >= 8) // new nightly repo
           }
         }
       }
+  }
 }

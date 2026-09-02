@@ -41,7 +41,7 @@ class ReplTestsDefault extends ReplTestDefinitions
       val expectedMessage = "Hello"
       val code            = "println(lazyvalslib.LazyValsLib.greeting)"
       TestInputs.empty.fromRoot { root =>
-        val (dep, repoDir) = publishLazyValsLib(Constants.scala3Lts, root)
+        val (dep, repoDir) = publishLazyValsLib(Constants.scala3LegacyLts, root)
         val res            = os.proc(
           TestUtil.cli,
           "repl",

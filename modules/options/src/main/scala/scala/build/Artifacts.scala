@@ -163,7 +163,7 @@ object Artifacts {
     val shouldUseLegacyJava8Runners  = jvmVersion < Constants.scala38MinJavaVersion
     val shouldUseLegacyScala3Runners =
       scalaVersion.startsWith("3") &&
-      scalaVersion.coursierVersion < s"$scala3LtsPrefix.0".coursierVersion
+      scalaVersion.coursierVersion < s"$scala3LegacyLtsPrefix.0".coursierVersion
     val shouldUseLegacyScala2Runners = scalaVersion.startsWith("2")
     val shouldUseLegacyScalaRunners  = shouldUseLegacyScala3Runners || shouldUseLegacyScala2Runners
     val shouldUseLegacyRunners       = shouldUseLegacyScalaRunners || shouldUseLegacyJava8Runners
@@ -189,7 +189,7 @@ object Artifacts {
             )
             if shouldUseLegacyScalaRunners then
               logger.message(
-                s"$warnPrefix To use the latest test-runner, upgrade Scala to at least $scala3LtsPrefix."
+                s"$warnPrefix To use the latest test-runner, upgrade Scala to at least $scala3LegacyLtsPrefix."
               )
             if shouldUseLegacyJava8Runners then
               logger.message(
@@ -531,7 +531,7 @@ object Artifacts {
                 )
                 if shouldUseLegacyScalaRunners then
                   logger.message(
-                    s"$warnPrefix To use the latest runner, upgrade Scala to at least $scala3LtsPrefix."
+                    s"$warnPrefix To use the latest runner, upgrade Scala to at least $scala3LegacyLtsPrefix."
                   )
                 if shouldUseLegacyJava8Runners then
                   logger.message(
@@ -540,7 +540,7 @@ object Artifacts {
                 logger.message(
                   s"""$warnPrefix Scala $scalaVersion is no longer supported by the runner module.
                      |$warnPrefix Defaulting to a legacy runner module version: $runnerLegacyVersion.
-                     |$warnPrefix To use the latest runner, upgrade Scala to at least $scala3LtsPrefix."""
+                     |$warnPrefix To use the latest runner, upgrade Scala to at least $scala3LegacyLtsPrefix."""
                     .stripMargin
                 )
                 runnerLegacyVersion

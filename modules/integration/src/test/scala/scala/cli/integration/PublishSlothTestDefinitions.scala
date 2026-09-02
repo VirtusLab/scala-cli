@@ -86,7 +86,7 @@ trait PublishSlothTestDefinitions extends LazyValTests:
     }
 
     test(
-      s"publish reflects --sloth toggle for ${Constants.scala3Lts} lazy vals on JDK $latestJava"
+      s"publish reflects --sloth toggle for ${Constants.scala3LegacyLts} lazy vals on JDK $latestJava"
     ) {
       val ltsProjFile =
         s"""//> using publish.organization $testOrg
@@ -117,13 +117,18 @@ trait PublishSlothTestDefinitions extends LazyValTests:
           ).call(cwd = root, stderr = os.Pipe)
 
         val withSlothRepo = root / "test-repo-sloth"
-        publishToRepo(root, slothOptions, withSlothRepo, scalaVersionOverride = Constants.scala3Lts)
+        publishToRepo(
+          root,
+          slothOptions,
+          withSlothRepo,
+          scalaVersionOverride = Constants.scala3LegacyLts
+        )
         val withSloth = runPublished(withSlothRepo)
         expect(withSloth.out.trim().contains(expectedMessage))
         expect(!withSloth.err.trim().contains("sun.misc.Unsafe"))
 
         val withoutSlothRepo = root / "test-repo-no-sloth"
-        publishToRepo(root, Nil, withoutSlothRepo, scalaVersionOverride = Constants.scala3Lts)
+        publishToRepo(root, Nil, withoutSlothRepo, scalaVersionOverride = Constants.scala3LegacyLts)
         val withoutSloth = runPublished(withoutSlothRepo)
         expect(withoutSloth.out.trim().contains(expectedMessage))
         expect(withoutSloth.err.trim().contains("sun.misc.Unsafe"))
@@ -155,7 +160,7 @@ trait PublishSlothTestDefinitions extends LazyValTests:
 
     test("publish --sloth preserves user META-INF/MANIFEST.MF from resources") {
       val projFile =
-        s"""//> using scala ${Constants.scala3Lts}
+        s"""//> using scala ${Constants.scala3LegacyLts}
            |//> using resourceDir resources
            |//> using publish.organization $testOrg
            |//> using publish.name $testName

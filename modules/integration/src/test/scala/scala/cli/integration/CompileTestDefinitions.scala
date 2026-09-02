@@ -1027,7 +1027,7 @@ abstract class CompileTestDefinitions
             |""".stripMargin
       ).fromRoot { root =>
         // Signed dep built at 3.3 LTS (Sloth patches 3.0-3.7.x bytecode)
-        val signedJar = publishSignedLazyValsJar(Constants.scala3Lts, root, latestJava)
+        val signedJar = publishSignedLazyValsJar(Constants.scala3LegacyLts, root, latestJava)
 
         val r = os.proc(
           TestUtil.cli,
@@ -1107,7 +1107,7 @@ abstract class CompileTestDefinitions
       val expectedMessage = "Hello"
       TestInputs(
         os.rel / "Main.scala" ->
-          s"""//> using scala ${Constants.scala3Lts}
+          s"""//> using scala ${Constants.scala3LegacyLts}
              |//> using resourceDir resources
              |object Main {
              |  lazy val greeting: String = "$expectedMessage"

@@ -36,10 +36,25 @@ object ScalaVersionUtil {
   private def rcAlias(prefix: String) = s"$prefix.rc"
   def scala2LatestRc                  = List(rcAlias("2"), rcAlias("2.12"), rcAlias("2.13"))
   def scala3LatestRc                  = List("rc", rcAlias("3"))
-  def scala3LtsLatestRc = List(rcAlias("lts"), rcAlias("3.lts"), rcAlias(Constants.scala3LtsPrefix))
-  def scala3Lts         = List("3.lts", "lts")
+  def scala3LtsLatestRc               = List(rcAlias("lts"), rcAlias("3.lts"))
+  def scala3Lts                       = List("3.lts", "lts")
   // not valid versions, defined only for informative error messages
   def scala2Lts = List("2.13.lts", "2.12.lts", "2.lts")
+
+  /** Matches an LTS tag pinned to a particular series, e.g. `3.3.lts`, `3.3.lts.rc`. Only the
+    * series listed in [[Constants.scala3LtsPrefixes]] have such tags, extracting to the series
+    * prefix itself.
+    */
+  private def versionedLtsTag(suffix: String)(sv: String): Option[String] =
+    Constants.scala3LtsPrefixes.find(prefix => sv.equalsIgnoreCase(s"$prefix.lts$suffix"))
+
+  object VersionedLts:
+    def unapply(sv: String): Option[String] = versionedLtsTag("")(sv)
+  object VersionedLtsRc:
+    def unapply(sv: String): Option[String] = versionedLtsTag(".rc")(sv)
+  object VersionedLtsNightly:
+    def unapply(sv: String): Option[String] = versionedLtsTag(".nightly")(sv)
+
   extension (cache: FileCache[Task]) {
     def fileWithTtl0(artifact: Artifact): Either[ArtifactError, File] =
       cache.logger.use {
@@ -315,7 +330,7 @@ object ScalaVersionUtil {
 
   def isScala3Nightly(version: String): Boolean =
     (version.startsWith("3") && version.toLowerCase.endsWith("nightly")) ||
-    scala3Nightly.contains(version.toLowerCase) || scala3LtsNightly.contains(version)
+    scala3Nightly.contains(version.toLowerCase) || scala3LtsNightly.contains(version.toLowerCase)
   def isStable(version: String): Boolean =
     !version.exists(_.isLetter)
   def isRc(version: String): Boolean = {

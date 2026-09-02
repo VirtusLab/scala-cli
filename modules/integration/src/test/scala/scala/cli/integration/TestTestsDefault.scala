@@ -59,13 +59,13 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
     .maxBy(_.coursierVersion)
   for slothFlag <- Seq("--sloth", "--sloth-agent") do
     testLazyValsUnsafe(highest30, slothFlag)
-    testLazyValsUnsafe(Constants.scala3Lts, slothFlag)
+    testLazyValsUnsafe(Constants.scala3LegacyLts, slothFlag)
 
   // project classes are only patched for Scala < 3.8, so the LTS version is what exercises
   // patching of the very class dirs the test runner scans for suites
   for slothFlag <- Seq("--sloth", "--sloth-agent") do
     test(
-      s"test user code ${Constants.scala3Lts} lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava ($slothFlag)"
+      s"test user code ${Constants.scala3LegacyLts} lazy vals dont warn about sun.misc.Unsafe on JDK $latestJava ($slothFlag)"
     ) {
       val expectedMessage = "Hello from user test code"
       val marker          = "TEST_BODY_EXECUTED"
@@ -97,7 +97,7 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
           slothFlag,
           ".",
           "--scala",
-          Constants.scala3Lts,
+          Constants.scala3LegacyLts,
           "--jvm",
           latestJava
         ).call(cwd = root, stderr = os.Pipe)
@@ -112,7 +112,7 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
   test("test js --sloth warns that sloth is not applicable") {
     TestInputs(
       os.rel / "HelloTests.test.scala" ->
-        s"""//> using scala ${Constants.scala3Lts}
+        s"""//> using scala ${Constants.scala3LegacyLts}
            |//> using platform scala-js
            |//> using dep org.scalameta::munit::$munitVersion
            |
@@ -142,7 +142,7 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
     TestUtil.retryOnCi() {
       TestInputs(
         os.rel / "HelloTests.test.scala" ->
-          s"""//> using scala ${Constants.scala3Lts}
+          s"""//> using scala ${Constants.scala3LegacyLts}
              |//> using platform scala-native
              |//> using dep org.scalameta::munit::$munitVersion
              |
