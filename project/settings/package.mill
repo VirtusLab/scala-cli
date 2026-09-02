@@ -14,6 +14,7 @@ import build.project.utils
 import utils.isArmArchitecture
 import com.goyeau.mill.scalafix.ScalafixModule
 import coursier.Repository
+import coursier.version.Version
 import io.github.alexarchambault.millnativeimage.NativeImage
 import mill.*
 import mill.scalalib.*
@@ -804,6 +805,36 @@ trait FormatNativeImageConf extends JavaModule {
 trait ScalaCliScalafixModule extends ScalafixModule {
 
   override def semanticDbVersion: T[String] = Deps.Versions.scalaMeta
+
+  // TODO https://github.com/scalacenter/scalafix/issues/2503; remove when fixed
+  private def scalafixCompatible(sv: String): Boolean =
+    sv.startsWith("2.") ||
+    (Version(sv) >= Version("3.3.4") && Version(sv) < Version("3.10.0-RC1"))
+
+  // Cannot call `super.fix(args*)` from inside a Mill Task; delegate to fixAction directly.
+  override def fix(args: String*): Command[Unit] =
+    Task.Command {
+      val sv = scalaVersion()
+      if !scalafixCompatible(sv) then
+        Task.ctx().log.info(
+          s"Skipping scalafix for Scala $sv (https://github.com/scalacenter/scalafix/issues/2503)"
+        )
+        mill.api.Result.Success(())
+      else
+        ScalafixModule.fixAction(
+          Task.ctx().log,
+          scalafixRepositories(),
+          ScalafixModule.filesToFix(sources()).map(_.path),
+          classpath =
+            (compileClasspath() ++ localClasspath() ++ Seq(semanticDbData())).iterator.toSeq.map(_.path),
+          scalaVersion = sv,
+          scalacOptions = scalacOptions(),
+          scalafixIvyDeps = scalafixIvyDeps(),
+          scalafixConfig = scalafixConfig(),
+          args = args,
+          wd = BuildCtx.workspaceRoot
+        )
+    }
 
   def scalafixConfig: T[Option[os.Path]] = Task {
     if (scalaVersion().startsWith("2.")) super.scalafixConfig()

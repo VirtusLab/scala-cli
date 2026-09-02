@@ -98,7 +98,8 @@ trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
 
   // disabled on Windows for now, for context, see
   // https://github.com/VirtusLab/scala-cli/pull/1270#issuecomment-1237904394
-  if (!Properties.isWin) {
+  // TODO enable for 3.10+ when ScalaPy adds support for Scala Native 0.5+
+  if !Properties.isWin && !isScala310OrNewer then {
     test("scalapy native with directives") {
       scalapyNativeTest(useDirectives = true)
     }
