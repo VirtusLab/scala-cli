@@ -13,7 +13,10 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   private val utestVersion                     = "0.8.3"
-  private val zioTestVersion                   = "2.1.17"
+  private def zioTestVersion                   = if isScala310OrNewer then "2.1.26" else "2.1.17"
+  private def zioSpecType                      =
+    if isScala310OrNewer then "Spec[TestEnvironment & Scope, Any]"
+    else "Spec[TestEnvironment with Scope, Any]"
 
   def successfulTestInputs(directivesString: String =
     s"//> using dep org.scalameta::munit::$munitVersion"): TestInputs = TestInputs(
@@ -98,20 +101,20 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   val successfulScalaCheckFromCatsNativeInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using scala 2.13
-        |//> using platform native
-        |//> using nativeVersion 0.4.17
-        |//> using dep org.typelevel::cats-kernel-laws::2.8.0
-        |
-        |import org.scalacheck._
-        |import Prop.forAll
-        |
-        |class TestSpec extends Properties("spec") {
-        |  property("startsWith") = forAll { (a: String, b: String) =>
-        |    (a+b).startsWith(a)
-        |  }
-        |  println("Hello from " + "tests")
-        |}""".stripMargin
+      s"""//> using scala 2.13
+         |//> using platform native
+         |//> using nativeVersion ${Constants.scalaNativeVersion04}
+         |//> using dep org.typelevel::cats-kernel-laws::2.8.0
+         |
+         |import org.scalacheck._
+         |import Prop.forAll
+         |
+         |class TestSpec extends Properties("spec") {
+         |  property("startsWith") = forAll { (a: String, b: String) =>
+         |    (a+b).startsWith(a)
+         |  }
+         |  println("Hello from " + "tests")
+         |}""".stripMargin
   )
 
   val successfulJunitInputs: TestInputs = TestInputs(
@@ -561,14 +564,15 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from tests"))
     }
 
-  test("scalacheck from cats") {
-    successfulScalaCheckFromCatsNativeInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
-        .call(cwd = root)
-        .out.text()
-      expect(output.contains("Hello from tests"))
+  if !isScala310OrNewer then
+    test("scalacheck from cats") {
+      successfulScalaCheckFromCatsNativeInputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
+          .call(cwd = root)
+          .out.text()
+        expect(output.contains("Hello from tests"))
+      }
     }
-  }
 
   test("utest native") {
     TestUtil.retryOnCi()(utestNative())
@@ -747,7 +751,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   val platforms: Seq[(String, Seq[String])] = {
     val maybeJs     = Seq("JS" -> Seq("--js"))
     val maybeNative =
-      if (actualScalaVersion.startsWith("2."))
+      if actualScalaVersion.startsWith("2.") && !isScala310OrNewer then
         Seq("native" -> Seq("--native"))
       else
         Nil
@@ -773,9 +777,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         )
         inputs.fromRoot { root =>
           val scalaTestExtraArgs =
-            if (platformName == "native")
+            if platformName == "native" then
               // FIXME: revert to using default Scala Native version when scalatest supports 0.5.x
-              Seq("--native-version", "0.4.17")
+              Seq("--native-version", Constants.scalaNativeVersion04)
             else Nil
           val baseRes =
             os.proc(TestUtil.cli, "test", extraOptions, platformArgs, scalaTestExtraArgs, ".")
@@ -1098,7 +1102,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
            |import zio.test._
            |
            |object SimpleSpec extends ZIOSpecDefault {
-           |  override def spec: Spec[TestEnvironment with Scope, Any] =
+           |  override def spec: $zioSpecType =
            |    suite("SimpleSpec")(
            |      test("print hello and assert true") {
            |        for {
@@ -1136,7 +1140,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
              |import zio.test._
              |
              |object SimpleSpec extends ZIOSpecDefault {
-             |  override def spec: Spec[TestEnvironment with Scope, Any] =
+             |  override def spec: $zioSpecType =
              |    suite("SimpleSpec")(
              |      test("print hello and assert true") {
              |        for {
@@ -1202,7 +1206,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
                |import zio.test._
                |
                |object SimpleSpec extends ZIOSpecDefault {
-               |  override def spec: Spec[TestEnvironment with Scope, Any] =
+               |  override def spec: $zioSpecType =
                |    suite("SimpleSpec")(
                |      test("print hello and assert true") {
                |        for {

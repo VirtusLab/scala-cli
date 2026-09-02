@@ -313,7 +313,8 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
       useDirectives <- Seq(true, false)
       titleStr = if (useDirectives) "with directives" else "with command line args"
       explicitNativeVersion <-
-        Seq(Some(Constants.scalaNativeVersion04), Some(Constants.scalaNativeVersion05), None)
+        if isScala310OrNewer then Seq(Some(Constants.scalaNativeVersion05), None)
+        else Seq(Some(Constants.scalaNativeVersion04), Some(Constants.scalaNativeVersion05), None)
       nativeVersionStr  = explicitNativeVersion.map(v => s"explicit: $v").getOrElse("default")
       nativeVersionOpts = explicitNativeVersion.toSeq.flatMap(v => Seq("--native-version", v))
       nativeVersionDirectiveStr =

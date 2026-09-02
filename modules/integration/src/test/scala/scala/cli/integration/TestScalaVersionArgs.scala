@@ -27,6 +27,10 @@ trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
   def isScala39OrNewer: Boolean =
     actualScalaVersion.coursierVersion >= "3.9.0-RC1".coursierVersion
 
+  /** Of note, Scala 3.10 and newer no longer support Scala Native 0.4 */
+  def isScala310OrNewer: Boolean =
+    actualScalaVersion.coursierVersion >= "3.10.0-RC1".coursierVersion
+
   /** Scaladoc only passes its own compiler context (and thus `-scalajs`) to the TASTy inspector
     * since Scala 3.6.3, which is what makes reading Scala.js TASTy work.
     */
