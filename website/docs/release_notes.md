@@ -8,6 +8,231 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.17.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.17.0)
+
+### Changed defaults to Scala 3.9.0 LTS & `lts` tags now point at the 3.9 LTS series
+Scala 3.9.0 is both the new default Scala version and the first in line of the new Long Term Support series, so the `lts` version tags
+(as passed to `-S` / `--scala-version` or the `//> using scala` directive) now resolve to 3.9 rather than 3.3.
+Additionally, `<prefix>.lts` tags are now recognised for any supported LTS series, which lets you pin the older 3.3 LTS
+explicitly.
+
+| Tag                                          | Before          | After           |
+|----------------------------------------------|-----------------|-----------------|
+| `lts`, `3.lts`                               | 3.3.8           | 3.9.0           |
+| `lts.rc`, `3.lts.rc`                         | latest 3.3 RC   | latest 3.9 RC   |
+| `lts.nightly`, `3.lts.nightly`               | 3.3 nightly     | 3.9 nightly     |
+| `3.3.lts`, `3.3.lts.rc`, `3.3.lts.nightly`   | not recognised  | the 3.3 series  |
+| `3.9.lts`, `3.9.lts.rc`, `3.9.lts.nightly`   | not recognised  | the 3.9 series  |
+| `3.7.lts` (and other non-LTS `<prefix>.lts`) | not recognised  | not recognised  |
+
+```bash
+scala-cli -e 'println(scala.util.Properties.versionNumberString)' -S lts
+# Compiling project (Scala 3.9.0, JVM (25))
+# Compiled project (Scala 3.9.0, JVM (25))
+# 3.9.0
+```
+
+```bash
+scala-cli -e 'println(dotty.tools.dotc.config.Properties.simpleVersionString)' -S 3.3.lts --with-compiler
+# Compiling project (Scala 3.3.8, JVM (25))
+# Compiled project (Scala 3.3.8, JVM (25))
+# 3.3.8
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4442](https://github.com/VirtusLab/scala-cli/pull/4442) and [#4443](https://github.com/VirtusLab/scala-cli/pull/4443)
+
+### JEP 512 flexible main methods
+Scala CLI now recognises and launches [JEP 512](https://openjdk.org/jeps/512) main methods when targeting the JVM:
+`static` or instance `main` methods, with or without a `String` array parameter, and regardless of whether they are
+`public`. This requires JDK 25 or newer (or JDK 21+ with the `--enable-preview` Java option), and works for both Scala and Java sources.
+
+```scala title=HelloJep512.scala
+//> using jvm 25
+class HelloJep512:
+  def main(): Unit = println("Hello from a JEP 512 instance main!")
+```
+
+```bash
+scala-cli run HelloJep512.scala
+# Hello from a JEP 512 instance main!
+```
+
+On JDK 21 through 24 the same code runs as long as preview features are enabled:
+
+```scala compile
+//> using jvm 21
+//> using javaOpt --enable-preview
+class HelloJep512:
+  def main(): Unit = println("Hello on JDK 21 preview")
+```
+
+Such main methods are also detected when inherited from a Java class or interface:
+
+```java title=java-demo/Greeter.java
+//> using jvm 25
+public abstract class Greeter {
+  void main() {
+    System.out.println("Hello from an inherited JEP 512 instance main!");
+  }
+}
+```
+
+```java title=java-demo/HelloJava.java
+public class HelloJava extends Greeter {}
+```
+
+```bash
+scala-cli run java-demo --main-class HelloJava
+# Hello from an inherited JEP 512 instance main!
+```
+
+On older JDKs detection still happens, so instead of a bare `No main class found` you now get an actionable message:
+
+```text
+[error]  No main class found
+Class Hello declares a main method that requires JDK 25 or newer (JEP 512); the current JVM is 17.
+```
+
+Note: the default `package` bootstrap launcher cannot launch JEP 512 main methods as of yet, use `--assembly` or `--library`
+instead. Scala.js and Scala Native are not supported for those, either.
+
+Added by [@Gedochao](https://github.com/Gedochao) and [@warcholjakub](https://github.com/warcholjakub) in [#4418](https://github.com/VirtusLab/scala-cli/pull/4418), [#4425](https://github.com/VirtusLab/scala-cli/pull/4425), [#4424](https://github.com/VirtusLab/scala-cli/pull/4424) and [#4430](https://github.com/VirtusLab/scala-cli/pull/4430)
+
+### Individual files as resources
+It is now possible to pass individual files (and not only directories) as resources via the `--resource` command line 
+option and the `//> using resource`. A file passed this way lands at the root of the class path under its own name.
+
+```text title=greeting.txt
+Hello from an individual resource file!
+```
+
+```scala title=ReadResource.scala
+object ReadResource:
+  def main(args: Array[String]): Unit =
+    val stream = getClass.getClassLoader.getResourceAsStream("greeting.txt")
+    println(scala.io.Source.fromInputStream(stream).mkString.trim)
+```
+
+```bash
+scala-cli run ReadResource.scala --resource greeting.txt
+# Hello from an individual resource file!
+```
+
+<!-- Expected:
+Hello from an individual resource file!
+-->
+
+Note that a single file can now also be passed to the old `--resource-dir` option and `//> using resourceDir` directive.
+
+```bash
+scala-cli run ReadResource.scala --resource-dir greeting.txt
+# Hello from an individual resource file!
+```
+
+<!-- Expected:
+Hello from an individual resource file!
+-->
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4428](https://github.com/VirtusLab/scala-cli/pull/4428)
+
+### Library JARs from `-d` destinations ending with `.jar`
+When the destination passed to `-d` / `--compilation-output` ends with `.jar`, Scala CLI now packages the compilation
+results as a library JAR (the same contents as `package --library`) rather than writing class files into a directory
+of that name. This mirrors `scalac -d out.jar`, so it does not require `--power`.
+
+```scala title=Greeter.scala
+object Greeter:
+  def greeting: String = "Hello from a packaged library JAR!"
+```
+
+```bash
+scala-cli compile Greeter.scala -d greeter.jar
+scala-cli -e 'println(Greeter.greeting)' --extra-jars greeter.jar
+```
+
+<!-- Expected:
+Hello from a packaged library JAR!
+-->
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4426](https://github.com/VirtusLab/scala-cli/pull/4426)
+
+### The `//> using exclude` directive in `.sc` scripts
+The `//> using exclude` directive used to be accepted only in the `project.scala` configuration file. It can now live
+in any `.sc` script instead — still in just one place per project, so it stays unambiguous. When both a `project.scala`
+and scripts declare excludes, the outermost `project.scala` wins.
+
+```scala title=script-demo/broken.scala
+this is not valid Scala at all
+```
+
+```scala title=script-demo/hello.sc
+//> using exclude broken.scala
+println("Hello from a script declaring an exclude directive!")
+```
+
+```bash
+scala-cli run script-demo
+```
+
+<!-- Expected:
+Hello from a script declaring an exclude directive!
+-->
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4429](https://github.com/VirtusLab/scala-cli/pull/4429) and [#4437](https://github.com/VirtusLab/scala-cli/pull/4437)
+
+### Features
+* Support JEP 512 flexible main methods on JDK 25+ / JDK21+ with `--enable-preview` by [@Gedochao](https://github.com/Gedochao) in [#4418](https://github.com/VirtusLab/scala-cli/pull/4418)
+* Auto detect user-created main methods in classes named with the `*$_` suffix by [@Gedochao](https://github.com/Gedochao) in [#4424](https://github.com/VirtusLab/scala-cli/pull/4424)
+* Package `--library` JAR files when `-d` is set to a `*.jar` path by [@Gedochao](https://github.com/Gedochao) in [#4426](https://github.com/VirtusLab/scala-cli/pull/4426)
+* Allow the `//> using exclude` directive in an `.sc` script rather than just `project.scala` (but still only one place) by [@Gedochao](https://github.com/Gedochao) in [#4429](https://github.com/VirtusLab/scala-cli/pull/4429)
+* fix: non-public main detection (JEP 512) by [@warcholjakub](https://github.com/warcholjakub) in [#4430](https://github.com/VirtusLab/scala-cli/pull/4430)
+* Add support for passing individual files as resources by [@Gedochao](https://github.com/Gedochao) in [#4428](https://github.com/VirtusLab/scala-cli/pull/4428)
+* Auto detect main methods inherited from Java sources (including JEP 512 ones) by [@Gedochao](https://github.com/Gedochao) in [#4425](https://github.com/VirtusLab/scala-cli/pull/4425)
+* Switch `lts` tags to Scala 3.9 series by [@Gedochao](https://github.com/Gedochao) in [#4443](https://github.com/VirtusLab/scala-cli/pull/4443)
+
+### Fixes
+* fix: reject malformed toolkit coordinates by [@warcholjakub](https://github.com/warcholjakub) in [#4427](https://github.com/VirtusLab/scala-cli/pull/4427)
+* Strip -scalajs from scaladoc invocation by [@halotukozak](https://github.com/halotukozak) in [#4431](https://github.com/VirtusLab/scala-cli/pull/4431)
+* Revert #4431 & add gated test for Scala 3.6.3+ by [@Gedochao](https://github.com/Gedochao) in [#4435](https://github.com/VirtusLab/scala-cli/pull/4435)
+* Make exclude order prefer outermost project.scala by [@Gedochao](https://github.com/Gedochao) in [#4437](https://github.com/VirtusLab/scala-cli/pull/4437)
+* Fix REPL on JDK 24+ for Scala versions with split JLine modules by [@lrytz](https://github.com/lrytz) in [#4436](https://github.com/VirtusLab/scala-cli/pull/4436)
+
+### Build and internal changes
+* Maintenance/agents tests by [@Gedochao](https://github.com/Gedochao) in [#4414](https://github.com/VirtusLab/scala-cli/pull/4414)
+* Split CI down into smaller workflows by [@Gedochao](https://github.com/Gedochao) in [#4420](https://github.com/VirtusLab/scala-cli/pull/4420)
+
+### Updates
+* Bump the npm-dependencies group in /website with 5 updates by @dependabot[bot] in [#4408](https://github.com/VirtusLab/scala-cli/pull/4408)
+* Update jsoup to 1.23.1 by @scala-steward in [#4409](https://github.com/VirtusLab/scala-cli/pull/4409)
+* Update scala-cli.sh launcher for 1.16.0 by @github-actions[bot] in [#4407](https://github.com/VirtusLab/scala-cli/pull/4407)
+* Bump undici from 7.28.0 to 7.29.0 in /website by @dependabot[bot] in [#4411](https://github.com/VirtusLab/scala-cli/pull/4411)
+* Bump fast-uri from 3.1.4 to 3.1.5 in /website by @dependabot[bot] in [#4412](https://github.com/VirtusLab/scala-cli/pull/4412)
+* Bump brace-expansion from 1.1.16 to 1.1.18 in /website by @dependabot[bot] in [#4413](https://github.com/VirtusLab/scala-cli/pull/4413)
+* Update jsoniter-scala-core, ... to 2.40.1 by @scala-steward in [#4415](https://github.com/VirtusLab/scala-cli/pull/4415)
+* Update sbt to 2.0.5 by @scala-steward in [#4416](https://github.com/VirtusLab/scala-cli/pull/4416)
+* Update munit to 1.3.5 by @scala-steward in [#4417](https://github.com/VirtusLab/scala-cli/pull/4417)
+* Bump Scala 3 Next RC to 3.9.0-RC5 by [@Gedochao](https://github.com/Gedochao) in [#4419](https://github.com/VirtusLab/scala-cli/pull/4419)
+* Bump js-yaml from 4.3.0 to 4.3.1 in /website by @dependabot[bot] in [#4421](https://github.com/VirtusLab/scala-cli/pull/4421)
+* Bump nanoid from 3.3.16 to 3.3.18 in /website by @dependabot[bot] in [#4423](https://github.com/VirtusLab/scala-cli/pull/4423)
+* Update sloth-core to 0.1.0-M2 by @scala-steward in [#4422](https://github.com/VirtusLab/scala-cli/pull/4422)
+* Update jimfs to 1.3.2 by @scala-steward in [#4433](https://github.com/VirtusLab/scala-cli/pull/4433)
+* Update guava to 33.7.1-jre by @scala-steward in [#4432](https://github.com/VirtusLab/scala-cli/pull/4432)
+* Update Scala 3 Next RC to 3.9.0-RC6 by @scala-steward in [#4434](https://github.com/VirtusLab/scala-cli/pull/4434)
+* Update bloop-rifle_2.13 to 2.1.2 by @scala-steward in [#4438](https://github.com/VirtusLab/scala-cli/pull/4438)
+* Bump the npm-dependencies group in /website with 2 updates by @dependabot[bot] in [#4439](https://github.com/VirtusLab/scala-cli/pull/4439)
+* Update jsoup to 1.23.2 by @scala-steward in [#4440](https://github.com/VirtusLab/scala-cli/pull/4440)
+* Bump Scala 3 Next to 3.9.0 by [@Gedochao](https://github.com/Gedochao) in [#4442](https://github.com/VirtusLab/scala-cli/pull/4442)
+* Bump Scala Next RC to 3.10.0-RC1 by [@Gedochao](https://github.com/Gedochao) in [#4444](https://github.com/VirtusLab/scala-cli/pull/4444)
+* Bump fast-uri from 3.1.5 to 3.1.7 in /website by @dependabot[bot] in [#4446](https://github.com/VirtusLab/scala-cli/pull/4446)
+* Bump browserslist from 4.28.1 to 4.28.8 in /website by @dependabot[bot] in [#4447](https://github.com/VirtusLab/scala-cli/pull/4447)
+
+## New Contributors
+* [@warcholjakub](https://github.com/warcholjakub) made their first contribution in [#4427](https://github.com/VirtusLab/scala-cli/pull/4427)
+* [@halotukozak](https://github.com/halotukozak) made their first contribution in [#4431](https://github.com/VirtusLab/scala-cli/pull/4431)
+* [@lrytz](https://github.com/lrytz) made their first contribution in [#4436](https://github.com/VirtusLab/scala-cli/pull/4436)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.16.0...v1.17.0
+
 ## [v1.16.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.16.0)
 
 ### Script wrappers backtick `$` identifiers
@@ -28,7 +253,7 @@ compatibility with recent JDKs. Libraries built with older Scala 3 releases stil
 your own sources already target Scala 3.8+.
 
 Enable Sloth with `--sloth` / `//> using sloth` to post-process classpath bytecode, or `--sloth-agent` /
-`//> using slothAgent` to attach Sloth as a Java agent (for example when running tests). 
+`//> using slothAgent` to attach Sloth as a Java agent (for example when running tests).
 
 ```scala title=HelloSloth.scala
 object HelloSloth:
@@ -418,13 +643,13 @@ import scala.cli.parse.UsingDirectivesParser
       |
       |@main def hello() = println("Hello")
       |""".stripMargin
-      
+
   val result = UsingDirectivesParser.parse(source.toCharArray)
 
   for d <- result.directives do
     val values = d.values.map(_.stringValue).mkString(", ")
     println(s"${d.key} = $values  (line ${d.keyPosition.line})")
-    
+
   if result.diagnostics.nonEmpty then
     println("Diagnostics:")
     result.diagnostics.foreach(println)
@@ -518,8 +743,8 @@ scala-cli -e 'println("Hello")' --js
 Added by [@Gedochao](https://github.com/Gedochao) in [#4229](https://github.com/VirtusLab/scala-cli/pull/4229)
 
 ### `java-test-runner` for pure Java tests
-Projects with only Java sources (no Scala in the build) now use a dedicated `java-test-runner` module when 
-running `scala-cli test`. The new runner wires up Java-friendly test frameworks (such as JUnit via `junit-interface`) 
+Projects with only Java sources (no Scala in the build) now use a dedicated `java-test-runner` module when
+running `scala-cli test`. The new runner wires up Java-friendly test frameworks (such as JUnit via `junit-interface`)
 without pulling the Scala test runner or Scala itself onto the test classpath.
 
 ```java title=JavaTestRunnerExample.java compile
@@ -555,8 +780,8 @@ Added by [@zrhmn](https://github.com/zrhmn) in [#4223](https://github.com/Virtus
 * Add additional `packaging.graalvm*` directives by [@zrhmn](https://github.com/zrhmn) in [#4225](https://github.com/VirtusLab/scala-cli/pull/4225)
 
 ### Ammonite REPL deprecated & scheduled for removal
-The Ammonite-backed REPL integration is now **deprecated** and **planned for removal** (in sync with [Ammonite's official communication](https://github.com/com-lihaoyi/Ammonite/commit/388d10819e9cb22c260be2fb1b053088d725ffb1)). 
-Flags such as `--ammonite`, `--ammonite-version`, and `--ammonite-arg` on `scala-cli repl` will go away in a future release. 
+The Ammonite-backed REPL integration is now **deprecated** and **planned for removal** (in sync with [Ammonite's official communication](https://github.com/com-lihaoyi/Ammonite/commit/388d10819e9cb22c260be2fb1b053088d725ffb1)).
+Flags such as `--ammonite`, `--ammonite-version`, and `--ammonite-arg` on `scala-cli repl` will go away in a future release.
 
 It's time to move on to the **default Scala REPL**.
 
@@ -606,13 +831,13 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#4218](https://github.com/
 ## [v1.12.5](https://github.com/VirtusLab/scala-cli/releases/tag/v1.12.5)
 
 ### `--cross` support for `run`, `package` and `doc` sub-commands (experimental ⚡️)
-It is now possible to cross-`run`, cross-`package` and cross-generate docs (`doc`) with the `--cross` command line 
+It is now possible to cross-`run`, cross-`package` and cross-generate docs (`doc`) with the `--cross` command line
 option.
 - `run` runs each configured combination of Scala version and platform (e.g. JVM, Native, JS) in sequence;
 - `package` produces one artifact per cross build, with the Scala version and platform in the artifact name;
 - `doc` generates Scaladoc for each cross target into separate output directories.
 
-```scala title=cross.scala 
+```scala title=cross.scala
 //> using scala 3.3 3.8
 @main def main() = println("Hello")
 ```
@@ -626,7 +851,7 @@ scala-cli doc cross.scala --cross -o doc-out --power
 Added by [@Gedochao](https://github.com/Gedochao) in [#3808](https://github.com/VirtusLab/scala-cli/pull/3808), [#4171](https://github.com/VirtusLab/scala-cli/pull/4171) & [#4183](https://github.com/VirtusLab/scala-cli/pull/4183)
 
 ### Global `--offline` config key
-You can set offline mode globally with the `config` sub-command, so Scala CLI uses the cache and skips network access 
+You can set offline mode globally with the `config` sub-command, so Scala CLI uses the cache and skips network access
 without passing `--offline` every time.
 
 ```bash ignore
@@ -636,8 +861,8 @@ scala-cli config offline true
 Added by [@Gedochao](https://github.com/Gedochao) in [#3216](https://github.com/VirtusLab/scala-cli/pull/3216)
 
 ### Watch extra paths with `--watching` (experimental ⚡️)
-Use the `--watching` option or `//> using watching` to have `--watch` re-run when files or directories outside 
-your sources change (e.g. config or assets). 
+Use the `--watching` option or `//> using watching` to have `--watch` re-run when files or directories outside
+your sources change (e.g. config or assets).
 
 ```bash ignore
 scala-cli run . --watch --power --watching ./config --watching ./assets
@@ -652,8 +877,8 @@ Or in source:
 Added by [@Gedochao](https://github.com/Gedochao) in [#4174](https://github.com/VirtusLab/scala-cli/pull/4174)
 
 ### Local `.m2` in `publish local` (experimental ⚡️)
-`publish local` now publishes to your local Maven repository (`~/.m2`), so other local projects can depend 
-on the published artifacts via Maven coordinates. 
+`publish local` now publishes to your local Maven repository (`~/.m2`), so other local projects can depend
+on the published artifacts via Maven coordinates.
 
 ```bash ignore
 scala-cli publish local . --m2 --power
@@ -1086,22 +1311,22 @@ scala-cli version
 Added by [@Gedochao](https://github.com/Gedochao) in [#3942](https://github.com/VirtusLab/scala-cli/pull/3942) and [#3895](https://github.com/VirtusLab/scala-cli/pull/3895)
 
 ### Support for the new Scala 3.8 REPL
-As per https://github.com/scala/scala3/pull/24243, Scala 3 REPL has been extracted to [a separate artifact](https://repo.scala-lang.org/ui/packages/gav:%2F%2Forg.scala-lang:scala3-repl_3/3.8.0-RC1-bin-20251101-389483e-NIGHTLY) 
+As per https://github.com/scala/scala3/pull/24243, Scala 3 REPL has been extracted to [a separate artifact](https://repo.scala-lang.org/ui/packages/gav:%2F%2Forg.scala-lang:scala3-repl_3/3.8.0-RC1-bin-20251101-389483e-NIGHTLY)
 in Scala 3.8, as a result of which the use of the REPL command with Scala 3.8.0-RC1-bin-20251101-389483e-NIGHTLY
 or newer will require upgrading Scala CLI at least to 1.10 to work.
 
 ```bash ignore
-scala-cli repl                                          
+scala-cli repl
 # Welcome to Scala 3.8.0-RC1-bin-20251101-389483e-NIGHTLY (23.0.1, Java OpenJDK 64-Bit Server VM).
 # Type in expressions for evaluation. Or try :help.
-#                                                                                                                  
-# scala> 
+#
+# scala>
 ```
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#3936](https://github.com/VirtusLab/scala-cli/pull/3936)
 
 ### Support for adding extra directories to a Docker image
-This feature adds the ability to include additional directories in Docker images. 
+This feature adds the ability to include additional directories in Docker images.
 Users can now specify extra directories to be copied into a Docker image during the build process.
 The directories can be passed with the `--docker-extra-directories` command line option or `//> using packaging.dockerExtraDirectories` directive.
 
@@ -1129,7 +1354,7 @@ Additionally, the following modules have been dropped and will no longer be publ
 - `scala3-graal`
 - `scala3-graal-processor`
 
-As they remain necessary for building native images for Scala pre-3.3 projects, 
+As they remain necessary for building native images for Scala pre-3.3 projects,
 their usage has been deprecated and frozen at respective version 1.9.1.
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#3929](https://github.com/VirtusLab/scala-cli/pull/3929)
@@ -1253,10 +1478,10 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#3861](https://github.com/
 ## [v1.9.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.9.0)
 
 ### Support for the new Scala 3 nightly repository
-This Scala CLI version supports the new Scala 3 nightly versions repository: 
+This Scala CLI version supports the new Scala 3 nightly versions repository:
 https://repo.scala-lang.org/artifactory/maven-nightlies
 
-This means that newest Scala 3 nightly versions will become available to use with Scala CLI, 
+This means that newest Scala 3 nightly versions will become available to use with Scala CLI,
 as well as the `3.nightly` tag will now refer to the actual, newest Scala version.
 
 As a result, Scala 3.8 features like capture checked Scala 3 library should now be available from Scala CLI.
@@ -1353,7 +1578,7 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#3797](https://github.com/
 
 ### Scala CLI nightlies are available again
 We once again publish Scala CLI nightlies. You can use the newest version under the `nightly` tag.
-As pre-1.8.5 Scala CLI versions do not look for them on the new Sonatype Central snapshots repository, 
+As pre-1.8.5 Scala CLI versions do not look for them on the new Sonatype Central snapshots repository,
 they will not be visible when called from earlier versions.
 ```bash ignore
 scala-cli --cli-version nightly version
@@ -1410,7 +1635,7 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#3818](https://github.com/
 ## [v1.8.4](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.4)
 
 ### (⚡️ experimental) `publish` support for the Sonatype Central Portal
-This Scala CLI version adds support for publishing artifacts to the Sonatype Central Portal 
+This Scala CLI version adds support for publishing artifacts to the Sonatype Central Portal
 via its [OSSRH Staging API](https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/).
 It is once again publish artifacts to Maven Central with Scala CLI.
 Both stable and `*-SNAPSHOT` versions are handled.
@@ -1433,9 +1658,9 @@ scala-cli repl --jvm 24
 # WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
 # Welcome to Scala 3.7.1 (24.0.1, Java OpenJDK 64-Bit Server VM).
 # Type in expressions for evaluation. Or try :help.
-#            
 #
-# scala> 
+#
+# scala>
 ```
 
 Note that the deprecated method from `sun.misc.Unsafe` warning is still present, and will only be addressed in Scala 3.8.0.
@@ -1490,7 +1715,7 @@ This is a small release which aims to fix issues with publishing Scala CLI on So
 ## [v1.8.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.2)
 
 :::warning
-Due to technical difficulties, this version is not available on Sonatype Central Portal and on coursier. 
+Due to technical difficulties, this version is not available on Sonatype Central Portal and on coursier.
 If you care about those installation methods, please be patient as we resolve the issue and work on a subsequent release.
 :::
 
@@ -1632,11 +1857,11 @@ scala-cli -e 'println("Hello")' --js
 Added in [#3643](https://github.com/VirtusLab/scala-cli/pull/3643) and [scala-js-cli#134](https://github.com/VirtusLab/scala-js-cli/pull/134)
 
 ### Drop support for Scala older than 3.3 in `runner` and `test-runner` modules
-Starting with Scala CLI v1.8.0, the `runner` and `test-runner` modules are built with Scala 3.3.5 LTS (on par with other modules built with Scala 3). 
+Starting with Scala CLI v1.8.0, the `runner` and `test-runner` modules are built with Scala 3.3.5 LTS (on par with other modules built with Scala 3).
 They used to be built with Scala 3.0.2, as those modules may get added to the project class path when running, respectively,
 the main scope and tests. This means that if the application is using pre-3.3 Scala 3, TASTy versions will be incompatible.
 
-This is mostly informative, as the change should not be breaking for standard Scala CLI usage, even if an older Scala 3 version is being used. 
+This is mostly informative, as the change should not be breaking for standard Scala CLI usage, even if an older Scala 3 version is being used.
 For builds using Scala older than 3.3, the CLI will automatically fall back to version 1.7.1 of the modules, with an appropriate warning being printed.
 As the fallback will not be updated in the future, some Scala CLI features might start breaking at some point, as the APIs will stop being fully in sync.
 
@@ -1681,15 +1906,15 @@ scala-cli test .
 # Munit:
 #   + foo 0.007s
 # -------------------------------- Running Tests --------------------------------
-# + MyTests.foo 1ms  
+# + MyTests.foo 1ms
 # Tests: 1, Passed: 1, Failed: 0
 # + SimpleSpec
 # Hello from zio-test
 #   + print hello and assert true
 # 1 tests passed. 0 tests failed. 0 tests ignored.
-# 
+#
 # Executed in 97 ms
-# 
+#
 # Completed tests
 # ScalaTestSpec:
 # example
@@ -1707,7 +1932,7 @@ Additionally, it is now possible to pre-define multiple test frameworks to use (
 //> using test.frameworks org.scalatest.tools.Framework munit.Framework custom.CustomFramework
 ```
 
-Pre-defining test frameworks may be preferable for bigger projects, as it allows to skip framework detection and run them directly. 
+Pre-defining test frameworks may be preferable for bigger projects, as it allows to skip framework detection and run them directly.
 This is significant particularly for running tests with Scala Native and Scala.js.
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#3653](https://github.com/VirtusLab/scala-cli/pull/3653)
@@ -1840,8 +2065,8 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#3539](https://github.com/
 
 ### Switch to `scalameta/scalafmt` images of `scalafmt` 3.9.1+
 
-Since version 3.9.1 `scalafmt` ships with native images built with Scala Native. As a result, 
-we are sunsetting https://github.com/virtuslab/scalafmt-native-image and Scala CLI will use the artifacts 
+Since version 3.9.1 `scalafmt` ships with native images built with Scala Native. As a result,
+we are sunsetting https://github.com/virtuslab/scalafmt-native-image and Scala CLI will use the artifacts
 from https://github.com/scalameta/scalafmt for `scalafmt` versions >=3.9.1
 
 Note that older Scala CLI versions may still attempt to download a native image from the old repository for the new versions.
@@ -1866,17 +2091,17 @@ It is now possible to `run` a main method from the test scope with the `--test` 
 ```bash
 scala-cli run HelloFromTestScope.scala --test --power
 
-# Hello from the test scope!  
+# Hello from the test scope!
 ```
 
 Similarly, it is now possible to `package` the main and test scopes together, using the same `--test` flag.
 
 ```bash
 scala-cli package HelloFromTestScope.scala --test --power
-# # Wrote /Users/pchabelski/IdeaProjects/scala-cli-tests-2/untitled/v170/helloFromTestScope, run it with                                       
-#  ./helloFromTestScope  
+# # Wrote /Users/pchabelski/IdeaProjects/scala-cli-tests-2/untitled/v170/helloFromTestScope, run it with
+#  ./helloFromTestScope
 ./helloFromTestScope
-# Hello from the test scope!  
+# Hello from the test scope!
 ```
 
 Keep in mind that the test and main scopes are still separate compilation units, where the test scope depends on the main scope (while the reverse isn't true).
@@ -1906,7 +2131,7 @@ println("Top level code says hello")
 
 ```bash
 scala-cli run scriptWithMainObjectAndTopLevel.sc
-# [warn]  Script contains objects with main methods and top-level statements, only the latter will be run.                                   
+# [warn]  Script contains objects with main methods and top-level statements, only the latter will be run.
 # Compiling project (Scala 3.6.3, JVM (23))
 # Compiled project (Scala 3.6.3, JVM (23))
 # Top level code says hello
@@ -1928,7 +2153,7 @@ Note that no output is printed in this example:
 
 ```bash
 scala-cli run scriptWithMultipleMainObjects.sc
-# [warn]  Only a single main is allowed within scripts. Multiple main classes were found in the script: Main, Main2                          
+# [warn]  Only a single main is allowed within scripts. Multiple main classes were found in the script: Main, Main2
 # Compiling project (Scala 3.6.3, JVM (23))
 # Compiled project (Scala 3.6.3, JVM (23))
 ```
@@ -2070,8 +2295,8 @@ scala-cli repl -S 3.6.4-RC1 --repl-init-script 'println("Hello")'
 # Hello
 # Welcome to Scala 3.6.4-RC1 (23.0.1, Java OpenJDK 64-Bit Server VM).
 # Type in expressions for evaluation. Or try :help.
-#                                                                                                                  
-# scala> 
+#
+# scala>
 ```
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#3447](https://github.com/VirtusLab/scala-cli/pull/3447)
@@ -2242,7 +2467,7 @@ scala-cli compile . --bloop-version 2.0.7-8-fe3f53d9-SNAPSHOT
 # Compiled project (Scala 3.6.3, JVM (23))
 scala-cli --power bloop about
 # bloop v2.0.7-8-fe3f53d9-SNAPSHOT
-# 
+#
 # Using Scala v2.12.20 and Zinc v1.10.7
 # Running on Java JDK v23.0.1 (~/Library/Caches/Coursier/arc/https/github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.1%252B11/OpenJDK23U-jdk_aarch64_mac_hotspot_23.0.1_11.tar.gz/jdk-23.0.1+11/Contents/Home)
 #   -> Supports debugging user code, Java Debug Interface (JDI) is available.
@@ -2431,7 +2656,7 @@ Due to technical difficulties within our release pipeline, Scala CLI 1.5.3 is **
 
 We have followed up with a 1.5.4 hotfix release to address this issue.
 
-### Hot-fixes 
+### Hot-fixes
 - Tag failing native packager tests as flaky by [@Gedochao](https://github.com/Gedochao) in [#3270](https://github.com/VirtusLab/scala-cli/pull/3270)
 - Make publishing depend on all integration tests & docs tests by [@Gedochao](https://github.com/Gedochao) in [#3272](https://github.com/VirtusLab/scala-cli/pull/3272)
 
@@ -2449,13 +2674,13 @@ scala-cli --cli-version 1.5.2 --version
 ```
 
 ### `--source` is now deprecated and scheduled for removal in Scala CLI v1.6.x
-Due to how easy it is to confuse `--source` (the command line option for producing source JARs 
-with the `package` sub-command) and `-source` (the Scala compiler option, which can also be passed 
-as `--source` in recent Scala 3 versions), using the former is now deprecated, and will likely be removed 
+Due to how easy it is to confuse `--source` (the command line option for producing source JARs
+with the `package` sub-command) and `-source` (the Scala compiler option, which can also be passed
+as `--source` in recent Scala 3 versions), using the former is now deprecated, and will likely be removed
 in Scala CLI v1.6.x.
 
 ```bash ignore
-scala-cli --power package --source .                       
+scala-cli --power package --source .
 # [warn] The --source option alias has been deprecated and may be removed in a future version.
 # (...)
 ```
@@ -2465,7 +2690,7 @@ The feature of packaging source JARs remains unchanged.
 It is now recommended to switch to using the `--src` alias instead.
 
 ```bash ignore
-scala-cli --power package --src .  
+scala-cli --power package --src .
 ```
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#3257](https://github.com/VirtusLab/scala-cli/pull/3257).
@@ -2505,7 +2730,7 @@ tree wasm.js
 # ├── __loader.js
 # ├── main.js
 # └── main.wasm
-# 
+#
 # 1 directory, 3 files
 ```
 
@@ -2809,8 +3034,8 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#3086](https://github.com/
 
 ## [v1.4.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.4.3)
 
-This release is a hotfix for v1.4.2, which due to technical difficulties was not released to Maven Central 
-(and, as an extension, wasn't available as a JAR). 
+This release is a hotfix for v1.4.2, which due to technical difficulties was not released to Maven Central
+(and, as an extension, wasn't available as a JAR).
 
 All changes introduced by v1.4.2 are included in this release.
 
@@ -2839,7 +3064,7 @@ scala-cli --env-help --power
 # The following is the list of environment variables used and recognized by Scala CLI.
 # It should by no means be treated as an exhaustive list.
 # Some tools and libraries Scala CLI integrates with may have their own, which may or may not be listed here.
-# 
+#
 # Scala CLI
 #   SCALA_CLI_CONFIG              Scala CLI configuration file path
 #   SCALA_CLI_HOME                Scala CLI home directory
@@ -2849,19 +3074,19 @@ scala-cli --env-help --power
 #   SCALA_CLI_PRINT_STACK_TRACES  Print stack traces toggle
 #   SCALA_CLI_SODIUM_JNI_ALLOW    Allow to load libsodiumjni
 #   SCALA_CLI_VENDORED_ZIS        Toggle io.github.scala_cli.zip.ZipInputStream
-# 
+#
 # Java
 #   JAVA_HOME                     Java installation directory
 #   JAVA_OPTS                     Java options
 #   JDK_JAVA_OPTIONS              JDK Java options
-# 
+#
 # Coursier
 #   COURSIER_CACHE                Coursier cache location
 #   COURSIER_MODE                 Coursier mode (can be set to 'offline')
-# 
+#
 # Spark
 #   SPARK_HOME                    (power) Spark installation directory
-# 
+#
 # Miscellaneous
 #   PATH                          The app path variable
 #   DYLD_LIBRARY_PATH             Runtime library paths on Mac OS X
@@ -2870,7 +3095,7 @@ scala-cli --env-help --power
 #   SHELL                         The currently used shell
 #   VCVARSALL                     Visual C++ Redistributable Runtimes
 #   ZDOTDIR                       Zsh configuration directory
-# 
+#
 # Internal
 #   CI                            (power) Marker for running on the CI
 ```
@@ -2905,17 +3130,17 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#3055.](https://github.com
 ## [v1.4.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.4.1)
 
 ### Pass compiler args as an `@argument` file
-You can shorten or simplify a Scala CLI command by using an `@argument` file to specify a text file that contains compiler arguments. 
+You can shorten or simplify a Scala CLI command by using an `@argument` file to specify a text file that contains compiler arguments.
 ```text title=args.txt
 -d
 outputDirectory
 ```
-The feature may help to work around the [Windows command line character limit](https://learn.microsoft.com/en-us/troubleshoot/windows-client/shell-experience/command-line-string-limitation), 
+The feature may help to work around the [Windows command line character limit](https://learn.microsoft.com/en-us/troubleshoot/windows-client/shell-experience/command-line-string-limitation),
 among other things, making sure your scripts run on any operating system of your choice.
 ```bash
 scala-cli run -e 'println("Hey, I am using an @args file!")' @args.txt
 ```
-The feature works similarly to the [command-line argument files feature of Java 9](https://docs.oracle.com/javase/9/tools/java.htm#JSWOR-GUID-4856361B-8BFD-4964-AE84-121F5F6CF111) 
+The feature works similarly to the [command-line argument files feature of Java 9](https://docs.oracle.com/javase/9/tools/java.htm#JSWOR-GUID-4856361B-8BFD-4964-AE84-121F5F6CF111)
 and fixes backwards compatibility with the old `scala` runner (pre-Scala-3.5.0).
 
 Added by [@kasiaMarek](https://github.com/kasiaMarek) in [#3012](https://github.com/VirtusLab/scala-cli/pull/3012)
@@ -2984,7 +3209,7 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#3011.](https://github.com
 ## [v1.4.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.4.0)
 
 ### Running the REPL with the test scope included
-It is now possible to start the Scala REPL with access to the test scope. 
+It is now possible to start the Scala REPL with access to the test scope.
 To do so, it's enough to pass the `--test` flag with the `repl` sub-command.
 
 ```scala title=ReplTestScopeExample.test.scala
@@ -3000,11 +3225,11 @@ scala-cli repl ReplTestScopeExample.test.scala --test
 # Compiled project (test, Scala 3.4.2, JVM (17))
 # Welcome to Scala 3.4.2 (17, Java OpenJDK 64-Bit Server VM).
 # Type in expressions for evaluation. Or try :help.
-#                                                                                                                                          
+#
 # scala> example.ReplTestScopeExample.message
 # val res0: String = calling test scope from repl
-#                                                                                                                                          
-# scala> 
+#
+# scala>
 ```
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#2971](https://github.com/VirtusLab/scala-cli/pull/2971.)
@@ -3063,7 +3288,7 @@ This Scala CLI version treats Scala Toolkit 0.4.0 as the default version under m
 This unlocks the Scala Toolkit to be used with Scala Native 0.5.x.
 
 ```bash
-scala-cli -e 'println(os.pwd)' --toolkit default --native   
+scala-cli -e 'println(os.pwd)' --toolkit default --native
 # Compiling project (Scala 3.4.2, Scala Native 0.5.4)
 # Compiled project (Scala 3.4.2, Scala Native 0.5.4)
 # [info] Linking (multithreadingEnabled=true, disable if not used) (1051 ms)
@@ -3087,7 +3312,7 @@ scala-cli -e 'println(os.pwd)' --toolkit default --native
 Scala Native 0.4.x has been dropped in Scala Toolkit 0.4.0 and above, so the last version supporting it, 0.3.0 (and lower), will now make the build default to Scala Native 0.4.17.
 
 ```bash
-scala-cli -e 'println(os.pwd)' --toolkit 0.3.0 --native                          
+scala-cli -e 'println(os.pwd)' --toolkit 0.3.0 --native
 # [warn] Scala Toolkit Version(0.3.0) does not support Scala Native 0.5.3, 0.4.17 should be used instead.
 # [warn] Scala Native default version 0.5.3 is not supported in this build. Using 0.4.17 instead.
 # Compiling project (Scala 3.4.2, Scala Native 0.4.17)
@@ -3294,7 +3519,7 @@ scala-cli -e 'println("Hello, Scala Native!")' --native
 # Hello, Scala Native!
 ```
 
-Note that not all the tools Scala CLI integrates with support Scala Native 0.5.x just yet. 
+Note that not all the tools Scala CLI integrates with support Scala Native 0.5.x just yet.
 When such an integration is being used, the default Scala Native version will get downgraded to 0.4.17.
 
 ```bash
@@ -3345,7 +3570,7 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#2862](https://github.com/
 ## [v1.2.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.2.2)
 
 ### Fixed the `Fatal invariant violated` false-positive error coming from Bloop
-This small update fixes the `Fatal invariant violated` error ([#2829](https://github.com/VirtusLab/scala-cli/issues/2829)). 
+This small update fixes the `Fatal invariant violated` error ([#2829](https://github.com/VirtusLab/scala-cli/issues/2829)).
 The error was being thrown by Bloop when running Scala CLI repeatedly with the same sources.
 
 Fixed by [@Gedochao](https://github.com/Gedochao) in [#2837](https://github.com/VirtusLab/scala-cli/pull/2837)
@@ -3535,7 +3760,7 @@ Added by [@Quafadas](https://github.com/Quafadas) in [#2737](https://github.com/
 ## [v1.1.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.1.3)
 
 ### Support for LTS Scala version aliases
-It is now possible to use `lts` and `3.lts` as Scala version aliases in Scala CLI. 
+It is now possible to use `lts` and `3.lts` as Scala version aliases in Scala CLI.
 They refer to the latest LTS version of Scala (the `3.3.x` line at the time of this release).
 
 ```bash
@@ -3548,7 +3773,7 @@ scala-cli run -S lts --with-compiler -e 'println(dotty.tools.dotc.config.Propert
 Using the `2.lts`, `2.13.lts` & `2.12.lts` aliases returns a meaningful error, too.
 
 ```bash fail
-scala-cli run -S 2.lts -e 'println(scala.util.Properties.versionString)'                                 
+scala-cli run -S 2.lts -e 'println(scala.util.Properties.versionString)'
 # [error]  Invalid Scala version: 2.lts. There is no official LTS version for Scala 2.
 # You can only choose one of the 3.x, 2.13.x, and 2.12.x. versions.
 # The latest supported stable versions are 2.12.18, 2.13.12, 3.3.1.
@@ -3572,7 +3797,7 @@ println("SemanticDB targetroot gets set to ./targetRootDir, while sourceroot get
 
 You now can specify the `targetroot` and `sourceroot` directories like this:
 
-```bash 
+```bash
 scala-cli compile src/semanticdb-example.sc --semanticdb-targetroot ./targetRootDir --semanticdb-sourceroot .
 ```
 
@@ -3640,7 +3865,7 @@ Added by [@scala-steward](https://github.com/scala-steward) in [#2672](https://g
 ## [v1.1.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.1.1)
 
 ### Deprecate Scala Toolkit `latest` version in favour of `default`
-Using toolkits with the `latest` version is now deprecated and will cause a warning. 
+Using toolkits with the `latest` version is now deprecated and will cause a warning.
 It will likely be removed completely in a future release.
 ```bash
 scala-cli --toolkit latest -e 'println(os.pwd)'
@@ -3662,10 +3887,10 @@ scala-cli --toolkit default -e 'println(os.pwd)'
 The `default` version for toolkits is tied to a particular Scala CLI version.
 You can check which version is used by referring to Scala CLI help.
 ```bash ignore
-scala-cli version                 
+scala-cli version
 # Scala CLI version: 1.1.1
 # Scala version (default): 3.3.1
-scala-cli run -h|grep toolkit         
+scala-cli run -h|grep toolkit
 #   --toolkit, --with-toolkit version|default  Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 ```
 
@@ -3820,14 +4045,14 @@ Added by [@philwalk](https://github.com/philwalk) in [#2516](https://github.com/
 
 ### Scala CLI won't default to the system JVM if it's not supported anymore
 
-If your `JAVA_HOME` environment variable has been pointing to a JVM that is no longer supported by Scala CLI 
+If your `JAVA_HOME` environment variable has been pointing to a JVM that is no longer supported by Scala CLI
 (so anything below 17, really), you may have run into an error like this one with Scala CLI v1.0.5:
 
 ```bash ignore
-scala-cli --power bloop exit 
-# Stopped Bloop server.  
+scala-cli --power bloop exit
+# Stopped Bloop server.
 export JAVA_HOME=$(cs java-home --jvm zulu:8)
-scala-cli -e 'println(System.getProperty("java.version"))'                
+scala-cli -e 'println(System.getProperty("java.version"))'
 # Starting compilation server
 # Error: bloop.rifle.FailedToStartServerExitCodeException: Server failed with exit code 1
 # For more details, please see '/var/folders/5n/_ggj7kk93czdt_n0jzrk8s780000gn/T/1343202731019130640/.scala-build/stacktraces/1699527280-9858975811713766588.log'
@@ -3836,18 +4061,18 @@ scala-cli -e 'println(System.getProperty("java.version"))'
 # might give more details.
 ```
 
-This is because we no longer support JVM \<17 with Scala CLI v1.0.5, but we still have been defaulting to whatever JVM 
-was defined in `JAVA_HOME`. As a result, Bloop has been failing to start when running with, say, `JAVA_HOME` pointing 
+This is because we no longer support JVM \<17 with Scala CLI v1.0.5, but we still have been defaulting to whatever JVM
+was defined in `JAVA_HOME`. As a result, Bloop has been failing to start when running with, say, `JAVA_HOME` pointing
 to Java 8.
 
-This is no longer the case. Scala CLI will now automatically download Java 17 for Bloop in such a situation 
+This is no longer the case. Scala CLI will now automatically download Java 17 for Bloop in such a situation
 (and still use the JVM from `JAVA_HOME` for running the code, while Bloop runs on 17).
 
 ```bash ignore
-scala-cli --power bloop exit 
-# Stopped Bloop server.  
+scala-cli --power bloop exit
+# Stopped Bloop server.
 export JAVA_HOME=$(cs java-home --jvm zulu:8)
-scala-cli -e 'println(System.getProperty("java.version"))'                
+scala-cli -e 'println(System.getProperty("java.version"))'
 # Starting compilation server
 # Compiling project (Scala 3.3.1, JVM (8))
 # Compiled project (Scala 3.3.1, JVM (8))
@@ -3909,7 +4134,7 @@ Added by [@MaciejG604](https://github.com/MaciejG604) in [#2399](https://github.
 
 ### Offline mode (experimental)
 
-It is now possible to run Scala CLI in offline mode for the cases when you don't want the runner 
+It is now possible to run Scala CLI in offline mode for the cases when you don't want the runner
 to make any network requests for whatever reason.
 This changes Coursier's cache policy to `LocalOnly`, preventing it from downloading anything.
 
@@ -3917,9 +4142,9 @@ This changes Coursier's cache policy to `LocalOnly`, preventing it from download
 scala-cli compile . --offline --power
 ```
 
-Of course, this means that you will have to have all the dependencies relevant to your build 
+Of course, this means that you will have to have all the dependencies relevant to your build
 already downloaded and available in your local cache.
-Reasonable fallbacks will be used where possible, 
+Reasonable fallbacks will be used where possible,
 e.g. the Scala compiler may be used instead of Bloop if Bloop isn't available.
 
 Added by [@MaciejG604](https://github.com/MaciejG604) in [#2404](https://github.com/VirtusLab/scala-cli/pull/2404)
@@ -3933,8 +4158,8 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#2450](https://github.com/
 
 ### The `fix` sub-command (experimental)
 
-The `fix` sub-command is a new addition to Scala CLI. It allows to scan your project for `using` directives 
-and extract them into the `project.scala` file placed in the project root directory. 
+The `fix` sub-command is a new addition to Scala CLI. It allows to scan your project for `using` directives
+and extract them into the `project.scala` file placed in the project root directory.
 This allows to easily fix warnings tied to having `using` directives present in multiple files.
 
 ```bash ignore
@@ -4140,7 +4365,7 @@ Added by [@lwronski](https://github.com/lwronski) in [#2317](https://github.com/
 
 We've updated the `--version` parameter for the publish command. Now, when specifying the project version, use `--project-version` instead.
 
-```bash ignore 
+```bash ignore
 scala-cli publish --project-version 1.0.3 ...
 ```
 
@@ -4268,7 +4493,7 @@ $ scala-cli run ...
 Added by [@lwronski](https://github.com/lwronski) in  [#2267](https://github.com/VirtusLab/scala-cli/pull/2267)
 
 Please be aware that ScalaCLI will only process Java properties that it recognizes from the `.scalaopts` file. Other JVM
-options, such as` -Xms1024m`, will be ignored as they can't be used within native image, and users will be alerted with 
+options, such as` -Xms1024m`, will be ignored as they can't be used within native image, and users will be alerted with
 a warning message when such non-compliant options are passed.
 
 ## Other changes
@@ -4607,7 +4832,7 @@ Added by [@lwronski](https://github.com/lwronski) in [#2040](https://github.com/
 
 ### Fix deadlocks in Script Wrappers
 
-We have resolved an issue that caused deadlocks when threads were run from the static initializer of the wrapper object 
+We have resolved an issue that caused deadlocks when threads were run from the static initializer of the wrapper object
 ([#532](https://github.com/VirtusLab/scala-cli/pull/532) and [#1933](https://github.com/VirtusLab/scala-cli/pull/1933)).
 Based on the feedback from the community (Thanks [@dacr](https://github.com/dacr)), we found that encapsulating the script code
 into a class wrapper fixes the issue. The wrapper is generated by the Scala CLI and is not visible to the user.
@@ -4717,9 +4942,9 @@ Fixed by [@MaciejG604](https://github.com/MaciejG604) in [#2033](https://github.
 `v1.0.0-RC1` is the first release candidate version of Scala CLI.
 
 Either this or a future release candidate is meant to become the new official `scala` runner to accompany
-the Scala compiler (`scalac`) and other scripts, replacing the old `scala` command. 
+the Scala compiler (`scalac`) and other scripts, replacing the old `scala` command.
 
-To learn more about Scala CLI as the new `scala` runner, check out our recent blogpost: 
+To learn more about Scala CLI as the new `scala` runner, check out our recent blogpost:
 https://virtuslab.com/blog/scala-cli-the-new-scala-runner/
 
 ### Scala CLI should now have better performance
@@ -4748,7 +4973,7 @@ Added by  [@Gedochao](https://github.com/Gedochao) in [#1920](https://github.com
 
 ### Experimental and restricted configuration keys will now require to be accessed in `--power` mode
 
-Some configuration keys available with the `config` sub-command have been tagged as experimental or restricted and will 
+Some configuration keys available with the `config` sub-command have been tagged as experimental or restricted and will
 only be available in `--power` mode.
 
 ```bash ignore
@@ -4761,7 +4986,7 @@ scala-cli config httpProxy.address
 Added by  [@Gedochao](https://github.com/Gedochao) in [#1953](https://github.com/VirtusLab/scala-cli/pull/1953)
 
 
-### Dropped deprecated `using` directive syntax 
+### Dropped deprecated `using` directive syntax
 
 The following syntax for `using` directives have been dropped:
 - skipping `//>`
@@ -4810,13 +5035,13 @@ Added by [@lwronski](https://github.com/lwronski) in [#1964](https://github.com/
   in [#1940](https://github.com/VirtusLab/scala-cli/pull/1940)
 * Comply with optional password in `scala-cli-signing` by [@MaciejG604](https://github.com/MaciejG604)
   in [#1982](https://github.com/VirtusLab/scala-cli/pull/1982)
-* Support ssh in GitHub repo org&name extraction by [@KuceraMartin](https://github.com/KuceraMartin) 
+* Support ssh in GitHub repo org&name extraction by [@KuceraMartin](https://github.com/KuceraMartin)
   in [#1938](https://github.com/VirtusLab/scala-cli/pull/1938)
 
 #### Fixes
 * Print an informative error if the project workspace path contains `File.pathSeparator` by [@Gedochao](https://github.com/Gedochao)
   in [#1985](https://github.com/VirtusLab/scala-cli/pull/1985)
-* Enable to pass custom docker-cmd to execute application in docker by [@lwronski](https://github.com/lwronski) 
+* Enable to pass custom docker-cmd to execute application in docker by [@lwronski](https://github.com/lwronski)
   in [#1980](https://github.com/VirtusLab/scala-cli/pull/1980)
 * Fix - uses show cli.nativeImage command to generate native image by [@lwronski](https://github.com/lwronski)
   in [#1975](https://github.com/VirtusLab/scala-cli/pull/1975)
@@ -4827,13 +5052,13 @@ Added by [@lwronski](https://github.com/lwronski) in [#1964](https://github.com/
 
 #### Documentation changes
 
-* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) 
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions)
   in [#1935](https://github.com/VirtusLab/scala-cli/pull/1935)
-* Remove ChainedSnippets by  [@MaciejG604](https://github.com/MaciejG604) 
+* Remove ChainedSnippets by  [@MaciejG604](https://github.com/MaciejG604)
   in [#1928](https://github.com/VirtusLab/scala-cli/pull/1928)
-* Further document publish command by  [@MaciejG604](https://github.com/MaciejG604) 
+* Further document publish command by  [@MaciejG604](https://github.com/MaciejG604)
   in [#1914](https://github.com/VirtusLab/scala-cli/pull/1914)
-* Add a verbosity guide by  [@Gedochao](https://github.com/Gedochao) 
+* Add a verbosity guide by  [@Gedochao](https://github.com/Gedochao)
   in [#1936](https://github.com/VirtusLab/scala-cli/pull/1936)
 * Docs - how to run unit tests in Scala CLI by [@lwronski](https://github.com/lwronski)
   in [#1977](https://github.com/VirtusLab/scala-cli/pull/1977)
@@ -4842,35 +5067,35 @@ Added by [@lwronski](https://github.com/lwronski) in [#1964](https://github.com/
 
 * Use locally build jvm launcher of scala-cli in gifs generator by  [@lwronski](https://github.com/lwronski)
   in [#1921](https://github.com/VirtusLab/scala-cli/pull/1921)
-* Clean up after ammonite imports removal by  [@MaciejG604](https://github.com/MaciejG604) 
+* Clean up after ammonite imports removal by  [@MaciejG604](https://github.com/MaciejG604)
   in [#1934](https://github.com/VirtusLab/scala-cli/pull/1934)
 * Temporarily disable `PublishTests.secret keys in config` on Windows by  [@Gedochao](https://github.com/Gedochao)
   in [#1948](https://github.com/VirtusLab/scala-cli/pull/1948)
-* Move toolkit to scalalang org by [@szymon-rd](https://github.com/szymon-rd) 
+* Move toolkit to scalalang org by [@szymon-rd](https://github.com/szymon-rd)
   in [#1930](https://github.com/VirtusLab/scala-cli/pull/1930)
 
 #### Updates and maintenance
 
-* Update scala-cli.sh launcher for 0.2.1 by [@github-actions](https://github.com/features/actions) 
+* Update scala-cli.sh launcher for 0.2.1 by [@github-actions](https://github.com/features/actions)
   in [#1931](https://github.com/VirtusLab/scala-cli/pull/1931)
-* Bump VirtusLab/scala-cli-setup from 0.2.0 to 0.2.1 by [@dependabot](https://docs.github.com/en/code-security/dependabot) 
+* Bump VirtusLab/scala-cli-setup from 0.2.0 to 0.2.1 by [@dependabot](https://docs.github.com/en/code-security/dependabot)
   in [#1947](https://github.com/VirtusLab/scala-cli/pull/1947)
-* Bump coursier/publish version to 0.1.4 by  [@MaciejG604](https://github.com/MaciejG604) 
+* Bump coursier/publish version to 0.1.4 by  [@MaciejG604](https://github.com/MaciejG604)
   in [#1950](https://github.com/VirtusLab/scala-cli/pull/1950)
-* Bump to the latest weaver & remove expecty by [@lenguyenthanh](https://github.com/lenguyenthanh) 
+* Bump to the latest weaver & remove expecty by [@lenguyenthanh](https://github.com/lenguyenthanh)
   in [#1955](https://github.com/VirtusLab/scala-cli/pull/1955)
-* Bump webfactory/ssh-agent from 0.7.0 to 0.8.0 by [@dependabot](https://docs.github.com/en/code-security/dependabot) 
+* Bump webfactory/ssh-agent from 0.7.0 to 0.8.0 by [@dependabot](https://docs.github.com/en/code-security/dependabot)
   in [#1967](https://github.com/VirtusLab/scala-cli/pull/1967)
-* chore(dep): bump mill from 0.10.10 to 0.10.12 by [@ckipp01](https://github.com/ckipp01) 
+* chore(dep): bump mill from 0.10.10 to 0.10.12 by [@ckipp01](https://github.com/ckipp01)
   in [#1970](https://github.com/VirtusLab/scala-cli/pull/1970)
-* Bump Bleep to `1.5.6-sc-4`by [@Gedochao](https://github.com/Gedochao) 
+* Bump Bleep to `1.5.6-sc-4`by [@Gedochao](https://github.com/Gedochao)
   in [#1973](https://github.com/VirtusLab/scala-cli/pull/1973)
 
 ### New Contributors
 
-* [@KuceraMartin](https://github.com/KuceraMartin) made their first contribution 
+* [@KuceraMartin](https://github.com/KuceraMartin) made their first contribution
   in [#1938](https://github.com/VirtusLab/scala-cli/pull/1938)
-* [@lenguyenthanh](https://github.com/lenguyenthanh) made their first contribution 
+* [@lenguyenthanh](https://github.com/lenguyenthanh) made their first contribution
   in [#1955](https://github.com/VirtusLab/scala-cli/pull/1955)
 
 **Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.2.1...v1.0.0-RC1
@@ -4909,18 +5134,18 @@ You can now view the available config keys using `config --help`:
 scala-cli config -h
 # Usage: scala-cli config [options]
 # Configure global settings for Scala CLI.
-# 
+#
 # Available keys:
 #   actions                                        Globally enables actionable diagnostics. Enabled by default.
 #   interactive                                    Globally enables interactive mode (the '--interactive' flag).
 #   power                                          Globally enables power mode (the '--power' launcher flag).
 #   suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
 #   suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.
-# 
-# You are currently viewing the basic help for the config sub-command. You can view the full help by running: 
+#
+# You are currently viewing the basic help for the config sub-command. You can view the full help by running:
 #    scala-cli config --help-full
 # For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/config
-# 
+#
 # Config options:
 #   --unset, --remove  Remove an entry from config
 ```
@@ -5011,7 +5236,7 @@ scala-cli --power package .
 Alternatively, the `power` mode can be turned on globally by running:
 
 ```bash ignore
-scala-cli config power true 
+scala-cli config power true
 ```
 
 Please note that this change may affect your existing scripts or workflows that rely on the limited commands from ScalaCLI (such as `package`, `publish`). You can still use those commands with `power` mode enabled.
@@ -5063,8 +5288,8 @@ scala-cli --power export --json .
 ```
 
 It is currently exporting basic information about the project and includes, for example, the following fields:
- 
-- ScalaVersion 
+
+- ScalaVersion
 - Platform
 - Sources
 - Dependencies
@@ -5112,7 +5337,7 @@ Renamed by [@lwronski](https://github.com/lwronski) in [#1827](https://github.co
 ### Other breaking changes
 
 #### Remove ammonite imports support
-The support for `$ivy` and `$dep` ammonite imports has been removed. 
+The support for `$ivy` and `$dep` ammonite imports has been removed.
 To easily convert existing `$ivy` and `$dep` imports into the `using dep` directive in your sources, you can use the provided actionable diagnostic.
 
 ![convert_ivy_to_using_dep](/img/gifs/convert_ivy_to_using.gif)
@@ -5189,7 +5414,7 @@ Remove by [@lwronski](https://github.com/lwronski) in [#1867](https://github.com
 ### Add support for Scala Toolkit
 Scala CLI now has support for [Scala Toolkit](https://virtuslab.com/blog/scala-toolkit-makes-scala-powerful-straight-out-of-the-box/).
 
-Scala Toolkit is an ongoing effort by [Scala Center](https://scala.epfl.ch/) and [VirtusLab](https://www.virtuslab.com/) 
+Scala Toolkit is an ongoing effort by [Scala Center](https://scala.epfl.ch/) and [VirtusLab](https://www.virtuslab.com/)
 to compose a set of approachable libraries to solve everyday problems.
 
 It is currently in its pre-release phase and includes the following libraries:
@@ -5224,7 +5449,7 @@ It is possible to skip the check with the `--offline` option, or when printing r
 versions with `--cli-version` and `--scala-version`, respectively.
 
 ```bash
-scala-cli version --offline                     
+scala-cli version --offline
 # Scala CLI version: 0.1.20
 # Scala version (default): 3.2.2
 ```
@@ -5464,7 +5689,7 @@ class HelloTests extends munit.FunSuite {
 ```
 
 ```bash fail
-scala-cli test BarTests.scala HelloTests.scala --test-only 'tests.only*' 
+scala-cli test BarTests.scala HelloTests.scala --test-only 'tests.only*'
 # tests.only.Tests:
 # ==> X tests.only.Tests.bar  0.037s munit.FailException: ~/project/src/test/BarTests.scala:5 assertion failed
 # 4:  test("bar") {
@@ -5554,8 +5779,8 @@ println("Hello")
 Added by [@Gedochao](https://github.com/Gedochao) in [#1583](https://github.com/VirtusLab/scala-cli/pull/1583)
 
 ### Customize exported Mill project name
-It is now possible to pass the desired name of your Mill project to the `export` sub-command 
-with the `--project` option. 
+It is now possible to pass the desired name of your Mill project to the `export` sub-command
+with the `--project` option.
 
 ```bash ignore
 scala-cli export . --mill -o mill-proj --project project-name
