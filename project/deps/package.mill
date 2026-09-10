@@ -19,7 +19,7 @@ object Scala {
   def scala3Lts             = s"$scala3LtsPrefix.0"
   def scala3LegacyLtsPrefix = "3.3"                  // old LTS, still used to build the CLI itself
   def scala3LtsPrefixes     = Seq(scala3LegacyLtsPrefix, scala3LtsPrefix).distinct
-  def scala3LegacyLts       = s"$scala3LegacyLtsPrefix.8"
+  def scala3LegacyLts       = s"$scala3LegacyLtsPrefix.9-RC1"
   def runnerScala3          = scala3LegacyLts
   def scala3NextPrefix      = "3.9"
   def scala3Next            = s"$scala3NextPrefix.0" // newest version of Scala
