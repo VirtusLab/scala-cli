@@ -2,7 +2,8 @@
 //| mvnDeps:
 //| - io.github.alexarchambault.mill::mill-native-image::0.2.6
 //| - io.github.alexarchambault.mill::mill-native-image-upload:0.2.6
-//| - com.goyeau::mill-scalafix::0.6.0
+//| - com.goyeau::mill-scalafix::0.6.2
+//| - ch.epfl.scala:scalafix-interfaces:0.14.8
 //| - com.lumidion::sonatype-central-client-requests:0.6.0
 //| - io.get-coursier:coursier-launcher_2.13:2.1.25-M26
 //| - org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r

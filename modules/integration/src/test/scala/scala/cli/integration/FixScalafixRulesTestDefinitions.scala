@@ -59,47 +59,45 @@ trait FixScalafixRulesTestDefinitions {
     }
   }
 
-  if !isScala310OrNewer then
-    // TODO https://github.com/scalacenter/scalafix/issues/2503 re-enable when fixed
-    test("semantic rule") {
-      val unusedValueInputsContent: String =
-        s"""//> using options $scalafixUnusedRuleOption
-           |package foo
-           |
-           |object Hello {
-           |  def main(args: Array[String]): Unit = {
-           |    val name = "John"
-           |    println("Hello")
-           |  }
-           |}
-           |""".stripMargin
-      val semanticRuleInputs: TestInputs = TestInputs(
-        os.rel / scalafixConfFileName ->
-          s"""|rules = [
-              |  RemoveUnused
-              |]
-              |""".stripMargin,
-        os.rel / "Hello.scala" -> unusedValueInputsContent
-      )
-      val expectedContent: String = noCrLf {
-        s"""//> using options $scalafixUnusedRuleOption
-           |package foo
-           |
-           |object Hello {
-           |  def main(args: Array[String]): Unit = {
-           |    
-           |    println("Hello")
-           |  }
-           |}
-           |""".stripMargin
-      }
-
-      semanticRuleInputs.fromRoot { root =>
-        os.proc(TestUtil.cli, "fix", "--power", ".", scalaVersionArgs).call(cwd = root)
-        val updatedContent = noCrLf(os.read(root / "Hello.scala"))
-        expect(updatedContent == expectedContent)
-      }
+  test("semantic rule") {
+    val unusedValueInputsContent: String =
+      s"""//> using options $scalafixUnusedRuleOption
+         |package foo
+         |
+         |object Hello {
+         |  def main(args: Array[String]): Unit = {
+         |    val name = "John"
+         |    println("Hello")
+         |  }
+         |}
+         |""".stripMargin
+    val semanticRuleInputs: TestInputs = TestInputs(
+      os.rel / scalafixConfFileName ->
+        s"""|rules = [
+            |  RemoveUnused
+            |]
+            |""".stripMargin,
+      os.rel / "Hello.scala" -> unusedValueInputsContent
+    )
+    val expectedContent: String = noCrLf {
+      s"""//> using options $scalafixUnusedRuleOption
+         |package foo
+         |
+         |object Hello {
+         |  def main(args: Array[String]): Unit = {
+         |    
+         |    println("Hello")
+         |  }
+         |}
+         |""".stripMargin
     }
+
+    semanticRuleInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "fix", "--power", ".", scalaVersionArgs).call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == expectedContent)
+    }
+  }
 
   test("--rules args") {
     val input = TestInputs(
@@ -314,10 +312,9 @@ trait FixScalafixRulesTestDefinitions {
       Seq("--semanticdb=false") -> false
     )
     semanticDbOptionsDescription =
-      if (semanticDbOptions.nonEmpty) s" (${semanticDbOptions.mkString(" ")})"
-      else ""
-    verb = if (expectedSuccess) "run" else "fail"
-    if !isScala310OrNewer || !expectedSuccess
+      if semanticDbOptions.nonEmpty then s" (${semanticDbOptions.mkString(" ")})" else ""
+    verb = if expectedSuccess then "run" else "fail"
+    if !isScala310OrNewer || !expectedSuccess // TODO re-enable when fixed for 3.10+
     if !Properties.isWin || expectedSuccess
   }
     test(
