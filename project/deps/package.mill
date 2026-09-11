@@ -30,7 +30,7 @@ object Scala {
   def scala3NextRcAnnounced = "3.10.0-RC1" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
-  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
+  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Next)
 
   // The Scala version used by default to compile user input.
   def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3Next)
@@ -49,10 +49,9 @@ object Scala {
   val ltsScala3       = Seq(scala3Lts, scala3LtsRc).distinct
   val nextScala3      =
     Seq(scala3Next, scala3NextAnnounced, scala3NextRc, scala3NextRcAnnounced).distinct
-  val currentScala3       = (ltsScala3 ++ nextScala3).distinct
   val allScala3           = (defaults ++ legacyLtsScala3 ++ ltsScala3 ++ nextScala3).distinct
   val all                 = (allScala2 ++ allScala3 ++ defaults).distinct
-  val scala3MainVersions  = (defaults ++ currentScala3).distinct
+  val scala3MainVersions  = (defaults ++ nextScala3).distinct
   val runnerScalaVersions = (Seq(runnerScala3) ++ defaults ++ allScala3).distinct
 
   def scalaJs    = "1.22.0"
