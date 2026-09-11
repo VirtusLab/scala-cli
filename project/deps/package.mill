@@ -50,7 +50,7 @@ object Scala {
   val nextScala3      =
     Seq(scala3Next, scala3NextAnnounced, scala3NextRc, scala3NextRcAnnounced).distinct
   val currentScala3       = (ltsScala3 ++ nextScala3).distinct
-  val allScala3           = (legacyLtsScala3 ++ ltsScala3 ++ nextScala3).distinct
+  val allScala3           = (defaults ++ legacyLtsScala3 ++ ltsScala3 ++ nextScala3).distinct
   val all                 = (allScala2 ++ allScala3 ++ defaults).distinct
   val scala3MainVersions  = (defaults ++ currentScala3).distinct
   val runnerScalaVersions = (Seq(runnerScala3) ++ defaults ++ allScala3).distinct
