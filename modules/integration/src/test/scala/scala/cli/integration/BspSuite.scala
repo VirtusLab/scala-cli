@@ -224,7 +224,7 @@ trait BspSuite { this: ScalaCliSuite =>
     expect(os.isFile(bspFile))
     val content = os.read.bytes(bspFile)
     // check that we can decode the connection details
-    readFromArray(content)(detailsCodec)
+    readFromArray(content)(using detailsCodec)
   }
 
   protected def checkIfBloopProjectIsInitialised(

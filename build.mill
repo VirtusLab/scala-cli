@@ -62,8 +62,27 @@ trait CrossScalaDefaultToInternal extends CrossScalaDefault { self: Cross[?] =>
   override def crossScalaDefaultVersion: String = Scala.defaultInternal
 }
 
+trait CrossScalaDefaultToLegacyLts extends CrossScalaDefault { self: Cross[?] =>
+  override def crossScalaDefaultVersion: String = Scala.scala3LegacyLts
+}
+
+trait CrossScalaDefaultToLts extends CrossScalaDefault { self: Cross[?] =>
+  override def crossScalaDefaultVersion: String = Scala.scala3Lts
+}
+
 trait CrossScalaDefaultToRunner extends CrossScalaDefault { self: Cross[?] =>
   override def crossScalaDefaultVersion: String = Scala.runnerScala3
+}
+
+trait LegacyLazyVals extends CrossScalaModule {
+  def lazyValOptions =
+    if crossScalaVersion.startsWith("3.3")
+    then Seq("-Yfuture-lazy-vals", "-java-output-version:17")
+    else Nil
+
+  override def scalacOptions: T[Seq[String]] = Task {
+    super.scalacOptions() ++ lazyValOptions
+  }
 }
 
 // Publish a bootstrapped, executable jar for a restricted environments
@@ -95,14 +114,14 @@ object cliBootstrapped extends ScalaCliPublishModule {
   }
 }
 
-object `specification-level` extends Cross[SpecificationLevel](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
+object `specification-level` extends Cross[SpecificationLevel](Scala.allScala3)
+    with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 after 3.3 EOL
 object `build-macros` extends Cross[BuildMacros](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object `directives-parser` extends Cross[DirectivesParserModule](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object config extends Cross[Config](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
+    with CrossScalaDefaultToLts // pinned to LTS for other tools to depend on
 object options extends Cross[Options](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object directives extends Cross[Directives](Scala.scala3MainVersions)
@@ -112,9 +131,9 @@ object core extends Cross[Core](Scala.scala3MainVersions)
 object `build-module` extends Cross[Build](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object runner extends Cross[Runner](Scala.runnerScalaVersions)
-    with CrossScalaDefaultToRunner
+    with CrossScalaDefaultToRunner // TODO Bump to 3.9 after 3.3 EOL
 object `test-runner` extends Cross[TestRunner](Scala.runnerScalaVersions)
-    with CrossScalaDefaultToRunner
+    with CrossScalaDefaultToRunner // TODO Bump to 3.9 after 3.3 EOL
 object `java-test-runner` extends JavaTestRunner
     with LocatedInModules
 object `tasty-lib` extends Cross[TastyLib](Scala.scala3MainVersions)
@@ -239,7 +258,7 @@ trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with LocatedI
 }
 
 object packager extends ScalaModule {
-  override def scalaVersion: T[String] = Scala.scala3LegacyLts
+  override def scalaVersion: T[String] = Scala.defaultInternal
   override def mvnDeps: T[Seq[Dep]]    = Seq(
     Deps.scalaPackagerCli
   )
@@ -823,7 +842,8 @@ trait DirectivesParserModule extends ScalaCliCrossSbtModule
 
 trait SpecificationLevel extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
-    with LocatedInModules {
+    with LocatedInModules
+    with LegacyLazyVals {
   override def crossScalaVersion: String = crossValue
 }
 
@@ -1021,7 +1041,7 @@ trait CliIntegration extends SbtModule
     with LocatedInModules {
   override def scalaVersion: T[String] = sv
 
-  def sv: String = Scala.scala3LegacyLts
+  def sv: String = Scala.defaultInternal
 
   def tmpDirBase: T[PathRef] = Task(persistent = true) {
     PathRef(Task.dest / "working-dir")
@@ -1317,7 +1337,7 @@ trait CliIntegration extends SbtModule
 }
 
 trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with HasTests {
-  override def scalaVersion: T[String] = Scala.scala3LegacyLts
+  override def scalaVersion: T[String] = Scala.defaultInternal
   override def mvnDeps: T[Seq[Dep]]    = super.mvnDeps() ++ Seq(
     Deps.osLib
   )
@@ -1327,7 +1347,8 @@ trait Runner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
     with HasTests
-    with LocatedInModules {
+    with LocatedInModules
+    with LegacyLazyVals {
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-deprecation")
   }
@@ -1344,7 +1365,8 @@ trait Runner extends CrossSbtModule
 trait TestRunner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
-    with LocatedInModules {
+    with LocatedInModules
+    with LegacyLazyVals {
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-deprecation")
   }

@@ -17,9 +17,11 @@ object Scala {
   def scala213              = "2.13.18"
   def scala3LtsPrefix       = "3.9"                  // current LTS
   def scala3Lts             = s"$scala3LtsPrefix.0"
-  def scala3LegacyLtsPrefix = "3.3"                  // old LTS, still used to build the CLI itself
+  def scala3LtsRc           = s"$scala3LtsPrefix.0-RC6"
+  def scala3LegacyLtsPrefix = "3.3"                  // old LTS
   def scala3LtsPrefixes     = Seq(scala3LegacyLtsPrefix, scala3LtsPrefix).distinct
   def scala3LegacyLts       = s"$scala3LegacyLtsPrefix.8"
+  def scala3LegacyLtsRc     = s"$scala3LegacyLtsPrefix.9-RC1"
   def runnerScala3          = scala3LegacyLts
   def scala3NextPrefix      = "3.9"
   def scala3Next            = s"$scala3NextPrefix.0" // newest version of Scala
@@ -28,7 +30,7 @@ object Scala {
   def scala3NextRcAnnounced = "3.10.0-RC1" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
-  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3LegacyLts)
+  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Next)
 
   // The Scala version used by default to compile user input.
   def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3Next)
@@ -41,12 +43,16 @@ object Scala {
   // respectively
   def scala38Versions = Seq("3.8.0", "3.8.0-RC1", "3.8.0-RC1-bin-20250901-ca400bd-NIGHTLY")
 
-  val allScala2 = Seq(scala213, scala212)
-  val defaults  = Seq(defaultInternal, defaultUser).distinct
-  val allScala3 = Seq(scala3LegacyLts, scala3Next, scala3NextAnnounced, scala3NextRc).distinct
-  val all       = (allScala2 ++ allScala3 ++ defaults).distinct
-  val scala3MainVersions  = (defaults ++ allScala3).distinct
-  val runnerScalaVersions = (Seq(runnerScala3) ++ scala3MainVersions).distinct
+  val allScala2       = Seq(scala213, scala212)
+  val defaults        = Seq(defaultInternal, defaultUser).distinct
+  val legacyLtsScala3 = Seq(scala3LegacyLts, scala3LegacyLtsRc).distinct
+  val ltsScala3       = Seq(scala3Lts, scala3LtsRc).distinct
+  val nextScala3      =
+    Seq(scala3Next, scala3NextAnnounced, scala3NextRc, scala3NextRcAnnounced).distinct
+  val allScala3           = (defaults ++ legacyLtsScala3 ++ ltsScala3 ++ nextScala3).distinct
+  val all                 = (allScala2 ++ allScala3 ++ defaults).distinct
+  val scala3MainVersions  = (defaults ++ nextScala3).distinct
+  val runnerScalaVersions = (Seq(runnerScala3) ++ defaults ++ allScala3).distinct
 
   def scalaJs    = "1.22.0"
   def scalaJsCli = "1.22.0.1" // this must be compatible with the Scala.js version
