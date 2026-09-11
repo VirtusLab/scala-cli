@@ -105,8 +105,8 @@ object `build-macros` extends Cross[BuildMacros](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object `directives-parser` extends Cross[DirectivesParserModule](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
-object config extends Cross[Config](Scala.allScala3)
-    with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 after 3.3 EOL
+object config extends Cross[Config](Scala.scala3MainVersions)
+    with CrossScalaDefaultToInternal
 object options extends Cross[Options](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object directives extends Cross[Directives](Scala.scala3MainVersions)
