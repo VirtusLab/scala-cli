@@ -18,7 +18,7 @@ object Scala {
   def scala3LtsPrefix       = "3.9"                  // current LTS
   def scala3Lts             = s"$scala3LtsPrefix.0"
   def scala3LtsRc           = s"$scala3LtsPrefix.0-RC6"
-  def scala3LegacyLtsPrefix = "3.3"                  // old LTS, still used to build the CLI itself
+  def scala3LegacyLtsPrefix = "3.3"                  // old LTS
   def scala3LtsPrefixes     = Seq(scala3LegacyLtsPrefix, scala3LtsPrefix).distinct
   def scala3LegacyLts       = s"$scala3LegacyLtsPrefix.8"
   def scala3LegacyLtsRc     = s"$scala3LegacyLtsPrefix.9-RC1"
@@ -49,10 +49,11 @@ object Scala {
   val ltsScala3       = Seq(scala3Lts, scala3LtsRc).distinct
   val nextScala3      =
     Seq(scala3Next, scala3NextAnnounced, scala3NextRc, scala3NextRcAnnounced).distinct
+  val currentScala3       = (ltsScala3 ++ nextScala3).distinct
   val allScala3           = (legacyLtsScala3 ++ ltsScala3 ++ nextScala3).distinct
   val all                 = (allScala2 ++ allScala3 ++ defaults).distinct
-  val scala3MainVersions  = (defaults ++ allScala3).distinct
-  val runnerScalaVersions = (Seq(runnerScala3) ++ scala3MainVersions).distinct
+  val scala3MainVersions  = (defaults ++ currentScala3).distinct
+  val runnerScalaVersions = (Seq(runnerScala3) ++ defaults ++ allScala3).distinct
 
   def scalaJs    = "1.22.0"
   def scalaJsCli = "1.22.0.1" // this must be compatible with the Scala.js version

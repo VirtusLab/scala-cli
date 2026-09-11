@@ -62,6 +62,10 @@ trait CrossScalaDefaultToInternal extends CrossScalaDefault { self: Cross[?] =>
   override def crossScalaDefaultVersion: String = Scala.defaultInternal
 }
 
+trait CrossScalaDefaultToLegacyLts extends CrossScalaDefault { self: Cross[?] =>
+  override def crossScalaDefaultVersion: String = Scala.scala3LegacyLts
+}
+
 trait CrossScalaDefaultToRunner extends CrossScalaDefault { self: Cross[?] =>
   override def crossScalaDefaultVersion: String = Scala.runnerScala3
 }
@@ -95,14 +99,14 @@ object cliBootstrapped extends ScalaCliPublishModule {
   }
 }
 
-object `specification-level` extends Cross[SpecificationLevel](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
+object `specification-level` extends Cross[SpecificationLevel](Scala.allScala3)
+    with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 after 3.3 EOL
 object `build-macros` extends Cross[BuildMacros](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object `directives-parser` extends Cross[DirectivesParserModule](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
-object config extends Cross[Config](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
+object config extends Cross[Config](Scala.allScala3)
+    with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 after 3.3 EOL
 object options extends Cross[Options](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object directives extends Cross[Directives](Scala.scala3MainVersions)
@@ -112,9 +116,9 @@ object core extends Cross[Core](Scala.scala3MainVersions)
 object `build-module` extends Cross[Build](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object runner extends Cross[Runner](Scala.runnerScalaVersions)
-    with CrossScalaDefaultToRunner
+    with CrossScalaDefaultToRunner // TODO Bump to 3.9 after 3.3 EOL
 object `test-runner` extends Cross[TestRunner](Scala.runnerScalaVersions)
-    with CrossScalaDefaultToRunner
+    with CrossScalaDefaultToRunner // TODO Bump to 3.9 after 3.3 EOL
 object `java-test-runner` extends JavaTestRunner
     with LocatedInModules
 object `tasty-lib` extends Cross[TastyLib](Scala.scala3MainVersions)
