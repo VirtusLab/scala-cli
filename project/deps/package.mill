@@ -7,8 +7,9 @@ import scalalib.*
 object Cli {
   def runnerScala30LegacyVersion =
     "1.7.1" // last runner version to support pre-LTS Scala 3 versions
-  def runnerScala2LegacyVersion = "1.9.1" // last runner version to support pre-Scala-3 versions
-  def scala3GraalLegacyVersion  = "1.9.1" // last version to support pre-3.3 processing for Graal
+  def runnerScala2LegacyVersion = "1.9.1"  // last runner version to support pre-Scala-3 versions
+  def scala3GraalLegacyVersion  = "1.9.1"  // last version to support pre-3.3 processing for Graal
+  def runnerJava8LegacyVersion  = "1.17.0" // last runner version to support Java 8
 }
 
 object Scala {
@@ -98,18 +99,22 @@ object Scala {
 }
 
 object Java {
-  def minimumJavaLauncherJava       = 11
-  def minimumBloopJava: Int         = 17
-  def minimumScala38Java: Int       = 17
-  def minimumRunnerJava: Int        = 8
-  def minimumInternalJava: Int      = 16
-  def minimumJep512Java: Int        = 25
-  def minimumJep512PreviewJava: Int = 21
-  def defaultJava: Int              = minimumBloopJava
-  def cliKeyJavaVersions            = Seq(
+  // the CLI itself is built with Scala 3 Next, which emits Java 17 bytecode
+  def minimumJavaLauncherJava: Int   = 17
+  def minimumBloopJava: Int          = 17
+  def minimumScala38Java: Int        = 17
+  def minimumJavaTestRunnerJava: Int = 8
+  def minimumRunnerJava: Int         = 11 // TODO: bump to 17 when Scala 3.3 goes EOL
+  def minimumInternalJava: Int       = 16
+  def minimumJep512Java: Int         = 25
+  def minimumJep512PreviewJava: Int  = 21
+  def defaultJava: Int               = minimumBloopJava
+  def cliKeyJavaVersions             = Seq(
     minimumBloopJava,
     minimumInternalJava,
+    minimumRunnerJava,
     defaultJava,
+    minimumInternalJava,
     minimumJavaLauncherJava
   ).distinct
   def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 23, 24, 25, 26)

@@ -2809,13 +2809,18 @@ abstract class RunTestDefinitions
             os.proc(TestUtil.cli, "run", ".", "--runner", extraOptions, "--jvm", javaVersion)
               .call(cwd = root, stderr = os.Pipe)
           expect(res.out.trim() == expectedMessage)
+          val isLegacyJvm        = javaVersion < Constants.minimumRunnerJavaVersion
+          val isLegacyScala      = actualScalaVersion.startsWith("2")
           val legacyWarningCheck = {
-            val check       = res.err.trim().contains(legacyRunnerWarning)
-            val shouldCheck =
-              javaVersion < Constants.scala38MinJavaVersion || actualScalaVersion.startsWith("2")
-            if shouldCheck then check else !check
+            val check = res.err.trim().contains(legacyRunnerWarning)
+            if isLegacyJvm || isLegacyScala then check else !check
           }
           expect(legacyWarningCheck)
+          if isLegacyJvm && !isLegacyScala then
+            expect(
+              res.err.trim()
+                .contains(s"$legacyRunnerWarning: ${Constants.runnerJava8LegacyVersion}")
+            )
         }
     }
 
