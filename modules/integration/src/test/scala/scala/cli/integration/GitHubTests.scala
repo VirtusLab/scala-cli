@@ -41,7 +41,7 @@ class GitHubTests extends ScalaCliSuite {
         root / "pub-key.json"
       )
         .call(cwd = root)
-      val output = readFromArray(res.out.bytes)(GitHubTests.encryptedSecretCodec)
+      val output = readFromArray(res.out.bytes)(using GitHubTests.encryptedSecretCodec)
 
       expect(output.key_id == keyId)
 
@@ -141,7 +141,7 @@ object GitHubTests {
   private def initSodium(): Unit = {
     val (url, relPath) = archiveUrlAndPath()
     val archiveCache   = ArchiveCache()
-    val dir            = archiveCache.get(Artifact(url)).unsafeRun()(archiveCache.cache.ec)
+    val dir            = archiveCache.get(Artifact(url)).unsafeRun()(using archiveCache.cache.ec)
       .fold(e => throw new Exception(e), os.Path(_, os.pwd))
     val lib = dir / relPath
     System.load(lib.toString)
