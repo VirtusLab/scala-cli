@@ -74,6 +74,17 @@ trait CrossScalaDefaultToRunner extends CrossScalaDefault { self: Cross[?] =>
   override def crossScalaDefaultVersion: String = Scala.runnerScala3
 }
 
+trait LegacyLazyVals extends CrossScalaModule {
+  def lazyValOptions =
+    if crossScalaVersion.startsWith("3.3")
+    then Seq("-Yfuture-lazy-vals", "-java-output-version:17")
+    else Nil
+
+  override def scalacOptions: T[Seq[String]] = Task {
+    super.scalacOptions() ++ lazyValOptions
+  }
+}
+
 // Publish a bootstrapped, executable jar for a restricted environments
 object cliBootstrapped extends ScalaCliPublishModule {
   override def unmanagedClasspath: T[Seq[PathRef]] =
@@ -831,7 +842,8 @@ trait DirectivesParserModule extends ScalaCliCrossSbtModule
 
 trait SpecificationLevel extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
-    with LocatedInModules {
+    with LocatedInModules
+    with LegacyLazyVals {
   override def crossScalaVersion: String = crossValue
 }
 
@@ -1335,7 +1347,8 @@ trait Runner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
     with HasTests
-    with LocatedInModules {
+    with LocatedInModules
+    with LegacyLazyVals {
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-deprecation")
   }
@@ -1352,7 +1365,8 @@ trait Runner extends CrossSbtModule
 trait TestRunner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
-    with LocatedInModules {
+    with LocatedInModules
+    with LegacyLazyVals {
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-deprecation")
   }
