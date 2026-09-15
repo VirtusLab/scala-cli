@@ -1080,6 +1080,7 @@ trait CliIntegration extends SbtModule
            |  def minimumLauncherJavaVersion   = ${Java.minimumJavaLauncherJava}
            |  def bloopMinimumJvmVersion       = ${Java.minimumBloopJava}
            |  def minimumInternalJvmVersion    = ${Java.minimumInternalJava}
+           |  def minimumRunnerJava            = ${Java.minimumRunnerJava}
            |  def defaultJvmVersion            = ${Java.defaultJava}
            |  def scala212                     = "${Scala.scala212}"
            |  def scala213                     = "${Scala.scala213}"
@@ -1362,6 +1363,8 @@ trait TestRunner extends CrossSbtModule
 trait JavaTestRunner extends JavaModule
     with ScalaCliPublishModule
     with LocatedInModules {
+  override def javacOptions: T[Seq[String]] =
+    super.javacOptions() ++ Seq("--release", Java.minimumRunnerJava.toString)
   override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
     Deps.asm,
     Deps.testInterface
