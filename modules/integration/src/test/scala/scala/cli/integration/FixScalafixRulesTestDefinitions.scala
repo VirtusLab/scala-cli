@@ -314,7 +314,6 @@ trait FixScalafixRulesTestDefinitions {
     semanticDbOptionsDescription =
       if semanticDbOptions.nonEmpty then s" (${semanticDbOptions.mkString(" ")})" else ""
     verb = if expectedSuccess then "run" else "fail"
-    if !isScala310OrNewer || !expectedSuccess // TODO re-enable when fixed for 3.10+
     if !Properties.isWin || expectedSuccess
   }
     test(
