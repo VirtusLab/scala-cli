@@ -562,7 +562,7 @@ class RunTestsDefault extends RunTestDefinitions
     buildServerOptions <- Seq(Nil, Seq("--server=false"))
     buildServerDesc =
       if buildServerOptions.isEmpty then "with build server" else "without build server"
-  }
+  } {
     test(s"pure Java run has no Scala on classpath $buildServerDesc") {
       TestInputs(
         os.rel / "Main.java" ->
@@ -583,4 +583,37 @@ class RunTestsDefault extends RunTestDefinitions
         expect(res.out.text().contains("No Scala on classpath!"))
       }
     }
+
+    test(
+      s"pure Java run has no Scala on classpath --jvm ${Constants.minimumRunnerJava} $buildServerDesc"
+    ) {
+      val targetJvm = Constants.minimumRunnerJava
+      TestInputs(
+        os.rel / "Main.java" ->
+          s"""public class Main {
+             |  public static void main(String[] args) {
+             |    try {
+             |      Class.forName("scala.Predef");
+             |      throw new RuntimeException("Scala should not be on the classpath");
+             |    } catch (ClassNotFoundException e) {
+             |      System.out.println("No Scala on classpath with $targetJvm!");
+             |    }
+             |  }
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        val res =
+          os.proc(
+            TestUtil.cli,
+            "run",
+            buildServerOptions,
+            extraOptions,
+            ".",
+            "--jvm",
+            targetJvm
+          ).call(cwd = root)
+        expect(res.out.text().contains(s"No Scala on classpath with $targetJvm!"))
+      }
+    }
+  }
 }
