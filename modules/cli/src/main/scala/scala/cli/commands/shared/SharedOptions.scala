@@ -87,7 +87,7 @@ final case class SharedOptions(
   )
   @ValueDescription("organization")
   @Name("scalaOrg")
-  @Tag(tags.experimental)
+  @Tag(tags.restricted)
     scalaOrganization: Option[String] = None,
   @Group(HelpGroup.Scala.toString)
   @HelpMessage("Set the Scala binary version")
