@@ -1,7 +1,8 @@
 package scala.build.preprocessing.directives
 
+import dotty.tools.directives.DirectiveValue
+
 import scala.build.Position
-import scala.cli.parse.DirectiveValue
 
 /** Represents a directive with a key and a sequence of values.
   *
@@ -69,7 +70,7 @@ case class StrictDirective(
   def position(path: Either[String, os.Path]): Position.File =
     values.lastOption
       .map { v =>
-        val p = v.pos
+        val p = v.position
         v match
           case _: DirectiveValue.EmptyVal => (p.line, p.column)
           case bv: DirectiveValue.BoolVal => (p.line, p.column + bv.value.toString.length)

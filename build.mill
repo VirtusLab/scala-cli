@@ -126,8 +126,6 @@ object `specification-level` extends Cross[SpecificationLevel](Scala.allScala3)
     with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 after 3.3 EOL
 object `build-macros` extends Cross[BuildMacros](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
-object `directives-parser` extends Cross[DirectivesParserModule](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
 object config extends Cross[Config](Scala.scala3MainVersions)
     with CrossScalaDefaultToLts // pinned to LTS for other tools to depend on
 object options extends Cross[Options](Scala.scala3MainVersions)
@@ -648,8 +646,7 @@ trait Directives extends ScalaCliCrossSbtModule
     options(crossScalaVersion),
     core(crossScalaVersion),
     `build-macros`(crossScalaVersion),
-    `specification-level`(crossScalaVersion),
-    `directives-parser`(crossScalaVersion)
+    `specification-level`(crossScalaVersion)
   )
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion)
@@ -663,7 +660,8 @@ trait Directives extends ScalaCliCrossSbtModule
     // Deps.asm,
     Deps.bloopConfig,
     Deps.jsoniterCore,
-    Deps.pprint
+    Deps.pprint,
+    Deps.directivesParser(crossScalaVersion)
   )
 
   override def repositoriesTask: Task[Seq[Repository]] =
@@ -1063,9 +1061,6 @@ trait CliIntegration extends SbtModule
   )
 
   trait IntegrationScalaTests extends super.ScalaCliTests with ScalaCliScalafixModule {
-    override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(
-      `directives-parser`(sv)
-    )
     override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
       Deps.bsp4j,
       Deps.coursier
@@ -1076,7 +1071,8 @@ trait CliIntegration extends SbtModule
       Deps.jsoniterCore,
       Deps.libsodiumjni,
       Deps.pprint,
-      Deps.slf4jNop
+      Deps.slf4jNop,
+      Deps.directivesParser(sv)
     )
     override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(
       Deps.jsoniterMacros

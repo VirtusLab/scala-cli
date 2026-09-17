@@ -196,7 +196,7 @@ object BuiltInRules extends CommandHelpers {
       val (_, content, _) = SheBang.partitionOnShebangSection(os.read(path))
       logger.debug(s"Extracting directives from ${loggingUtilities.relativePath(path)}")
       ExtractedDirectives.from(
-        contentChars = content.toCharArray,
+        contentChars = content.toIndexedSeq,
         path = Right(path),
         suppressWarningOptions = suppressWarningOptions,
         logger = logger,
@@ -225,7 +225,7 @@ object BuiltInRules extends CommandHelpers {
       val (_, contentWithNoShebang, _) = SheBang.partitionOnShebangSection(content)
 
       ExtractedDirectives.from(
-        contentChars = contentWithNoShebang.toCharArray,
+        contentChars = contentWithNoShebang.toIndexedSeq,
         path = originOrPath,
         suppressWarningOptions = suppressWarningOptions,
         logger = logger,

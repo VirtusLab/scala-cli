@@ -1,5 +1,7 @@
 package scala.build.directives
 
+import dotty.tools.directives.DirectiveValue
+
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
@@ -11,7 +13,6 @@ import scala.build.errors.{
 import scala.build.preprocessing.ScopePath
 import scala.build.preprocessing.directives.DirectiveUtil
 import scala.build.{Position, Positioned}
-import scala.cli.parse.DirectiveValue
 
 abstract class DirectiveValueParser[+T] {
   def parse(
