@@ -24,6 +24,7 @@ import scala.build.internal.Regexes.{
 }
 import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.internals.EnvVar
+import scala.build.options.ScalaOptions.*
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned, RepositoryUtils}
 import scala.collection.immutable.Seq
@@ -105,14 +106,19 @@ final case class BuildOptions(
         else Some(false)
       }
 
+  def scalaOrganization: String = scalaOptions.scalaOrganization.orDefaultOrg
+
+  def customScalaOrganization: Option[String] =
+    scalaOptions.scalaOrganization.filterNot(_.isDefaultOrg)
+
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     value(scalaParams).toSeq.flatMap { scalaParams0 =>
       if (platform.value != Platform.Native && scalaOptions.addScalaLibrary.getOrElse(true))
         Seq(
           if (scalaParams0.scalaVersion.startsWith("3."))
-            dep"org.scala-lang::scala3-library::${scalaParams0.scalaVersion}"
+            dep"$scalaOrganization::scala3-library::${scalaParams0.scalaVersion}"
           else
-            dep"org.scala-lang:scala-library:${scalaParams0.scalaVersion}"
+            dep"$scalaOrganization:scala-library:${scalaParams0.scalaVersion}"
         )
       else Nil
     }
@@ -125,11 +131,11 @@ final case class BuildOptions(
       .flatMap {
         case (sp, true) if sp.scalaVersion.startsWith("3") =>
           Seq(
-            dep"org.scala-lang::scala3-compiler::${sp.scalaVersion}",
-            dep"org.scala-lang::scala3-staging::${sp.scalaVersion}",
-            dep"org.scala-lang::scala3-tasty-inspector::${sp.scalaVersion}"
+            dep"$scalaOrganization::scala3-compiler::${sp.scalaVersion}",
+            dep"$scalaOrganization::scala3-staging::${sp.scalaVersion}",
+            dep"$scalaOrganization::scala3-tasty-inspector::${sp.scalaVersion}"
           )
-        case (sp, true) => Seq(dep"org.scala-lang:scala-compiler:${sp.scalaVersion}")
+        case (sp, true) => Seq(dep"$scalaOrganization:scala-compiler:${sp.scalaVersion}")
         case _          => Nil
       }
   }
@@ -361,6 +367,10 @@ final case class BuildOptions(
         // Do not validate Scala version in offline mode
         case (Some(MaybeScalaVersion(Some(svInput))), _) if internal.offline.getOrElse(false) =>
           Some(svInput)
+        // Version aliases and validation are tied to the official artifacts,
+        // so with a custom Scala organization the version is taken as-is.
+        case (Some(MaybeScalaVersion(Some(svInput))), _) if customScalaOrganization.nonEmpty =>
+          Some(svInput)
         // Do not validate Scala version if it is a default one
         case (Some(MaybeScalaVersion(Some(svInput))), _) if defaultVersions.contains(svInput) =>
           Some(svInput)
@@ -480,6 +490,7 @@ final case class BuildOptions(
       case Some(scalaParams0) =>
         val params = Artifacts.ScalaArtifactsParams(
           params = scalaParams0,
+          organization = scalaOrganization,
           compilerPlugins = value(compilerPlugins(logger)),
           addJsTestBridge = addJsTestBridge.filter(_ => isTests),
           addNativeTestInterface = addNativeTestInterface.filter(_ => isTests),

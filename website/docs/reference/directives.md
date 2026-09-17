@@ -585,6 +585,15 @@ Add Scala Native options
 
 `//> using nativeMultithreading false`
 
+### Scala organization
+
+Set the organization the Scala toolchain artifacts are fetched from (org.scala-lang by default)
+
+`//> using scalaOrganization` _organization_
+
+#### Examples
+`//> using scalaOrganization ch.epfl.lara`
+
 ### Scala version
 
 Set the default Scala version

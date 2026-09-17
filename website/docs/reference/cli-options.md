@@ -1626,6 +1626,12 @@ Aliases: `-S`, `--scala`
 
 Set the Scala version (3.9.0 by default)
 
+### `--scala-organization`
+
+Aliases: `--scala-org`
+
+Set the organization the Scala toolchain artifacts are fetched from (org.scala-lang by default)
+
 ### `--scala-binary-version`
 
 Aliases: `-B`, `--scala-bin`, `--scala-binary`
