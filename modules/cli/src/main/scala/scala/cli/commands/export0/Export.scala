@@ -260,7 +260,7 @@ object Export extends ScalaCommand[ExportOptions] {
       !MillProject.supportsScalaOrganization(millVersion0)
     then
       logger.error(
-        s"""Error: Mill $millVersion0 ignores `ScalaModule.scalaOrganization`, so the exported build would silently use the official Scala toolchain.
+        s"""Mill $millVersion0 ignores `ScalaModule.scalaOrganization`, so the exported build would silently use the official Scala toolchain.
            |Export with --mill-version ${MillProject.lastSupportedMillVersion} or older, to sbt or to Maven instead, or drop the scalaOrganization setting.""".stripMargin
       )
       sys.exit(1)
