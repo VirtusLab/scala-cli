@@ -574,6 +574,10 @@ trait Core extends ScalaCliCrossSbtModule
           .sorted
           .map(s => s"\"$s\"")
           .mkString(", ")})
+         |  def scala39Versions = Seq(${Scala.scala39Versions
+          .sorted
+          .map(s => s"\"$s\"")
+          .mkString(", ")})
          |  def scala38MinJavaVersion = ${Java.minimumScala38Java}
          |  def jep512MinJavaVersion = ${Java.minimumJep512Java}
          |  def jep512PreviewMinJavaVersion = ${Java.minimumJep512PreviewJava}
@@ -1123,6 +1127,10 @@ trait CliIntegration extends SbtModule
            |  def scala3NextAnnounced          = "${Scala.scala3NextAnnounced}"
            |  def defaultScala                 = "${Scala.defaultUser}"
            |  def scala38Versions              = Seq(${Scala.scala38Versions
+            .sorted
+            .map(s => s"\"$s\"")
+            .mkString(", ")})
+           |  def scala39Versions              = Seq(${Scala.scala39Versions
             .sorted
             .map(s => s"\"$s\"")
             .mkString(", ")})

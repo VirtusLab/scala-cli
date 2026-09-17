@@ -964,11 +964,13 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val actualDest =
       if (Properties.isWin) "hello.exe"
       else "hello"
+    // the lambda is relevant, as it makes the compiler generate a $deserializeLambda$ call site,
+    // whose bootstrap initializes scala.collection.ArrayOps$ when the image is built
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
         s"""object Hello {
            |  def main(args: Array[String]): Unit =
-           |    println("$message")
+           |    Seq("$message").map(m => m.trim).foreach(println)
            |}
            |""".stripMargin
     )

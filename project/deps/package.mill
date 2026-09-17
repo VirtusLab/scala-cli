@@ -43,6 +43,10 @@ object Scala {
   // respectively
   def scala38Versions = Seq("3.8.0", "3.8.0-RC1", "3.8.0-RC1-bin-20250901-ca400bd-NIGHTLY")
 
+  // first Scala 3.9 versions of the stable and RC series; used as the cutoff
+  // for `scala-library` compiled with Scala 3 (GraalVM ArrayOps$ initialization, etc.)
+  def scala39Versions = Seq("3.9.0", "3.9.0-RC1")
+
   val allScala2       = Seq(scala213, scala212)
   val defaults        = Seq(defaultInternal, defaultUser).distinct
   val legacyLtsScala3 = Seq(scala3LegacyLts, scala3LegacyLtsRc).distinct
