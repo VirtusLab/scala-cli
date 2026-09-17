@@ -1,7 +1,15 @@
 package scala.build
 
 import coursier.cache.FileCache
-import coursier.core.*
+import coursier.core.{
+  Classifier,
+  MinimizedExclusions,
+  Module,
+  ModuleName,
+  Organization,
+  Repository,
+  Version
+}
 import coursier.error.ResolutionError
 import coursier.util.Task
 import coursier.version.VersionConstraint
