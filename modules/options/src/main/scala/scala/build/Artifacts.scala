@@ -1,15 +1,7 @@
 package scala.build
 
 import coursier.cache.FileCache
-import coursier.core.{
-  Classifier,
-  MinimizedExclusions,
-  Module,
-  ModuleName,
-  Organization,
-  Repository,
-  Version
-}
+import coursier.core.{Classifier, Module, ModuleName, Organization, Repository, Version}
 import coursier.error.ResolutionError
 import coursier.util.Task
 import coursier.version.VersionConstraint
@@ -907,7 +899,7 @@ object Artifacts {
   )(dependencies: Seq[coursier.Dependency]): Seq[coursier.Dependency] =
     if toolchain.organization.isDefaultOrg || moduleNames.isEmpty then dependencies
     else
-      val upstreamToolchain = MinimizedExclusions:
+      val upstreamToolchain = csCore.MinimizedExclusions:
         moduleNames.map(name => Organization(ScalaOptions.defaultOrganization) -> ModuleName(name))
       dependencies.map: dep =>
         if dep.module.organization.value == toolchain.organization then dep
