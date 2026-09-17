@@ -11,7 +11,6 @@ import java.nio.file.Paths
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.CsLoggerUtil.*
-import scala.build.options.ScalaOptions
 
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, os.Path)],
