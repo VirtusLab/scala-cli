@@ -8,6 +8,70 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.17.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.17.1)
+
+### Java 8+ support in the pure Java test runner
+Projects with no Scala on the class path are handled by a dedicated, pure Java test runner. It used to be compiled for
+Java 17, which made it impossible to run such tests on an older JVM. It is now compiled for Java 8, so the whole
+Java 8+ range is supported now.
+
+```java title=java-tests/test/MyTests.java
+//> using test.dep junit:junit:4.13.2
+//> using test.dep com.novocode:junit-interface:0.11
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+
+public class MyTests {
+  @Test
+  public void addition() {
+    assertEquals(4, 2 + 2);
+    System.out.println("Tested on Java " + System.getProperty("java.version") + ", no Scala needed!");
+  }
+}
+```
+
+```bash
+scala-cli test java-tests --jvm 8
+# Tested on Java 1.8.0_492, no Scala needed!
+```
+
+Previously, the very same invocation would have died while loading the test runner itself:
+
+```text
+Exception in thread "main" java.lang.UnsupportedClassVersionError: scala/build/testrunner/JavaDynamicTestRunner has been compiled by a more recent version of the Java Runtime (class file version 61.0), this version of the Java Runtime only recognizes class file versions up to 52.0
+```
+
+:::info
+Support for JDK older than 17 will likely be gradually deprecated, but running tests with Java 8+ is likely to be kept long-term for the sake of backwards compatibility.
+:::
+
+Fixed by [@Gedochao](https://github.com/Gedochao) in [#4473](https://github.com/VirtusLab/scala-cli/pull/4473)
+
+### Fixes
+* Support Java 8+ with Scala CLI's pure Java test runner by [@Gedochao](https://github.com/Gedochao) in [#4473](https://github.com/VirtusLab/scala-cli/pull/4473)
+
+### Build and internal changes
+* Re-enable `scalafix` for Scala 3.10+ by [@Gedochao](https://github.com/Gedochao) in [#4455](https://github.com/VirtusLab/scala-cli/pull/4455)
+* Fix coursier wrapper tests by [@Gedochao](https://github.com/Gedochao) in [#4474](https://github.com/VirtusLab/scala-cli/pull/4474)
+
+### Updates
+* Bump colord from 2.9.3 to 2.10.0 in /website by @dependabot[bot] in [#4460](https://github.com/VirtusLab/scala-cli/pull/4460)
+* Update scala-cli.sh launcher for 1.17.0 by @github-actions[bot] in [#4458](https://github.com/VirtusLab/scala-cli/pull/4458)
+* Bump js-yaml from 4.3.1 to 4.3.2 in /website by @dependabot[bot] in [#4463](https://github.com/VirtusLab/scala-cli/pull/4463)
+* Bump joi from 17.13.4 to 17.13.7 in /website by @dependabot[bot] in [#4462](https://github.com/VirtusLab/scala-cli/pull/4462)
+* Bump svgo from 3.3.4 to 3.3.5 in /website by @dependabot[bot] in [#4461](https://github.com/VirtusLab/scala-cli/pull/4461)
+* Bump announced Scala Next RC to 3.10.0-RC1 by [@Gedochao](https://github.com/Gedochao) in [#4457](https://github.com/VirtusLab/scala-cli/pull/4457)
+* Update org.eclipse.jgit to 7.8.0.202609011348-r by @scala-steward in [#4459](https://github.com/VirtusLab/scala-cli/pull/4459)
+* Bump Scala Next RC to 3.10.0-RC2 by [@Gedochao](https://github.com/Gedochao) in [#4464](https://github.com/VirtusLab/scala-cli/pull/4464)
+* Bump the npm-dependencies group in /website with 4 updates by @dependabot[bot] in [#4469](https://github.com/VirtusLab/scala-cli/pull/4469)
+* Bump announced Scala Next RC to 3.10.0-RC2 by [@Gedochao](https://github.com/Gedochao) in [#4470](https://github.com/VirtusLab/scala-cli/pull/4470)
+* Update semanticdb-shared_2.13 to 4.17.4 by @scala-steward in [#4468](https://github.com/VirtusLab/scala-cli/pull/4468)
+* Bump Mill to 1.1.9 (was 1.1.7) by [@Gedochao](https://github.com/Gedochao) in [#4472](https://github.com/VirtusLab/scala-cli/pull/4472)
+* Bump `scalafix` to 0.14.9 (was 0.14.8) and re-enable `fix` sub-command tests for Scala 3.10+ by [@Gedochao](https://github.com/Gedochao) in [#4471](https://github.com/VirtusLab/scala-cli/pull/4471)
+* Bump `scala-cli-signing` to 0.3.1 & bcpkix-jdk18on to 1.86 by [@Gedochao](https://github.com/Gedochao) in [#4475](https://github.com/VirtusLab/scala-cli/pull/4475)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.17.0...v1.17.1
+
 ## [v1.17.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.17.0)
 
 ### Changed defaults to Scala 3.9.0 LTS & `lts` tags now point at the 3.9 LTS series
