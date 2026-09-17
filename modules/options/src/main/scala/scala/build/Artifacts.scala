@@ -1,7 +1,15 @@
 package scala.build
 
 import coursier.cache.FileCache
-import coursier.core.{Classifier, Module, ModuleName, Organization, Repository, Version}
+import coursier.core.{
+  Classifier,
+  MinimizedExclusions,
+  Module,
+  ModuleName,
+  Organization,
+  Repository,
+  Version
+}
 import coursier.error.ResolutionError
 import coursier.util.Task
 import coursier.version.VersionConstraint
@@ -32,6 +40,8 @@ import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Util.{PositionedScalaDependencyOps, safeFullDetailedArtifacts}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
+import scala.build.options.ScalaOptions
+import scala.build.options.ScalaOptions.*
 import scala.collection.mutable
 
 final case class Artifacts(
@@ -107,8 +117,14 @@ final case class Artifacts(
 
 object Artifacts {
 
+  final case class ScalaToolchain(
+    organization: String = ScalaOptions.defaultOrganization,
+    providedModules: Map[String, VersionConstraint] = Map.empty
+  )
+
   final case class ScalaArtifactsParams(
     params: ScalaParameters,
+    organization: String,
     compilerPlugins: Seq[Positioned[AnyDependency]],
     addJsTestBridge: Option[String],
     addNativeTestInterface: Option[String],
@@ -232,15 +248,9 @@ object Artifacts {
 
     val scalaOpt = scalaArtifactsParamsOpt match {
       case Some(scalaArtifactsParams) =>
+        val scalaOrg             = scalaArtifactsParams.organization
         val compilerDependencies =
-          if (scalaArtifactsParams.params.scalaVersion.startsWith("3."))
-            Seq(
-              dep"org.scala-lang::scala3-compiler:${scalaArtifactsParams.params.scalaVersion}"
-            )
-          else
-            Seq(
-              dep"org.scala-lang:scala-compiler:${scalaArtifactsParams.params.scalaVersion}"
-            )
+          compilerDependenciesFor(scalaOrg, scalaArtifactsParams.params.scalaVersion)
         val compilerDependenciesMessage =
           s"Downloading Scala ${scalaArtifactsParams.params.scalaVersion} compiler"
 
@@ -256,7 +266,8 @@ object Artifacts {
                 allExtraRepositories,
                 Some(scalaArtifactsParams.params),
                 logger,
-                cache.withMessage(s"Downloading compiler plugin ${posDep.value.render}")
+                cache.withMessage(s"Downloading compiler plugin ${posDep.value.render}"),
+                toolchain = ScalaToolchain(scalaOrg)
               ).map(_.map { case (url, path) => (posDep0.value, url, path) })
             }
             .sequence
@@ -267,27 +278,33 @@ object Artifacts {
             .map(_.flatten)
         }
 
-        val compilerArtifacts = value {
-          artifacts(
+        val compilerResult = value {
+          fetchAnyDependencies(
             compilerDependencies.map(Positioned.none),
             allExtraRepositories,
             Some(scalaArtifactsParams.params),
             logger,
-            cache.withMessage(compilerDependenciesMessage)
-          ).left.flatMap(_.maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError))
+            cache.withMessage(compilerDependenciesMessage),
+            classifiersOpt = None,
+            maybeRecoverOnError = maybeRecoverOnError,
+            toolchain = ScalaToolchain(scalaOrg)
+          ).left.flatMap(_.maybeRecoverWithDefault(Fetch.Result(), maybeRecoverOnError))
         }
+        val compilerArtifacts =
+          compilerResult.artifacts.map { case (a, f) => (a.url, os.Path(f, Os.pwd)) }
+        val scalaToolchain = toolchainOf(scalaOrg, compilerResult.resolution)
 
         val bridgeJarsOpt =
           (scalaArtifactsParams.params.scalaVersion -> includeBuildServerDeps match {
             case (sv, true) if sv.startsWith("3.") =>
               Some(Seq(
-                dep"org.scala-lang:scala3-sbt-bridge:${scalaArtifactsParams.params.scalaVersion}"
+                dep"$scalaOrg:scala3-sbt-bridge:${scalaArtifactsParams.params.scalaVersion}"
               ))
             case (sv, true)
                 if Version(sv) >= Version("2.13.12") ||
                 sv.startsWith(Constants.defaultScala213Version) =>
               Some(Seq(
-                dep"org.scala-lang:scala2-sbt-bridge:${scalaArtifactsParams.params.scalaVersion}"
+                dep"$scalaOrg:scala2-sbt-bridge:${scalaArtifactsParams.params.scalaVersion}"
               ))
             case _ => None
           })
@@ -300,7 +317,8 @@ object Artifacts {
                   logger,
                   cache.withMessage(
                     s"Downloading Scala ${scalaArtifactsParams.params.scalaVersion} bridge"
-                  )
+                  ),
+                  toolchain = ScalaToolchain(scalaOrg)
                 ).left.flatMap(_.maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError))
               }.map(_._2)
             }
@@ -420,7 +438,8 @@ object Artifacts {
           internalDependencies,
           scalapyDependencies,
           scalaArtifactsParams.params,
-          bridgeJarsOpt
+          bridgeJarsOpt,
+          scalaToolchain
         )
         Some(scala)
 
@@ -460,6 +479,8 @@ object Artifacts {
       b.result()
     }
 
+    val scalaToolchainForDeps = scalaOpt.map(_.toolchain).getOrElse(ScalaToolchain())
+
     val (fetcher: Fetch[Task], fetchRes: Fetch.Result) = value {
       fetchAnyDependenciesWithResult(
         allUpdatedDependencies,
@@ -468,7 +489,8 @@ object Artifacts {
         logger,
         cache.withMessage(updatedDependenciesMessage),
         classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty)),
-        maybeRecoverOnError
+        maybeRecoverOnError,
+        toolchain = scalaToolchainForDeps
       )
     }
 
@@ -481,7 +503,9 @@ object Artifacts {
     }
     val runtimeRes = value {
       val resolution = value {
-        fetchRes.resolution.subset0(updatedDependencies0.map(_._2._1))
+        fetchRes.resolution.subset0(
+          rewriteRootDeps(scalaToolchainForDeps)(updatedDependencies0.map(_._2._1))
+        )
           .left.map(CoursierDependencyError(_))
       }
       // this is actually fetcher.artifacts, which is a private field…
@@ -554,7 +578,8 @@ object Artifacts {
                 extraRepositories ++ maybeSnapshotRepo,
                 scalaParamsForDepResolution,
                 logger,
-                cache.withMessage("Downloading runner dependency")
+                cache.withMessage("Downloading runner dependency"),
+                toolchain = scalaToolchainForDeps
               ).map(_.map(_._2))
             }
           }
@@ -575,7 +600,8 @@ object Artifacts {
             allExtraRepositories,
             scalaParamsForDepResolution,
             logger,
-            cache0
+            cache0,
+            toolchain = scalaToolchainForDeps
           )
             .map(_.map { case (url, path) => (posDep.value, url, path) })
         }
@@ -587,6 +613,20 @@ object Artifacts {
     val detailedArtifacts =
       value(fetchRes.fullDetailedArtifacts0.safeFullDetailedArtifacts)
         .collect { case (d, p, a, Some(f)) => (d, p, a, os.Path(f, Os.pwd)) }
+
+    val duplicatedToolchainModules = duplicatedScalaToolchainModules(
+      scalaToolchainForDeps.organization,
+      detailedArtifacts.map(_._1.module)
+    )
+    if duplicatedToolchainModules.nonEmpty then
+      val organization = scalaToolchainForDeps.organization
+      val upstream     = ScalaOptions.defaultOrganization
+      val modules      = duplicatedToolchainModules.mkString(", ")
+      logger.message(
+        s"""$warnPrefix Both $organization and $upstream provide $modules on the class path.
+           |$warnPrefix Scala CLI redirects the modules $organization's compiler pulls in; this one isn't among them, so the two copies may not be compatible.""".stripMargin
+      )
+
     Artifacts(
       javacPlugins0,
       extraJavacPlugins,
@@ -623,7 +663,8 @@ object Artifacts {
     paramsOpt: Option[ScalaParameters],
     logger: Logger,
     cache: FileCache[Task],
-    classifiersOpt: Option[Set[String]] = None
+    classifiersOpt: Option[Set[String]] = None,
+    toolchain: ScalaToolchain = ScalaToolchain()
   ): Either[BuildException, Seq[(String, os.Path)]] = either {
     val res =
       value(fetchAnyDependencies(
@@ -632,7 +673,8 @@ object Artifacts {
         paramsOpt,
         logger,
         cache,
-        classifiersOpt
+        classifiersOpt,
+        toolchain = toolchain
       ))
     val result = res
       .artifacts
@@ -687,7 +729,8 @@ object Artifacts {
     logger: Logger,
     cache: FileCache[Task],
     classifiersOpt: Option[Set[String]],
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    toolchain: ScalaToolchain = ScalaToolchain()
   ): Either[BuildException, Fetch.Result] = either {
     val (_, res) = value {
       fetchAnyDependenciesWithResult(
@@ -697,7 +740,8 @@ object Artifacts {
         logger,
         cache,
         classifiersOpt,
-        maybeRecoverOnError
+        maybeRecoverOnError,
+        toolchain
       )
     }
     res
@@ -710,7 +754,8 @@ object Artifacts {
     logger: Logger,
     cache: FileCache[Task],
     classifiersOpt: Option[Set[String]],
-    maybeRecoverOnError: BuildException => Option[BuildException]
+    maybeRecoverOnError: BuildException => Option[BuildException],
+    toolchain: ScalaToolchain
   ): Either[BuildException, (coursier.Fetch[Task], coursier.Fetch.Result)] = either {
     val coursierDependenciesWithFallbacks: Seq[Positioned[(
       CsDependency,
@@ -735,7 +780,8 @@ object Artifacts {
         logger = logger,
         cache = cache,
         classifiersOpt = classifiersOpt,
-        fallbacks = fallbacks
+        fallbacks = fallbacks,
+        toolchain = toolchain
       ).left.flatMap(_.maybeRecoverWithDefault(
         (
           fetcher(
@@ -745,7 +791,8 @@ object Artifacts {
             forcedVersions = Nil,
             cache = cache,
             classifiersOpt = classifiersOpt,
-            fallbacks = fallbacks
+            fallbacks = fallbacks,
+            toolchain = toolchain
           ),
           Fetch.Result()
         ),
@@ -761,7 +808,8 @@ object Artifacts {
     forcedVersions: Seq[(coursier.Module, VersionConstraint)],
     cache: FileCache[Task],
     classifiersOpt: Option[Set[String]],
-    fallbacks: Map[(Module, VersionConstraint), (URL, Boolean)]
+    fallbacks: Map[(Module, VersionConstraint), (URL, Boolean)],
+    toolchain: ScalaToolchain
   ): coursier.Fetch[Task] = {
 
     val fallbackRepository            = TemporaryInMemoryRepository(fallbacks)
@@ -770,35 +818,45 @@ object Artifacts {
     val forceScalaVersions = forceScalaVersionOpt match {
       case None     => Nil
       case Some(sv) =>
-        val svc = VersionConstraint(sv)
+        val svc                       = VersionConstraint(sv)
+        def scalaModule(name: String) =
+          Module(Organization(toolchain.organization), ModuleName(name), Map.empty)
         if (sv.startsWith("2."))
           Seq(
-            cmod"org.scala-lang:scala-library"  -> svc,
-            cmod"org.scala-lang:scala-compiler" -> svc,
-            cmod"org.scala-lang:scala-reflect"  -> svc
+            scalaModule("scala-library")  -> svc,
+            scalaModule("scala-compiler") -> svc,
+            scalaModule("scala-reflect")  -> svc
           )
         else
-          // FIXME Shouldn't we force the org.scala-lang:scala-library version too?
+          // FIXME Shouldn't we force the scala-library version too?
           // (to a 2.13.x version)
           Seq(
-            cmod"org.scala-lang:scala3-library_3"         -> svc,
-            cmod"org.scala-lang:scala3-compiler_3"        -> svc,
-            cmod"org.scala-lang:scala3-interfaces_3"      -> svc,
-            cmod"org.scala-lang:scala3-tasty-inspector_3" -> svc,
-            cmod"org.scala-lang:tasty-core_3"             -> svc
+            scalaModule("scala3-library_3")         -> svc,
+            scalaModule("scala3-compiler_3")        -> svc,
+            scalaModule("scala3-interfaces_3")      -> svc,
+            scalaModule("scala3-tasty-inspector_3") -> svc,
+            scalaModule("tasty-core_3")             -> svc
           )
     }
 
-    val forceVersion = forceScalaVersions ++ forcedVersions
+    val forceVersion        = forceScalaVersions ++ forcedVersions
+    val toolchainRewriteOpt = toolchainRewrite(toolchain)
 
     // FIXME Many parameters that we could allow to customize here
-    val defaultFetcher = coursier.Fetch()
-    var fetcher        = defaultFetcher
+    val defaultResolve = coursier.Resolve()
+    val resolve        = defaultResolve
       .withCache(cache)
-      // repository order matters here, since in some cases coursier resolves only the head
-      .withRepositories(extraRepositoriesWithFallback ++ defaultFetcher.repositories)
-      .addDependencies(dependencies.map(_.value)*)
+      .withRepositories(extraRepositoriesWithFallback ++ defaultResolve.repositories)
+      .withDependencies(rewriteRootDeps(toolchain)(
+        dependencies.map(_.value)
+      ))
       .mapResolutionParams(_.addForceVersion0(forceVersion*))
+      .withMapDependenciesOpt(toolchainRewriteOpt)
+
+    var fetcher = coursier.Fetch()
+      .withResolve(resolve)
+      .withArtifactsCache(cache)
+
     for (classifiers <- classifiersOpt) {
       if (classifiers("_"))
         fetcher = fetcher.withMainArtifacts()
@@ -808,6 +866,116 @@ object Artifacts {
     fetcher
   }
 
+  def compilerDependenciesFor(scalaOrganization: String, scalaVersion: String): Seq[AnyDependency] =
+    if scalaVersion.startsWith("3.") then
+      Seq(dep"$scalaOrganization::scala3-compiler:$scalaVersion")
+    else Seq(dep"$scalaOrganization:scala-compiler:$scalaVersion")
+
+  private def toolchainOf(scalaOrganization: String, resolution: Resolution): ScalaToolchain =
+    ScalaToolchain(
+      scalaOrganization,
+      resolution.orderedDependencies
+        .collect {
+          case d if d.module.organization.value == scalaOrganization =>
+            d.module.name.value -> d.versionConstraint
+        }
+        .toMap
+    )
+
+  def discoverToolchain(
+    scalaOrganization: String,
+    scalaVersion: String,
+    repositories: Seq[Repository],
+    logger: Logger,
+    cache: FileCache[Task]
+  ): Either[BuildException, ScalaToolchain] =
+    if scalaOrganization.isDefaultOrg then Right(ScalaToolchain(scalaOrganization))
+    else
+      fetchAnyDependencies(
+        compilerDependenciesFor(scalaOrganization, scalaVersion).map(Positioned.none),
+        repositories,
+        Some(ScalaParameters(scalaVersion, ScalaVersion.binary(scalaVersion), None)),
+        logger,
+        cache.withMessage(s"Checking what $scalaOrganization provides"),
+        classifiersOpt = None,
+        toolchain = ScalaToolchain(scalaOrganization)
+      ).map(res => toolchainOf(scalaOrganization, res.resolution))
+
+  def excludeUpstreamToolchain(
+    toolchain: ScalaToolchain,
+    moduleNames: Set[String]
+  )(dependencies: Seq[coursier.Dependency]): Seq[coursier.Dependency] =
+    if toolchain.organization.isDefaultOrg || moduleNames.isEmpty then dependencies
+    else
+      val upstreamToolchain = MinimizedExclusions:
+        moduleNames.map(name => Organization(ScalaOptions.defaultOrganization) -> ModuleName(name))
+      dependencies.map: dep =>
+        if dep.module.organization.value == toolchain.organization then dep
+        else dep.withMinimizedExclusions(dep.minimizedExclusions.join(upstreamToolchain))
+
+  def forkToolchainDependencies(
+    toolchain: ScalaToolchain,
+    resolution: Resolution
+  ): Seq[coursier.Dependency] =
+    if toolchain.organization.isDefaultOrg then Nil
+    else
+      resolution.orderedDependencies
+        .filter(_.module.organization.value == toolchain.organization)
+        .distinctBy(_.module)
+
+  private[build] def duplicatedScalaToolchainModules(
+    scalaOrganization: String,
+    modules: Seq[Module]
+  ): Seq[String] =
+    if scalaOrganization.isDefaultOrg then Nil
+    else
+      val upstream = Organization(ScalaOptions.defaultOrganization)
+      val fork     = Organization(scalaOrganization)
+      modules.distinct
+        .groupBy(_.name)
+        .collect:
+          case (name, provided)
+              if provided.exists(_.organization == fork) &&
+              provided.exists(_.organization == upstream) => name.value
+        .toSeq
+        .sorted
+
+  def rewriteRootDeps(
+    toolchain: ScalaToolchain
+  )(dependencies: Seq[coursier.Dependency]): Seq[coursier.Dependency] =
+    toolchainRewrite(toolchain) match
+      case Some(swap) => dependencies.map(swap)
+      case None       => dependencies
+
+  def forkedVersionOf(toolchain: ScalaToolchain, moduleName: String): Option[VersionConstraint] =
+    if toolchain.organization.isDefaultOrg then None
+    else
+      toolchain.providedModules.get(moduleName).orElse {
+        if moduleName.startsWith("scala3-library_") then
+          toolchain.providedModules.get("scala3-library_3")
+        else None
+      }
+
+  def forkedModule(toolchain: ScalaToolchain, module: Module): Option[(Module, VersionConstraint)] =
+    if module.organization.value != ScalaOptions.defaultOrganization ||
+      module.attributes.nonEmpty
+    then None
+    else
+      forkedVersionOf(toolchain, module.name.value).map { version =>
+        module.withOrganization(Organization(toolchain.organization)) -> version
+      }
+
+  private[build] def toolchainRewrite(
+    toolchain: ScalaToolchain
+  ): Option[coursier.Dependency => coursier.Dependency] =
+    if toolchain.organization.isDefaultOrg || toolchain.providedModules.isEmpty then None
+    else
+      Some: dep =>
+        forkedModule(toolchain, dep.module) match
+          case Some((forkModule, forkVersion)) =>
+            dep.withModule(forkModule).withVersionConstraint(forkVersion)
+          case None => dep
+
   def fetchCsDependencies(
     dependencies: Seq[Positioned[coursier.Dependency]],
     extraRepositories: Seq[Repository],
@@ -816,7 +984,8 @@ object Artifacts {
     logger: Logger,
     cache: FileCache[Task],
     classifiersOpt: Option[Set[String]],
-    fallbacks: Map[(Module, VersionConstraint), (URL, Boolean)] = Map.empty
+    fallbacks: Map[(Module, VersionConstraint), (URL, Boolean)] = Map.empty,
+    toolchain: ScalaToolchain = ScalaToolchain()
   ): Either[BuildException, (coursier.Fetch[Task], coursier.Fetch.Result)] = either {
     logger.debug {
       s"Fetching ${dependencies.map(_.value)}" +
@@ -830,7 +999,8 @@ object Artifacts {
       forcedVersions = forcedVersions,
       cache = cache,
       classifiersOpt = classifiersOpt,
-      fallbacks = fallbacks
+      fallbacks = fallbacks,
+      toolchain = toolchain
     )
 
     val res = cache.logger.use {

@@ -46,6 +46,29 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
+  test("custom scalaOrganization skips Scala version validation") {
+    val version = "3.99.0-RC1-bin-20260903-e1f9361-NIGHTLY"
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some(MaybeScalaVersion(version)),
+        scalaOrganization = Some("ch.epfl.lara")
+      )
+    )
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
+    expect(scalaParams.scalaVersion == version)
+  }
+
+  test("the default scalaOrganization keeps Scala version aliases working") {
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some(MaybeScalaVersion("3")),
+        scalaOrganization = Some(ScalaOptions.defaultOrganization)
+      )
+    )
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
+    expect(scalaParams.scalaVersion == defaultScalaVersion)
+  }
+
   test("-S 3.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
