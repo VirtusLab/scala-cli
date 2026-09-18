@@ -118,6 +118,73 @@ object Artifacts {
     addScalapy: Option[String]
   )
 
+  /** A legacy version of the `runner` / `test-runner` module, to be used when the current one
+    * supports neither the Scala version nor the JVM at hand.
+    *
+    * @param version
+    *   the legacy version to fall back to
+    * @param warnings
+    *   the messages to be reported to the user, explaining the fallback
+    */
+  private[build] final case class LegacyRunnerModule(version: String, warnings: Seq[String])
+
+  /** The legacy version of the `runner` / `test-runner` module to use, if the current one cannot be
+    * used with the passed Scala version or JVM.
+    *
+    * @param moduleName
+    *   `runner` or `test-runner`
+    */
+  private[build] def legacyRunnerModule(
+    moduleName: String,
+    scalaVersion: String,
+    jvmVersion: Int
+  ): Option[LegacyRunnerModule] = {
+    val isScala3    = scalaVersion.startsWith("3")
+    val scalaTooOld =
+      scalaVersion.startsWith("2") ||
+      isScala3 && scalaVersion.coursierVersion < s"$scala3LegacyLtsPrefix.0".coursierVersion
+    val jvmTooOld = jvmVersion < Constants.minimumRunnerJavaVersion
+    Option.when(scalaTooOld || jvmTooOld) {
+      val version =
+        if !scalaTooOld then runnerJava8LegacyVersion
+        else if isScala3 then runnerScala30LegacyVersion
+        else runnerScala2LegacyVersion
+      val warnings = Seq(
+        Option.when(scalaTooOld)(
+          s"Scala $scalaVersion is no longer supported by the $moduleName module."
+        ),
+        Option.when(jvmTooOld)(
+          s"Java $jvmVersion is no longer supported by the $moduleName module."
+        ),
+        Some(s"Defaulting to a legacy $moduleName module version: $version."),
+        Option.when(scalaTooOld)(
+          s"To use the latest $moduleName, upgrade Scala to at least $scala3LegacyLtsPrefix."
+        ),
+        Option.when(jvmTooOld)(
+          s"To use the latest $moduleName, upgrade Java to at least ${Constants.minimumRunnerJavaVersion}."
+        )
+      ).flatten.map(warning => s"$warnPrefix $warning")
+      LegacyRunnerModule(version, warnings)
+    }
+  }
+
+  /** The version of the `runner` / `test-runner` module to use, reporting the relevant warnings if
+    * a legacy one has to be used.
+    */
+  private def runnerModuleVersion(
+    moduleName: String,
+    scalaVersion: String,
+    jvmVersion: Int,
+    currentVersion: String,
+    logger: Logger
+  ): String =
+    legacyRunnerModule(moduleName, scalaVersion, jvmVersion)
+      .map { legacy =>
+        legacy.warnings.foreach(warning => logger.message(warning))
+        legacy.version
+      }
+      .getOrElse(currentVersion)
+
   def apply(
     scalaArtifactsParamsOpt: Option[ScalaArtifactsParams],
     javacPluginDependencies: Seq[Positioned[AnyDependency]],
@@ -160,44 +227,10 @@ object Artifacts {
       scalaVersion = scalaParams.scalaVersion
     } yield scalaVersion).getOrElse(defaultScalaVersion)
 
-    val shouldUseLegacyJava8Runners  = jvmVersion < Constants.scala38MinJavaVersion
-    val shouldUseLegacyScala3Runners =
-      scalaVersion.startsWith("3") &&
-      scalaVersion.coursierVersion < s"$scala3LegacyLtsPrefix.0".coursierVersion
-    val shouldUseLegacyScala2Runners = scalaVersion.startsWith("2")
-    val shouldUseLegacyScalaRunners  = shouldUseLegacyScala3Runners || shouldUseLegacyScala2Runners
-    val shouldUseLegacyRunners       = shouldUseLegacyScalaRunners || shouldUseLegacyJava8Runners
-
     val jvmTestRunnerDependencies =
       if addJvmTestRunner then {
-        val runnerLegacyVersion =
-          if scalaVersion.startsWith("3")
-          then runnerScala30LegacyVersion
-          else runnerScala2LegacyVersion
         val testRunnerVersion0 =
-          if shouldUseLegacyRunners then {
-            if shouldUseLegacyScalaRunners then
-              logger.message(
-                s"$warnPrefix Scala $scalaVersion is no longer supported by the test-runner module."
-              )
-            if shouldUseLegacyJava8Runners then
-              logger.message(
-                s"$warnPrefix Java $jvmVersion is no longer supported by the test-runner module."
-              )
-            logger.message(
-              s"$warnPrefix Defaulting to a legacy test-runner module version: $runnerLegacyVersion."
-            )
-            if shouldUseLegacyScalaRunners then
-              logger.message(
-                s"$warnPrefix To use the latest test-runner, upgrade Scala to at least $scala3LegacyLtsPrefix."
-              )
-            if shouldUseLegacyJava8Runners then
-              logger.message(
-                s"$warnPrefix To use the latest test-runner, upgrade Java to at least ${Constants.defaultJavaVersion}."
-              )
-            runnerLegacyVersion
-          }
-          else testRunnerVersion
+          runnerModuleVersion("test-runner", scalaVersion, jvmVersion, testRunnerVersion, logger)
         Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion0")
       }
       else Nil
@@ -513,39 +546,7 @@ object Artifacts {
                 )
               else Nil
             val runnerVersion0 =
-              if shouldUseLegacyRunners then {
-                val runnerLegacyVersion =
-                  if shouldUseLegacyScala3Runners
-                  then runnerScala30LegacyVersion
-                  else runnerScala2LegacyVersion
-                if shouldUseLegacyScalaRunners then
-                  logger.message(
-                    s"$warnPrefix Scala $scalaVersion is no longer supported by the runner module."
-                  )
-                if shouldUseLegacyJava8Runners then
-                  logger.message(
-                    s"$warnPrefix Java $jvmVersion is no longer supported by the runner module."
-                  )
-                logger.message(
-                  s"$warnPrefix Defaulting to a legacy runner module version: $runnerLegacyVersion."
-                )
-                if shouldUseLegacyScalaRunners then
-                  logger.message(
-                    s"$warnPrefix To use the latest runner, upgrade Scala to at least $scala3LegacyLtsPrefix."
-                  )
-                if shouldUseLegacyJava8Runners then
-                  logger.message(
-                    s"$warnPrefix To use the latest runner, upgrade Java to at least ${Constants.defaultJavaVersion}."
-                  )
-                logger.message(
-                  s"""$warnPrefix Scala $scalaVersion is no longer supported by the runner module.
-                     |$warnPrefix Defaulting to a legacy runner module version: $runnerLegacyVersion.
-                     |$warnPrefix To use the latest runner, upgrade Scala to at least $scala3LegacyLtsPrefix."""
-                    .stripMargin
-                )
-                runnerLegacyVersion
-              }
-              else runnerVersion
+              runnerModuleVersion("runner", scalaVersion, jvmVersion, runnerVersion, logger)
             value {
               artifacts(
                 Seq(Positioned.none(

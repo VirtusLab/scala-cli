@@ -11,3 +11,8 @@ extension (csv: Version)
     Constants.scala38Versions
       .map(_.coursierVersion)
       .exists(_ <= csv)
+
+  def isScala39OrNewer: Boolean =
+    Constants.scala39Versions
+      .map(_.coursierVersion)
+      .exists(_ <= csv)

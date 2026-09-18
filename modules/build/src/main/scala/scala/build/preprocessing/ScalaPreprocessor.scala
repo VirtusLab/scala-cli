@@ -174,7 +174,7 @@ case object ScalaPreprocessor extends Preprocessor {
     val (contentWithNoShebang, _, _) = SheBang.ignoreSheBangLines(content)
 
     val extractedDirectives: ExtractedDirectives = value(ExtractedDirectives.from(
-      contentChars = contentWithNoShebang.toCharArray,
+      contentChars = contentWithNoShebang.toIndexedSeq,
       path = path,
       suppressWarningOptions = suppressWarningOptions,
       logger = logger,

@@ -68,7 +68,7 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
           ) { (proc, timeout, ec) =>
             val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
             expect(output1 == expectedMessage1)
-            proc.printStderrUntilRerun(timeout)(ec)
+            proc.printStderrUntilRerun(timeout)(using ec)
             os.write.over(root / inputPath, codeToWriteOver)
             val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
             expect(output2 == expectedMessage2)
@@ -110,7 +110,7 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
         ) { (proc, timeout, ec) =>
           val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output1 == "Hello")
-          proc.printStderrUntilRerun(timeout)(ec)
+          proc.printStderrUntilRerun(timeout)(using ec)
           Thread.sleep(2000L)
           os.write.over(root / externalFile, "World")
           val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
@@ -143,7 +143,7 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
         ) { (proc, timeout, ec) =>
           val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output1 == "Hello")
-          proc.printStderrUntilRerun(timeout)(ec)
+          proc.printStderrUntilRerun(timeout)(using ec)
           Thread.sleep(2000L)
           os.write.over(root / externalFile, "World")
           val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
@@ -190,13 +190,13 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
           val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output1 == "Hello|World")
 
-          proc.printStderrUntilRerun(timeout)(ec)
+          proc.printStderrUntilRerun(timeout)(using ec)
           Thread.sleep(2000L)
           os.write.over(root / directiveWatchFile, "Bonjour")
           val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output2 == "Bonjour|World")
 
-          proc.printStderrUntilRerun(timeout)(ec)
+          proc.printStderrUntilRerun(timeout)(using ec)
           Thread.sleep(2000L)
           os.write.over(root / cliWatchFile, "Universe")
           val output3 = TestUtil.readLine(proc.stdout, ec, timeout)
@@ -243,7 +243,7 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
           ) { (proc, timeout, ec) =>
             val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
             expect(output1 == expectedMessage1)
-            proc.printStderrUntilRerun(timeout)(ec)
+            proc.printStderrUntilRerun(timeout)(using ec)
             os.write.over(root / inputPath, code(expectedMessage2))
             val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
             expect(output2 == expectedMessage2)
@@ -461,12 +461,12 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
         ) { (proc, timeout, ec) =>
           val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output1 == root.toString)
-          proc.printStderrUntilRerun(timeout)(ec)
+          proc.printStderrUntilRerun(timeout)(using ec)
           os.write.over(root / inputPath, code(includeDirective = false))
           TestUtil.readLine(proc.stderr, ec, timeout)
           val output2 = TestUtil.readLine(proc.stderr, ec, timeout)
           expect(output2.toLowerCase.contains("error"))
-          proc.printStderrUntilRerun(timeout)(ec)
+          proc.printStderrUntilRerun(timeout)(using ec)
           os.write.over(root / inputPath, code(includeDirective = true))
           val output3 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output3 == root.toString)
@@ -508,7 +508,7 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
         ) { (proc, timeout, ec) =>
           val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output1 == expectedMessage1)
-          proc.printStderrUntilRerun(timeout)(ec)
+          proc.printStderrUntilRerun(timeout)(using ec)
           val (resourcePath, newResourceContent) =
             resourcesInputs(directive = directive, resourceContent = expectedMessage2)
               .files
@@ -538,7 +538,7 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
           for (num <- 1 to 10) {
             val output = TestUtil.readLine(proc.stdout, ec, timeout)
             expect(output == expectedMessage(num - 1))
-            proc.printStderrUntilRerun(timeout)(ec)
+            proc.printStderrUntilRerun(timeout)(using ec)
             Thread.sleep(200L)
             if (num < 10) {
               val newContent = content(num)

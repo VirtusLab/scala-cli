@@ -1,11 +1,12 @@
 package scala.build.preprocessing
 
+import dotty.tools.directives.{DiagnosticSeverity, DirectiveValue, UsingDirectivesParser}
+
 import scala.annotation.targetName
 import scala.build.errors.*
 import scala.build.options.SuppressWarningOptions
 import scala.build.preprocessing.directives.StrictDirective
 import scala.build.{Logger, Position}
-import scala.cli.parse.{DiagnosticSeverity, DirectiveValue, UsingDirectivesParser}
 import scala.collection.mutable
 
 case class ExtractedDirectives(
@@ -22,7 +23,7 @@ object ExtractedDirectives {
   def empty: ExtractedDirectives = ExtractedDirectives(Seq.empty, None)
 
   def from(
-    contentChars: Array[Char],
+    contentChars: IndexedSeq[Char],
     path: Either[String, os.Path],
     suppressWarningOptions: SuppressWarningOptions,
     logger: Logger,
@@ -32,10 +33,10 @@ object ExtractedDirectives {
     val diagnosticErrors = mutable.ListBuffer.empty[Diagnostic]
 
     for diag <- result.diagnostics do
-      val positions = diag.position.map { p =>
+      val positions = Seq {
+        val p = diag.position
         Position.File(path, (p.line, p.column), (p.line, p.column))
-      }.toSeq
-
+      }
       if diag.severity == DiagnosticSeverity.Warning then
         if diag.message.toLowerCase.contains("deprecated") &&
           suppressWarningOptions.suppressDeprecatedFeatureWarning.getOrElse(false)
@@ -65,13 +66,13 @@ object ExtractedDirectives {
           val lastDirective     = directives.last
           val (endLine, endCol) = lastDirective.values.lastOption match
             case Some(sv: DirectiveValue.StringVal) if sv.isQuoted =>
-              (sv.pos.line, sv.pos.column + sv.value.length + 2)
+              (sv.position.line, sv.position.column + sv.value.length + 2)
             case Some(sv: DirectiveValue.StringVal) =>
-              (sv.pos.line, sv.pos.column + sv.value.length)
+              (sv.position.line, sv.position.column + sv.value.length)
             case Some(bv: DirectiveValue.BoolVal) =>
-              (bv.pos.line, bv.pos.column + bv.value.toString.length)
+              (bv.position.line, bv.position.column + bv.value.toString.length)
             case Some(ev: DirectiveValue.EmptyVal) =>
-              (ev.pos.line, ev.pos.column)
+              (ev.position.line, ev.position.column)
             case None =>
               val kp = lastDirective.keyPosition
               (kp.line, kp.column + lastDirective.key.length)

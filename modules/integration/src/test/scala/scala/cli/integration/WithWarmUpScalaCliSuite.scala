@@ -31,8 +31,8 @@ abstract class WithWarmUpScalaCliSuite extends ScalaCliSuite {
   }
 
   override def test(name: String)(body: => Any)(implicit loc: munit.Location): Unit =
-    super.test(name) { warmupTest; body }(loc)
+    super.test(name) { warmupTest; body }(using loc)
 
   override def test(name: munit.TestOptions)(body: => Any)(implicit loc: munit.Location): Unit =
-    super.test(name) { warmupTest; body }(loc)
+    super.test(name) { warmupTest; body }(using loc)
 }

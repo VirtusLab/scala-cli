@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
-import scala.cli.integration.Constants.munitVersion
+import scala.cli.integration.Constants.{allJavaVersions, munitVersion}
 import scala.cli.integration.TestUtil.StringOps
 
 class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDefault {
@@ -294,44 +294,44 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
       }
     }
 
-    test(
-      s"pure Java test with JUnit has no Scala on classpath with --jvm ${Constants.minimumRunnerJava} $buildServerDesc"
-    ) {
-      val targetJvm = Constants.minimumRunnerJava
-      TestInputs(
-        os.rel / "test" / "MyTests.java" ->
-          s"""//> using test.dep junit:junit:4.13.2
-             |//> using test.dep com.novocode:junit-interface:0.11
-             |import org.junit.Test;
-             |import static org.junit.Assert.assertEquals;
-             |
-             |public class MyTests {
-             |  @Test
-             |  public void foo() {
-             |    try {
-             |      Class.forName("scala.Predef");
-             |      throw new AssertionError("Scala should not be on the classpath");
-             |    } catch (ClassNotFoundException e) {
-             |      // expected
-             |    }
-             |    assertEquals(4, 2 + 2);
-             |    System.out.println("No Scala on classpath with $targetJvm!!");
-             |  }
-             |}
-             |""".stripMargin
-      ).fromRoot { root =>
-        val res =
-          os.proc(
-            TestUtil.cli,
-            "test",
-            extraOptions,
-            buildServerOptions,
-            ".",
-            "--jvm",
-            targetJvm
-          ).call(cwd = root)
-        expect(res.out.text().contains(s"No Scala on classpath with $targetJvm!"))
+    for (targetJvm <- Seq(allJavaVersions.min, Constants.minimumJavaTestRunnerJava).distinct)
+      test(
+        s"pure Java test with JUnit has no Scala on classpath with --jvm $targetJvm $buildServerDesc"
+      ) {
+        TestInputs(
+          os.rel / "test" / "MyTests.java" ->
+            s"""//> using test.dep junit:junit:4.13.2
+               |//> using test.dep com.novocode:junit-interface:0.11
+               |import org.junit.Test;
+               |import static org.junit.Assert.assertEquals;
+               |
+               |public class MyTests {
+               |  @Test
+               |  public void foo() {
+               |    try {
+               |      Class.forName("scala.Predef");
+               |      throw new AssertionError("Scala should not be on the classpath");
+               |    } catch (ClassNotFoundException e) {
+               |      // expected
+               |    }
+               |    assertEquals(4, 2 + 2);
+               |    System.out.println("No Scala on classpath with $targetJvm!!");
+               |  }
+               |}
+               |""".stripMargin
+        ).fromRoot { root =>
+          val res =
+            os.proc(
+              TestUtil.cli,
+              "test",
+              extraOptions,
+              buildServerOptions,
+              ".",
+              "--jvm",
+              targetJvm
+            ).call(cwd = root)
+          expect(res.out.text().contains(s"No Scala on classpath with $targetJvm!"))
+        }
       }
-    }
   }
 }
