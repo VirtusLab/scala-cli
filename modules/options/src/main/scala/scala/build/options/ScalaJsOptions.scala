@@ -6,7 +6,12 @@ import dependency.*
 import java.util.Locale
 
 import scala.build.Logger
-import scala.build.errors.{BuildException, UnrecognizedJsOptModeError, WasmModuleKindError}
+import scala.build.errors.{
+  BuildException,
+  UnrecognizedJsEsVersionError,
+  UnrecognizedJsOptModeError,
+  WasmModuleKindError
+}
 import scala.build.internal.{Constants, ScalaJsLinkerConfig}
 
 final case class ScalaJsOptions(
@@ -84,26 +89,14 @@ final case class ScalaJsOptions(
       }
       .getOrElse(ScalaJsLinkerConfig.ModuleSplitStyle.FewestModules)
 
-  def esVersion(logger: Logger): String =
-    esVersionStr
-      .map(_.trim.toLowerCase(Locale.ROOT))
-      .map {
-        case "es5_1"  => ScalaJsLinkerConfig.ESVersion.ES5_1
-        case "es2015" => ScalaJsLinkerConfig.ESVersion.ES2015
-        case "es2016" => ScalaJsLinkerConfig.ESVersion.ES2016
-        case "es2017" => ScalaJsLinkerConfig.ESVersion.ES2017
-        case "es2018" => ScalaJsLinkerConfig.ESVersion.ES2018
-        case "es2019" => ScalaJsLinkerConfig.ESVersion.ES2019
-        case "es2020" => ScalaJsLinkerConfig.ESVersion.ES2020
-        case "es2021" => ScalaJsLinkerConfig.ESVersion.ES2021
-        case unknown  =>
-          val default = ScalaJsLinkerConfig.ESVersion.default
-          logger.message(
-            s"Warning: unrecognized argument: $unknown for --js-es-version parameter, use default value: $default"
-          )
-          default
-      }
-      .getOrElse(ScalaJsLinkerConfig.ESVersion.default)
+  def esVersion: Either[UnrecognizedJsEsVersionError, String] =
+    esVersionStr.map(_.trim.toLowerCase(Locale.ROOT)) match {
+      case None      => Right(ScalaJsLinkerConfig.ESVersion.default)
+      case Some(str) =>
+        ScalaJsOptions.esVersionsByLowerCaseName
+          .get(str)
+          .toRight(left = new UnrecognizedJsEsVersionError(str, ScalaJsOptions.supportedEsVersions))
+    }
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaJsVersion)
 
@@ -145,28 +138,29 @@ final case class ScalaJsOptions(
   ): Either[BuildException, BloopConfig.JsConfig] =
     configUnsafe(logger, maybeRecoverOnError)
 
-  def linkerConfig(logger: Logger): ScalaJsLinkerConfig = {
-    val esFeatureDefaults = ScalaJsLinkerConfig.ESFeatures()
-    val esFeatures        = ScalaJsLinkerConfig.ESFeatures(
-      allowBigIntsForLongs =
-        allowBigIntsForLongs.getOrElse(esFeatureDefaults.allowBigIntsForLongs),
-      avoidClasses = avoidClasses.getOrElse(esFeatureDefaults.avoidClasses),
-      avoidLetsAndConsts = avoidLetsAndConsts.getOrElse(esFeatureDefaults.avoidLetsAndConsts),
-      esVersion = esVersion(logger)
-    )
+  def linkerConfig(logger: Logger): Either[BuildException, ScalaJsLinkerConfig] =
+    esVersion.map { resolvedEsVersion =>
+      val esFeatureDefaults = ScalaJsLinkerConfig.ESFeatures()
+      val esFeatures        = ScalaJsLinkerConfig.ESFeatures(
+        allowBigIntsForLongs =
+          allowBigIntsForLongs.getOrElse(esFeatureDefaults.allowBigIntsForLongs),
+        avoidClasses = avoidClasses.getOrElse(esFeatureDefaults.avoidClasses),
+        avoidLetsAndConsts = avoidLetsAndConsts.getOrElse(esFeatureDefaults.avoidLetsAndConsts),
+        esVersion = resolvedEsVersion
+      )
 
-    ScalaJsLinkerConfig(
-      moduleKind = moduleKind(logger),
-      checkIR = checkIr.getOrElse(false), // meh
-      sourceMap = emitSourceMaps,
-      moduleSplitStyle = moduleSplitStyle(logger),
-      smallModuleForPackage = smallModuleForPackage,
-      esFeatures = esFeatures,
-      jsHeader = header,
-      remapEsModuleImportMap = remapEsModuleImportMap,
-      emitWasm = jsEmitWasm
-    )
-  }
+      ScalaJsLinkerConfig(
+        moduleKind = moduleKind(logger),
+        checkIR = checkIr.getOrElse(false), // meh
+        sourceMap = emitSourceMaps,
+        moduleSplitStyle = moduleSplitStyle(logger),
+        smallModuleForPackage = smallModuleForPackage,
+        esFeatures = esFeatures,
+        jsHeader = header,
+        remapEsModuleImportMap = remapEsModuleImportMap,
+        emitWasm = jsEmitWasm
+      )
+    }
 
   /** Whether the user explicitly selected an ES module kind (the only kind the Scala.js Wasm
     * backend supports).
@@ -205,6 +199,14 @@ object ScalaJsMode {
 }
 
 object ScalaJsOptions {
+
+  /** The ES versions users may pass, spelled the way they are expected to spell them. */
+  def supportedEsVersions: Seq[String] =
+    ScalaJsLinkerConfig.ESVersion.all.map(_.toLowerCase(Locale.ROOT))
+
+  private lazy val esVersionsByLowerCaseName: Map[String, String] =
+    ScalaJsLinkerConfig.ESVersion.all.map(v => v.toLowerCase(Locale.ROOT) -> v).toMap
+
   implicit val hasHashData: HasHashData[ScalaJsOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[ScalaJsOptions]     = ConfigMonoid.derive
 }
