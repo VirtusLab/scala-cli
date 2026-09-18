@@ -250,9 +250,7 @@ object Doc extends ScalaCommand[DocOptions] with BuildCommandHelpers {
             logger,
             builds.head.options.finalCache,
             None,
-            toolchain = builds.head.artifacts.scalaOpt
-              .map(_.toolchain)
-              .getOrElse(Artifacts.ScalaToolchain())
+            toolchain = builds.head.artifacts.toolchain
           )
         }
         val destDir = builds.head.project.scaladocDir
