@@ -5,7 +5,7 @@
 //| - com.goyeau::mill-scalafix::0.6.2
 //| - ch.epfl.scala:scalafix-interfaces:0.14.9
 //| - com.lumidion::sonatype-central-client-requests:0.6.0
-//| - io.get-coursier:coursier-launcher_2.13:2.1.25-M26
+//| - io.get-coursier:coursier-launcher_2.13:2.1.25
 //| - org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r
 package build
 
@@ -980,7 +980,6 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
     Deps.caseApp,
     Deps.coursierLauncher,
-    Deps.coursierProxySetup,
     Deps.coursierPublish.exclude((organization, "config_2.13")).exclude((organization, "config_3")),
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
