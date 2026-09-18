@@ -367,10 +367,6 @@ final case class BuildOptions(
         // Do not validate Scala version in offline mode
         case (Some(MaybeScalaVersion(Some(svInput))), _) if internal.offline.getOrElse(false) =>
           Some(svInput)
-        // Version aliases and validation are tied to the official artifacts,
-        // so with a custom Scala organization the version is taken as-is.
-        case (Some(MaybeScalaVersion(Some(svInput))), _) if customScalaOrganization.nonEmpty =>
-          Some(svInput)
         // Do not validate Scala version if it is a default one
         case (Some(MaybeScalaVersion(Some(svInput))), _) if defaultVersions.contains(svInput) =>
           Some(svInput)
@@ -387,7 +383,7 @@ final case class BuildOptions(
         case (Some(MaybeScalaVersion(Some(svInput))), None) if svInput == "2.12" =>
           Some(Constants.defaultScala212Version)
         case (Some(MaybeScalaVersion(Some(svInput))), _) =>
-          val sv = value {
+          val validated =
             svInput match {
               case sv if ScalaVersionUtil.scala3Lts.contains(sv.toLowerCase) =>
                 ScalaVersionUtil.validateStable(
@@ -456,8 +452,9 @@ final case class BuildOptions(
                   repositories
                 )
             }
-          }
-          Some(sv)
+          Some(value(
+            if customScalaOrganization.isEmpty then validated else validated.orElse(Right(svInput))
+          ))
         case (None, Some(predefinedScalaVersion)) => Some(predefinedScalaVersion)
         case _                                    => Some(Constants.defaultScalaVersion)
       }
