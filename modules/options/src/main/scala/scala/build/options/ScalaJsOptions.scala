@@ -89,13 +89,18 @@ final case class ScalaJsOptions(
       }
       .getOrElse(ScalaJsLinkerConfig.ModuleSplitStyle.FewestModules)
 
+  /** Normalizes the requested ES version to the spelling the Scala.js linker expects, without
+    * pinning down which versions exist - that depends on the Scala.js version in use, so it is left
+    * for the linker to reject anything it does not support.
+    */
   def esVersion: Either[UnrecognizedJsEsVersionError, String] =
     esVersionStr.map(_.trim.toLowerCase(Locale.ROOT)) match {
-      case None      => Right(ScalaJsLinkerConfig.ESVersion.default)
-      case Some(str) =>
-        ScalaJsOptions.esVersionsByLowerCaseName
-          .get(str)
-          .toRight(left = new UnrecognizedJsEsVersionError(str, ScalaJsOptions.supportedEsVersions))
+      case None                                => Right(ScalaJsLinkerConfig.ESVersion.default)
+      case Some(ScalaJsOptions.es5_1Pattern()) => Right(ScalaJsLinkerConfig.ESVersion.ES5_1)
+      case Some(ScalaJsOptions.esYearPattern(year))
+          if year.toInt >= ScalaJsLinkerConfig.ESVersion.minimumYear =>
+        Right(s"ES$year")
+      case Some(unrecognized) => Left(new UnrecognizedJsEsVersionError(unrecognized))
     }
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaJsVersion)
@@ -200,12 +205,9 @@ object ScalaJsMode {
 
 object ScalaJsOptions {
 
-  /** The ES versions users may pass, spelled the way they are expected to spell them. */
-  def supportedEsVersions: Seq[String] =
-    ScalaJsLinkerConfig.ESVersion.all.map(_.toLowerCase(Locale.ROOT))
-
-  private lazy val esVersionsByLowerCaseName: Map[String, String] =
-    ScalaJsLinkerConfig.ESVersion.all.map(v => v.toLowerCase(Locale.ROOT) -> v).toMap
+  // Matched against already trimmed & lower-cased input, hence no case-insensitivity flags.
+  private val es5_1Pattern  = "es5_1".r
+  private val esYearPattern = "es(\\d{4})".r
 
   implicit val hasHashData: HasHashData[ScalaJsOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[ScalaJsOptions]     = ConfigMonoid.derive

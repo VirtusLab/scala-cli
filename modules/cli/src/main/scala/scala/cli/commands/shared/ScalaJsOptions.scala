@@ -101,7 +101,7 @@ final case class ScalaJsOptions(
 
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.should)
-  @HelpMessage("The Scala.js ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021, es2022, es2023, es2024, es2025, es2026")
+  @HelpMessage("The Scala.js ECMA Script version: es5_1 or esYYYY (e.g. es2022), supported by the Scala.js version in use")
     jsEsVersion: Option[String] = None,
 
   @Group(HelpGroup.ScalaJs.toString)

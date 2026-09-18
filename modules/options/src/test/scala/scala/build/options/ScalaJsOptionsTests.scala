@@ -11,13 +11,24 @@ class ScalaJsOptionsTests extends munit.FunSuite {
   private def esVersionOf(str: String): Either[UnrecognizedJsEsVersionError, String] =
     ScalaJsOptions(esVersionStr = Some(str)).esVersion
 
+  private def errorFor(str: String): UnrecognizedJsEsVersionError =
+    esVersionOf(str) match {
+      case Left(e)      => e
+      case Right(other) => sys.error(s"Expected an error for '$str', got $other")
+    }
+
+  private def linkerArgsFor(str: String): Seq[String] =
+    ScalaJsOptions(esVersionStr = Some(str)).linkerConfig(Logger.nop) match {
+      case Right(config) => config.linkerCliArgs
+      case Left(e)       => sys.error(s"Expected a linker config for '$str', got $e")
+    }
+
   test("no es version yields the default one") {
     expect(ScalaJsOptions().esVersion == Right(ScalaJsLinkerConfig.ESVersion.default))
   }
 
-  test("every supported es version is recognized") {
-    for (esVersion <- ScalaJsLinkerConfig.ESVersion.all)
-      expect(esVersionOf(esVersion.toLowerCase) == Right(esVersion))
+  test("es5_1 is recognized") {
+    expect(esVersionOf("es5_1") == Right(ScalaJsLinkerConfig.ESVersion.ES5_1))
   }
 
   test("es2022 - es2026 are recognized") {
@@ -28,26 +39,37 @@ class ScalaJsOptionsTests extends munit.FunSuite {
     expect(esVersionOf("es2026") == Right("ES2026"))
   }
 
-  test("es version input is trimmed and case-insensitive") {
-    expect(esVersionOf("  ES2022 ") == Right("ES2022"))
+  // The point of forwarding rather than enumerating: a version Scala CLI has never heard of is
+  // passed on to the Scala.js linker, which is the only component that knows what it supports.
+  test("an es version newer than any Scala CLI knows about is forwarded") {
+    expect(esVersionOf("es2027") == Right("ES2027"))
+    expect(esVersionOf("es2099") == Right("ES2099"))
+    expect(linkerArgsFor("es2027").containsSlice(Seq("--esVersion", "ES2027")))
   }
 
-  test("an unrecognized es version is an error listing the supported ones") {
-    val error = esVersionOf("es9999") match {
-      case Left(e)      => e
-      case Right(other) => sys.error(s"Expected an error, got $other")
-    }
-    expect(error.message.contains("Unrecognized Scala.js ECMA Script version: es9999"))
-    for (esVersion <- ScalaJsOptions.supportedEsVersions)
-      expect(error.message.contains(esVersion))
+  test("es version input is trimmed and case-insensitive") {
+    expect(esVersionOf("  ES2022 ") == Right("ES2022"))
+    expect(esVersionOf("Es5_1") == Right(ScalaJsLinkerConfig.ESVersion.ES5_1))
+  }
+
+  test("malformed es versions are rejected") {
+    for (malformed <- Seq("esnext", "es2O22", "2022", "es22", "es20222", "es", ""))
+      expect(esVersionOf(malformed).isLeft)
+  }
+
+  test("es versions older than the Scala.js minimum are rejected") {
+    expect(esVersionOf("es2014").isLeft)
+    expect(esVersionOf("es1999").isLeft)
+  }
+
+  test("the rejection message describes the accepted shape") {
+    val message = errorFor("esnext").message
+    expect(message.contains("Unrecognized Scala.js ECMA Script version: esnext"))
+    expect(message.contains("es5_1"))
+    expect(message.contains("esYYYY"))
   }
 
   test("the es version is passed to the linker") {
-    val linkerConfig =
-      ScalaJsOptions(esVersionStr = Some("es2022")).linkerConfig(Logger.nop) match {
-        case Right(config) => config
-        case Left(e)       => sys.error(s"Expected a linker config, got $e")
-      }
-    expect(linkerConfig.linkerCliArgs.containsSlice(Seq("--esVersion", "ES2022")))
+    expect(linkerArgsFor("es2022").containsSlice(Seq("--esVersion", "ES2022")))
   }
 }
