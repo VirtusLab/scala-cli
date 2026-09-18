@@ -486,13 +486,15 @@ object Artifacts {
       }
       // this is actually fetcher.artifacts, which is a private field…
       val artifacts = coursier.Artifacts()
-        .withCache(fetcher.cache)
-        .withClassifiers(fetcher.classifiers)
-        .withMainArtifactsOpt(fetcher.mainArtifactsOpt)
-        .withArtifactTypesOpt(fetcher.artifactTypesOpt)
-        .withExtraArtifactsSeq(fetcher.extraArtifactsSeq)
-        .withClasspathOrder(fetcher.classpathOrder)
-        .withTransformArtifacts(fetcher.transformArtifacts)
+        .copy(
+          cache = fetcher.cache,
+          classifiers = fetcher.classifiers,
+          mainArtifactsOpt = fetcher.mainArtifactsOpt,
+          artifactTypesOpt = fetcher.artifactTypesOpt,
+          extraArtifactsSeq = fetcher.extraArtifactsSeq,
+          classpathOrder = fetcher.classpathOrder,
+          transformArtifacts = fetcher.transformArtifacts
+        )
       artifacts
         .withResolution(resolution)
         .runResult()
