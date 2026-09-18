@@ -862,9 +862,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     mainClass: Option[String],
     logger: Logger
   ): Either[BuildException, os.Path] = for {
-    isFullOpt <- builds.head.options.scalaJsOptions.fullOpt
-    linkerConfig = builds.head.options.scalaJsOptions.linkerConfig(logger)
-    linkResult <- linkJs(
+    isFullOpt    <- builds.head.options.scalaJsOptions.fullOpt
+    linkerConfig <- builds.head.options.scalaJsOptions.linkerConfig(logger)
+    linkResult   <- linkJs(
       builds = builds,
       dest = destPath,
       mainClassOpt = mainClass,

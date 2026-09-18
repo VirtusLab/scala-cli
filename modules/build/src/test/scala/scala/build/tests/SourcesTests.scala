@@ -745,7 +745,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           |//> using jsAvoidClasses false
           |//> using jsAvoidLetsAndConsts false
           |//> using jsModuleSplitStyleStr smallestmodules
-          |//> using jsEsVersionStr es2017
+          |//> using jsEsVersionStr es2022
           |""".stripMargin
     )
     testInputs.withInputs { (root, inputs) =>
@@ -768,7 +768,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           .orThrow
 
       val jsOptions = sources.buildOptions.scalaJsOptions
-      val jsConfig  = jsOptions.linkerConfig(TestLogger())
+      val jsConfig  = jsOptions.linkerConfig(TestLogger()).orThrow
       expect(
         jsOptions.version.contains("1.8.0"),
         jsOptions.mode.nameOpt.contains("mode"),
@@ -786,7 +786,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         jsConfig.esFeatures.allowBigIntsForLongs,
         !jsConfig.esFeatures.avoidClasses,
         !jsConfig.esFeatures.avoidLetsAndConsts,
-        jsConfig.esFeatures.esVersion == "ES2017",
+        jsConfig.esFeatures.esVersion == "ES2022",
         jsConfig.moduleSplitStyle == ScalaJsLinkerConfig.ModuleSplitStyle.SmallestModules
       )
     }
