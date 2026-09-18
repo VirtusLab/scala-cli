@@ -6,6 +6,7 @@ import scala.build.Positioned
 
 final case class ScalaOptions(
   scalaVersion: Option[MaybeScalaVersion] = None,
+  scalaOrganization: Option[String] = None,
   scalaBinaryVersion: Option[String] = None,
   addScalaLibrary: Option[Boolean] = None,
   addScalaCompiler: Option[Boolean] = None,
@@ -35,6 +36,15 @@ final case class ScalaOptions(
 }
 
 object ScalaOptions {
+
+  val defaultOrganization: String = "org.scala-lang"
+
+  extension (scalaOrg: String)
+    def isDefaultOrg: Boolean = scalaOrg == defaultOrganization
+
+  extension (scalaOrgOpt: Option[String])
+    def orDefaultOrg: String = scalaOrgOpt.getOrElse(defaultOrganization)
+
   implicit val hasHashData: HasHashData[ScalaOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[ScalaOptions]     = ConfigMonoid.derive
 }
