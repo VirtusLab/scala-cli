@@ -37,7 +37,7 @@ abstract class PgpExternalCommand extends ExternalCommand {
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Int] = either {
 
-    val archiveCache = ArchiveCache().withCache(cache)
+    val archiveCache = ArchiveCache().copy(cache = cache)
 
     val binary = value(PgpExternalCommand.launcher(
       cache,
@@ -71,7 +71,7 @@ abstract class PgpExternalCommand extends ExternalCommand {
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, String] = either {
 
-    val archiveCache = ArchiveCache().withCache(cache)
+    val archiveCache = ArchiveCache().copy(cache = cache)
 
     val binary = value(PgpExternalCommand.launcher(
       cache,

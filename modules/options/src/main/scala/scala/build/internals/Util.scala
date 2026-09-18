@@ -75,21 +75,23 @@ object Util {
       val mod  = dep.module.toCs
       var dep0 = coursier.Dependency(mod, VersionConstraint(dep.version))
       if (dep.exclude.nonEmpty)
-        dep0 = dep0.withMinimizedExclusions {
+        dep0 = dep0.copy(minimizedExclusions =
           MinimizedExclusions {
             dep.exclude.toSet[dependency.Module].map { mod =>
               (coursier.Organization(mod.organization), coursier.ModuleName(mod.name))
             }
           }
-        }
+        )
       for (clOpt <- dep.userParams.find(_._1 == "classifier").map(_._2); cl <- clOpt)
-        dep0 = dep0.withPublication(dep0.publication.withClassifier(coursier.core.Classifier(cl)))
+        dep0 = dep0.copy(publication =
+          dep0.publication.copy(classifier = coursier.core.Classifier(cl))
+        )
       for (tpeOpt <- dep.userParams.find(_._1 == "type").map(_._2); tpe <- tpeOpt)
-        dep0 = dep0.withPublication(dep0.publication.withType(coursier.core.Type(tpe)))
+        dep0 = dep0.copy(publication = dep0.publication.copy(`type` = coursier.core.Type(tpe)))
       for (extOpt <- dep.userParams.find(_._1 == "ext").map(_._2); ext <- extOpt)
-        dep0 = dep0.withPublication(dep0.publication.withExt(coursier.core.Extension(ext)))
+        dep0 = dep0.copy(publication = dep0.publication.copy(ext = coursier.core.Extension(ext)))
       for (_ <- dep.userParams.find(_._1 == "intransitive"))
-        dep0 = dep0.withTransitive(false)
+        dep0 = dep0.copy(transitive = false)
       dep0
     }
   }

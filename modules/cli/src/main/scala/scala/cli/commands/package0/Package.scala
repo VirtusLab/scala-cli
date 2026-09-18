@@ -909,8 +909,10 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     // TODO Generate that in memory
     val tmpJar       = os.temp(prefix = destPath.last.stripSuffix(".jar"), suffix = ".jar")
     val tmpJarParams = Parameters.Assembly()
-      .withExtraZipEntries(patchedByteCodeZipEntries)
-      .withBaseManifest(baseManifestOpt)
+      .copy(
+        extraZipEntries = patchedByteCodeZipEntries,
+        baseManifest = baseManifestOpt
+      )
       .withMainClass(mainClass)
     AssemblyGenerator.generate(tmpJarParams, tmpJar.toNIO)
     val tmpJarContent = os.read.bytes(tmpJar)
@@ -948,9 +950,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val preamble      = Preamble()
       .withOsKind(Properties.isWin)
       .callsItself(Properties.isWin)
-      .withJavaOpts(builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value))
+      .copy(javaOpts = builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value))
     val baseParams = Parameters.Bootstrap(Seq(loaderContent), mainClass)
-      .withDeterministic(true)
+      .copy(deterministic = true)
       .withPreamble(preamble)
 
     val params: Parameters.Bootstrap =
@@ -976,7 +978,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             else ClassPathEntry.Url(a.url)
         }
         val pythonContent = Seq(ClassLoaderContent(entries))
-        baseParams.addExtraContent("python", pythonContent).withPython(true)
+        baseParams.addExtraContent("python", pythonContent).copy(python = true)
       }
       else baseParams
 
@@ -1114,11 +1116,13 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         }
       else None
     val params = Parameters.Assembly()
-      .withExtraZipEntries(nonManifestEntries)
-      .withBaseManifest(baseManifestOpt)
-      .withFiles(jars.map(_.toIO))
-      .withMainClass(mainClassOpt)
-      .withPreambleOpt(preambleOpt)
+      .copy(
+        extraZipEntries = nonManifestEntries,
+        baseManifest = baseManifestOpt,
+        files = jars.map(_.toIO),
+        mainClass = mainClassOpt,
+        preambleOpt = preambleOpt
+      )
     value(alreadyExistsCheck())
     AssemblyGenerator.generate(params, destPath.toNIO)
     val patchedDest = value(SlothPatcher.patchJarFile(destPath, options, logger))

@@ -69,7 +69,7 @@ final case class PgpSecretKeyCheck(
   def javaCommand: Either[BuildException, () => String] = either {
     () =>
       value(JvmUtils.javaOptions(options.sharedJvm)).javaHome(
-        ArchiveCache().withCache(coursierCache),
+        ArchiveCache().copy(cache = coursierCache),
         coursierCache,
         logger.verbosity
       ).value.javaCommand

@@ -76,7 +76,7 @@ case object ActionableDependencyHandler
 
   private def mergeCoreVersions(parts: Seq[CoreVersions]): CoreVersions =
     val mergedAvailable = parts.flatMap(_.available0).distinctBy(_.asString).toList
-    CoreVersions.empty.withAvailable0(mergedAvailable)
+    CoreVersions.empty.copy(available0 = mergedAvailable)
 
   private def findLatestVersion(
     buildOptions: BuildOptions,
