@@ -7,8 +7,9 @@ import scala.jdk.CollectionConverters.*
 class ScalaOrganizationTests extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
-  private val forkOrganization = "ch.epfl.lara"
-  private val forkVersion      = "3.10.1-RC1-bin-20260903-e1f9361-NIGHTLY"
+  private val forkOrganization = Constants.scalaForkOrganization
+  private val forkVersion      = Constants.scalaForkVersion
+  private val forkPath         = forkOrganization.replace('.', '/')
 
   test("run with a Scala organization passed from the command line") {
     TestInputs(
@@ -63,7 +64,7 @@ class ScalaOrganizationTests extends ScalaCliSuite {
       val classPathEntries                         = classPathEntriesOf(res)
       def scalaLibraries(organizationPath: String) = classPathEntries
         .filter(_.contains(s"/$organizationPath/scala3-library_3/"))
-      expect(scalaLibraries(forkOrganization.replace('.', '/')).nonEmpty)
+      expect(scalaLibraries(forkPath).nonEmpty)
       expect(scalaLibraries("org/scala-lang").isEmpty)
     }
   }
@@ -82,7 +83,7 @@ class ScalaOrganizationTests extends ScalaCliSuite {
       val res = os.proc(TestUtil.cli, "--power", "compile", ".", "--print-class-path")
         .call(cwd = root, stderr = os.Pipe)
       val classPathEntries = classPathEntriesOf(res)
-      expect(classPathEntries.exists(_.contains("/ch/epfl/lara/scala3-compiler_3/")))
+      expect(classPathEntries.exists(_.contains(s"/$forkPath/scala3-compiler_3/")))
       expect(!classPathEntries.exists(_.contains("/org/scala-lang/scala3-compiler_3/")))
     }
   }
@@ -137,7 +138,7 @@ class ScalaOrganizationTests extends ScalaCliSuite {
       val res = os.proc(TestUtil.cli, "--power", "compile", ".", "--print-class-path")
         .call(cwd = root, stderr = os.Pipe)
       val classPathEntries = classPathEntriesOf(res)
-      expect(classPathEntries.exists(_.contains("/ch/epfl/lara/tasty-core_3/")))
+      expect(classPathEntries.exists(_.contains(s"/$forkPath/tasty-core_3/")))
       expect(!classPathEntries.exists(_.contains("/org/scala-lang/tasty-core_3/")))
     }
   }
