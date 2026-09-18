@@ -610,8 +610,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       )
       sys.exit(1)
 
-    val scalaToolchain =
-      builds.head.artifacts.scalaOpt.map(_.toolchain).getOrElse(Artifacts.ScalaToolchain())
+    val scalaToolchain = builds.head.artifacts.toolchain
 
     val rewrittenPerBuild = builds.map { build =>
       val scalaParamsOpt = build.artifacts.scalaOpt.map(_.params)

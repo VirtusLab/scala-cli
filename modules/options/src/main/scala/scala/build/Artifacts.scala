@@ -55,7 +55,9 @@ final case class Artifacts(
   resolution: Option[Resolution]
 ) {
 
-  def userDependencies                  = defaultDependencies ++ extraDependencies
+  def userDependencies                    = defaultDependencies ++ extraDependencies
+  def toolchain: Artifacts.ScalaToolchain =
+    scalaOpt.map(_.toolchain).getOrElse(Artifacts.ScalaToolchain())
   lazy val jarsForUserExtraDependencies = {
     val extraDependenciesMap =
       extraDependencies.map(dep => dep.module.name -> dep.version).toMap

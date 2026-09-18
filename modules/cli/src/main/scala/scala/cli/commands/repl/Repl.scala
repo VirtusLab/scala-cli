@@ -409,9 +409,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
             then Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
             else None,
           javaVersion = options.javaHome().value.version,
-          toolchain = allArtifacts.flatMap(_.scalaOpt).headOption
-            .map(_.toolchain)
-            .getOrElse(Artifacts.ScalaToolchain())
+          toolchain = allArtifacts.headOption.fold(Artifacts.ScalaToolchain())(_.toolchain)
         )
       }
     }
