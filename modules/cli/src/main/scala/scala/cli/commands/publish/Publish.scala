@@ -144,7 +144,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     )
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
-      internal = baseOptions.internal.copy(keepResolution = true),
+      internal =
+        baseOptions.internal.copy(keepResolution = baseOptions.customScalaOrganization.nonEmpty),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         publishOptions = baseOptions.notForBloopOptions.publishOptions.copy(
           organization =

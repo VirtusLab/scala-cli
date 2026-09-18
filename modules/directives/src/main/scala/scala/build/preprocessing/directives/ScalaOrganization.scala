@@ -2,7 +2,8 @@ package scala.build.preprocessing.directives
 
 import scala.build.directives.*
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, ScalaOptions}
+import scala.build.options.ScalaOptions.isDefaultOrg
+import scala.build.options.{BuildOptions, InternalOptions, ScalaOptions}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Scala organization")
@@ -19,7 +20,10 @@ final case class ScalaOrganization(
   scalaOrganization: Option[String] = None
 ) extends HasBuildOptions:
   def buildOptions: Either[BuildException, BuildOptions] =
-    Right(BuildOptions(scalaOptions = ScalaOptions(scalaOrganization = scalaOrganization)))
+    Right(BuildOptions(
+      scalaOptions = ScalaOptions(scalaOrganization = scalaOrganization),
+      internal = InternalOptions(keepResolution = scalaOrganization.exists(!_.isDefaultOrg))
+    ))
 
 object ScalaOrganization:
   val handler: DirectiveHandler[ScalaOrganization] = DirectiveHandler.derive
