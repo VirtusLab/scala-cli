@@ -478,7 +478,7 @@ trait CliLaunchers extends SbtModule { self =>
     val entries       = cp.map(path => ClassPathEntry.Url(path.toNIO.toUri.toASCIIString))
     val loaderContent = coursier.launcher.ClassLoaderContent(entries)
     val params        = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
-      .withDeterministic(true)
+      .copy(deterministic = true)
       .withPreamble(preamble)
 
     BootstrapGenerator.generate(params, dest.toNIO)
@@ -518,9 +518,9 @@ trait CliLaunchers extends SbtModule { self =>
     }
     val loaderContent = coursier.launcher.ClassLoaderContent(entries)
     val params        = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
-      .withDeterministic(true)
+      .copy(deterministic = true)
       .withPreamble(preamble)
-      .withJavaProperties(Seq("scala-cli.kind" -> "jvm.standaloneLauncher"))
+      .copy(javaProperties = Seq("scala-cli.kind" -> "jvm.standaloneLauncher"))
 
     BootstrapGenerator.generate(params, dest.toNIO)
 
@@ -851,9 +851,6 @@ trait ScalaCliModule extends ScalaModule {
     "--release",
     "16"
   )
-  // Since coursier 2.1.25, the `coursier` package object extends a trait whose members refer to
-  // `scala.reflect.macros` types. scala-reflect is a `provided` dependency of coursier, so it has
-  // to be added to the compile class path explicitly for Scala 3 to be able to read that signature.
   override def compileMvnDeps: T[Seq[Dep]] = Task {
     if scalaVersion().startsWith("3") then
       super.compileMvnDeps() ++ Seq(Deps.scalaReflect(deps.Scala.scala213))

@@ -141,7 +141,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
                 .getOrElse(defaultScalaVersion)
               val (fromIndex, completions) = cache.logger.use {
                 coursier.complete.Complete(cache)
-                  .withInput(prefix)
+                  .copy(input = prefix)
                   .withScalaVersion(sv)
                   .complete()
                   .unsafeRun()(using cache.ec)

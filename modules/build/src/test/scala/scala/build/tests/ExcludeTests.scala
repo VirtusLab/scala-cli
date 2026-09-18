@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext
 
 class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
   val preprocessors: Seq[Preprocessor] = Sources.defaultPreprocessors(
-    archiveCache = ArchiveCache().withCache(
+    archiveCache = ArchiveCache().copy(cache =
       new Cache[Task] {
         def fetch: Fetch[Task] = _ => sys.error("shouldn't be used")
         def file(artifact: Artifact): EitherT[Task, ArtifactError, File] =

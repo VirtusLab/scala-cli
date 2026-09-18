@@ -44,16 +44,16 @@ final case class CoursierOptions(
     coursierValidateChecksums.getOrElse(true)
 
   def coursierCache(logger: Logger, cacheLogger: CacheLogger): FileCache[Task] = {
-    var baseCache = FileCache().withLogger(cacheLogger)
+    var baseCache = FileCache().copy(logger = cacheLogger)
     if (!validateChecksums)
-      baseCache = baseCache.withChecksums(Nil)
+      baseCache = baseCache.copy(checksums = Nil)
     val ttlOpt = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_))
     for (ttl0 <- ttlOpt)
       baseCache = baseCache.withTtl(ttl0)
     for (loc <- cache.filter(_.trim.nonEmpty))
       baseCache = baseCache.withLocation(loc)
     for (isOffline <- getOffline(logger) if isOffline)
-      baseCache = baseCache.withCachePolicies(Seq(CachePolicy.LocalOnly))
+      baseCache = baseCache.copy(cachePolicies = Seq(CachePolicy.LocalOnly))
 
     baseCache
   }

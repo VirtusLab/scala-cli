@@ -46,7 +46,7 @@ object TestUtil {
   }
 
   def downloadFile(url: String): Either[ArtifactError, Array[Byte]] = {
-    val artifact = Artifact(url).withChanging(true)
+    val artifact = Artifact(url).copy(changing = true)
     val cache    = FileCache()
 
     val file: Either[ArtifactError, File] = cache.logger.use {

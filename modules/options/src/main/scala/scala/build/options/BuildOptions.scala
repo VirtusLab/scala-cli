@@ -177,7 +177,7 @@ final case class BuildOptions(
         coursier.complete.Complete(finalCache)
           .withScalaVersion(scalaVersion)
           .withScalaBinaryVersion(scalaVersion.split('.').take(2).mkString("."))
-          .withInput(s"org.scalameta:semanticdb-scalac_$scalaVersion:")
+          .copy(input = s"org.scalameta:semanticdb-scalac_$scalaVersion:")
           .complete()
           .future()(using finalCache.ec)
       }
@@ -258,7 +258,7 @@ final case class BuildOptions(
   lazy val finalCache: FileCache[Task] = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
 
-  lazy val archiveCache: ArchiveCache[Task] = ArchiveCache().withCache(finalCache)
+  lazy val archiveCache: ArchiveCache[Task] = ArchiveCache().copy(cache = finalCache)
 
   private lazy val javaCommand0: Positioned[JavaHomeInfo] =
     javaHomeLocation().map(JavaHomeInfo(_))
@@ -710,7 +710,7 @@ object BuildOptions {
           .map(_.describe)
           .map(f => os.read.bytes(os.Path(f, Os.pwd)))
     }
-    def changing(cache: FileCache[Task]): Download = apply(cache, Artifact(_).withChanging(true))
+    def changing(cache: FileCache[Task]): Download = apply(cache, Artifact(_).copy(changing = true))
     val notSupported: Download                     = _ => Left("URL not supported")
   }
 

@@ -37,7 +37,7 @@ object CsLoggerUtil {
               )
             )
             updatedLogger.init()
-            cache.withLogger(updatedLogger)
+            cache.copy(logger = updatedLogger)
           }
           else cache
         case _ => cache
@@ -48,8 +48,8 @@ object CsLoggerUtil {
       javaHome.cache.map(_.archiveCache.cache) match {
         case Some(f: FileCache[Task]) =>
           val cache0 = f.withMessage(message)
-          javaHome.withCache(
-            javaHome.cache.map(c => c.withArchiveCache(c.archiveCache.withCache(cache0)))
+          javaHome.copy(cache =
+            javaHome.cache.map(c => c.copy(archiveCache = c.archiveCache.copy(cache = cache0)))
           )
         case _ => javaHome
       }

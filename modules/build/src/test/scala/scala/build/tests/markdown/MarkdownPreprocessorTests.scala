@@ -20,7 +20,7 @@ class MarkdownPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
   given ScalaCliInvokeData = ScalaCliInvokeData.dummy
 
   private val preprocessors: Seq[Preprocessor] = Sources.defaultPreprocessors(
-    ArchiveCache().withCache(
+    ArchiveCache().copy(cache =
       new Cache[Task] {
         def fetch: Fetch[Task] = _ => sys.error("shouldn't be used")
         def file(artifact: Artifact): EitherT[Task, ArtifactError, File] =

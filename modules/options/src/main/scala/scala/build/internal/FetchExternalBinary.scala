@@ -67,7 +67,7 @@ object FetchExternalBinary {
     makeExecutable: Boolean = true
   ): Either[BuildException, Option[os.Path]] = either {
 
-    val artifact = Artifact(url).withChanging(changing)
+    val artifact = Artifact(url).copy(changing = changing)
     val res      = archiveCache.cache.loggerOpt.getOrElse(CacheLogger.nop).use {
       logger.log(s"Getting $url")
       archiveCache.get(artifact)
