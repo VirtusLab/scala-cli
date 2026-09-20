@@ -839,6 +839,7 @@ object Artifacts {
     val defaultResolve = coursier.Resolve()
     val resolve        = defaultResolve
       .withCache(cache)
+      // repository order matters here, since in some cases coursier resolves only the head
       .withRepositories(extraRepositoriesWithFallback ++ defaultResolve.repositories)
       .withDependencies(rewriteRootDeps(toolchain)(
         dependencies.map(_.value)
