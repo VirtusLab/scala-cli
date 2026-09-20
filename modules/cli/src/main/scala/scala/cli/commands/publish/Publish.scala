@@ -490,7 +490,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       }
       val rewritten   = new RuleTransformer(addExclusions).transform(XML.loadString(pom))
       val declaration = pom.linesIterator.takeWhile(_.trim.startsWith("<?")).mkString("\n")
-      val body        = new PrettyPrinter(120, 2).formatNodes(rewritten)
+      val body        = new PrettyPrinter(Int.MaxValue, 2).formatNodes(rewritten)
       if declaration.isEmpty then body else s"$declaration\n$body\n"
     }
 
