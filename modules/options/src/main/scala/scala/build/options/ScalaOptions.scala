@@ -40,12 +40,6 @@ object ScalaOptions {
   val defaultOrganization: String = "org.scala-lang"
   val compilerModuleName: String  = "scala-compiler"
 
-  extension (scalaOrg: String)
-    def isDefaultOrg: Boolean = scalaOrg == defaultOrganization
-
-  extension (scalaOrgOpt: Option[String])
-    def orDefaultOrg: String = scalaOrgOpt.getOrElse(defaultOrganization)
-
   implicit val hasHashData: HasHashData[ScalaOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[ScalaOptions]     = ConfigMonoid.derive
 }

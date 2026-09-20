@@ -33,7 +33,6 @@ import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Util.{PositionedScalaDependencyOps, safeFullDetailedArtifacts}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.ScalaOptions
-import scala.build.options.ScalaOptions.*
 import scala.collection.mutable
 
 final case class Artifacts(
@@ -883,7 +882,8 @@ object Artifacts {
     logger: Logger,
     cache: FileCache[Task]
   ): Either[BuildException, ScalaToolchain] =
-    if scalaOrganization.isDefaultOrg then Right(ScalaToolchain(scalaOrganization))
+    if scalaOrganization == ScalaOptions.defaultOrganization then
+      Right(ScalaToolchain(scalaOrganization))
     else
       fetchAnyDependencies(
         compilerDependenciesFor(scalaOrganization, scalaVersion).map(Positioned.none),
@@ -899,7 +899,8 @@ object Artifacts {
     toolchain: ScalaToolchain,
     moduleNames: Set[String]
   )(dependencies: Seq[coursier.Dependency]): Seq[coursier.Dependency] =
-    if toolchain.organization.isDefaultOrg || moduleNames.isEmpty then dependencies
+    if toolchain.organization == ScalaOptions.defaultOrganization || moduleNames.isEmpty then
+      dependencies
     else
       val upstreamToolchain = csCore.MinimizedExclusions:
         moduleNames.map(name => Organization(ScalaOptions.defaultOrganization) -> ModuleName(name))
@@ -911,7 +912,7 @@ object Artifacts {
     toolchain: ScalaToolchain,
     resolution: Resolution
   ): Seq[coursier.Dependency] =
-    if toolchain.organization.isDefaultOrg then Nil
+    if toolchain.organization == ScalaOptions.defaultOrganization then Nil
     else
       resolution.orderedDependencies
         .filter(_.module.organization.value == toolchain.organization)
@@ -921,7 +922,7 @@ object Artifacts {
     scalaOrganization: String,
     modules: Seq[Module]
   ): Seq[String] =
-    if scalaOrganization.isDefaultOrg then Nil
+    if scalaOrganization == ScalaOptions.defaultOrganization then Nil
     else
       val upstream = Organization(ScalaOptions.defaultOrganization)
       val fork     = Organization(scalaOrganization)
@@ -942,7 +943,7 @@ object Artifacts {
       case None       => dependencies
 
   def forkedVersionOf(toolchain: ScalaToolchain, moduleName: String): Option[VersionConstraint] =
-    if toolchain.organization.isDefaultOrg then None
+    if toolchain.organization == ScalaOptions.defaultOrganization then None
     else
       toolchain.providedModules.get(moduleName).orElse {
         if moduleName.startsWith("scala3-library_") then
@@ -962,7 +963,9 @@ object Artifacts {
   private[build] def toolchainRewrite(
     toolchain: ScalaToolchain
   ): Option[coursier.Dependency => coursier.Dependency] =
-    if toolchain.organization.isDefaultOrg || toolchain.providedModules.isEmpty then None
+    if toolchain.organization == ScalaOptions.defaultOrganization ||
+      toolchain.providedModules.isEmpty
+    then None
     else
       Some: dep =>
         forkedModule(toolchain, dep.module) match

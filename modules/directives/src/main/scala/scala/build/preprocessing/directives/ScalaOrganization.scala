@@ -2,7 +2,6 @@ package scala.build.preprocessing.directives
 
 import scala.build.directives.*
 import scala.build.errors.BuildException
-import scala.build.options.ScalaOptions.isDefaultOrg
 import scala.build.options.{BuildOptions, InternalOptions, ScalaOptions}
 import scala.cli.commands.SpecificationLevel
 
@@ -22,7 +21,9 @@ final case class ScalaOrganization(
   def buildOptions: Either[BuildException, BuildOptions] =
     Right(BuildOptions(
       scalaOptions = ScalaOptions(scalaOrganization = scalaOrganization),
-      internal = InternalOptions(keepResolution = scalaOrganization.exists(!_.isDefaultOrg))
+      internal = InternalOptions(keepResolution =
+        scalaOrganization.exists(_ != ScalaOptions.defaultOrganization)
+      )
     ))
 
 object ScalaOrganization:

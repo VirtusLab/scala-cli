@@ -5,7 +5,6 @@ import scala.annotation.unused
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
-import scala.build.options.ScalaOptions.*
 import scala.build.options.{BuildOptions, ScalaOptions, Scope, ShadowingSeq}
 import scala.build.{Artifacts, Logger, Positioned, Sources}
 import scala.cli.ScalaCli
@@ -137,7 +136,7 @@ final case class MavenProjectDescriptor(
 
         val forkedModules = toolchain.providedModules.keySet.toSeq.sorted
         def isUpstreamToolchain(dep: MavenLibraryDependency) =
-          dep.groupId.isDefaultOrg && forkedModules.contains(dep.artifactId)
+          dep.groupId == ScalaOptions.defaultOrganization && forkedModules.contains(dep.artifactId)
         val upstreamToolchainExclusions =
           forkedModules.map(ScalaOptions.defaultOrganization -> _)
         val resolvedDepsWithExclusions = resolvedDeps

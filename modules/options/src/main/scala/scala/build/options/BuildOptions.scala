@@ -106,10 +106,11 @@ final case class BuildOptions(
         else Some(false)
       }
 
-  def scalaOrganization: String = scalaOptions.scalaOrganization.orDefaultOrg
+  def scalaOrganization: String =
+    scalaOptions.scalaOrganization.getOrElse(ScalaOptions.defaultOrganization)
 
   def customScalaOrganization: Option[String] =
-    scalaOptions.scalaOrganization.filterNot(_.isDefaultOrg)
+    scalaOptions.scalaOrganization.filter(_ != ScalaOptions.defaultOrganization)
 
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     value(scalaParams).toSeq.flatMap { scalaParams0 =>
