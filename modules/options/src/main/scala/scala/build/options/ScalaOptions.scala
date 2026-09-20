@@ -38,6 +38,7 @@ final case class ScalaOptions(
 object ScalaOptions {
 
   val defaultOrganization: String = "org.scala-lang"
+  val compilerModuleName: String  = "scala-compiler"
 
   extension (scalaOrg: String)
     def isDefaultOrg: Boolean = scalaOrg == defaultOrganization

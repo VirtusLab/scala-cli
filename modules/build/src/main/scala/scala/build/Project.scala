@@ -46,7 +46,7 @@ final case class Project(
     val scalaConfigOpt = scalaCompiler.map { scalaCompiler0 =>
       bloopScalaConfig(
         ScalaOptions.defaultOrganization,
-        "scala-compiler",
+        ScalaOptions.compilerModuleName,
         scalaCompiler0.scalaVersion
       ).copy(
         options = updateScalacOptions(scalaCompiler0.scalacOptions).map(_.value),
