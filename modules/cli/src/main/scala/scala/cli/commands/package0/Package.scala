@@ -1011,7 +1011,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         .sequence
         .left.map(CompositeBuildException(_))
     }
-    val modulesSet                         = modules.toSet
+    val toolchain  = builds.head.artifacts.toolchain
+    val modulesSet =
+      modules.map(module => Artifacts.forkedModule(toolchain, module).fold(module)(_._1)).toSet
     val providedDeps: Seq[core.Dependency] = value {
       res
         .map(_.dependencyArtifacts0().safeArtifacts.map(_.map(_._1)))

@@ -1126,6 +1126,8 @@ trait CliIntegration extends SbtModule
            |  def scala3Next                   = "${Scala.scala3Next}"
            |  def scala3NextAnnounced          = "${Scala.scala3NextAnnounced}"
            |  def defaultScala                 = "${Scala.defaultUser}"
+           |  def scalaForkOrganization        = "${Scala.forkOrganization}"
+           |  def scalaForkVersion             = "${Scala.forkVersion}"
            |  def scala38Versions              = Seq(${Scala.scala38Versions
             .sorted
             .map(s => s"\"$s\"")

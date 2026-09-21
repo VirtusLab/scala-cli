@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.util.Arrays
 
-import scala.build.options.{ScalacOpt, Scope, ShadowingSeq}
+import scala.build.options.{ScalaOptions, ScalacOpt, Scope, ShadowingSeq}
 
 final case class Project(
   workspace: os.Path,
@@ -44,7 +44,11 @@ final case class Project(
         BloopConfig.Platform.Native(config = nativeConfig, mainClass = None)
     }
     val scalaConfigOpt = scalaCompiler.map { scalaCompiler0 =>
-      bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler0.scalaVersion).copy(
+      bloopScalaConfig(
+        ScalaOptions.defaultOrganization,
+        ScalaOptions.compilerModuleName,
+        scalaCompiler0.scalaVersion
+      ).copy(
         options = updateScalacOptions(scalaCompiler0.scalacOptions).map(_.value),
         jars = scalaCompiler0.compilerClassPath.map(_.toNIO).toList,
         bridgeJars = scalaCompiler0.bridgeJarsOpt.map(_.map(_.toNIO).toList)

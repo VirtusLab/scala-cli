@@ -873,4 +873,31 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("scalaOrganization directive is parsed into build options") {
+    val testInputs = TestInputs(
+      os.rel / "something.scala" ->
+        """//> using scalaOrganization ch.epfl.lara
+          |object Something
+          |""".stripMargin
+    )
+    testInputs.withInputs { (root, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        ).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       =
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        ).orThrow
+      expect(sources.buildOptions.scalaOptions.scalaOrganization.contains("ch.epfl.lara"))
+    }
+  }
+
 }

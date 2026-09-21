@@ -38,6 +38,10 @@ object Scala {
   // The latest Scala version supporting scala_legacy runner command
   def scalaLegacyRunnerVersion = "3.7.4"
 
+  // A fork of the Scala toolchain, used to test the `scalaOrganization` option & directive.
+  def forkOrganization = "ch.epfl.lara"
+  def forkVersion      = "3.10.1-RC1-bin-20260903-e1f9361-NIGHTLY"
+
   // as Scala 3.8 changes a lot of compatibilities,
   // these are the cutoff versions for the stable, RC and nightly series,
   // respectively

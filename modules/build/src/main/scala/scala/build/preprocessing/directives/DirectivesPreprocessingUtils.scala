@@ -29,6 +29,7 @@ object DirectivesPreprocessingUtils {
       directives.Repository.handler,
       directives.ScalaJs.handler,
       directives.ScalaNative.handler,
+      directives.ScalaOrganization.handler,
       directives.ScalaVersion.handler,
       directives.Sources.handler,
       directives.Sloth.handler,

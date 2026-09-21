@@ -46,6 +46,41 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
+  test("custom scalaOrganization falls back to Scala versions the official one doesn't have") {
+    val version = "3.99.0-RC1-bin-20260903-e1f9361-NIGHTLY"
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some(MaybeScalaVersion(version)),
+        scalaOrganization = Some("ch.epfl.lara")
+      )
+    )
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
+    expect(scalaParams.scalaVersion == version)
+  }
+
+  test("custom scalaOrganization resolves Scala version aliases") {
+    def scalaVersionFor(alias: String) = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some(MaybeScalaVersion(alias)),
+        scalaOrganization = Some("ch.epfl.lara")
+      )
+    ).scalaParams.orThrow.getOrElse(sys.error("should not happen")).scalaVersion
+    expect(scalaVersionFor("3") == defaultScalaVersion)
+    expect(scalaVersionFor("2.13") == defaultScala213Version)
+    expect(scalaVersionFor("3.lts").startsWith(s"$scala3LtsPrefix."))
+  }
+
+  test("the default scalaOrganization keeps Scala version aliases working") {
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some(MaybeScalaVersion("3")),
+        scalaOrganization = Some(ScalaOptions.defaultOrganization)
+      )
+    )
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
+    expect(scalaParams.scalaVersion == defaultScalaVersion)
+  }
+
   test("-S 3.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(

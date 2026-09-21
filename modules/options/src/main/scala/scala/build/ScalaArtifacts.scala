@@ -11,7 +11,8 @@ final case class ScalaArtifacts(
   internalDependencies: Seq[AnyDependency],
   extraDependencies: Seq[AnyDependency],
   params: ScalaParameters,
-  bridgeJarsOpt: Option[Seq[os.Path]]
+  bridgeJarsOpt: Option[Seq[os.Path]],
+  toolchain: Artifacts.ScalaToolchain
 ) {
 
   lazy val compilerClassPath: Seq[os.Path] =

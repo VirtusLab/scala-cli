@@ -82,6 +82,14 @@ final case class SharedOptions(
   @Tag(tags.must)
     scalaVersion: Option[String] = None,
   @Group(HelpGroup.Scala.toString)
+  @HelpMessage(
+    "Set the organization the Scala toolchain artifacts are fetched from (org.scala-lang by default)"
+  )
+  @ValueDescription("organization")
+  @Name("scalaOrg")
+  @Tag(tags.restricted)
+    scalaOrganization: Option[String] = None,
+  @Group(HelpGroup.Scala.toString)
   @HelpMessage("Set the Scala binary version")
   @ValueDescription("version")
   @Hidden
@@ -445,6 +453,7 @@ final case class SharedOptions(
             .map(_.trim)
             .filter(_.nonEmpty)
             .map(scala.build.options.MaybeScalaVersion(_)),
+          scalaOrganization = scalaOrganization.map(_.trim).filter(_.nonEmpty),
           scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
           addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
           addScalaCompiler = withCompiler,
