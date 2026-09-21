@@ -505,7 +505,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               deleteOnExit = scratchDirOpt.isEmpty && !effectiveAllowExecve
             )
 
-            val linkerConfig = jsOpts.linkerConfig(logger)
+            val linkerConfig = value(jsOpts.linkerConfig(logger))
 
             val res = Package.linkJs(
               builds = builds,
@@ -576,7 +576,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                     m == "es" || m == "esmodule"
                   )
 
-                val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
+                val linkerConfig = value(build.options.scalaJsOptions.linkerConfig(logger))
                 val jsDest       = {
                   val delete = scratchDirOpt.isEmpty && !effectiveAllowExecve
                   scratchDirOpt.foreach(os.makeDir.all(_))

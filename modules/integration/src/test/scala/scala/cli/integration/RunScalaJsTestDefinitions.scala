@@ -292,6 +292,38 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
+  test("set es2022 version to scala-js-cli") {
+    val inputs = TestInputs(
+      os.rel / "run.sc" ->
+        s"""//> using jsEsVersionStr es2022
+           |
+           |import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |console.log("Hello from ES2022")
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, extraOptions, "run.sc", "--js")
+        .call(cwd = root, stderr = os.Pipe)
+      expect(res.out.trim() == "Hello from ES2022")
+      expect(!res.err.text().contains("unrecognized argument"))
+    }
+  }
+
+  test("fail on unrecognized jsEsVersion") {
+    val inputs = TestInputs(
+      os.rel / "run.sc" -> """println("Hello")"""
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, extraOptions, "run.sc", "--js", "--js-es-version", "es9999")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      expect(res.exitCode != 0)
+      val output = res.out.text()
+      expect(output.contains("Unrecognized Scala.js ECMA Script version: es9999"))
+      expect(output.contains("es2026"))
+    }
+  }
+
   test("Emit Wasm") {
     val outDir = "out"
 
