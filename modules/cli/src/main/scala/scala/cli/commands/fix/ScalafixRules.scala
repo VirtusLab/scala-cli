@@ -24,6 +24,8 @@ object ScalafixRules extends CommandHelpers {
     compilerMaker: ScalaCompilerMaker,
     workspace: os.Path,
     check: Boolean,
+    // exec'ing replaces the current process, discarding anything the caller still has to report
+    allowExecve: Boolean,
     actionableDiagnostics: Option[Boolean],
     logger: Logger
   )(using ScalaCliInvokeData): Either[BuildException, Int] = {
@@ -132,7 +134,7 @@ object ScalafixRules extends CommandHelpers {
             scalafixCliOptions,
             logger,
             cwd = Some(workspace),
-            allowExecve = true
+            allowExecve = allowExecve
           )
 
           proc.waitFor()
