@@ -10,7 +10,11 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 
 import scala.build.Ops.*
-import scala.build.errors.{UsingDirectiveValueNumError, UsingDirectiveWrongValueTypeError}
+import scala.build.errors.{
+  UnrecognizedJsEsVersionError,
+  UsingDirectiveValueNumError,
+  UsingDirectiveWrongValueTypeError
+}
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.ScalaJsLinkerConfig
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
@@ -830,6 +834,29 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
       crossSources match {
         case Left(_: UsingDirectiveWrongValueTypeError) =>
         case o                                          => fail("Exception expected", clues(o))
+      }
+    }
+  }
+
+  test("js options in using directives failure - unrecognized es version") {
+    val testInputs = TestInputs(
+      os.rel / "something.sc" ->
+        """//> using jsEsVersionStr esnext
+          |""".stripMargin
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )
+      crossSources match {
+        case Left(e: UnrecognizedJsEsVersionError) =>
+          expect(e.message.contains("esnext"))
+          expect(e.positions.nonEmpty)
+        case o => fail("Exception expected", clues(o))
       }
     }
   }

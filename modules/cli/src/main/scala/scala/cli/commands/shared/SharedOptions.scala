@@ -280,28 +280,35 @@ final case class SharedOptions(
         new scala.build.errors.UnrecognizedJSRuntimeError(rt, validValues)
       }
     }
-    parsedJSRuntime.map(parsedRuntime =>
-      options.ScalaJsOptions(
-        version = jsVersion,
-        mode = options.ScalaJsMode(jsMode),
-        moduleKindStr = jsModuleKind,
-        checkIr = jsCheckIr,
-        emitSourceMaps = jsEmitSourceMaps,
-        sourceMapsDest = jsSourceMapsPath.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
-        dom = jsDom,
-        header = jsHeader,
-        allowBigIntsForLongs = jsAllowBigIntsForLongs,
-        avoidClasses = jsAvoidClasses,
-        avoidLetsAndConsts = jsAvoidLetsAndConsts,
-        moduleSplitStyleStr = jsModuleSplitStyle,
-        smallModuleForPackage = jsSmallModuleForPackage,
-        esVersionStr = jsEsVersion,
-        noOpt = jsNoOpt,
-        remapEsModuleImportMap =
-          jsEsModuleImportMap.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
-        jsEmitWasm = jsEmitWasm.getOrElse(false),
-        jsRuntime = parsedRuntime
-      )
+    val validatedEsVersion: Either[BuildException, Option[String]] =
+      jsEsVersion.fold(Right(None): Either[BuildException, Option[String]]) { esVersion =>
+        options.ScalaJsOptions
+          .normalizeEsVersion(esVersion, Seq(Position.CommandLine()))
+          .map(_ => Some(esVersion))
+      }
+    for {
+      parsedRuntime   <- parsedJSRuntime
+      parsedEsVersion <- validatedEsVersion
+    } yield options.ScalaJsOptions(
+      version = jsVersion,
+      mode = options.ScalaJsMode(jsMode),
+      moduleKindStr = jsModuleKind,
+      checkIr = jsCheckIr,
+      emitSourceMaps = jsEmitSourceMaps,
+      sourceMapsDest = jsSourceMapsPath.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
+      dom = jsDom,
+      header = jsHeader,
+      allowBigIntsForLongs = jsAllowBigIntsForLongs,
+      avoidClasses = jsAvoidClasses,
+      avoidLetsAndConsts = jsAvoidLetsAndConsts,
+      moduleSplitStyleStr = jsModuleSplitStyle,
+      smallModuleForPackage = jsSmallModuleForPackage,
+      esVersionStr = parsedEsVersion,
+      noOpt = jsNoOpt,
+      remapEsModuleImportMap =
+        jsEsModuleImportMap.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
+      jsEmitWasm = jsEmitWasm.getOrElse(false),
+      jsRuntime = parsedRuntime
     )
   }
 

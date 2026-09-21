@@ -69,6 +69,17 @@ class ScalaJsOptionsTests extends munit.FunSuite {
     expect(message.contains("esYYYY"))
   }
 
+  test("normalizeEsVersion is the shared validation entry point") {
+    expect(ScalaJsOptions.normalizeEsVersion("  ES2027 ") == Right("ES2027"))
+    expect(ScalaJsOptions.normalizeEsVersion("esnext").isLeft)
+    // the instance method must agree with the shared entry point, so the two cannot drift
+    for (input <- Seq("es5_1", "es2022", "es2027", "esnext", "es2014", "es2O22"))
+      expect(
+        ScalaJsOptions(esVersionStr = Some(input)).esVersion.toOption ==
+          ScalaJsOptions.normalizeEsVersion(input).toOption
+      )
+  }
+
   test("the es version is passed to the linker") {
     expect(linkerArgsFor("es2022").containsSlice(Seq("--esVersion", "ES2022")))
   }
