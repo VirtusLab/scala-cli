@@ -1315,10 +1315,14 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
             .call(cwd = root, stderr = os.Pipe)
         val out = res.out.trim()
         expect(out.contains(expectedMessage))
-        if actualScalaVersion.startsWith("2") || javaVersion < Constants.scala38MinJavaVersion then
+        val isLegacyJvm   = javaVersion < Constants.minimumRunnerJavaVersion
+        val isLegacyScala = actualScalaVersion.startsWith("2")
+        if isLegacyScala || isLegacyJvm then
           val err = res.err.trim()
           expect(err.contains(expectedWarning))
           expect(err.countOccurrences(expectedWarning) == 1)
+          if isLegacyJvm && !isLegacyScala then
+            expect(err.contains(s"$expectedWarning: ${Constants.runnerJava8LegacyVersion}"))
       }
     }
 }

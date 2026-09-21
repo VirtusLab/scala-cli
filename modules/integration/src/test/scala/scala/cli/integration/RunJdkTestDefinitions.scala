@@ -161,7 +161,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
             ) { (proc, _, ec) =>
               proc.printStderrUntilJlineRevertsToDumbTerminal(proc) { s =>
                 expect(!s.contains("A restricted method in java.lang.System has been called"))
-              }(ec)
+              }(using ec)
             }
         }
       }

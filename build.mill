@@ -62,8 +62,35 @@ trait CrossScalaDefaultToInternal extends CrossScalaDefault { self: Cross[?] =>
   override def crossScalaDefaultVersion: String = Scala.defaultInternal
 }
 
+trait CrossScalaDefaultToLegacyLts extends CrossScalaDefault { self: Cross[?] =>
+  override def crossScalaDefaultVersion: String = Scala.scala3LegacyLts
+}
+
+trait CrossScalaDefaultToLts extends CrossScalaDefault { self: Cross[?] =>
+  override def crossScalaDefaultVersion: String = Scala.scala3Lts
+}
+
 trait CrossScalaDefaultToRunner extends CrossScalaDefault { self: Cross[?] =>
   override def crossScalaDefaultVersion: String = Scala.runnerScala3
+}
+
+trait FutureLazyVals extends CrossScalaModule {
+
+  /** Bytecode version emitted by the legacy LTS cross-builds. `-Yfuture-lazy-vals` requires it to
+    * be set explicitly, to at least `Java.minimumRunnerJava`.
+    */
+  def javaOutputVersion: Int = Java.defaultJava
+
+  def lazyValOptions = {
+    assert(javaOutputVersion >= Java.minimumRunnerJava)
+    if crossScalaVersion.startsWith(Scala.scala3LegacyLtsPrefix)
+    then Seq("-Yfuture-lazy-vals", s"-java-output-version:$javaOutputVersion")
+    else Nil
+  }
+
+  override def scalacOptions: T[Seq[String]] = Task {
+    super.scalacOptions() ++ lazyValOptions
+  }
 }
 
 // Publish a bootstrapped, executable jar for a restricted environments
@@ -95,14 +122,12 @@ object cliBootstrapped extends ScalaCliPublishModule {
   }
 }
 
-object `specification-level` extends Cross[SpecificationLevel](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
+object `specification-level` extends Cross[SpecificationLevel](Scala.allScala3)
+    with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 after 3.3 EOL
 object `build-macros` extends Cross[BuildMacros](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
-object `directives-parser` extends Cross[DirectivesParserModule](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
 object config extends Cross[Config](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
+    with CrossScalaDefaultToLts // pinned to LTS for other tools to depend on
 object options extends Cross[Options](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object directives extends Cross[Directives](Scala.scala3MainVersions)
@@ -112,9 +137,9 @@ object core extends Cross[Core](Scala.scala3MainVersions)
 object `build-module` extends Cross[Build](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object runner extends Cross[Runner](Scala.runnerScalaVersions)
-    with CrossScalaDefaultToRunner
+    with CrossScalaDefaultToRunner // TODO Bump to 3.9 after 3.3 EOL
 object `test-runner` extends Cross[TestRunner](Scala.runnerScalaVersions)
-    with CrossScalaDefaultToRunner
+    with CrossScalaDefaultToRunner // TODO Bump to 3.9 after 3.3 EOL
 object `java-test-runner` extends JavaTestRunner
     with LocatedInModules
 object `tasty-lib` extends Cross[TastyLib](Scala.scala3MainVersions)
@@ -239,7 +264,7 @@ trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with LocatedI
 }
 
 object packager extends ScalaModule {
-  override def scalaVersion: T[String] = Scala.scala3LegacyLts
+  override def scalaVersion: T[String] = Scala.defaultInternal
   override def mvnDeps: T[Seq[Dep]]    = Seq(
     Deps.scalaPackagerCli
   )
@@ -488,6 +513,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def runnerVersion = "${build.runner(crossScalaVersion).publishVersion()}"
          |  def runnerScala30LegacyVersion = "${Cli.runnerScala30LegacyVersion}"
          |  def runnerScala2LegacyVersion = "${Cli.runnerScala2LegacyVersion}"
+         |  def runnerJava8LegacyVersion = "${Cli.runnerJava8LegacyVersion}"
          |  def runnerMainClass = "$runnerMainClass"
          |
          |  def semanticDbPluginOrganization = "${Deps.semanticDbScalac.dep.module.organization
@@ -526,9 +552,9 @@ trait Core extends ScalaCliCrossSbtModule
          |  def typelevelToolkitDefaultVersion = "${Deps.typelevelToolkitVersion}"
          |  def typelevelToolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForTypelevelToolkit}"
          |
-         |  def minimumLauncherJavaVersion = ${Java.minimumJavaLauncherJava}
          |  def minimumBloopJavaVersion = ${Java.minimumBloopJava}
          |  def minimumInternalJavaVersion = ${Java.minimumInternalJava}
+         |  def minimumRunnerJavaVersion = ${Java.minimumRunnerJava}
          |  def defaultJavaVersion = ${Java.defaultJava}
          |  def mainJavaVersions = Seq(${Java.mainJavaVersions.sorted.mkString(", ")})
          |
@@ -545,6 +571,10 @@ trait Core extends ScalaCliCrossSbtModule
           .mkString(", ")})
          |  
          |  def scala38Versions = Seq(${Scala.scala38Versions
+          .sorted
+          .map(s => s"\"$s\"")
+          .mkString(", ")})
+         |  def scala39Versions = Seq(${Scala.scala39Versions
           .sorted
           .map(s => s"\"$s\"")
           .mkString(", ")})
@@ -620,8 +650,7 @@ trait Directives extends ScalaCliCrossSbtModule
     options(crossScalaVersion),
     core(crossScalaVersion),
     `build-macros`(crossScalaVersion),
-    `specification-level`(crossScalaVersion),
-    `directives-parser`(crossScalaVersion)
+    `specification-level`(crossScalaVersion)
   )
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion)
@@ -635,7 +664,8 @@ trait Directives extends ScalaCliCrossSbtModule
     // Deps.asm,
     Deps.bloopConfig,
     Deps.jsoniterCore,
-    Deps.pprint
+    Deps.pprint,
+    Deps.directivesParser(crossScalaVersion)
   )
 
   override def repositoriesTask: Task[Seq[Repository]] =
@@ -823,7 +853,8 @@ trait DirectivesParserModule extends ScalaCliCrossSbtModule
 
 trait SpecificationLevel extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
-    with LocatedInModules {
+    with LocatedInModules
+    with FutureLazyVals {
   override def crossScalaVersion: String = crossValue
 }
 
@@ -877,7 +908,6 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |object Constants {
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultJavaVersion = ${Java.defaultJava}
-         |  def minimumLauncherJavaVersion = ${Java.minimumJavaLauncherJava}
          |  def minimumBloopJavaVersion = ${Java.minimumBloopJava}
          |  def scalaJsVersion = "${Scala.scalaJs}"
          |  def scalaJsCliVersion = "${Scala.scalaJsCli}"
@@ -1021,7 +1051,7 @@ trait CliIntegration extends SbtModule
     with LocatedInModules {
   override def scalaVersion: T[String] = sv
 
-  def sv: String = Scala.scala3LegacyLts
+  def sv: String = Scala.defaultInternal
 
   def tmpDirBase: T[PathRef] = Task(persistent = true) {
     PathRef(Task.dest / "working-dir")
@@ -1035,9 +1065,6 @@ trait CliIntegration extends SbtModule
   )
 
   trait IntegrationScalaTests extends super.ScalaCliTests with ScalaCliScalafixModule {
-    override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(
-      `directives-parser`(sv)
-    )
     override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
       Deps.bsp4j,
       Deps.coursier
@@ -1048,7 +1075,8 @@ trait CliIntegration extends SbtModule
       Deps.jsoniterCore,
       Deps.libsodiumjni,
       Deps.pprint,
-      Deps.slf4jNop
+      Deps.slf4jNop,
+      Deps.directivesParser(sv)
     )
     override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(
       Deps.jsoniterMacros
@@ -1080,7 +1108,8 @@ trait CliIntegration extends SbtModule
            |  def minimumLauncherJavaVersion   = ${Java.minimumJavaLauncherJava}
            |  def bloopMinimumJvmVersion       = ${Java.minimumBloopJava}
            |  def minimumInternalJvmVersion    = ${Java.minimumInternalJava}
-           |  def minimumRunnerJava            = ${Java.minimumRunnerJava}
+           |  def minimumJavaTestRunnerJava    = ${Java.minimumJavaTestRunnerJava}
+           |  def minimumRunnerJavaVersion     = ${Java.minimumRunnerJava}
            |  def defaultJvmVersion            = ${Java.defaultJava}
            |  def scala212                     = "${Scala.scala212}"
            |  def scala213                     = "${Scala.scala213}"
@@ -1101,6 +1130,10 @@ trait CliIntegration extends SbtModule
             .sorted
             .map(s => s"\"$s\"")
             .mkString(", ")})
+           |  def scala39Versions              = Seq(${Scala.scala39Versions
+            .sorted
+            .map(s => s"\"$s\"")
+            .mkString(", ")})
            |  def scala38MinJavaVersion        = ${Java.minimumScala38Java}
            |  def jep512MinJavaVersion         = ${Java.minimumJep512Java}
            |  def defaultScalafmtVersion       = "${Deps.scalafmtCli.dep.versionConstraint.asString}"
@@ -1117,6 +1150,7 @@ trait CliIntegration extends SbtModule
            |  def defaultGraalVMVersion        = "${deps.graalVmCommunityVersion}"
            |  def runnerScala30LegacyVersion   = "${Cli.runnerScala30LegacyVersion}"
            |  def runnerScala2LegacyVersion    = "${Cli.runnerScala2LegacyVersion}"
+           |  def runnerJava8LegacyVersion     = "${Cli.runnerJava8LegacyVersion}"
            |  def scalaPyVersion               = "${Deps.scalaPy.dep.versionConstraint.asString}"
            |  def scalaPyMaxScalaNative        = "${Deps.Versions.maxScalaNativeForScalaPy}"
            |  def bloopVersion                 = "${Deps.bloopRifle.dep.versionConstraint.asString}"
@@ -1318,7 +1352,7 @@ trait CliIntegration extends SbtModule
 }
 
 trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with HasTests {
-  override def scalaVersion: T[String] = Scala.scala3LegacyLts
+  override def scalaVersion: T[String] = Scala.defaultInternal
   override def mvnDeps: T[Seq[Dep]]    = super.mvnDeps() ++ Seq(
     Deps.osLib
   )
@@ -1328,7 +1362,9 @@ trait Runner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
     with HasTests
-    with LocatedInModules {
+    with LocatedInModules
+    with FutureLazyVals {
+  override def javaOutputVersion: Int        = Java.minimumRunnerJava
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-deprecation")
   }
@@ -1345,7 +1381,9 @@ trait Runner extends CrossSbtModule
 trait TestRunner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
-    with LocatedInModules {
+    with LocatedInModules
+    with FutureLazyVals {
+  override def javaOutputVersion: Int        = Java.minimumRunnerJava
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-deprecation")
   }
@@ -1364,7 +1402,7 @@ trait JavaTestRunner extends JavaModule
     with ScalaCliPublishModule
     with LocatedInModules {
   override def javacOptions: T[Seq[String]] =
-    super.javacOptions() ++ Seq("--release", Java.minimumRunnerJava.toString)
+    super.javacOptions() ++ Seq("--release", Java.minimumJavaTestRunnerJava.toString)
   override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
     Deps.asm,
     Deps.testInterface
@@ -1402,7 +1440,7 @@ trait TastyLib extends ScalaCliCrossSbtModule
 object `local-repo` extends LocalRepo {
 
   /*
-   * If you are developing locally on any of the stub modules (stubs, runner, test-runner),
+   * If you are developing locally on any of the stub modules (java-test-runner, runner, test-runner),
    * set this to true, so that Mill's watch mode takes into account changes in those modules
    * when embedding their JARs in the Scala CLI launcher.
    */

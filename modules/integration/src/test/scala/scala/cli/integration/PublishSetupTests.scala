@@ -1,10 +1,10 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import dotty.tools.directives.{DirectiveValue, UsingDirectivesParser}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.URIish
 
-import scala.cli.parse.{DirectiveValue, UsingDirectivesParser}
 import scala.util.Properties
 import scala.util.matching.Regex
 
@@ -68,7 +68,7 @@ class PublishSetupTests extends ScalaCliSuite {
   }
 
   private def directives(content: String): Map[String, Seq[String]] = {
-    val result = UsingDirectivesParser.parse(content.toCharArray)
+    val result = UsingDirectivesParser.parse(content.toIndexedSeq)
     result.directives
       .map { d =>
         d.key -> d.values.collect {
