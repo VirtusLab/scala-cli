@@ -3,7 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.TestUtil.ProcOps
-import scala.util.{Properties, Try}
+import scala.util.Properties
 
 trait RunJdkTestDefinitions { this: RunTestDefinitions =>
   def canUseScalaInstallationWrapper: Boolean =
@@ -16,7 +16,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
       case (true, _) => Constants.allJavaVersions.filter(_ >= Constants.defaultJvmVersion)
       case _         => Constants.allJavaVersions
     }
-    index = javaVersion
+    jvmId = TestUtil.jvmId(javaVersion)
     useScalaInstallationWrapper <-
       if (canUseScalaInstallationWrapper) Seq(false, true) else Seq(false)
     launcherString = if (useScalaInstallationWrapper) "coursier scala installation" else "Scala CLI"
@@ -37,7 +37,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
         else
           f(Seq(TestUtil.cli))
   } {
-    test(s"correct JVM is picked up by $launcherString when JAVA_HOME set to $index") {
+    test(s"correct JVM is picked up by $launcherString when JAVA_HOME set to $javaVersion") {
       TestUtil.retryOnCi() {
         TestInputs(
           os.rel / "check_java_home.sc" ->
@@ -49,7 +49,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
         ).fromRoot { root =>
           val javaHome =
             os.Path(
-              os.proc(TestUtil.cs, "java-home", "--jvm", index).call().out.trim(),
+              os.proc(TestUtil.cs, "java-home", "--jvm", jvmId).call().out.trim(),
               os.pwd
             )
           withLauncher(root) { launcher =>
@@ -61,14 +61,14 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
       }
     }
 
-    test(s"hello world with $launcherString and --jvm $index") {
+    test(s"hello world with $launcherString and --jvm $javaVersion") {
       TestUtil.retryOnCi() {
         val expectedMessage = "Hello, world!"
         TestInputs(
           os.rel / "hello_world.sc" -> s"println(\"$expectedMessage\")"
         ).fromRoot { root =>
           withLauncher(root) { launcher =>
-            val res = os.proc(launcher, "run", ".", extraOptions, "--jvm", index)
+            val res = os.proc(launcher, "run", ".", extraOptions, "--jvm", jvmId)
               .call(cwd = root)
             expect(res.out.trim() == expectedMessage)
           }
@@ -78,7 +78,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
 
     if (!Properties.isWin || !useScalaInstallationWrapper) // TODO make this pass on Windows
       test(
-        s"correct JVM is picked up by $launcherString when Java $index is passed with --java-home"
+        s"correct JVM is picked up by $launcherString when Java $javaVersion is passed with --java-home"
       ) {
         TestUtil.retryOnCi() {
           TestInputs(
@@ -91,7 +91,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
           ).fromRoot { root =>
             val javaHome =
               os.Path(
-                os.proc(TestUtil.cs, "java-home", "--jvm", index).call().out.trim(),
+                os.proc(TestUtil.cs, "java-home", "--jvm", jvmId).call().out.trim(),
                 os.pwd
               )
             withLauncher(root) { launcher =>
@@ -105,7 +105,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
       }
 
     if (javaVersion >= Constants.bloopMinimumJvmVersion)
-      test(s"Bloop runs correctly with $launcherString on JVM $index") {
+      test(s"Bloop runs correctly with $launcherString on JVM $javaVersion") {
         TestUtil.retryOnCi() {
           val expectedMessage = "Hello, world!"
           TestInputs(os.rel / "check_java_home.sc" -> s"""println("$expectedMessage")""")
@@ -118,9 +118,9 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
                   ".",
                   extraOptions,
                   "--bloop-jvm",
-                  index,
+                  jvmId,
                   "--jvm",
-                  index
+                  jvmId
                 )
                   .call(cwd = root, stderr = os.Pipe)
                 expect(res.err.trim().contains(javaVersion.toString))
@@ -135,10 +135,10 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
     if (
       !actualScalaVersion.startsWith("2.12") &&
       !useScalaInstallationWrapper &&
-      Try(index.toInt).map(_ >= 24).getOrElse(false)
+      javaVersion >= 24
     )
       // TODO: test with Scala installation wrapper when the fix gets propagated there
-      test(s"REPL does not warn about restricted java.lang.System API called on JDK $index") {
+      test(s"REPL does not warn about restricted java.lang.System API called on JDK $javaVersion") {
         TestInputs.empty.fromRoot { root =>
           if isScala39OrNewer then
             val res = os.proc(
@@ -146,7 +146,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
               "repl",
               extraOptions,
               "--jvm",
-              index,
+              jvmId,
               "--repl-quit-after-init",
               "--repl-init-script",
               "()"
@@ -156,7 +156,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
             )
           else
             TestUtil.withProcessWatching(
-              proc = os.proc(TestUtil.cli, "repl", extraOptions, "--jvm", index)
+              proc = os.proc(TestUtil.cli, "repl", extraOptions, "--jvm", jvmId)
                 .spawn(cwd = root, stderr = os.Pipe)
             ) { (proc, _, ec) =>
               proc.printStderrUntilJlineRevertsToDumbTerminal(proc) { s =>

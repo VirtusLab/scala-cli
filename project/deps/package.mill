@@ -125,7 +125,7 @@ object Java {
     minimumInternalJava,
     minimumJavaLauncherJava
   ).distinct
-  def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 23, 24, 25, 26)
+  def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 25, 27)
   def allJavaVersions: Seq[Int]  = (mainJavaVersions ++ cliKeyJavaVersions).distinct
 }
 

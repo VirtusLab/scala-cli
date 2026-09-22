@@ -10,7 +10,8 @@ import scala.cli.integration.TestUtil.StringOps
 class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDefault {
 
   // Sloth tests - only in default suite since they use hardcoded Scala versions
-  private val latestJava = Constants.allJavaVersions.max
+  private val latestJava  = Constants.allJavaVersions.max
+  private val latestJvmId = TestUtil.jvmId(latestJava)
 
   private def testLazyValsUnsafe(libScalaVersion: String, slothFlag: String): Unit =
     test(
@@ -44,7 +45,7 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
           "--repository",
           repoDir.toNIO.toUri.toASCIIString,
           "--jvm",
-          latestJava
+          latestJvmId
         ).call(cwd = root, stderr = os.Pipe)
         val out = r.out.trim()
         expect(out.contains(marker))
@@ -99,7 +100,7 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
           "--scala",
           Constants.scala3LegacyLts,
           "--jvm",
-          latestJava
+          latestJvmId
         ).call(cwd = root, stderr = os.Pipe)
         val out = r.out.trim()
         expect(r.exitCode == 0)

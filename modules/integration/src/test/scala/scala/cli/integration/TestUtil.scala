@@ -31,6 +31,23 @@ object TestUtil {
   val cli: Seq[String]              = cliCommand(cliPath)
   val ltsEqualsNext: Boolean        = Constants.scala3LegacyLts `equals` Constants.scala3Next
 
+  /** JDK versions for which coursier's default JVM provider (Temurin on most platforms) has no
+    * release, mapped to a provider which does have one.
+    *
+    * Coursier resolves a bare version such as `27` through its default provider, so tests asking
+    * for such a version have to pin an explicit one instead. Entries can be dropped once the
+    * default provider catches up.
+    */
+  private val pinnedJvmProviders: Map[Int, String] = Map(27 -> "zulu")
+
+  /** JVM id to pass to `--jvm`, `//> using jvm` or `cs java-home --jvm` for `javaVersion`.
+    *
+    * @see
+    *   [[pinnedJvmProviders]]
+    */
+  def jvmId(javaVersion: Int): String =
+    pinnedJvmProviders.get(javaVersion).fold(javaVersion.toString)(p => s"$p:$javaVersion")
+
   lazy val legacyScalaVersionsOnePerMinor: Seq[String] =
     Constants.legacyScala3Versions.sorted.reverse.distinctBy(_.split('.').take(2).mkString("."))
 

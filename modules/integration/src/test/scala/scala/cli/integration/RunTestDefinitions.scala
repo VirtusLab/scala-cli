@@ -28,6 +28,7 @@ abstract class RunTestDefinitions
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
   protected val latestJava                     = Constants.allJavaVersions.max
+  protected val latestJvmId                    = TestUtil.jvmId(latestJava)
 
   override def warmUpExtraTestOptions: Seq[String] = extraOptions
 
@@ -1304,12 +1305,14 @@ abstract class RunTestDefinitions
   }
 
   for (javaVersion <- Constants.allJavaVersions.filter(_ >= Constants.jep512MinJavaVersion)) {
+    val javaJvmId = TestUtil.jvmId(javaVersion)
+
     test(s"run a Scala class with a no-arg main method on JDK $javaVersion") {
       TestUtil.retryOnCi() {
         TestInputs(
           os.rel / "T.scala" -> "class A { def main(): Unit = println(1) }"
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
           expect(res.out.trim() == "1")
         }
@@ -1324,7 +1327,7 @@ abstract class RunTestDefinitions
               |class A extends T
               |""".stripMargin
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
           expect(res.out.trim() == "hello from a trait")
         }
@@ -1341,7 +1344,7 @@ abstract class RunTestDefinitions
               |""".stripMargin,
           os.rel / "A.scala" -> "class A extends AbstractBase"
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
           expect(res.out.trim() == "hello from A")
         }
@@ -1358,7 +1361,7 @@ abstract class RunTestDefinitions
               |""".stripMargin,
           os.rel / "B.scala" -> "class B extends Iface"
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
           expect(res.out.trim() == "hello from B")
         }
@@ -1375,7 +1378,7 @@ abstract class RunTestDefinitions
               |""".stripMargin,
           os.rel / "JChild.java" -> "public class JChild extends AbstractBase {}"
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
           expect(res.out.trim() == "hello from JChild")
         }
@@ -1392,7 +1395,7 @@ abstract class RunTestDefinitions
               |""".stripMargin,
           os.rel / "JImpl.java" -> "public class JImpl implements Iface {}"
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
           expect(res.out.trim() == "hello from JImpl")
         }
@@ -1425,7 +1428,7 @@ abstract class RunTestDefinitions
               |public class Child extends NearBase {}
               |""".stripMargin
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaVersion)
+          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root, mergeErrIntoOut = true, check = false)
           expect(res.exitCode != 0)
           expect(res.out.text().contains("No main class found"))
@@ -1442,7 +1445,7 @@ abstract class RunTestDefinitions
               |}
               |""".stripMargin
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", "--jvm", javaVersion)
+          val res = os.proc(TestUtil.cli, "run", ".", "--jvm", javaJvmId)
             .call(cwd = root)
           expect(res.out.trim() == "Hello")
         }
@@ -1461,7 +1464,7 @@ abstract class RunTestDefinitions
               ".",
               extraOptions,
               "--jvm",
-              javaVersion,
+              javaJvmId,
               "--runner"
             ).call(cwd = root)
             expect(res.out.trim() == "1")
@@ -1481,7 +1484,7 @@ abstract class RunTestDefinitions
               ".",
               extraOptions,
               "--jvm",
-              javaVersion,
+              javaJvmId,
               "--main-class-ls"
             ).call(cwd = root, mergeErrIntoOut = true)
             val out = res.out.text()
@@ -2806,7 +2809,15 @@ abstract class RunTestDefinitions
       TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""")
         .fromRoot { root =>
           val res =
-            os.proc(TestUtil.cli, "run", ".", "--runner", extraOptions, "--jvm", javaVersion)
+            os.proc(
+              TestUtil.cli,
+              "run",
+              ".",
+              "--runner",
+              extraOptions,
+              "--jvm",
+              TestUtil.jvmId(javaVersion)
+            )
               .call(cwd = root, stderr = os.Pipe)
           expect(res.out.trim() == expectedMessage)
           val isLegacyJvm        = javaVersion < Constants.minimumRunnerJavaVersion
@@ -2897,7 +2908,7 @@ abstract class RunTestDefinitions
                 "--repository",
                 repoDir.toNIO.toUri.toASCIIString,
                 "--jvm",
-                latestJava
+                latestJvmId
               ).spawn(
                 cwd = root,
                 stderr = os.Pipe,
@@ -3017,7 +3028,7 @@ abstract class RunTestDefinitions
           "--classpath",
           signedJar,
           "--jvm",
-          latestJava.toString,
+          latestJvmId,
           "."
         ).call(cwd = root, stderr = os.Pipe)
 

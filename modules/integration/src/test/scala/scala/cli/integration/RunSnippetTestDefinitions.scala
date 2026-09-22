@@ -65,7 +65,7 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
             "--java-snippet",
             s"void main() { System.out.println($quotation$msg$quotation); }",
             "--jvm",
-            javaVersion
+            TestUtil.jvmId(javaVersion)
           ).call(cwd = root)
           expect(res.out.trim() == msg)
         }

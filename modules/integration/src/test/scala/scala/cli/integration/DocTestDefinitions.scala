@@ -130,7 +130,7 @@ abstract class DocTestDefinitions
               "-o",
               dest,
               "--jvm",
-              javaVersion.toString
+              TestUtil.jvmId(javaVersion)
             ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
 
             val docDir = root / dest

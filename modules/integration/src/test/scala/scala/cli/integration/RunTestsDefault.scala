@@ -30,7 +30,7 @@ class RunTestsDefault extends RunTestDefinitions
           "--repository",
           repoDir.toNIO.toUri.toASCIIString,
           "--jvm",
-          latestJava
+          latestJvmId
         ).call(cwd = root, stderr = os.Pipe)
         expect(r.out.trim() == expectedMessage)
         expect(!r.err.trim().contains("sun.misc.Unsafe"))
@@ -83,7 +83,7 @@ class RunTestsDefault extends RunTestDefinitions
         "--scala",
         Constants.scala3LegacyLts,
         "--jvm",
-        latestJava
+        latestJvmId
       ).call(cwd = root, mergeErrIntoOut = true)
       expect(r.out.trim().contains(expectedMessage))
       expect(!r.out.trim().contains("sun.misc.Unsafe"))
@@ -111,7 +111,7 @@ class RunTestsDefault extends RunTestDefinitions
         "--scala",
         Constants.scala3LegacyLts,
         "--jvm",
-        latestJava.toString,
+        latestJvmId,
         "."
       ).call(cwd = root, stderr = os.Pipe)
       expect(withSloth.out.trim().contains(expectedMessage))
@@ -125,7 +125,7 @@ class RunTestsDefault extends RunTestDefinitions
         "--scala",
         Constants.scala3LegacyLts,
         "--jvm",
-        latestJava.toString,
+        latestJvmId,
         "."
       ).call(cwd = root, stderr = os.Pipe)
       expect(withoutSloth.out.trim().contains(expectedMessage))
@@ -239,7 +239,7 @@ class RunTestsDefault extends RunTestDefinitions
         "--classpath",
         lib,
         "--jvm",
-        latestJava.toString,
+        latestJvmId,
         "."
       ).call(cwd = root, stderr = os.Pipe)
       expect(r.out.trim().contains(signedLibMessage))
@@ -280,7 +280,7 @@ class RunTestsDefault extends RunTestDefinitions
           "--classpath",
           preambleJar,
           "--jvm",
-          latestJava.toString,
+          latestJvmId,
           "."
         ).call(cwd = root, stderr = os.Pipe)
         expect(r.out.trim().contains(signedLibMessage))
