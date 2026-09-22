@@ -39,6 +39,58 @@ trait FixScalafixRulesTestDefinitions {
       |""".stripMargin
   }
 
+  private def unusedValueInput(header: String): String =
+    s"""//> using options $scalafixUnusedRuleOption
+       |$header
+       |
+       |object Hello {
+       |  def main(args: Array[String]): Unit = {
+       |    val name = "John"
+       |    println("Hello")
+       |  }
+       |}
+       |""".stripMargin
+
+  private def unusedValueExpectedOutput(header: String): String = noCrLf {
+    s"""//> using options $scalafixUnusedRuleOption
+       |$header
+       |
+       |object Hello {
+       |  def main(args: Array[String]): Unit = {
+       |    
+       |    println("Hello")
+       |  }
+       |}
+       |""".stripMargin
+  }
+
+  private val removeUnusedRuleConf: String =
+    """|rules = [
+       |  RemoveUnused
+       |]
+       |""".stripMargin
+
+  test("sources generated under .scala-build are not linted") {
+    val inputs = TestInputs(
+      os.rel / scalafixConfFileName -> removeUnusedRuleConf,
+      os.rel / "Hello.scala"        -> unusedValueInput("//> using buildInfo")
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "compile", ".", "--power", scalaVersionArgs).call(cwd = root)
+      val res = os.proc(
+        TestUtil.cli,
+        "fix",
+        ".",
+        "--power",
+        enableRulesOptions(enableBuiltIn = false),
+        scalaVersionArgs
+      ).call(cwd = root, check = false, stderr = os.Pipe)
+      expect(res.exitCode == 0)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == unusedValueExpectedOutput("//> using buildInfo"))
+    }
+  }
+
   test("simple") {
     simpleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
@@ -60,37 +112,11 @@ trait FixScalafixRulesTestDefinitions {
   }
 
   test("semantic rule") {
-    val unusedValueInputsContent: String =
-      s"""//> using options $scalafixUnusedRuleOption
-         |package foo
-         |
-         |object Hello {
-         |  def main(args: Array[String]): Unit = {
-         |    val name = "John"
-         |    println("Hello")
-         |  }
-         |}
-         |""".stripMargin
     val semanticRuleInputs: TestInputs = TestInputs(
-      os.rel / scalafixConfFileName ->
-        s"""|rules = [
-            |  RemoveUnused
-            |]
-            |""".stripMargin,
-      os.rel / "Hello.scala" -> unusedValueInputsContent
+      os.rel / scalafixConfFileName -> removeUnusedRuleConf,
+      os.rel / "Hello.scala"        -> unusedValueInput("package foo")
     )
-    val expectedContent: String = noCrLf {
-      s"""//> using options $scalafixUnusedRuleOption
-         |package foo
-         |
-         |object Hello {
-         |  def main(args: Array[String]): Unit = {
-         |    
-         |    println("Hello")
-         |  }
-         |}
-         |""".stripMargin
-    }
+    val expectedContent: String = unusedValueExpectedOutput("package foo")
 
     semanticRuleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "fix", "--power", ".", scalaVersionArgs).call(cwd = root)
