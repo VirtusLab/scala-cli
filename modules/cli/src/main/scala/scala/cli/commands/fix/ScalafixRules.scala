@@ -109,6 +109,20 @@ object ScalafixRules extends CommandHelpers {
               )
             )
 
+          val sourcePaths = successfulBuilds
+            .flatMap { b =>
+              b.sources.paths.map(_._1) ++
+                b.sources.inMemory.flatMap(_.originalPath.toOption.map(_._2))
+            }
+            .distinct
+            .map(_.toString)
+          val sourcesFile = inputs.scalafixWorkDir / "sources.txt"
+          os.write.over(
+            sourcesFile,
+            sourcePaths.mkString(System.lineSeparator()),
+            createFolders = true
+          )
+
           val scalafixCliOptions =
             scalafixOptions.scalafixConf.toList.flatMap(scalafixConf =>
               List("--config", scalafixConf)
@@ -124,6 +138,7 @@ object ScalafixRules extends CommandHelpers {
                else Nil) ++
               scalafixOptions.scalafixRules.flatMap(Seq("-r", _))
               ++ scalafixOptions.scalafixArg
+              ++ Seq(s"@$sourcesFile")
 
           val slothAgentJavaOpts = value(SlothAgent.javaAgentArgs(buildOptions, logger))
           val proc               = Runner.runJvm(
