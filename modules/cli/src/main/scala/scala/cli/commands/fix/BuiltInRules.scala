@@ -32,11 +32,16 @@ object BuiltInRules extends CommandHelpers {
 
   private val newLine: String = scala.build.internal.AmmUtil.lineSeparator
 
+  /** @return
+    *   true if any changes are needed; always false unless running with `check`, as changes are
+    *   applied right away otherwise
+    */
   def runRules(
     inputs: Inputs,
     buildOptions: BuildOptions,
+    check: Boolean,
     logger: Logger
-  )(using ScalaCliInvokeData): Unit = {
+  )(using ScalaCliInvokeData): Boolean = {
     val (mainSources, testSources) = getProjectSources(inputs, logger)
       .left.map(CompositeBuildException(_))
       .orExit(logger)
@@ -48,10 +53,13 @@ object BuiltInRules extends CommandHelpers {
       case 0 =>
         logger.message("No sources to migrate directives from.")
         logger.message("Nothing to do.")
+        false
       case 1 =>
         logger.message("No need to migrate directives for a single source file project.")
         logger.message("Nothing to do.")
-      case _ => migrateDirectives(inputs, buildOptions, mainSources, testSources, logger)
+        false
+      case _ =>
+        migrateDirectives(inputs, buildOptions, mainSources, testSources, check, logger)
   }
 
   private def migrateDirectives(
@@ -59,8 +67,9 @@ object BuiltInRules extends CommandHelpers {
     buildOptions: BuildOptions,
     mainSources: Sources,
     testSources: Sources,
+    check: Boolean,
     logger: Logger
-  ): Unit = {
+  ): Boolean = {
     // Only initial inputs are used, new inputs discovered during processing of
     // CrossSources.forInput may be shared between projects
     val writableInputs: Seq[OnDisk] = inputs.flattened()
@@ -137,25 +146,37 @@ object BuiltInRules extends CommandHelpers {
     projectFileContents.append(newLine)
 
     // Write extracted directives to project.scala
-    logger.message(s"Writing ${Constants.projectFileName}")
-    os.write.over(inputs.workspace / Constants.projectFileName, projectFileContents.toString)
+    val projectFilePath        = inputs.workspace / Constants.projectFileName
+    val newProjectFileContents = projectFileContents.toString
+    val projectFileNeedsUpdate =
+      if check then wouldChange(projectFilePath, newProjectFileContents)
+      else
+        logger.message(s"Writing ${Constants.projectFileName}")
+        os.write.over(projectFilePath, newProjectFileContents)
+        false
 
     def isProjectFile(position: Option[Position.File]): Boolean =
       position.exists(_.path.contains(inputs.workspace / Constants.projectFileName))
 
     // Remove directives from their original files, skip the project.scala file
-    directivesFromWritableMainInputs
+    val mainInputsNeedUpdate = directivesFromWritableMainInputs
       .filterNot(e => isProjectFile(e.position))
-      .foreach(d => removeDirectivesFrom(d.position))
-    directivesFromWritableTestInputs
+      .map(d => removeDirectivesFrom(d.position, check))
+    val testInputsNeedUpdate = directivesFromWritableTestInputs
       .filterNot(ttd => isProjectFile(ttd.positions))
-      .foreach(ttd =>
+      .map(ttd =>
         removeDirectivesFrom(
           position = ttd.positions,
+          check = check,
           toKeep = ttd.noTestPrefixAvailable.filterNot(_.existsTestEquivalent)
         )
       )
+
+    projectFileNeedsUpdate || (mainInputsNeedUpdate ++ testInputsNeedUpdate).contains(true)
   }
+
+  private def wouldChange(path: os.Path, contents: String): Boolean =
+    !os.exists(path) || os.read(path) != contents
 
   private def getProjectSources(inputs: Inputs, logger: Logger)(using
     ScalaCliInvokeData
@@ -294,10 +315,11 @@ object BuiltInRules extends CommandHelpers {
 
   private def removeDirectivesFrom(
     position: Option[Position.File],
+    check: Boolean,
     toKeep: Seq[StrictDirective] = Nil
   )(
     using loggingUtilities: LoggingUtilities
-  ): Unit = {
+  ): Boolean =
     position match {
       case Some(Position.File(Right(path), _, _, offset)) =>
         val (shebangSection, strippedContent, newLine) =
@@ -310,19 +332,19 @@ object BuiltInRules extends CommandHelpers {
           newLine,
           newLine
         ))
-        val newContents  = keepLines + strippedContent.drop(offset).stripLeading()
+        val newContents  = (keepLines + strippedContent.drop(offset).stripLeading()).stripLeading()
         val relativePath = loggingUtilities.relativePath(path)
 
-        loggingUtilities.logger.message(s"Removing directives from $relativePath")
-        if (toKeep.nonEmpty) {
-          loggingUtilities.logger.message("  Keeping:")
-          toKeep.foreach(d => loggingUtilities.logger.message(s"    $d"))
-        }
-
-        os.write.over(path, newContents.stripLeading())
-      case _ => ()
+        if check then wouldChange(path, newContents)
+        else
+          loggingUtilities.logger.message(s"Removing directives from $relativePath")
+          if toKeep.nonEmpty then
+            loggingUtilities.logger.message("  Keeping:")
+            toKeep.foreach(d => loggingUtilities.logger.message(s"    $d"))
+          os.write.over(path, newContents)
+          false
+      case _ => false
     }
-  }
 
   private def createFormattedLinesAndAppend(
     strictDirectives: Seq[StrictDirective],

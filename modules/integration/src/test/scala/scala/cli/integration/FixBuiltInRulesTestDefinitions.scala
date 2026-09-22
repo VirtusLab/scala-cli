@@ -5,6 +5,56 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.util.Properties
 
 trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
+  test("built-in rules with --check") {
+    val mainFileName    = "Main.scala"
+    val mainFileContent =
+      s"""//> using objectWrapper
+         |//> using dep com.lihaoyi::os-lib:0.9.1
+         |
+         |object Main extends App {
+         |  println(os.pwd)
+         |}
+         |""".stripMargin
+    val inputs = TestInputs(
+      os.rel / mainFileName    -> mainFileContent,
+      os.rel / projectFileName ->
+        s"""//> using deps com.lihaoyi::pprint:0.6.6
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      def fix(check: Boolean) = os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false),
+        if check then Seq("--check") else Nil
+      ).call(cwd = root, mergeErrIntoOut = true, check = false)
+
+      val checkOutput = fix(check = true)
+      expect(checkOutput.exitCode != 0)
+      assertNoDiff(
+        filterDebugOutputs(checkOutput.out.trim()),
+        """Running built-in rules...
+          |built-in rules failed.""".stripMargin
+      )
+
+      assertNoDiff(os.read(root / mainFileName), mainFileContent)
+
+      expect(fix(check = false).exitCode == 0)
+
+      val checkAfterFixOutput = fix(check = true)
+      expect(checkAfterFixOutput.exitCode == 0)
+      assertNoDiff(
+        filterDebugOutputs(checkAfterFixOutput.out.trim()),
+        """Running built-in rules...
+          |Built-in rules completed.""".stripMargin
+      )
+    }
+  }
+
   test("basic built-in rules") {
     val mainFileName = "Main.scala"
     val inputs       = TestInputs(
