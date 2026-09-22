@@ -128,6 +128,8 @@ final case class Inputs(
     workspace / Constants.workspaceDirName / projectName / "jar"
   def docJarWorkDir: os.Path =
     workspace / Constants.workspaceDirName / projectName / "doc"
+  def scalafixWorkDir: os.Path =
+    workspace / Constants.workspaceDirName / projectName / "scalafix"
 
 }
 
