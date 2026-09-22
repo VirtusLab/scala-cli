@@ -10,8 +10,6 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
     with ExportCommonTestDefinitions
     with ExportScalaOrientedBuildToolsTestDefinitions
     with MillTestHelper { this: TestScalaVersion & TestMillVersion =>
-  override val prepareTestInputs: TestInputs => TestInputs = _.withMillJvmOpts
-
   override val outputDir: RelPath                    = millOutputDir
   override def exportCommand(args: String*): os.proc =
     os.proc(
@@ -39,7 +37,7 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
   override protected def defaultExportCommandArgs: Seq[String] = Seq("--mill-version", millVersion)
 
   def jvmTestScalacOptions(className: String, exportArgs: Seq[String]): Unit =
-    ExportTestProjects.jvmTest(actualScalaVersion, className).withMillJvmOpts.fromRoot { root =>
+    ExportTestProjects.jvmTest(actualScalaVersion, className).fromRoot { root =>
       exportCommand(exportArgs :+ "."*).call(cwd = root, stdout = os.Inherit)
       val res =
         buildToolCommand(
@@ -61,7 +59,7 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
       mainClassName = mainClass,
       message = message
     )
-      .withMillJvmOpts.fromRoot { root =>
+      .fromRoot { root =>
         exportCommand(exportArgs :+ "."*).call(cwd = root, stdout = os.Inherit)
         locally {
           val millDepsCommand =
