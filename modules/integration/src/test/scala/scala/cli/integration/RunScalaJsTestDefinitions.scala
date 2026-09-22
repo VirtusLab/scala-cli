@@ -310,17 +310,37 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  test("fail on unrecognized jsEsVersion") {
+  private val unrecognizedEsVersionMessage = "Unrecognized Scala.js ECMA Script version: esnext"
+
+  test("fail on unrecognized jsEsVersion option") {
     val inputs = TestInputs(
-      os.rel / "run.sc" -> """println("Hello")"""
+      os.rel / "project.scala" -> """object Hello { def main(args: Array[String]): Unit = () }"""
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, extraOptions, "run.sc", "--js", "--js-es-version", "es9999")
+      val res =
+        os.proc(TestUtil.cli, "compile", extraOptions, ".", "--js", "--js-es-version", "esnext")
+          .call(cwd = root, check = false, mergeErrIntoOut = true)
+      expect(res.exitCode != 0)
+      val output = res.out.text()
+      expect(output.contains(unrecognizedEsVersionMessage))
+      expect(output.contains("esYYYY"))
+    }
+  }
+
+  test("fail on unrecognized jsEsVersion directive") {
+    val inputs = TestInputs(
+      os.rel / "project.scala" ->
+        """//> using jsEsVersionStr esnext
+          |object Hello { def main(args: Array[String]): Unit = () }
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "compile", extraOptions, ".", "--js")
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       expect(res.exitCode != 0)
       val output = res.out.text()
-      expect(output.contains("Unrecognized Scala.js ECMA Script version: es9999"))
-      expect(output.contains("es2026"))
+      expect(output.contains(unrecognizedEsVersionMessage))
+      expect(output.contains("project.scala:1:"))
     }
   }
 

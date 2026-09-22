@@ -75,41 +75,19 @@ object ScalaJsLinkerConfig {
     esVersion: String = ESVersion.default
   )
 
-  /** Mirrors `org.scalajs.linker.interface.ESVersion`. The values are forwarded verbatim to the
-    * Scala.js linker CLI via `--esVersion`, so they have to be kept in sync with the Scala.js
-    * version Scala CLI defaults to (`Constants.scalaJsVersion`).
+  /** Scala.js ECMA Script versions, as spelled by `org.scalajs.linker.interface.ESVersion`.
+    *
+    * Only the values Scala CLI itself needs are named here. The set of versions actually supported
+    * depends on the Scala.js version in use, which is resolved at link time, so Scala CLI does not
+    * mirror the full list: it normalizes the spelling and forwards the value to the linker via
+    * `--esVersion`, letting the linker be the authority on what it accepts.
     */
   object ESVersion {
     val ES5_1  = "ES5_1"
     val ES2015 = "ES2015"
-    val ES2016 = "ES2016"
-    val ES2017 = "ES2017"
-    val ES2018 = "ES2018"
-    val ES2019 = "ES2019"
-    val ES2020 = "ES2020"
-    val ES2021 = "ES2021"
-    val ES2022 = "ES2022"
-    val ES2023 = "ES2023"
-    val ES2024 = "ES2024"
-    val ES2025 = "ES2025"
-    val ES2026 = "ES2026"
 
-    /** All the supported ES versions, from the oldest to the newest. */
-    val all: Seq[String] = Seq(
-      ES5_1,
-      ES2015,
-      ES2016,
-      ES2017,
-      ES2018,
-      ES2019,
-      ES2020,
-      ES2021,
-      ES2022,
-      ES2023,
-      ES2024,
-      ES2025,
-      ES2026
-    )
+    /** The oldest year-based version Scala.js supports, and therefore a fixed lower bound. */
+    val minimumYear = 2015
 
     def default = ES2015
   }
