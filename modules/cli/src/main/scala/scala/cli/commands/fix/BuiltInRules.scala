@@ -1,4 +1,5 @@
 package scala.cli.commands.fix
+import com.github.difflib.{DiffUtils, UnifiedDiffUtils}
 import os.{BasePathImpl, FilePath}
 
 import scala.build.Ops.EitherMap2
@@ -10,6 +11,7 @@ import scala.build.preprocessing.directives.*
 import scala.build.preprocessing.{ExtractedDirectives, SheBang}
 import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.commands.util.CommandHelpers
+import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 
 object BuiltInRules extends CommandHelpers {
@@ -149,7 +151,8 @@ object BuiltInRules extends CommandHelpers {
     val projectFilePath        = inputs.workspace / Constants.projectFileName
     val newProjectFileContents = projectFileContents.toString
     val projectFileNeedsUpdate =
-      if check then wouldChange(projectFilePath, newProjectFileContents)
+      if check then
+        reportCheckFailure(projectFilePath, newProjectFileContents)
       else
         logger.message(s"Writing ${Constants.projectFileName}")
         os.write.over(projectFilePath, newProjectFileContents)
@@ -175,8 +178,30 @@ object BuiltInRules extends CommandHelpers {
     projectFileNeedsUpdate || (mainInputsNeedUpdate ++ testInputsNeedUpdate).contains(true)
   }
 
-  private def wouldChange(path: os.Path, contents: String): Boolean =
-    !os.exists(path) || os.read(path) != contents
+  /** Logs a unified diff of the changes `fix` would have applied to `path`.
+    *
+    * @return
+    *   true if the file is out of date
+    */
+  private def reportCheckFailure(path: os.Path, newContents: String)(
+    using loggingUtilities: LoggingUtilities
+  ): Boolean =
+    val oldContents = if os.exists(path) then os.read(path) else ""
+    if oldContents == newContents then false
+    else
+      val oldLines = oldContents.linesIterator.toVector.asJava
+      val newLines = newContents.linesIterator.toVector.asJava
+      UnifiedDiffUtils
+        .generateUnifiedDiff(
+          loggingUtilities.relativePath(path).toString,
+          "<expected fix>",
+          oldLines,
+          DiffUtils.diff(oldLines, newLines),
+          3
+        )
+        .asScala
+        .foreach(line => loggingUtilities.logger.message(line))
+      true
 
   private def getProjectSources(inputs: Inputs, logger: Logger)(using
     ScalaCliInvokeData
@@ -335,7 +360,8 @@ object BuiltInRules extends CommandHelpers {
         val newContents  = (keepLines + strippedContent.drop(offset).stripLeading()).stripLeading()
         val relativePath = loggingUtilities.relativePath(path)
 
-        if check then wouldChange(path, newContents)
+        if check then
+          reportCheckFailure(path, newContents)
         else
           loggingUtilities.logger.message(s"Removing directives from $relativePath")
           if toKeep.nonEmpty then

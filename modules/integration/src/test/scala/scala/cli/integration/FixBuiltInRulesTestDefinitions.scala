@@ -37,8 +37,25 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
       expect(checkOutput.exitCode != 0)
       assertNoDiff(
         filterDebugOutputs(checkOutput.out.trim()),
-        """Running built-in rules...
-          |built-in rules failed.""".stripMargin
+        s"""Running built-in rules...
+           |--- $projectFileName
+           |+++ <expected fix>
+           |@@ -1,1 +1,4 @@
+           |-//> using deps com.lihaoyi::pprint:0.6.6
+           |+// Main
+           |+//> using objectWrapper
+           |+//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+           |+
+           |--- $mainFileName
+           |+++ <expected fix>
+           |@@ -1,6 +1,3 @@
+           |-//> using objectWrapper
+           |-//> using dep com.lihaoyi::os-lib:0.9.1
+           |-
+           | object Main extends App {
+           |   println(os.pwd)
+           | }
+           |built-in rules failed.""".stripMargin
       )
 
       assertNoDiff(os.read(root / mainFileName), mainFileContent)
