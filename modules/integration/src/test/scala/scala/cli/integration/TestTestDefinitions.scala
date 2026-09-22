@@ -640,7 +640,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       test(s"jupiter on Java $javaVersion") {
         successfulJupiterInputs.fromRoot { root =>
           val output =
-            os.proc(TestUtil.cli, "test", extraOptions, ".", "--jvm", javaVersion)
+            os.proc(TestUtil.cli, "test", extraOptions, ".", "--jvm", TestUtil.jvmId(javaVersion))
               .call(cwd = root)
               .out
               .text()
@@ -651,7 +651,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       test(s"failing jupiter on Java $javaVersion") {
         failingJupiterInputs.fromRoot { root =>
           val res =
-            os.proc(TestUtil.cli, "test", extraOptions, ".", "--jvm", javaVersion)
+            os.proc(TestUtil.cli, "test", extraOptions, ".", "--jvm", TestUtil.jvmId(javaVersion))
               .call(cwd = root, check = false, mergeErrIntoOut = true)
           expect(res.exitCode != 0)
         }
@@ -666,7 +666,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
               extraOptions,
               ".",
               "--jvm",
-              javaVersion,
+              TestUtil.jvmId(javaVersion),
               "--test-only",
               "OtherJupiterTests"
             ).call(cwd = root)
@@ -695,7 +695,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
                |""".stripMargin
         ).fromRoot { root =>
           val res =
-            os.proc(TestUtil.cli, "test", extraOptions, ".", "--jvm", javaVersion)
+            os.proc(TestUtil.cli, "test", extraOptions, ".", "--jvm", TestUtil.jvmId(javaVersion))
               .call(cwd = root)
           expect(res.out.text().contains("Hello from pure Java Jupiter"))
         }
@@ -721,7 +721,14 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
                |""".stripMargin
         ).fromRoot { root =>
           val res =
-            os.proc(TestUtil.cli, "test", TestUtil.extraOptions, ".", "--jvm", javaVersion)
+            os.proc(
+              TestUtil.cli,
+              "test",
+              TestUtil.extraOptions,
+              ".",
+              "--jvm",
+              TestUtil.jvmId(javaVersion)
+            )
               .call(cwd = root)
           expect(res.out.text().contains("Hello from pure Java Jupiter"))
         }
@@ -1311,7 +1318,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
            |}
            |""".stripMargin).fromRoot { root =>
         val res =
-          os.proc(TestUtil.cli, "test", ".", extraOptions, "--jvm", javaVersion)
+          os.proc(TestUtil.cli, "test", ".", extraOptions, "--jvm", TestUtil.jvmId(javaVersion))
             .call(cwd = root, stderr = os.Pipe)
         val out = res.out.trim()
         expect(out.contains(expectedMessage))

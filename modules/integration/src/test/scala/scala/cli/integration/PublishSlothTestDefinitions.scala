@@ -7,6 +7,7 @@ trait PublishSlothTestDefinitions extends LazyValTests:
 
   if actualScalaVersion.startsWith("3.") then
     val latestJava             = Constants.allJavaVersions.max
+    val latestJvmId            = TestUtil.jvmId(latestJava)
     val expectedMessage        = "Hello"
     val slothAgentWarnFragment = "is not applicable to publish"
     val testOrg                = "test-publish-sloth-org"
@@ -64,7 +65,7 @@ trait PublishSlothTestDefinitions extends LazyValTests:
             "-M",
             "Main",
             "--jvm",
-            latestJava.toString,
+            latestJvmId,
             "-r",
             repo.toNIO.toUri.toASCIIString
           ).call(cwd = root, stderr = os.Pipe)
@@ -110,7 +111,7 @@ trait PublishSlothTestDefinitions extends LazyValTests:
             "-M",
             "Main",
             "--jvm",
-            latestJava.toString,
+            latestJvmId,
             "-r",
             repo.toNIO.toUri.toASCIIString,
             extraOptions

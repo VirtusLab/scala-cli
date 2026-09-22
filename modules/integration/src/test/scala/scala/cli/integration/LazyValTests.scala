@@ -26,7 +26,7 @@ trait LazyValTests:
 
   protected def javaHome(jvm: Int): os.Path =
     os.Path(
-      os.proc(TestUtil.cs, "java-home", "--jvm", jvm.toString).call().out.trim(),
+      os.proc(TestUtil.cs, "java-home", "--jvm", TestUtil.jvmId(jvm)).call().out.trim(),
       os.pwd
     )
 

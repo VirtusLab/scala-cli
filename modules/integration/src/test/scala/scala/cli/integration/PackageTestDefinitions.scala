@@ -1730,12 +1730,17 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
             ".",
             "--assembly",
             "--jvm",
-            javaVersion,
+            TestUtil.jvmId(javaVersion),
             "-o",
             "app.jar"
           ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
           val javaHome = os.Path(
-            os.proc(TestUtil.cs, "java-home", "--jvm", javaVersion).call().out.trim(),
+            os.proc(
+              TestUtil.cs,
+              "java-home",
+              "--jvm",
+              TestUtil.jvmId(javaVersion)
+            ).call().out.trim(),
             os.pwd
           )
           val res = os.proc(javaHome / "bin" / "java", "-jar", root / "app.jar")
@@ -1757,7 +1762,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
             extraOptions,
             ".",
             "--jvm",
-            javaVersion,
+            TestUtil.jvmId(javaVersion),
             "-o",
             "app"
           ).call(cwd = root, mergeErrIntoOut = true, check = false)

@@ -29,7 +29,7 @@ class RunTests3Lts extends RunTestDefinitions with RunLtsTagTestDefinitions with
             ".",
             "--sloth",
             "--jvm",
-            latestJava,
+            latestJvmId,
             "--watch",
             extraOptions
           ).spawn(cwd = root, stderr = os.Pipe),
