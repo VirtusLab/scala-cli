@@ -114,6 +114,7 @@ object ScalafixRules extends CommandHelpers {
               List("--config", scalafixConf)
             ) ++
               Seq("--sourceroot", workspace.toString) ++
+              Seq("--exclude", s"${Constants.workspaceDirName}/**") ++
               Seq("--classpath", classPaths.mkString(java.io.File.pathSeparator)) ++
               Seq("--scala-version", scalaVersion) ++
               (if check then Seq("--test") else Nil) ++
