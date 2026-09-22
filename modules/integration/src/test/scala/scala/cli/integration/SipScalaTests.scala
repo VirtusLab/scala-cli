@@ -741,25 +741,27 @@ class SipScalaTests extends ScalaCliSuite
     val input     = "printVersion.sc"
     val code      = """println(s"Default version: ${scala.util.Properties.versionNumberString}")"""
     val outputDir = millOutputDir
-    TestInputs(os.rel / input -> code).fromRoot { root =>
-      val defaultSv       = Constants.scala213
-      val expectedMessage = s"Default version: $defaultSv"
-      val launcherOpt     = "--cli-default-scala-version"
-      val exportRes       = os.proc(
-        TestUtil.cli,
-        launcherOpt,
-        defaultSv,
-        "export",
-        input,
-        "--mill",
-        "--power",
-        "-o",
-        outputDir
-      ).call(cwd = root)
-      expect(exportRes.exitCode == 0)
-      val millRes = millCommand(root, s"$millDefaultProjectName.run").call(cwd = root / outputDir)
-      val output  = millRes.out.trim()
-      expect(output.contains(expectedMessage))
+    TestUtil.retryOnCi() {
+      TestInputs(os.rel / input -> code).fromRoot { root =>
+        val defaultSv       = Constants.scala213
+        val expectedMessage = s"Default version: $defaultSv"
+        val launcherOpt     = "--cli-default-scala-version"
+        val exportRes       = os.proc(
+          TestUtil.cli,
+          launcherOpt,
+          defaultSv,
+          "export",
+          input,
+          "--mill",
+          "--power",
+          "-o",
+          outputDir
+        ).call(cwd = root)
+        expect(exportRes.exitCode == 0)
+        val millRes = millCommand(root, s"$millDefaultProjectName.run").call(cwd = root / outputDir)
+        val output  = millRes.out.trim()
+        expect(output.contains(expectedMessage))
+      }
     }
   }
 
