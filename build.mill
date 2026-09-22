@@ -126,8 +126,8 @@ object `specification-level` extends Cross[SpecificationLevel](Scala.allScala3)
     with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 after 3.3 EOL
 object `build-macros` extends Cross[BuildMacros](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
-object config extends Cross[Config](Scala.scala3MainVersions)
-    with CrossScalaDefaultToLts // pinned to LTS for other tools to depend on
+object config extends Cross[Config](Scala.allScala3)
+    with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 in Scala CLI 1.19
 object options extends Cross[Options](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object directives extends Cross[Directives](Scala.scala3MainVersions)
@@ -708,7 +708,8 @@ trait Directives extends ScalaCliCrossSbtModule
 trait Config extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
-    with LocatedInModules {
+    with LocatedInModules
+    with FutureLazyVals {
   override def crossScalaVersion: String                     = crossValue
   override def moduleDeps: Seq[SonatypeCentralPublishModule] =
     Seq(`specification-level`(crossScalaVersion))
