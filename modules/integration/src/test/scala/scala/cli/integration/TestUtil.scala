@@ -138,8 +138,27 @@ object TestUtil {
 
   def removeAnsiColors(str: String): String = str.replaceAll("\\e\\[[0-9]+m", "")
 
-  def fullStableOutput(result: os.CommandResult): String =
-    removeAnsiColors(result.toString).trim().linesIterator.filterNot { str =>
+  private val backgroundThreadExceptionRegex = """^Exception in thread "(?!main")[^"]*".*""".r
+
+  private def isStackTraceContinuation(line: String): Boolean = {
+    val trimmed = line.stripLeading()
+    line.isBlank || trimmed.startsWith("at ") || trimmed.startsWith("... ") ||
+    trimmed.startsWith("Caused by: ") || trimmed.startsWith("Suppressed: ")
+  }
+
+  /** Drops stack traces printed by the JVM's default handler for exceptions thrown in background
+    * threads (i.e. anything but `main`), e.g. best-effort cleanup shutdown hooks. Such output
+    * depends on races and on the OS, so keeping it would make output assertions flaky.
+    */
+  def dropBackgroundThreadStackTraces(lines: Seq[String]): Seq[String] =
+    lines.foldLeft(Vector.empty[String] -> false) { case ((acc, dropping), line) =>
+      if backgroundThreadExceptionRegex.matches(line) then acc -> true
+      else if dropping && isStackTraceContinuation(line) then acc -> true
+      else (acc :+ line)                                          -> false
+    }._1
+
+  def fullStableOutput(result: os.CommandResult): String = {
+    val stableLines = removeAnsiColors(result.toString).trim().linesIterator.filterNot { str =>
       // these lines are not stable and can easily change
       val shouldNotContain =
         Set(
@@ -152,7 +171,9 @@ object TestUtil {
           "Failed to download"
         )
       shouldNotContain.exists(str.contains)
-    }.mkString(System.lineSeparator())
+    }.toVector
+    dropBackgroundThreadStackTraces(stableLines).mkString(System.lineSeparator())
+  }
 
   def fullStableOutputLines(result: os.CommandResult): Vector[String] =
     fullStableOutput(result).lines().toList.asScala.toVector
