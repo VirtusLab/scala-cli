@@ -2,8 +2,6 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.util.Properties
-
 trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
   test("built-in rules with --check") {
     val mainFileName    = "Main.scala"
@@ -470,33 +468,32 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
     }
   }
 
-  if (!Properties.isWin) // TODO: fix this test for Windows CI
-    test("using directives with boolean values are handled correctly") {
-      val expectedMessage    = "Hello, world!"
-      def maybeScalapyPrefix =
-        if (actualScalaVersion.startsWith("2.13.")) ""
-        else "import me.shadaj.scalapy.py" + System.lineSeparator()
-      TestInputs(
-        os.rel / "Messages.scala" ->
-          s"""object Messages {
-             |  def hello: String = "$expectedMessage"
-             |}
-             |""".stripMargin,
-        os.rel / "Main.scala" ->
-          s"""//> using python true
-             |$maybeScalapyPrefix
-             |object Main extends App {
-             |  py.Dynamic.global.print(Messages.hello, flush = true)
-             |}
-             |""".stripMargin
-      ).fromRoot { root =>
-        os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-        val r = os.proc(TestUtil.cli, "--power", "run", ".", extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-        expect(r.out.trim() == expectedMessage)
-      }
+  test("using directives with boolean values are handled correctly") {
+    val expectedMessage    = "Hello, world!"
+    def maybeScalapyPrefix =
+      if (actualScalaVersion.startsWith("2.13.")) ""
+      else "import me.shadaj.scalapy.py" + System.lineSeparator()
+    TestInputs(
+      os.rel / "Messages.scala" ->
+        s"""object Messages {
+           |  def hello: String = "$expectedMessage"
+           |}
+           |""".stripMargin,
+      os.rel / "Main.scala" ->
+        s"""//> using python true
+           |$maybeScalapyPrefix
+           |object Main extends App {
+           |  py.Dynamic.global.print(Messages.hello, flush = true)
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions)
+        .call(cwd = root, stderr = os.Pipe)
+      val r = os.proc(TestUtil.cli, "--power", "run", ".", extraOptions)
+        .call(cwd = root, stderr = os.Pipe)
+      expect(r.out.trim() == expectedMessage)
     }
+  }
 
   {
     val directive = "//> using dep com.lihaoyi::os-lib:0.11.3"
@@ -511,7 +508,6 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
                           |println(os.pwd)
                           |""".stripMargin
       )
-      if !Properties.isWin // TODO: make this run on Windows CI
       testInputs = TestInputs(os.rel / inputFileName -> code)
     }
       test(
@@ -532,49 +528,48 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
       }
   }
 
-  if (!Properties.isWin)
-    test("all test directives get extracted into project.scala") {
-      val osLibDep               = "com.lihaoyi::os-lib:0.11.5"
-      val munitDep               = "org.scalameta::munit:1.1.1"
-      val pprintDep              = "com.lihaoyi::pprint:0.9.3"
-      val osLibDepDirective      = s"//> using dependency $osLibDep"
-      val osLibTestDepDirective  = s"//> using test.dependency $osLibDep"
-      val munitTestDepDirective  = s"//> using test.dependency $munitDep"
-      val pprintTestDepDirective = s"//> using test.dependency $pprintDep"
-      val mainFilePath           = os.rel / "Main.scala"
-      val testFilePath           = os.rel / "MyTests.test.scala"
-      TestInputs(
-        mainFilePath -> s"""$munitTestDepDirective
-                           |object Main extends App {
-                           |  def hello: String = "Hello, world!"
-                           |  println(hello)
-                           |}
-                           |""".stripMargin,
-        testFilePath -> s"""$osLibDepDirective
-                           |$pprintTestDepDirective
-                           |import munit.FunSuite
-                           |
-                           |class MyTests extends FunSuite {
-                           |  test("hello") {
-                           |    pprint.pprintln(os.pwd)
-                           |    assert(Main.hello == "Hello, world!")
-                           |  }
-                           |}
-                           |""".stripMargin
-      ).fromRoot { root =>
-        os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions).call(cwd = root)
-        val expectedProjectFileContents =
-          s"""// Test
-             |$osLibTestDepDirective
-             |$pprintTestDepDirective
-             |$munitTestDepDirective""".stripMargin
-        val projectFileContents = os.read(root / projectFileName)
-        expect(projectFileContents.trim() == expectedProjectFileContents)
-        val mainFileContents = os.read(root / mainFilePath)
-        expect(!mainFileContents.contains("//> using"))
-        val testFileContents = os.read(root / testFilePath)
-        expect(!testFileContents.contains("//> using"))
-        os.proc(TestUtil.cli, "test", ".", extraOptions).call(cwd = root)
-      }
+  test("all test directives get extracted into project.scala") {
+    val osLibDep               = "com.lihaoyi::os-lib:0.11.5"
+    val munitDep               = "org.scalameta::munit:1.1.1"
+    val pprintDep              = "com.lihaoyi::pprint:0.9.3"
+    val osLibDepDirective      = s"//> using dependency $osLibDep"
+    val osLibTestDepDirective  = s"//> using test.dependency $osLibDep"
+    val munitTestDepDirective  = s"//> using test.dependency $munitDep"
+    val pprintTestDepDirective = s"//> using test.dependency $pprintDep"
+    val mainFilePath           = os.rel / "Main.scala"
+    val testFilePath           = os.rel / "MyTests.test.scala"
+    TestInputs(
+      mainFilePath -> s"""$munitTestDepDirective
+                         |object Main extends App {
+                         |  def hello: String = "Hello, world!"
+                         |  println(hello)
+                         |}
+                         |""".stripMargin,
+      testFilePath -> s"""$osLibDepDirective
+                         |$pprintTestDepDirective
+                         |import munit.FunSuite
+                         |
+                         |class MyTests extends FunSuite {
+                         |  test("hello") {
+                         |    pprint.pprintln(os.pwd)
+                         |    assert(Main.hello == "Hello, world!")
+                         |  }
+                         |}
+                         |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions).call(cwd = root)
+      val expectedProjectFileContents =
+        s"""// Test
+           |$osLibTestDepDirective
+           |$pprintTestDepDirective
+           |$munitTestDepDirective""".stripMargin
+      val projectFileContents = os.read(root / projectFileName)
+      expect(projectFileContents.trim() == expectedProjectFileContents)
+      val mainFileContents = os.read(root / mainFilePath)
+      expect(!mainFileContents.contains("//> using"))
+      val testFileContents = os.read(root / testFilePath)
+      expect(!testFileContents.contains("//> using"))
+      os.proc(TestUtil.cli, "test", ".", extraOptions).call(cwd = root)
     }
+  }
 }
