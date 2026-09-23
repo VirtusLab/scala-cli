@@ -210,7 +210,7 @@ object Deps {
   def coursierPublish    = mvn"io.get-coursier.publish::publish:${Versions.coursierPublish}"
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-  def dependency                                     = mvn"io.get-coursier::dependency:0.3.2"
+  def dependency                                     = mvn"io.get-coursier::dependency:0.3.3"
   def directivesParser(v: String = Scala.scala3Next) =
     mvn"org.scala-lang::scala3-directives-parser:$v"
   def bcpkixJdk18on  = mvn"org.bouncycastle:bcpkix-jdk18on:${Versions.bouncycastle}"
