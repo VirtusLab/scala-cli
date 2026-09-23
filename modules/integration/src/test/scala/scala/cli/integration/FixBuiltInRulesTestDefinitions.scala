@@ -280,7 +280,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
+          |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
           |""".stripMargin
       )
 
@@ -349,7 +349,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
+          |//> using deps com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
           |""".stripMargin
       )
 
@@ -437,11 +437,11 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+          |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
           |
           |// Test
           |//> using test.options -Xasync -Xfatal-warnings
-          |//> using test.dependency org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
+          |//> using test.dep org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
           |""".stripMargin
       )
 
@@ -590,10 +590,10 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
              |//> using platforms jvm
              |//> using jvm 17
              |//> using options -Werror
-             |//> using files $includePath
+             |//> using file $includePath
              |//> using objectWrapper
              |//> using toolkit default
-             |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+             |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
              |
              |//> using publish.ci.password env:PUBLISH_PASSWORD
              |//> using publish.ci.secretKey env:PUBLISH_SECRET_KEY
@@ -602,7 +602,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
              |
              |// Test
              |//> using test.options -Xasync -Xfatal-warnings
-             |//> using test.dependency org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
+             |//> using test.dep org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
              |""".stripMargin
         )
 
