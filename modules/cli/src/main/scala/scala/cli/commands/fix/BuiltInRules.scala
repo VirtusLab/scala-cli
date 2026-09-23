@@ -22,12 +22,15 @@ object BuiltInRules extends CommandHelpers {
       .flatMap(_.keys)
 
   private lazy val directiveTestPrefix = "test."
+
+  private def hasTestEquivalent(key: String): Boolean =
+    usingDirectivesWithTestPrefixKeysGrouped
+      .exists(_.nameAliases.contains(directiveTestPrefix + key))
+
   extension (strictDirective: StrictDirective) {
     private def hasTestPrefix: Boolean        = strictDirective.key.startsWith(directiveTestPrefix)
     private def existsTestEquivalent: Boolean =
-      !strictDirective.hasTestPrefix &&
-      usingDirectivesWithTestPrefixKeysGrouped
-        .exists(_.nameAliases.contains(directiveTestPrefix + strictDirective.key))
+      !strictDirective.hasTestPrefix && hasTestEquivalent(strictDirective.key)
   }
 
   private val newLine: String = scala.build.internal.AmmUtil.lineSeparator
@@ -87,13 +90,23 @@ object BuiltInRules extends CommandHelpers {
 
     given LoggingUtilities(logger, inputs.workspace)
 
+    val originalMainDirectives =
+      getExtractedDirectives(mainSources, buildOptions.suppressWarningOptions)
+        .filterNot(hasTargetDirectives)
+    val originalTestDirectives =
+      getExtractedDirectives(testSources, buildOptions.suppressWarningOptions)
+        .filterNot(hasTargetDirectives)
+
+    val allOriginalDirectives = originalMainDirectives ++ originalTestDirectives
+    val nameAliasesToUse      = pickNameAliases(
+      fromWritableInputs =
+        allOriginalDirectives.filter(d => isExtractedFromWritableInput(d.position)),
+      allExtracted = allOriginalDirectives
+    )
+
     // Deal with directives from the Main scope
     val (directivesFromWritableMainInputs, testDirectivesFromMain) = {
-      val originalMainDirectives =
-        getExtractedDirectives(mainSources, buildOptions.suppressWarningOptions)
-          .filterNot(hasTargetDirectives)
-
-      val transformedMainDirectives = unifyCorrespondingNameAliases(originalMainDirectives)
+      val transformedMainDirectives = unifyNameAliases(originalMainDirectives, nameAliasesToUse)
 
       val allDirectives = for {
         transformedMainDirective <- transformedMainDirectives
@@ -117,12 +130,8 @@ object BuiltInRules extends CommandHelpers {
         testSources.paths.nonEmpty || testSources.inMemory.nonEmpty ||
         testDirectivesFromMain.nonEmpty
       ) {
-        val originalTestDirectives =
-          getExtractedDirectives(testSources, buildOptions.suppressWarningOptions)
-            .filterNot(hasTargetDirectives)
-
-        val transformedTestDirectives = unifyCorrespondingNameAliases(originalTestDirectives)
-          .pipe(maybeTransformIntoTestEquivalent)
+        val transformedTestDirectives = unifyNameAliases(originalTestDirectives, nameAliasesToUse)
+          .pipe(maybeTransformIntoTestEquivalent(_, nameAliasesToUse))
 
         val allDirectives = for {
           directivesWithTestPrefix              <- transformedTestDirectives.map(_.withTestPrefix)
@@ -254,7 +263,7 @@ object BuiltInRules extends CommandHelpers {
       ).orExit(logger)
     }
 
-    fromPaths ++ fromInMemory
+    (fromPaths ++ fromInMemory).map(ed => ed.copy(directives = ed.directives.reverse))
   }
 
   private def hasTargetDirectives(extractedDirectives: ExtractedDirectives): Boolean = {
@@ -263,27 +272,45 @@ object BuiltInRules extends CommandHelpers {
     directivesInElement.exists(key => targetDirectivesKeysSet.contains(key))
   }
 
-  private def unifyCorrespondingNameAliases(extractedDirectives: Seq[ExtractedDirectives]) =
+  private def pickNameAliases(
+    fromWritableInputs: Seq[ExtractedDirectives],
+    allExtracted: Seq[ExtractedDirectives]
+  ): Map[String, String] =
+    val aliasUsages = fromWritableInputs
+      .flatMap(_.directives.map(_.key))
+      .zipWithIndex
+      .groupMap(_._1)(_._2)
+    val usedAliases = allExtracted.flatMap(_.directives.map(_.key)).toSet
+    // All keys that we migrate, not all in general
+    val allKeysGrouped = usingDirectivesKeysGrouped ++ usingDirectivesWithTestPrefixKeysGrouped
+
+    def aliasToUse(key: Key): Option[String] =
+      val pickable = pickableAliases(key)
+      pickable
+        .filter(aliasUsages.contains)
+        .minByOption(alias => (-aliasUsages(alias).length, aliasUsages(alias).head))
+        .orElse(Option.when(key.nameAliases.exists(usedAliases.contains))(pickable.head))
+
+    allKeysGrouped
+      .flatMap(key => aliasToUse(key).toSeq.flatMap(picked => key.nameAliases.map(_ -> picked)))
+      .toMap
+
+  private def pickableAliases(key: Key): Seq[String] =
+    val prefixed = key.nameAliases.filter(_.startsWith(directiveTestPrefix))
+    if prefixed.nonEmpty then prefixed
+    else
+      val withTestCounterpart = key.nameAliases.filter(hasTestEquivalent)
+      if withTestCounterpart.nonEmpty then withTestCounterpart else key.nameAliases
+
+  private def unifyNameAliases(
+    extractedDirectives: Seq[ExtractedDirectives],
+    nameAliasesToUse: Map[String, String]
+  ) =
     extractedDirectives.map { extracted =>
-      // All keys that we migrate, not all in general
-      val allKeysGrouped   = usingDirectivesKeysGrouped ++ usingDirectivesWithTestPrefixKeysGrouped
-      val strictDirectives = extracted.directives
-
-      val strictDirectivesWithNewKeys = strictDirectives.flatMap { strictDir =>
-        val newKeyOpt = allKeysGrouped.find(_.nameAliases.contains(strictDir.key))
-          .flatMap(_.nameAliases.headOption)
-          .map { key =>
-            if (key.startsWith("test"))
-              val withTestStripped = key.stripPrefix("test").stripPrefix(".")
-              "test." + withTestStripped.take(1).toLowerCase + withTestStripped.drop(1)
-            else
-              key
-          }
-
-        newKeyOpt.map(newKey => strictDir.copy(key = newKey))
+      val directivesWithPickedAliases = extracted.directives.flatMap { directive =>
+        nameAliasesToUse.get(directive.key).map(alias => directive.copy(key = alias))
       }
-
-      extracted.copy(directives = strictDirectivesWithNewKeys)
+      extracted.copy(directives = directivesWithPickedAliases)
     }
 
   /** Transforms directives into their 'test.' equivalent if it exists
@@ -293,8 +320,10 @@ object BuiltInRules extends CommandHelpers {
     *   an instance of TransformedTestDirectives containing transformed directives and those that
     *   could not be transformed since they have no 'test.' equivalent
     */
-  private def maybeTransformIntoTestEquivalent(extractedDirectives: Seq[ExtractedDirectives])
-    : Seq[TransformedTestDirectives] =
+  private def maybeTransformIntoTestEquivalent(
+    extractedDirectives: Seq[ExtractedDirectives],
+    nameAliasesToUse: Map[String, String]
+  ): Seq[TransformedTestDirectives] =
     for {
       extractedFromSingleElement <- extractedDirectives
       directives = extractedFromSingleElement.directives
@@ -303,7 +332,9 @@ object BuiltInRules extends CommandHelpers {
       val (withTestEquivalent, noTestEquivalent)       =
         noInitialTestPrefix.partition(_.existsTestEquivalent)
       val transformedToTestEquivalents = withTestEquivalent.map {
-        case StrictDirective(key, values, _, _) => StrictDirective("test." + key, values)
+        case StrictDirective(key, values, _, _) =>
+          val testKey = directiveTestPrefix + key
+          StrictDirective(nameAliasesToUse.getOrElse(testKey, testKey), values)
       }
 
       TransformedTestDirectives(
