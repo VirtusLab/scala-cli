@@ -28,12 +28,14 @@ object Fix extends ScalaCommand[FixOptions]:
           s"$warnPrefix ${WarningMessages.slothNotApplicable("the fix command without scalafix rules enabled")}"
         )
       val builtInRulesExitCode: Int =
-        if options.enableBuiltInRules then
+        if options.areBuiltInRulesEnabled then
           logger.message("Running built-in rules...")
           val changesNeeded = BuiltInRules.runRules(
             inputs = inputs,
             buildOptions = buildOpts,
             check = options.check,
+            removeCommas = options.enableCommaSeparatorsRemoval,
+            migrateDirectives = options.enableDirectivesMigration,
             logger = logger
           )
           if changesNeeded then

@@ -1,4 +1,5 @@
 package scala.cli.commands.fix
+import dotty.tools.directives.{Token, UsingDirectivesParser}
 import os.{BasePathImpl, FilePath}
 
 import scala.build.Ops.EitherMap2
@@ -40,9 +41,28 @@ object BuiltInRules extends CommandHelpers {
     inputs: Inputs,
     buildOptions: BuildOptions,
     check: Boolean,
+    removeCommas: Boolean,
+    migrateDirectives: Boolean,
     logger: Logger
   )(using ScalaCliInvokeData): Boolean = {
-    val (mainSources, testSources) = getProjectSources(inputs, logger)
+    val crossSources = getCrossSources(inputs, logger)
+
+    // runs first, so that directive migration sees the files without commas
+    val commasNeedRemoval =
+      removeCommas && removeCommaSeparators(inputs, crossSources, check, logger)
+    val migrationNeeded =
+      migrateDirectives && runMigration(inputs, buildOptions, crossSources, check, logger)
+    commasNeedRemoval || migrationNeeded
+  }
+
+  private def runMigration(
+    inputs: Inputs,
+    buildOptions: BuildOptions,
+    crossSources: CrossSources,
+    check: Boolean,
+    logger: Logger
+  ): Boolean = {
+    val (mainSources, testSources) = getProjectSources(inputs, crossSources, logger)
       .left.map(CompositeBuildException(_))
       .orExit(logger)
 
@@ -61,6 +81,67 @@ object BuiltInRules extends CommandHelpers {
       case _ =>
         migrateDirectives(inputs, buildOptions, mainSources, testSources, check, logger)
   }
+
+  /** @return
+    *   true if any file needs its comma separators removed; always false unless running with
+    *   `check`, as changes are applied right away otherwise
+    */
+  private def removeCommaSeparators(
+    inputs: Inputs,
+    crossSources: CrossSources,
+    check: Boolean,
+    logger: Logger
+  ): Boolean = {
+    val projectSourcePaths =
+      (crossSources.paths.map(_.value._1) ++
+        (crossSources.inMemory.map(_.value.originalPath) ++
+          crossSources.unwrappedScripts.map(_.value.originalPath))
+          .flatMap(_.toOption.map(_._2))).toSet
+    inputs.flattened()
+      .collect { case f: (Script | SourceScalaFile | ProjectScalaFile | JavaFile) => f.path }
+      .filter(projectSourcePaths.contains)
+      .map { path =>
+        val content    = os.read(path)
+        val newContent = withoutCommaSeparators(content)
+        val changed    = newContent != content
+        if changed && !check then
+          val relativePath = LoggingUtilities(logger, inputs.workspace).relativePath(path)
+          logger.message(s"Removing comma separators from directives in $relativePath")
+          os.write.over(path, newContent)
+        changed && check
+      }
+      .contains(true)
+  }
+
+  private val directivePrefix           = "//>"
+  private val normalizedDirectivePrefix = "//> "
+
+  def withoutCommaSeparators(content: String): String = {
+    val (shebangSection, body, _) = SheBang.partitionOnShebangSection(content)
+    val edits                     = UsingDirectivesParser.extractLines(body.toIndexedSeq)
+      .directiveLines
+      .flatMap { line =>
+        val usingOffset = body.indexOf("using", line.lineStartOffset + directivePrefix.length)
+        val shift       = usingOffset - (line.lineStartOffset + normalizedDirectivePrefix.length)
+        UsingDirectivesParser.tokenize(line.content, line.lineNum, line.lineStartOffset) match
+          case Token.Using(_) +: Token.Ident(_, _) +: values =>
+            val separatorRemovals = values.drop(1).collect {
+              case Token.Comma(pos) => SourceEdit(pos.offset + shift, 1, "")
+            }
+            val commaEndingValueQuotes = values.collect {
+              case Token.Ident(value, pos)
+                  if value.endsWith(",") && body(pos.offset + shift) != '`' =>
+                SourceEdit(pos.offset + shift, value.length, s"\"${value.replace("\\", "\\\\")}\"")
+            }
+            separatorRemovals ++ commaEndingValueQuotes
+          case _ => Nil
+      }
+    shebangSection + edits.sortBy(-_.from).foldLeft(body) { (acc, edit) =>
+      acc.patch(edit.from, edit.replacement, edit.length)
+    }
+  }
+
+  private case class SourceEdit(from: Int, length: Int, replacement: String)
 
   private def migrateDirectives(
     inputs: Inputs,
@@ -178,11 +259,10 @@ object BuiltInRules extends CommandHelpers {
   private def wouldChange(path: os.Path, contents: String): Boolean =
     !os.exists(path) || os.read(path) != contents
 
-  private def getProjectSources(inputs: Inputs, logger: Logger)(using
+  private def getCrossSources(inputs: Inputs, logger: Logger)(using
     ScalaCliInvokeData
-  ): Either[::[BuildException], (Sources, Sources)] = {
-    val buildOptions = BuildOptions()
-
+  ): CrossSources = {
+    val buildOptions      = BuildOptions()
     val (crossSources, _) = CrossSources.forInputs(
       inputs,
       preprocessors = Sources.defaultPreprocessors(
@@ -195,7 +275,15 @@ object BuiltInRules extends CommandHelpers {
       exclude = buildOptions.internal.exclude,
       download = buildOptions.downloader
     ).orExit(logger)
+    crossSources
+  }
 
+  private def getProjectSources(
+    inputs: Inputs,
+    crossSources: CrossSources,
+    logger: Logger
+  ): Either[::[BuildException], (Sources, Sources)] = {
+    val buildOptions  = BuildOptions()
     val sharedOptions = crossSources.sharedOptions(buildOptions)
     val scopedSources = crossSources.scopedSources(sharedOptions).orExit(logger)
 
