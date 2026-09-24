@@ -22,6 +22,7 @@ final case class ScalafixArtifacts(
 object ScalafixArtifacts {
 
   def artifacts(
+    scalafixVersion: String,
     scalaVersion: String,
     externalRulesDeps: Seq[Positioned[AnyDependency]],
     extraRepositories: Seq[Repository],
@@ -30,13 +31,19 @@ object ScalafixArtifacts {
   ): Either[BuildException, ScalafixArtifacts] =
     either {
       val scalafixProperties =
-        value(fetchOrLoadScalafixProperties(extraRepositories, logger, cache))
+        value(fetchOrLoadScalafixProperties(scalafixVersion, extraRepositories, logger, cache))
       val key =
         value(scalafixPropsKey(scalaVersion))
-      val fetchScalaVersion = scalafixProperties.getProperty(key)
+      val fetchScalaVersion = value(
+        Option(scalafixProperties.getProperty(key)).toRight(
+          new BuildException(
+            s"Scalafix $scalafixVersion does not support Scala version: $scalaVersion"
+          ) {}
+        )
+      )
 
       val scalafixDeps =
-        Seq(dep"ch.epfl.scala:scalafix-cli_$fetchScalaVersion:${Constants.scalafixVersion}")
+        Seq(dep"ch.epfl.scala:scalafix-cli_$fetchScalaVersion:$scalafixVersion")
 
       val scalafix =
         value(
@@ -45,7 +52,7 @@ object ScalafixArtifacts {
             extraRepositories,
             None,
             logger,
-            cache.withMessage(s"Downloading scalafix-cli ${Constants.scalafixVersion}")
+            cache.withMessage(s"Downloading scalafix-cli $scalafixVersion")
           )
         )
 
@@ -70,18 +77,20 @@ object ScalafixArtifacts {
     }
 
   private def fetchOrLoadScalafixProperties(
+    scalafixVersion: String,
     extraRepositories: Seq[Repository],
     logger: Logger,
     cache: FileCache[Task]
   ): Either[BuildException, Properties] =
     either {
       val cacheDir  = Directories.directories.cacheDir / "scalafix-props-cache"
-      val cachePath = cacheDir / s"scalafix-interfaces-${Constants.scalafixVersion}.properties"
+      val cachePath = cacheDir / s"scalafix-interfaces-$scalafixVersion.properties"
 
       val content =
         if (!os.exists(cachePath)) {
-          val interfacesJar = value(fetchScalafixInterfaces(extraRepositories, logger, cache))
-          val propsData     = value(readScalafixProperties(interfacesJar))
+          val interfacesJar =
+            value(fetchScalafixInterfaces(scalafixVersion, extraRepositories, logger, cache))
+          val propsData = value(readScalafixProperties(interfacesJar))
           if (!os.exists(cacheDir)) os.makeDir(cacheDir)
           os.write(cachePath, propsData)
           propsData
@@ -94,12 +103,13 @@ object ScalafixArtifacts {
     }
 
   private def fetchScalafixInterfaces(
+    scalafixVersion: String,
     extraRepositories: Seq[Repository],
     logger: Logger,
     cache: FileCache[Task]
   ): Either[BuildException, os.Path] =
     either {
-      val scalafixInterfaces = dep"ch.epfl.scala:scalafix-interfaces:${Constants.scalafixVersion}"
+      val scalafixInterfaces = dep"ch.epfl.scala:scalafix-interfaces:$scalafixVersion"
 
       val fetchResult =
         value(
@@ -112,7 +122,7 @@ object ScalafixArtifacts {
           )
         )
 
-      val expectedJarName = s"scalafix-interfaces-${Constants.scalafixVersion}.jar"
+      val expectedJarName = s"scalafix-interfaces-$scalafixVersion.jar"
       val interfacesJar   = fetchResult.collectFirst {
         case (_, path) if path.last == expectedJarName => path
       }
