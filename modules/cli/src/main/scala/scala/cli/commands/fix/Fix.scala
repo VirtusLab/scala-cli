@@ -44,7 +44,7 @@ object Fix extends ScalaCommand[FixOptions]:
             0
         else 0
       if options.enableScalafix then
-        either:
+        val scalafixResult = either:
           logger.message("Running scalafix rules...")
           val threads                      = BuildThreads.create()
           val compilerMaker                = options.shared.compilerMaker(threads)
@@ -68,5 +68,6 @@ object Fix extends ScalaCommand[FixOptions]:
           if scalafixExitCode != 1 then logger.message("scalafix rules completed.")
           else logger.error("scalafix rules failed.")
           sys.exit(math.max(scalafixExitCode, builtInRulesExitCode))
+        scalafixResult.orExit(logger)
       else if builtInRulesExitCode != 0 then sys.exit(builtInRulesExitCode)
     else logger.message("No rules were enabled. Did you disable everything intentionally?")
