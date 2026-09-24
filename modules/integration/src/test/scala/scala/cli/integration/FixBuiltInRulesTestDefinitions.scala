@@ -55,6 +55,168 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
     }
   }
 
+  test("built-in rules remove comma separators from directives") {
+    val mainFileName = "Main.scala"
+    val inputs       = TestInputs(
+      os.rel / mainFileName ->
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1, com.lihaoyi::pprint:0.6.6
+           |//> using options -Werror, -Wunused:imports,privates
+           |
+           |object Main extends App {
+           |  println(os.pwd)
+           |}
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      def fix(check: Boolean) = os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false),
+        if check then Seq("--check") else Nil
+      ).call(cwd = root, mergeErrIntoOut = true, check = false)
+
+      expect(fix(check = true).exitCode != 0)
+      expect(fix(check = false).exitCode == 0)
+      assertNoDiff(
+        os.read(root / mainFileName),
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+           |//> using options -Werror -Wunused:imports,privates
+           |
+           |object Main extends App {
+           |  println(os.pwd)
+           |}
+           |""".stripMargin
+      )
+      expect(fix(check = true).exitCode == 0)
+    }
+  }
+
+  test("built-in rules can be disabled separately") {
+    val mainFileContent =
+      """//> using dep com.lihaoyi::os-lib:0.9.1, com.lihaoyi::pprint:0.6.6
+        |
+        |object Main extends App
+        |""".stripMargin
+    val otherFileContent =
+      """//> using options -Werror, -deprecation
+        |
+        |object Other
+        |""".stripMargin
+    val inputs = TestInputs(
+      os.rel / "Main.scala"  -> mainFileContent,
+      os.rel / "Other.scala" -> otherFileContent
+    )
+
+    inputs.fromRoot { root =>
+      def fix(ruleOptions: String*) = os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false),
+        ruleOptions
+      ).call(cwd = root, mergeErrIntoOut = true)
+
+      val allDisabledOutput = fix("--remove-commas=false", "--migrate-directives=false")
+      expect(allDisabledOutput.out.text().contains("No rules were enabled"))
+      assertNoDiff(os.read(root / "Main.scala"), mainFileContent)
+      assertNoDiff(os.read(root / "Other.scala"), otherFileContent)
+
+      fix("--migrate-directives=false")
+      expect(!os.exists(root / projectFileName))
+      assertNoDiff(
+        os.read(root / "Main.scala"),
+        """//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+          |
+          |object Main extends App
+          |""".stripMargin
+      )
+      assertNoDiff(
+        os.read(root / "Other.scala"),
+        """//> using options -Werror -deprecation
+          |
+          |object Other
+          |""".stripMargin
+      )
+    }
+  }
+
+  test("comma separators are not removed from excluded sources") {
+    val excludedFileContent =
+      """//> using options -Werror, -deprecation
+        |
+        |object Generated
+        |""".stripMargin
+    val inputs = TestInputs(
+      os.rel / projectFileName -> "//> using exclude generated",
+      os.rel / "Main.scala"    ->
+        """//> using options -Werror, -deprecation
+          |
+          |object Main extends App
+          |""".stripMargin,
+      os.rel / "generated" / "Generated.scala" -> excludedFileContent
+    )
+
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false),
+        "--migrate-directives=false"
+      ).call(cwd = root, mergeErrIntoOut = true)
+
+      assertNoDiff(os.read(root / "generated" / "Generated.scala"), excludedFileContent)
+      assertNoDiff(
+        os.read(root / "Main.scala"),
+        """//> using options -Werror -deprecation
+          |
+          |object Main extends App
+          |""".stripMargin
+      )
+    }
+  }
+
+  test("comma separators are removed from sources for inactive targets") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" -> "object Main extends App",
+      os.rel / "Js.scala"   ->
+        """//> using target.platform js
+          |//> using options -Werror, -deprecation
+          |
+          |object Js
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false),
+        "--migrate-directives=false"
+      ).call(cwd = root, mergeErrIntoOut = true)
+
+      assertNoDiff(
+        os.read(root / "Js.scala"),
+        """//> using target.platform js
+          |//> using options -Werror -deprecation
+          |
+          |object Js
+          |""".stripMargin
+      )
+    }
+  }
+
   test("basic built-in rules") {
     val mainFileName = "Main.scala"
     val inputs       = TestInputs(
