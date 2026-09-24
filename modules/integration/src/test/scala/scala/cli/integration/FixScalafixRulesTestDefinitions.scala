@@ -73,7 +73,28 @@ trait FixScalafixRulesTestDefinitions {
         "--version",
         scalaVersionArgs
       ).call(cwd = root)
-      expect(res.out.trim().linesIterator.contains(scalafixVersion))
+      expect(res.out.trim() == scalafixVersion)
+    }
+  }
+
+  test("fails when --scalafix-version cannot be fetched") {
+    simpleInputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "fix",
+        "--power",
+        ".",
+        "--scalafix-version",
+        "9.9.9",
+        scalaVersionArgs
+      ).call(cwd = root, check = false, stderr = os.Pipe)
+      expect(res.exitCode == 1)
+      val errorLines =
+        res.err.lines().map(TestUtil.removeAnsiColors).filter(_.startsWith("[error]"))
+      expect(errorLines ==
+        Seq("[error]  Error downloading ch.epfl.scala:scalafix-interfaces:9.9.9"))
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == noCrLf(simpleInputsOriginalContent))
     }
   }
 
