@@ -100,6 +100,7 @@ object ScalafixRules extends CommandHelpers {
           val artifacts =
             value(
               ScalafixArtifacts.artifacts(
+                scalafixOptions.scalafixVersion.getOrElse(Constants.scalafixVersion),
                 scalaVersion,
                 successfulBuilds.headOption.toSeq
                   .flatMap(_.options.classPathOptions.scalafixDependencies.values.flatten),

@@ -59,6 +59,24 @@ trait FixScalafixRulesTestDefinitions {
     }
   }
 
+  test("--scalafix-version overrides the default scalafix version") {
+    val scalafixVersion = "0.14.8"
+    simpleInputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "fix",
+        "--power",
+        ".",
+        "--scalafix-version",
+        scalafixVersion,
+        "--scalafix-arg",
+        "--version",
+        scalaVersionArgs
+      ).call(cwd = root)
+      expect(res.out.trim().linesIterator.contains(scalafixVersion))
+    }
+  }
+
   test("semantic rule") {
     val unusedValueInputsContent: String =
       s"""//> using options $scalafixUnusedRuleOption

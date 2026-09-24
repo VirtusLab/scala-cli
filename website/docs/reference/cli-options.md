@@ -1565,6 +1565,10 @@ Pass extra argument(s) to scalafix.
 
 Run scalafix rule(s) explicitly, overriding the configuration file default.
 
+### `--scalafix-version`
+
+Pass scalafix version before running it (0.14.9 by default).
+
 ## Scope options
 
 Available in commands:
