@@ -137,8 +137,15 @@ object ScalafixRules extends CommandHelpers {
             allowExecve = allowExecve
           )
 
-          proc.waitFor()
+          withoutNoRulesError(proc.waitFor())
         }
 
   }
+
+  // scalafix reports errors as a bit mask; NoRulesError (256) only means that nothing was
+  // configured to run. POSIX truncates exit codes to 8 bits, silently turning 256 into 0,
+  // while on Windows it would fail the command, so it is dropped for consistency.
+  private val noRulesErrorExitCode = 256
+
+  private[fix] def withoutNoRulesError(exitCode: Int): Int = exitCode & ~noRulesErrorExitCode
 }
