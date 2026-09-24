@@ -2,6 +2,7 @@ package scala.cli.commands.fix
 
 import caseapp.*
 
+import scala.build.internal.Constants
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.tags
 
@@ -20,7 +21,14 @@ final case class ScalafixOptions(
   @Tag(tags.experimental)
   @HelpMessage("Run scalafix rule(s) explicitly, overriding the configuration file default.")
   @Tag(tags.inShortHelp)
-  scalafixRules: List[String] = Nil
+  scalafixRules: List[String] = Nil,
+  @Group(HelpGroup.Fix.toString)
+  @Tag(tags.experimental)
+  @HelpMessage(
+    s"Pass scalafix version before running it (${Constants.scalafixVersion} by default)."
+  )
+  @Tag(tags.inShortHelp)
+  scalafixVersion: Option[String] = None
 )
 object ScalafixOptions {
   implicit lazy val parser: Parser[ScalafixOptions] = Parser.derive
