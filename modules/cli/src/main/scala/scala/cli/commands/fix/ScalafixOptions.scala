@@ -25,7 +25,7 @@ final case class ScalafixOptions(
   @Group(HelpGroup.Fix.toString)
   @Tag(tags.experimental)
   @HelpMessage(
-    s"Pass scalafix version before running it (${Constants.scalafixVersion} by default)."
+    s"Pass scalafix version (${Constants.scalafixVersion} by default)."
   )
   @Tag(tags.inShortHelp)
   scalafixVersion: Option[String] = None
