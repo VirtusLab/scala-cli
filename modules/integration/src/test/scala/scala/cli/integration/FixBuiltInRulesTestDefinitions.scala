@@ -38,12 +38,11 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         s"""Running built-in rules...
            |--- $projectFileName
            |+++ <expected fix>
-           |@@ -1,1 +1,4 @@
+           |@@ -1,1 +1,3 @@
            |-//> using deps com.lihaoyi::pprint:0.6.6
            |+// Main
            |+//> using objectWrapper
            |+//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
-           |+
            |--- $mainFileName
            |+++ <expected fix>
            |@@ -1,6 +1,3 @@

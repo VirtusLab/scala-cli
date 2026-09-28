@@ -1,5 +1,5 @@
 package scala.cli.commands.fix
-import com.github.difflib.{DiffUtils, UnifiedDiffUtils}
+import munit.diff.{Diff, DiffOptions}
 import os.{BasePathImpl, FilePath}
 
 import scala.build.Ops.EitherMap2
@@ -11,7 +11,6 @@ import scala.build.preprocessing.directives.*
 import scala.build.preprocessing.{ExtractedDirectives, SheBang}
 import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.commands.util.CommandHelpers
-import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 
 object BuiltInRules extends CommandHelpers {
@@ -189,18 +188,16 @@ object BuiltInRules extends CommandHelpers {
     val oldContents = if os.exists(path) then os.read(path) else ""
     if oldContents == newContents then false
     else
-      val oldLines = oldContents.linesIterator.toVector.asJava
-      val newLines = newContents.linesIterator.toVector.asJava
-      UnifiedDiffUtils
-        .generateUnifiedDiff(
-          loggingUtilities.relativePath(path).toString,
-          "<expected fix>",
-          oldLines,
-          DiffUtils.diff(oldLines, newLines),
-          3
-        )
-        .asScala
-        .foreach(line => loggingUtilities.logger.message(line))
+      val diff = Diff(obtained = newContents, expected = oldContents)(
+        using DiffOptions.withContextSize(3).withShowLines(true).withForceAnsi(Some(false))
+      )
+      loggingUtilities.logger.message(
+        Seq(
+          s"--- ${loggingUtilities.relativePath(path)}",
+          "+++ <expected fix>",
+          diff.unifiedDiff
+        ).mkString(System.lineSeparator())
+      )
       true
 
   private def getProjectSources(inputs: Inputs, logger: Logger)(using
