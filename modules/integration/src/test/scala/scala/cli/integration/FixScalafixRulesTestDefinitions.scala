@@ -88,7 +88,7 @@ trait FixScalafixRulesTestDefinitions {
       expect(untouchedContent == noCrLf(excludedContent))
     }
   }
-  
+
   private def unusedValueInput(header: String): String =
     s"""//> using options $scalafixUnusedRuleOption
        |$header
