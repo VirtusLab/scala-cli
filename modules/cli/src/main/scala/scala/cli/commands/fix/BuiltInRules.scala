@@ -25,6 +25,9 @@ object BuiltInRules extends CommandHelpers {
 
   private lazy val directiveTestPrefix = "test."
 
+  private val preferredNameAliases =
+    Set("dep", "test.dep", "compileOnly.dep", "scalafix.dep")
+
   private def hasTestEquivalent(key: String): Boolean =
     usingDirectivesWithTestPrefixKeysGrouped
       .exists(_.nameAliases.contains(directiveTestPrefix + key))
@@ -183,7 +186,8 @@ object BuiltInRules extends CommandHelpers {
     val nameAliasesToUse      = pickNameAliases(
       fromWritableInputs =
         allOriginalDirectives.filter(d => isExtractedFromWritableInput(d.position)),
-      allExtracted = allOriginalDirectives
+      allExtracted = allOriginalDirectives,
+      logger = logger
     )
 
     // Deal with directives from the Main scope
@@ -373,7 +377,7 @@ object BuiltInRules extends CommandHelpers {
       ).orExit(logger)
     }
 
-    (fromPaths ++ fromInMemory).map(ed => ed.copy(directives = ed.directives.reverse))
+    fromPaths ++ fromInMemory
   }
 
   private def hasTargetDirectives(extractedDirectives: ExtractedDirectives): Boolean = {
@@ -384,22 +388,30 @@ object BuiltInRules extends CommandHelpers {
 
   private def pickNameAliases(
     fromWritableInputs: Seq[ExtractedDirectives],
-    allExtracted: Seq[ExtractedDirectives]
+    allExtracted: Seq[ExtractedDirectives],
+    logger: Logger
   ): Map[String, String] =
-    val aliasUsages = fromWritableInputs
-      .flatMap(_.directives.map(_.key))
-      .zipWithIndex
-      .groupMap(_._1)(_._2)
-    val usedAliases = allExtracted.flatMap(_.directives.map(_.key)).toSet
+    val aliasesInWritableInputs = fromWritableInputs.flatMap(_.directives.map(_.key)).toSet
+    val usedAliases             = allExtracted.flatMap(_.directives.map(_.key)).toSet
     // All keys that we migrate, not all in general
     val allKeysGrouped = usingDirectivesKeysGrouped ++ usingDirectivesWithTestPrefixKeysGrouped
 
     def aliasToUse(key: Key): Option[String] =
-      val pickable = pickableAliases(key)
-      pickable
-        .filter(aliasUsages.contains)
-        .minByOption(alias => (-aliasUsages(alias).length, aliasUsages(alias).head))
-        .orElse(Option.when(key.nameAliases.exists(usedAliases.contains))(pickable.head))
+      val pickable       = pickableAliases(key)
+      val preferredAlias = pickable.find(preferredNameAliases.contains).getOrElse(pickable.head)
+      key.nameAliases.filter(aliasesInWritableInputs.contains) match {
+        // no spelling of this key in the files we rewrite - it still needs an entry when a
+        // source we only read uses it, as keys missing from the mapping get dropped
+        case Seq() => Option.when(key.nameAliases.exists(usedAliases.contains))(preferredAlias)
+        // a single spelling we can work with, so the user's one is kept
+        case Seq(onlyAliasUsed) if pickable.contains(onlyAliasUsed) => Some(onlyAliasUsed)
+        // several spellings, or a single one we can't use - replaced
+        case aliasesUsed =>
+          logger.message(
+            s"Unifying ${aliasesUsed.map(a => s"`$a`").mkString(", ")} into `$preferredAlias`"
+          )
+          Some(preferredAlias)
+      }
 
     allKeysGrouped
       .flatMap(key => aliasToUse(key).toSeq.flatMap(picked => key.nameAliases.map(_ -> picked)))

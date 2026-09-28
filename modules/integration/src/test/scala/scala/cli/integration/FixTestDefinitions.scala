@@ -129,5 +129,6 @@ abstract class FixTestDefinitions
       .filterNot(_.trim().contains("repo dir"))
       .filterNot(_.trim().contains("local repo"))
       .filterNot(_.trim().contains("archive url"))
+      .filterNot(_.startsWith("WARNING: ")) // TEMP-LOCAL
       .mkString(System.lineSeparator())
 }

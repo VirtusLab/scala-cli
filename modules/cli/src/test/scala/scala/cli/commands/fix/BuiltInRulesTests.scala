@@ -69,7 +69,7 @@ class BuiltInRulesTests extends munit.FunSuite {
     }
   }
 
-  test("the most often used alias of a key wins") {
+  test("mixed aliases of a key are unified to the preferred spelling") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
         """//> using dependency com.lihaoyi::os-lib:0.9.1
@@ -77,43 +77,16 @@ class BuiltInRulesTests extends munit.FunSuite {
           |object Main extends App { println(os.pwd) }
           |""".stripMargin,
       os.rel / "Other.scala" ->
-        """//> using dep com.lihaoyi::pprint:0.6.6
+        """//> using deps com.lihaoyi::pprint:0.6.6
           |
           |object Other
-          |""".stripMargin,
-      os.rel / "YetAnother.scala" ->
-        """//> using dep com.lihaoyi::upickle:3.1.2
-          |
-          |object YetAnother
           |""".stripMargin
     )
     fix(inputs) { (root, _) =>
       assertNoDiff(
         os.read(root / "project.scala"),
         """// Main
-          |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
-          |""".stripMargin
-      )
-    }
-  }
-
-  test("a tie between aliases is won by the one written first") {
-    val inputs = TestInputs(
-      os.rel / "Main.scala" ->
-        """//> using deps com.lihaoyi::os-lib:0.9.1
-          |//> using dep com.lihaoyi::pprint:0.6.6
-          |
-          |object Main extends App { println(os.pwd) }
-          |""".stripMargin,
-      os.rel / "Other.scala" ->
-        """object Other
-          |""".stripMargin
-    )
-    fix(inputs) { (root, _) =>
-      assertNoDiff(
-        os.read(root / "project.scala"),
-        """// Main
-          |//> using deps com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+          |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
           |""".stripMargin
       )
     }
@@ -136,14 +109,14 @@ class BuiltInRulesTests extends munit.FunSuite {
       assertNoDiff(
         os.read(root / "project.scala"),
         """// Test
-          |//> using test.dependencies com.lihaoyi::os-lib:0.9.1 org.scalameta::munit:0.7.29
+          |//> using test.dep com.lihaoyi::os-lib:0.9.1 org.scalameta::munit:0.7.29
           |""".stripMargin
       )
       assertNoDiff(os.read(root / "Tests.test.scala"), "class Tests extends munit.FunSuite\n")
     }
   }
 
-  test("legacy aliases with no 'test.' counterpart fall back to the default spelling") {
+  test("legacy aliases with no 'test.' counterpart fall back to the preferred spelling") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
         """//> using lib com.lihaoyi::pprint:0.6.6
@@ -160,10 +133,10 @@ class BuiltInRulesTests extends munit.FunSuite {
       assertNoDiff(
         os.read(root / "project.scala"),
         """// Main
-          |//> using dependency com.lihaoyi::pprint:0.6.6
+          |//> using dep com.lihaoyi::pprint:0.6.6
           |
           |// Test
-          |//> using test.dependency com.lihaoyi::os-lib:0.9.1
+          |//> using test.dep com.lihaoyi::os-lib:0.9.1
           |""".stripMargin
       )
       assertNoDiff(os.read(root / "Tests.test.scala"), "class Tests extends munit.FunSuite\n")
