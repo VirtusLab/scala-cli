@@ -39,6 +39,56 @@ trait FixScalafixRulesTestDefinitions {
       |""".stripMargin
   }
 
+  test("scripts are fixed alongside plain Scala sources") {
+    val scriptContent: String =
+      """final object InScript {
+        |  def hello: String = "Hello"
+        |}
+        |println(InScript.hello)
+        |""".stripMargin
+    TestInputs(
+      os.rel / scalafixConfFileName ->
+        s"""|rules = [
+            |  RedundantSyntax
+            |]
+            |""".stripMargin,
+      os.rel / "Hello.scala" -> simpleInputsOriginalContent,
+      os.rel / "script.sc"   -> scriptContent
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == expectedContent)
+      val updatedScript = noCrLf(os.read(root / "script.sc"))
+      expect(updatedScript == noCrLf(scriptContent.replace("final object", "object")))
+    }
+  }
+
+  test("excluded sources are not passed to scalafix") {
+    val excludedContent: String =
+      """package foo
+        |
+        |final object Excluded {
+        |  def hello: String = "Hello"
+        |}
+        |""".stripMargin
+    TestInputs(
+      os.rel / scalafixConfFileName ->
+        s"""|rules = [
+            |  RedundantSyntax
+            |]
+            |""".stripMargin,
+      os.rel / "project.scala"  -> """//> using exclude "Excluded.scala"""",
+      os.rel / "Hello.scala"    -> simpleInputsOriginalContent,
+      os.rel / "Excluded.scala" -> excludedContent
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == expectedContent)
+      val untouchedContent = noCrLf(os.read(root / "Excluded.scala"))
+      expect(untouchedContent == noCrLf(excludedContent))
+    }
+  }
+
   test("simple") {
     simpleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
