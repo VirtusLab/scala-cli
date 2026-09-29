@@ -442,6 +442,18 @@ Aliases: `--built-in`, `--built-in-rules`, `--enable-built-in`
 
 Enable running built-in rules (enabled by default)
 
+### `--enable-directives-migration`
+
+Aliases: `--migrate-directives`
+
+Enable migrating using directives into project.scala, a built-in rule (enabled by default)
+
+### `--enable-comma-separators-removal`
+
+Aliases: `--remove-commas`
+
+Enable removing deprecated comma separators from using directives, a built-in rule (enabled by default)
+
 ## Fmt options
 
 Available in commands:
