@@ -13,6 +13,8 @@ class BuiltInRulesTests extends munit.FunSuite {
           inputs = in,
           buildOptions = BuildOptions(),
           check = check,
+          removeCommas = false,
+          migrateDirectives = true,
           logger = TestLogger()
         )(using ScalaCliInvokeData.dummy)
 
