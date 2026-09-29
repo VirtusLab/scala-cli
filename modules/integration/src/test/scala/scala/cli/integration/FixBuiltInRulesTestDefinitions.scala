@@ -564,7 +564,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
            |$pprintTestDepDirective
            |$munitTestDepDirective""".stripMargin
       val projectFileContents = os.read(root / projectFileName)
-      expect(projectFileContents.trim() == expectedProjectFileContents)
+      assertNoDiff(projectFileContents, expectedProjectFileContents)
       val mainFileContents = os.read(root / mainFilePath)
       expect(!mainFileContents.contains("//> using"))
       val testFileContents = os.read(root / testFilePath)
