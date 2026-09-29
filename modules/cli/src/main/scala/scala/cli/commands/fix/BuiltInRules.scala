@@ -1,4 +1,5 @@
 package scala.cli.commands.fix
+import munit.diff.{Diff, DiffOptions}
 import os.{BasePathImpl, FilePath}
 
 import scala.build.Ops.EitherMap2
@@ -149,7 +150,8 @@ object BuiltInRules extends CommandHelpers {
     val projectFilePath        = inputs.workspace / Constants.projectFileName
     val newProjectFileContents = projectFileContents.toString
     val projectFileNeedsUpdate =
-      if check then wouldChange(projectFilePath, newProjectFileContents)
+      if check then
+        reportCheckFailure(projectFilePath, newProjectFileContents)
       else
         logger.message(s"Writing ${Constants.projectFileName}")
         os.write.over(projectFilePath, newProjectFileContents)
@@ -175,8 +177,28 @@ object BuiltInRules extends CommandHelpers {
     projectFileNeedsUpdate || (mainInputsNeedUpdate ++ testInputsNeedUpdate).contains(true)
   }
 
-  private def wouldChange(path: os.Path, contents: String): Boolean =
-    !os.exists(path) || os.read(path) != contents
+  /** Logs a unified diff of the changes `fix` would have applied to `path`.
+    *
+    * @return
+    *   true if the file is out of date
+    */
+  private def reportCheckFailure(path: os.Path, newContents: String)(
+    using loggingUtilities: LoggingUtilities
+  ): Boolean =
+    val oldContents = if os.exists(path) then os.read(path) else ""
+    if oldContents == newContents then false
+    else
+      val diff = Diff(obtained = newContents, expected = oldContents)(
+        using DiffOptions.withContextSize(3).withShowLines(true).withForceAnsi(Some(false))
+      )
+      loggingUtilities.logger.message(
+        Seq(
+          s"--- ${loggingUtilities.relativePath(path)}",
+          "+++ <expected fix>",
+          diff.unifiedDiff
+        ).mkString(System.lineSeparator())
+      )
+      true
 
   private def getProjectSources(inputs: Inputs, logger: Logger)(using
     ScalaCliInvokeData
@@ -335,7 +357,8 @@ object BuiltInRules extends CommandHelpers {
         val newContents  = (keepLines + strippedContent.drop(offset).stripLeading()).stripLeading()
         val relativePath = loggingUtilities.relativePath(path)
 
-        if check then wouldChange(path, newContents)
+        if check then
+          reportCheckFailure(path, newContents)
         else
           loggingUtilities.logger.message(s"Removing directives from $relativePath")
           if toKeep.nonEmpty then
