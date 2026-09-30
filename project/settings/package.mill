@@ -547,6 +547,11 @@ trait HasTests extends SbtModule {
       Deps.munit
     )
     override def forkArgs: T[Seq[String]] = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
+    override def forkEnv: T[Map[String, String]] = super.forkEnv() ++ Seq(
+      // bloop rifle hard-codes a 30s timeout for `bloop about`, which no CLI option can raise;
+      // loaded CI machines regularly exceed it, so extend all bloop rifle timeouts for tests
+      "SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"
+    )
 
     override def repositoriesTask: Task[Seq[Repository]] =
       Task.Anon(super.repositoriesTask() ++ deps.customRepositories)

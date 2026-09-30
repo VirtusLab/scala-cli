@@ -1,11 +1,11 @@
 package scala.cli.commands.bloop
 
 import bloop.rifle.internal.Operations
-import bloop.rifle.{BloopRifle, BloopRifleConfig, BloopThreads}
+import bloop.rifle.{BloopRifle, BloopRifleConfig}
 import caseapp.core.RemainingArgs
 
 import scala.build.internal.Constants
-import scala.build.{Directories, Logger}
+import scala.build.{BuildThreads, Directories, Logger}
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.JvmUtils
@@ -51,7 +51,7 @@ object Bloop extends ScalaCommand[BloopOptions] {
   }
 
   override def runCommand(options: BloopOptions, args: RemainingArgs, logger: Logger): Unit = {
-    val threads          = BloopThreads.create()
+    val threads          = BuildThreads.createBloopThreads()
     val bloopRifleConfig = bloopRifleConfig0(options)
 
     val isRunning = BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger)

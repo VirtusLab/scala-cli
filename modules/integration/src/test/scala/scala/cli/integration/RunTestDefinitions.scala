@@ -2744,7 +2744,7 @@ abstract class RunTestDefinitions
                 "iteration",
                 i.toString
               )
-                .spawn(cwd = root, env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"))
+                .spawn(cwd = root)
             }.zipWithIndex
             processes.foreach { case (p, _) => p.waitFor() }
             processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
@@ -2909,11 +2909,7 @@ abstract class RunTestDefinitions
                 repoDir.toNIO.toUri.toASCIIString,
                 "--jvm",
                 latestJvmId
-              ).spawn(
-                cwd = root,
-                stderr = os.Pipe,
-                env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds")
-              )
+              ).spawn(cwd = root, stderr = os.Pipe)
             }
             processes.foreach(_.waitFor())
             processes.foreach(p => expect(p.exitCode() == 0))
