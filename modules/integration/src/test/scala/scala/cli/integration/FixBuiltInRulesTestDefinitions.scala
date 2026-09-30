@@ -36,13 +36,14 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
       assertNoDiff(
         filterDebugOutputs(checkOutput.out.trim()),
         s"""Running built-in rules...
+           |Unifying `deps`, `dep` into `dep`
            |--- $projectFileName
            |+++ <expected fix>
            |@@ -1,1 +1,3 @@
            |-//> using deps com.lihaoyi::pprint:0.6.6
            |+// Main
            |+//> using objectWrapper
-           |+//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+           |+//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
            |--- $mainFileName
            |+++ <expected fix>
            |@@ -1,6 +1,3 @@
@@ -268,6 +269,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         """Running built-in rules...
           |Extracting directives from Main.scala
           |Extracting directives from project.scala
+          |Unifying `deps`, `dep` into `dep`
           |Writing project.scala
           |Removing directives from Main.scala
           |Built-in rules completed.""".stripMargin
@@ -280,7 +282,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
+          |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
           |""".stripMargin
       )
 
@@ -337,6 +339,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         """Running built-in rules...
           |Extracting directives from project.scala
           |Extracting directives from main.sc
+          |Unifying `deps`, `dep` into `dep`
           |Writing project.scala
           |Removing directives from main.sc
           |Built-in rules completed.""".stripMargin
@@ -349,7 +352,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
+          |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
           |""".stripMargin
       )
 
@@ -423,6 +426,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
           |Extracting directives from project.scala
           |Extracting directives from src/Main.scala
           |Extracting directives from test/MyTests.scala
+          |Unifying `deps`, `dep` into `dep`
           |Writing project.scala
           |Removing directives from src/Main.scala
           |Removing directives from test/MyTests.scala
@@ -437,11 +441,11 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+          |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
           |
           |// Test
           |//> using test.options -Xasync -Xfatal-warnings
-          |//> using test.dependency org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
+          |//> using test.dep org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
           |""".stripMargin
       )
 
@@ -569,6 +573,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
              |Extracting directives from ${includeRoot / "Included.scala"}
              |Extracting directives from snippet
              |Extracting directives from test/MyTests.scala
+             |Unifying `deps`, `dep` into `dep`
              |Writing project.scala
              |Removing directives from src/Main.scala
              |Removing directives from test/MyTests.scala
@@ -590,10 +595,10 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
              |//> using platforms jvm
              |//> using jvm 17
              |//> using options -Werror
-             |//> using files $includePath
+             |//> using file $includePath
              |//> using objectWrapper
              |//> using toolkit default
-             |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+             |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
              |
              |//> using publish.ci.password env:PUBLISH_PASSWORD
              |//> using publish.ci.secretKey env:PUBLISH_SECRET_KEY
@@ -602,7 +607,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
              |
              |// Test
              |//> using test.options -Xasync -Xfatal-warnings
-             |//> using test.dependency org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
+             |//> using test.dep org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
              |""".stripMargin
         )
 
