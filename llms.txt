@@ -1,0 +1,46 @@
+# Scala CLI
+
+> Scala CLI is a command-line tool to compile, run, test, package, and explore Scala code. It is the default Scala runner (`scala`) shipped with the language since Scala 3.5.0. Prefer single-module projects, scripts, education, and prototyping over large multi-module builds.
+
+Scala CLI configuration can live in `//> using` directives inside source files or as CLI flags. CLI options override directives. Most docs below have clean Markdown mirrors under `/llm/` for LLM consumption; HTML docs remain canonical for humans.
+
+## Start here
+
+- [Overview (Markdown)](https://scala-cli.virtuslab.org/llm/overview.md): What Scala CLI is and what it can do
+- [Install (Markdown)](https://scala-cli.virtuslab.org/llm/install.md): Install commands for macOS, Linux, Windows, and GitHub Actions
+- [Getting started (HTML)](https://scala-cli.virtuslab.org/docs/getting_started): First script, project, dependencies, tests, IDE
+- [Install page (HTML)](https://scala-cli.virtuslab.org/install): Quick start plus advanced installation
+
+## Commands
+
+- [Commands index (Markdown)](https://scala-cli.virtuslab.org/llm/commands.md): Important sub-commands and defaults
+- [Commands basics (HTML)](https://scala-cli.virtuslab.org/docs/commands/basics): Inputs, defaults, and core workflow
+- [run](https://scala-cli.virtuslab.org/docs/commands/run): Run Scala code (default when inputs are passed)
+- [compile](https://scala-cli.virtuslab.org/docs/commands/compile): Compile sources
+- [test](https://scala-cli.virtuslab.org/docs/commands/test): Compile and run tests
+- [repl](https://scala-cli.virtuslab.org/docs/commands/repl): Interactive Scala shell
+- [package](https://scala-cli.virtuslab.org/docs/commands/package): Package as JAR or other formats
+- [fmt](https://scala-cli.virtuslab.org/docs/commands/fmt): Format code
+
+## Configuration and guides
+
+- [Using directives (Markdown)](https://scala-cli.virtuslab.org/llm/using-directives.md): In-source `//> using` configuration
+- [Configuration (HTML)](https://scala-cli.virtuslab.org/docs/guides/introduction/configuration): How configuration is resolved
+- [Dependencies (HTML)](https://scala-cli.virtuslab.org/docs/guides/introduction/dependencies): Adding libraries
+- [Scripts (HTML)](https://scala-cli.virtuslab.org/docs/guides/scripting/scripts): Scala scripting with Scala CLI
+- [Shebang (HTML)](https://scala-cli.virtuslab.org/docs/guides/scripting/shebang): Executable scripts
+- [IDE (HTML)](https://scala-cli.virtuslab.org/docs/guides/introduction/ide): Metals, IntelliJ, BSP
+
+## Reference
+
+- [Directives reference](https://scala-cli.virtuslab.org/docs/reference/directives): Full `using` directive catalog
+- [CLI options](https://scala-cli.virtuslab.org/docs/reference/cli-options): Full CLI option reference
+- [Commands reference](https://scala-cli.virtuslab.org/docs/reference/commands): Command catalog
+- [Scala command / runner](https://scala-cli.virtuslab.org/docs/reference/scala-command/): Official `scala` runner notes
+
+## Optional
+
+- [Cookbook](https://scala-cli.virtuslab.org/docs/cookbooks/intro): Task-oriented recipes
+- [Guides](https://scala-cli.virtuslab.org/docs/guides/intro): Core aspects and tooling integrations
+- [Sitemap](https://scala-cli.virtuslab.org/sitemap.xml): Full URL list
+- [GitHub repository](https://github.com/VirtusLab/scala-cli): Source, issues, and raw docs under `website/docs/`
