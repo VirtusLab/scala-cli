@@ -8,7 +8,8 @@ class ReplTestsDefault extends ReplTestDefinitions
     with TestDefault {
 
   // Sloth tests - only in default suite since they use hardcoded Scala versions
-  private val latestJava = Constants.allJavaVersions.max.toString
+  private val latestJava  = Constants.allJavaVersions.max
+  private val latestJvmId = TestUtil.jvmId(latestJava)
 
   private def replNoDepUnsafeTest(slothFlag: String): Unit =
     test(
@@ -24,7 +25,7 @@ class ReplTestsDefault extends ReplTestDefinitions
           "--repl-init-script",
           code,
           "--jvm",
-          latestJava,
+          latestJvmId,
           "--power",
           slothFlag,
           extraOptions
@@ -57,7 +58,7 @@ class ReplTestsDefault extends ReplTestDefinitions
           "--repository",
           repoDir.toNIO.toUri.toASCIIString,
           "--jvm",
-          latestJava
+          latestJvmId
         ).call(cwd = root, stderr = os.Pipe)
         expect(res.out.trim().contains(expectedMessage))
         expect(!res.err.trim().contains("sun.misc.Unsafe"))

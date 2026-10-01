@@ -2,18 +2,18 @@ package scala.build.preprocessing.directives
 
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
+import dotty.tools.directives.DirectiveValue
 
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.{Position, Positioned}
-import scala.cli.parse.DirectiveValue
 
 object DirectiveUtil {
   def isWrappedInDoubleQuotes(v: DirectiveValue): Boolean =
     v.isQuotedString
 
   def position(v: DirectiveValue, path: Either[String, os.Path]): Position.File = {
-    val p          = v.pos
+    val p          = v.position
     val skipQuotes = v.isQuotedString
     val column     = p.column + (if skipQuotes then 1 else 0)
     val endCol     = column + v.stringValue.length
@@ -29,7 +29,7 @@ object DirectiveUtil {
 
   def positions(values: Seq[DirectiveValue], path: Either[String, os.Path]): Seq[Position] =
     values.map { v =>
-      val p = v.pos
+      val p = v.position
       Position.File(path, (p.line, p.column), (p.line, p.column))
     }
 

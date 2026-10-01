@@ -234,12 +234,15 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
           if (shared.helpGroups.helpScaladoc) {
             val docArtifacts = value {
               Artifacts.fetchAnyDependencies(
-                Seq(Positioned.none(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
+                Seq(Positioned.none(
+                  dep"${buildOptions.scalaOrganization}::scaladoc:${scalaParams.scalaVersion}"
+                )),
                 value(buildOptions.finalRepositories),
                 Some(scalaParams),
                 logger,
                 buildOptions.finalCache,
-                None
+                None,
+                toolchain = scalaArtifacts.toolchain
               )
             }
             docArtifacts.files.map(os.Path(_, os.pwd)) -> "dotty.tools.scaladoc.Main"
@@ -257,7 +260,8 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
                 cache = buildOptions.finalCache,
                 repositories = Nil,
                 addScalapy = None,
-                javaVersion = javaVersion
+                javaVersion = javaVersion,
+                toolchain = scalaArtifacts.toolchain
               )
             }
             replArtifacts.replClassPath -> replArtifacts.replMainClass

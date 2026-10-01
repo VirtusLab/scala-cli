@@ -133,7 +133,7 @@ object TestBspClient {
     val remoteServer = launcher.getRemoteProxy
 
     val f  = launcher.startListening()
-    val f0 = naiveJavaFutureToScalaFuture(f).map(_ => ())(ExecutionContext.fromExecutor(es))
+    val f0 = naiveJavaFutureToScalaFuture(f).map(_ => ())(using ExecutionContext.fromExecutor(es))
 
     (localClient, remoteServer, f0)
   }

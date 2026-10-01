@@ -24,6 +24,8 @@ object ScalafixRules extends CommandHelpers {
     compilerMaker: ScalaCompilerMaker,
     workspace: os.Path,
     check: Boolean,
+    // exec'ing replaces the current process, discarding anything the caller still has to report
+    allowExecve: Boolean,
     actionableDiagnostics: Option[Boolean],
     logger: Logger
   )(using ScalaCliInvokeData): Either[BuildException, Int] = {
@@ -98,6 +100,7 @@ object ScalafixRules extends CommandHelpers {
           val artifacts =
             value(
               ScalafixArtifacts.artifacts(
+                scalafixOptions.scalafixVersion.getOrElse(Constants.scalafixVersion),
                 scalaVersion,
                 successfulBuilds.headOption.toSeq
                   .flatMap(_.options.classPathOptions.scalafixDependencies.values.flatten),
@@ -106,6 +109,20 @@ object ScalafixRules extends CommandHelpers {
                 buildOptions.internal.cache.getOrElse(FileCache())
               )
             )
+
+          val sourcePaths = successfulBuilds
+            .flatMap { b =>
+              b.sources.paths.map(_._1) ++
+                b.sources.inMemory.flatMap(_.originalPath.toOption.map(_._2))
+            }
+            .distinct
+            .map(_.toString)
+          val sourcesFile = inputs.scalafixWorkDir / "sources.txt"
+          os.write.over(
+            sourcesFile,
+            sourcePaths.mkString(System.lineSeparator()),
+            createFolders = true
+          )
 
           val scalafixCliOptions =
             scalafixOptions.scalafixConf.toList.flatMap(scalafixConf =>
@@ -122,6 +139,7 @@ object ScalafixRules extends CommandHelpers {
                else Nil) ++
               scalafixOptions.scalafixRules.flatMap(Seq("-r", _))
               ++ scalafixOptions.scalafixArg
+              ++ Seq(s"@$sourcesFile")
 
           val slothAgentJavaOpts = value(SlothAgent.javaAgentArgs(buildOptions, logger))
           val proc               = Runner.runJvm(
@@ -132,11 +150,18 @@ object ScalafixRules extends CommandHelpers {
             scalafixCliOptions,
             logger,
             cwd = Some(workspace),
-            allowExecve = true
+            allowExecve = allowExecve
           )
 
-          proc.waitFor()
+          withoutNoRulesError(proc.waitFor())
         }
 
   }
+
+  // scalafix reports errors as a bit mask; NoRulesError (256) only means that nothing was
+  // configured to run. POSIX truncates exit codes to 8 bits, silently turning 256 into 0,
+  // while on Windows it would fail the command, so it is dropped for consistency.
+  private val noRulesErrorExitCode = 256
+
+  private[fix] def withoutNoRulesError(exitCode: Int): Int = exitCode & ~noRulesErrorExitCode
 }

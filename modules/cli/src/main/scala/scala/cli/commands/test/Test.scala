@@ -204,7 +204,7 @@ object Test extends ScalaCommand[TestOptions] {
           logger.message(
             s"$warnPrefix ${WarningMessages.slothNotApplicable("Scala.js (compiles to JavaScript)")}"
           )
-        val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
+        val linkerConfig = value(build.options.scalaJsOptions.linkerConfig(logger))
         val esModule     =
           build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
         value {

@@ -1,5 +1,7 @@
 package scala.cli.exportCmd
 
+import coursier.version.Version
+
 import java.nio.charset.StandardCharsets
 
 import scala.build.options.ConfigMonoid
@@ -202,4 +204,10 @@ final case class MillProject(
 
 object MillProject {
   implicit val monoid: ConfigMonoid[MillProject] = ConfigMonoid.derive
+
+  def supportsScalaOrganization(millVersion: String): Boolean =
+    Version(millVersion) <= Version(lastSupportedMillVersion)
+
+  // scalaOrganization is ignored from Mill 1.1.3 on
+  val lastSupportedMillVersion = "1.1.2"
 }

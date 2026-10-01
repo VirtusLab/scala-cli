@@ -31,9 +31,25 @@ final case class FixOptions(
   @Name("enableBuiltIn")
   @Name("builtIn")
   @Name("builtInRules")
-  enableBuiltInRules: Boolean = true
+  enableBuiltInRules: Boolean = true,
+  @Group(HelpGroup.Fix.toString)
+  @Tag(tags.experimental)
+  @HelpMessage(
+    "Enable migrating using directives into project.scala, a built-in rule (enabled by default)"
+  )
+  @Name("migrateDirectives")
+  enableDirectivesMigration: Boolean = true,
+  @Group(HelpGroup.Fix.toString)
+  @Tag(tags.experimental)
+  @HelpMessage(
+    "Enable removing deprecated comma separators from using directives, a built-in rule (enabled by default)"
+  )
+  @Name("removeCommas")
+  enableCommaSeparatorsRemoval: Boolean = true
 ) extends HasSharedOptions {
-  def areAnyRulesEnabled: Boolean = enableScalafix || enableBuiltInRules
+  def areBuiltInRulesEnabled: Boolean =
+    enableBuiltInRules && (enableDirectivesMigration || enableCommaSeparatorsRemoval)
+  def areAnyRulesEnabled: Boolean = enableScalafix || areBuiltInRulesEnabled
 }
 
 object FixOptions {

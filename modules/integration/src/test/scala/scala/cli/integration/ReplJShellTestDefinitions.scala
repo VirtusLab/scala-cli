@@ -81,7 +81,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
          |  System.out.println("$sentinel");
          |}
          |""".stripMargin
-    runInJShell(initScript = initScript, cliOptions = Seq("--jvm", javaVersion.toString)) {
+    runInJShell(initScript = initScript, cliOptions = Seq("--jvm", TestUtil.jvmId(javaVersion))) {
       (res, _) =>
         val out = jshellOutput(res)
         expect(out.contains(sentinel))

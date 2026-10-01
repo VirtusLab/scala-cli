@@ -76,7 +76,7 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
         TestUtil.retryOnCi() {
           val pipedInput = """void main() { System.out.println("piped"); }"""
           emptyInputs.fromRoot { root =>
-            val output = os.proc(TestUtil.cli, "_.java", "--jvm", javaVersion)
+            val output = os.proc(TestUtil.cli, "_.java", "--jvm", TestUtil.jvmId(javaVersion))
               .call(cwd = root, stdin = pipedInput)
               .out.trim()
             expect(output == "piped")

@@ -29,7 +29,24 @@ object TestUtil {
   val debugPortOpt: Option[String]  = sys.props.get("test.scala-cli.debug.port")
   val detectCliPath: String         = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
   val cli: Seq[String]              = cliCommand(cliPath)
-  val ltsEqualsNext: Boolean        = Constants.scala3LegacyLts equals Constants.scala3Next
+  val ltsEqualsNext: Boolean        = Constants.scala3LegacyLts `equals` Constants.scala3Next
+
+  /** JDK versions for which coursier's default JVM provider (Temurin on most platforms) has no
+    * release, mapped to a provider which does have one.
+    *
+    * Coursier resolves a bare version such as `27` through its default provider, so tests asking
+    * for such a version have to pin an explicit one instead. Entries can be dropped once the
+    * default provider catches up.
+    */
+  private val pinnedJvmProviders: Map[Int, String] = Map(27 -> "zulu")
+
+  /** JVM id to pass to `--jvm`, `//> using jvm` or `cs java-home --jvm` for `javaVersion`.
+    *
+    * @see
+    *   [[pinnedJvmProviders]]
+    */
+  def jvmId(javaVersion: Int): String =
+    pinnedJvmProviders.get(javaVersion).fold(javaVersion.toString)(p => s"$p:$javaVersion")
 
   lazy val legacyScalaVersionsOnePerMinor: Seq[String] =
     Constants.legacyScala3Versions.sorted.reverse.distinctBy(_.split('.').take(2).mkString("."))
@@ -121,8 +138,27 @@ object TestUtil {
 
   def removeAnsiColors(str: String): String = str.replaceAll("\\e\\[[0-9]+m", "")
 
-  def fullStableOutput(result: os.CommandResult): String =
-    removeAnsiColors(result.toString).trim().linesIterator.filterNot { str =>
+  private val backgroundThreadExceptionRegex = """^Exception in thread "(?!main")[^"]*".*""".r
+
+  private def isStackTraceContinuation(line: String): Boolean = {
+    val trimmed = line.stripLeading()
+    line.isBlank || trimmed.startsWith("at ") || trimmed.startsWith("... ") ||
+    trimmed.startsWith("Caused by: ") || trimmed.startsWith("Suppressed: ")
+  }
+
+  /** Drops stack traces printed by the JVM's default handler for exceptions thrown in background
+    * threads (i.e. anything but `main`), e.g. best-effort cleanup shutdown hooks. Such output
+    * depends on races and on the OS, so keeping it would make output assertions flaky.
+    */
+  def dropBackgroundThreadStackTraces(lines: Seq[String]): Seq[String] =
+    lines.foldLeft(Vector.empty[String] -> false) { case ((acc, dropping), line) =>
+      if backgroundThreadExceptionRegex.matches(line) then acc -> true
+      else if dropping && isStackTraceContinuation(line) then acc -> true
+      else (acc :+ line)                                          -> false
+    }._1
+
+  def fullStableOutput(result: os.CommandResult): String = {
+    val stableLines = removeAnsiColors(result.toString).trim().linesIterator.filterNot { str =>
       // these lines are not stable and can easily change
       val shouldNotContain =
         Set(
@@ -135,7 +171,9 @@ object TestUtil {
           "Failed to download"
         )
       shouldNotContain.exists(str.contains)
-    }.mkString(System.lineSeparator())
+    }.toVector
+    dropBackgroundThreadStackTraces(stableLines).mkString(System.lineSeparator())
+  }
 
   def fullStableOutputLines(result: os.CommandResult): Vector[String] =
     fullStableOutput(result).lines().toList.asScala.toVector

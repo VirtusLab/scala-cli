@@ -82,6 +82,14 @@ final case class SharedOptions(
   @Tag(tags.must)
     scalaVersion: Option[String] = None,
   @Group(HelpGroup.Scala.toString)
+  @HelpMessage(
+    "Set the organization the Scala toolchain artifacts are fetched from (org.scala-lang by default)"
+  )
+  @ValueDescription("organization")
+  @Name("scalaOrg")
+  @Tag(tags.restricted)
+    scalaOrganization: Option[String] = None,
+  @Group(HelpGroup.Scala.toString)
   @HelpMessage("Set the Scala binary version")
   @ValueDescription("version")
   @Hidden
@@ -272,28 +280,35 @@ final case class SharedOptions(
         new scala.build.errors.UnrecognizedJSRuntimeError(rt, validValues)
       }
     }
-    parsedJSRuntime.map(parsedRuntime =>
-      options.ScalaJsOptions(
-        version = jsVersion,
-        mode = options.ScalaJsMode(jsMode),
-        moduleKindStr = jsModuleKind,
-        checkIr = jsCheckIr,
-        emitSourceMaps = jsEmitSourceMaps,
-        sourceMapsDest = jsSourceMapsPath.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
-        dom = jsDom,
-        header = jsHeader,
-        allowBigIntsForLongs = jsAllowBigIntsForLongs,
-        avoidClasses = jsAvoidClasses,
-        avoidLetsAndConsts = jsAvoidLetsAndConsts,
-        moduleSplitStyleStr = jsModuleSplitStyle,
-        smallModuleForPackage = jsSmallModuleForPackage,
-        esVersionStr = jsEsVersion,
-        noOpt = jsNoOpt,
-        remapEsModuleImportMap =
-          jsEsModuleImportMap.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
-        jsEmitWasm = jsEmitWasm.getOrElse(false),
-        jsRuntime = parsedRuntime
-      )
+    val validatedEsVersion: Either[BuildException, Option[String]] =
+      jsEsVersion.fold(Right(None): Either[BuildException, Option[String]]) { esVersion =>
+        options.ScalaJsOptions
+          .normalizeEsVersion(esVersion, Seq(Position.CommandLine()))
+          .map(_ => Some(esVersion))
+      }
+    for {
+      parsedRuntime   <- parsedJSRuntime
+      parsedEsVersion <- validatedEsVersion
+    } yield options.ScalaJsOptions(
+      version = jsVersion,
+      mode = options.ScalaJsMode(jsMode),
+      moduleKindStr = jsModuleKind,
+      checkIr = jsCheckIr,
+      emitSourceMaps = jsEmitSourceMaps,
+      sourceMapsDest = jsSourceMapsPath.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
+      dom = jsDom,
+      header = jsHeader,
+      allowBigIntsForLongs = jsAllowBigIntsForLongs,
+      avoidClasses = jsAvoidClasses,
+      avoidLetsAndConsts = jsAvoidLetsAndConsts,
+      moduleSplitStyleStr = jsModuleSplitStyle,
+      smallModuleForPackage = jsSmallModuleForPackage,
+      esVersionStr = parsedEsVersion,
+      noOpt = jsNoOpt,
+      remapEsModuleImportMap =
+        jsEsModuleImportMap.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
+      jsEmitWasm = jsEmitWasm.getOrElse(false),
+      jsRuntime = parsedRuntime
     )
   }
 
@@ -445,6 +460,7 @@ final case class SharedOptions(
             .map(_.trim)
             .filter(_.nonEmpty)
             .map(scala.build.options.MaybeScalaVersion(_)),
+          scalaOrganization = scalaOrganization.map(_.trim).filter(_.nonEmpty),
           scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
           addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
           addScalaCompiler = withCompiler,

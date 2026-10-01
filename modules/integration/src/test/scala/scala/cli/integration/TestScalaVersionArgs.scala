@@ -25,7 +25,9 @@ trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
       .exists(_ <= actualScalaVersion.coursierVersion)
 
   def isScala39OrNewer: Boolean =
-    actualScalaVersion.coursierVersion >= "3.9.0-RC1".coursierVersion
+    Constants.scala39Versions
+      .map(_.coursierVersion)
+      .exists(_ <= actualScalaVersion.coursierVersion)
 
   /** Of note, Scala 3.10 and newer no longer support Scala Native 0.4 */
   def isScala310OrNewer: Boolean =

@@ -862,9 +862,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     mainClass: Option[String],
     logger: Logger
   ): Either[BuildException, os.Path] = for {
-    isFullOpt <- builds.head.options.scalaJsOptions.fullOpt
-    linkerConfig = builds.head.options.scalaJsOptions.linkerConfig(logger)
-    linkResult <- linkJs(
+    isFullOpt    <- builds.head.options.scalaJsOptions.fullOpt
+    linkerConfig <- builds.head.options.scalaJsOptions.linkerConfig(logger)
+    linkResult   <- linkJs(
       builds = builds,
       dest = destPath,
       mainClassOpt = mainClass,
@@ -1011,7 +1011,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         .sequence
         .left.map(CompositeBuildException(_))
     }
-    val modulesSet                         = modules.toSet
+    val toolchain  = builds.head.artifacts.toolchain
+    val modulesSet =
+      modules.map(module => Artifacts.forkedModule(toolchain, module).fold(module)(_._1)).toSet
     val providedDeps: Seq[core.Dependency] = value {
       res
         .map(_.dependencyArtifacts0().safeArtifacts.map(_.map(_._1)))

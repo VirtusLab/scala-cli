@@ -11,6 +11,7 @@ trait PackageSlothTestDefinitions extends LazyValTests:
   this: PackageTestDefinitions & TestScalaVersion =>
 
   private val latestJava             = Constants.allJavaVersions.max
+  private val latestJvmId            = TestUtil.jvmId(latestJava)
   private val assemblyScalaVersions  = Seq("3.0.2", Constants.scala3LegacyLts)
   private val ltsOnlyScalaVersion    = Constants.scala3LegacyLts
   private val expectedMessage        = "Hello"
@@ -66,7 +67,7 @@ trait PackageSlothTestDefinitions extends LazyValTests:
       "-M",
       mainClass,
       "--jvm",
-      latestJava.toString
+      latestJvmId
     ).call(cwd = root, stderr = os.Pipe)
 
   private def runLibraryJar(root: os.Path, appJar: os.Path): os.CommandResult =
@@ -76,7 +77,7 @@ trait PackageSlothTestDefinitions extends LazyValTests:
       extraOptions,
       appJar,
       "--jvm",
-      latestJava.toString
+      latestJvmId
     ).call(cwd = root, stderr = os.Pipe)
 
   private def runBootstrapLauncher(root: os.Path, launcher: os.Path): os.CommandResult =
@@ -490,7 +491,7 @@ trait PackageSlothTestDefinitions extends LazyValTests:
           "-M",
           "Main",
           "--jvm",
-          latestJava.toString
+          latestJvmId
         ).call(cwd = root, stderr = os.Pipe)
 
         expect(r.out.trim().contains(signedLibMessage))

@@ -39,6 +39,108 @@ trait FixScalafixRulesTestDefinitions {
       |""".stripMargin
   }
 
+  test("scripts are fixed alongside plain Scala sources") {
+    val scriptContent: String =
+      """final object InScript {
+        |  def hello: String = "Hello"
+        |}
+        |println(InScript.hello)
+        |""".stripMargin
+    TestInputs(
+      os.rel / scalafixConfFileName ->
+        s"""|rules = [
+            |  RedundantSyntax
+            |]
+            |""".stripMargin,
+      os.rel / "Hello.scala" -> simpleInputsOriginalContent,
+      os.rel / "script.sc"   -> scriptContent
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == expectedContent)
+      val updatedScript = noCrLf(os.read(root / "script.sc"))
+      expect(updatedScript == noCrLf(scriptContent.replace("final object", "object")))
+    }
+  }
+
+  test("excluded sources are not passed to scalafix") {
+    val excludedContent: String =
+      """package foo
+        |
+        |final object Excluded {
+        |  def hello: String = "Hello"
+        |}
+        |""".stripMargin
+    TestInputs(
+      os.rel / scalafixConfFileName ->
+        s"""|rules = [
+            |  RedundantSyntax
+            |]
+            |""".stripMargin,
+      os.rel / "project.scala"  -> """//> using exclude "Excluded.scala"""",
+      os.rel / "Hello.scala"    -> simpleInputsOriginalContent,
+      os.rel / "Excluded.scala" -> excludedContent
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == expectedContent)
+      val untouchedContent = noCrLf(os.read(root / "Excluded.scala"))
+      expect(untouchedContent == noCrLf(excludedContent))
+    }
+  }
+
+  private def unusedValueInput(header: String): String =
+    s"""//> using options $scalafixUnusedRuleOption
+       |$header
+       |
+       |object Hello {
+       |  def main(args: Array[String]): Unit = {
+       |    val name = "John"
+       |    println("Hello")
+       |  }
+       |}
+       |""".stripMargin
+
+  private def unusedValueExpectedOutput(header: String): String = noCrLf {
+    s"""//> using options $scalafixUnusedRuleOption
+       |$header
+       |
+       |object Hello {
+       |  def main(args: Array[String]): Unit = {
+       |    
+       |    println("Hello")
+       |  }
+       |}
+       |""".stripMargin
+  }
+
+  private val removeUnusedRuleConf: String =
+    """|rules = [
+       |  RemoveUnused
+       |]
+       |""".stripMargin
+
+  test("sources generated under .scala-build are not linted") {
+    val inputs = TestInputs(
+      os.rel / scalafixConfFileName -> removeUnusedRuleConf,
+      os.rel / "Hello.scala"        -> unusedValueInput("//> using buildInfo")
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "compile", ".", "--power", scalaVersionArgs).call(cwd = root)
+      val res = os.proc(
+        TestUtil.cli,
+        "fix",
+        ".",
+        "--power",
+        enableRulesOptions(enableBuiltIn = false),
+        scalaVersionArgs
+      ).call(cwd = root, check = false, stderr = os.Pipe)
+      expect(res.exitCode == 0)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == unusedValueExpectedOutput("//> using buildInfo"))
+    }
+  }
+
   test("simple") {
     simpleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
@@ -59,38 +161,51 @@ trait FixScalafixRulesTestDefinitions {
     }
   }
 
-  test("semantic rule") {
-    val unusedValueInputsContent: String =
-      s"""//> using options $scalafixUnusedRuleOption
-         |package foo
-         |
-         |object Hello {
-         |  def main(args: Array[String]): Unit = {
-         |    val name = "John"
-         |    println("Hello")
-         |  }
-         |}
-         |""".stripMargin
-    val semanticRuleInputs: TestInputs = TestInputs(
-      os.rel / scalafixConfFileName ->
-        s"""|rules = [
-            |  RemoveUnused
-            |]
-            |""".stripMargin,
-      os.rel / "Hello.scala" -> unusedValueInputsContent
-    )
-    val expectedContent: String = noCrLf {
-      s"""//> using options $scalafixUnusedRuleOption
-         |package foo
-         |
-         |object Hello {
-         |  def main(args: Array[String]): Unit = {
-         |    
-         |    println("Hello")
-         |  }
-         |}
-         |""".stripMargin
+  test("--scalafix-version overrides the default scalafix version") {
+    val scalafixVersion = "0.14.8"
+    simpleInputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "fix",
+        "--power",
+        ".",
+        "--scalafix-version",
+        scalafixVersion,
+        "--scalafix-arg",
+        "--version",
+        scalaVersionArgs
+      ).call(cwd = root)
+      expect(res.out.trim() == scalafixVersion)
     }
+  }
+
+  test("fails when --scalafix-version cannot be fetched") {
+    simpleInputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "fix",
+        "--power",
+        ".",
+        "--scalafix-version",
+        "9.9.9",
+        scalaVersionArgs
+      ).call(cwd = root, check = false, stderr = os.Pipe)
+      expect(res.exitCode == 1)
+      val errorLines =
+        res.err.lines().map(TestUtil.removeAnsiColors).filter(_.startsWith("[error]"))
+      expect(errorLines ==
+        Seq("[error]  Error downloading ch.epfl.scala:scalafix-interfaces:9.9.9"))
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == noCrLf(simpleInputsOriginalContent))
+    }
+  }
+
+  test("semantic rule") {
+    val semanticRuleInputs: TestInputs = TestInputs(
+      os.rel / scalafixConfFileName -> removeUnusedRuleConf,
+      os.rel / "Hello.scala"        -> unusedValueInput("package foo")
+    )
+    val expectedContent: String = unusedValueExpectedOutput("package foo")
 
     semanticRuleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "fix", "--power", ".", scalaVersionArgs).call(cwd = root)

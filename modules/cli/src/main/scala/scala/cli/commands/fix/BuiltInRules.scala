@@ -1,4 +1,6 @@
 package scala.cli.commands.fix
+import dotty.tools.directives.{Token, UsingDirectivesParser}
+import munit.diff.{Diff, DiffOptions}
 import os.{BasePathImpl, FilePath}
 
 import scala.build.Ops.EitherMap2
@@ -22,22 +24,52 @@ object BuiltInRules extends CommandHelpers {
       .flatMap(_.keys)
 
   private lazy val directiveTestPrefix = "test."
+
+  private val preferredNameAliases =
+    Set("dep", "test.dep", "compileOnly.dep", "scalafix.dep")
+
+  private def hasTestEquivalent(key: String): Boolean =
+    usingDirectivesWithTestPrefixKeysGrouped
+      .exists(_.nameAliases.contains(directiveTestPrefix + key))
+
   extension (strictDirective: StrictDirective) {
     private def hasTestPrefix: Boolean        = strictDirective.key.startsWith(directiveTestPrefix)
     private def existsTestEquivalent: Boolean =
-      !strictDirective.hasTestPrefix &&
-      usingDirectivesWithTestPrefixKeysGrouped
-        .exists(_.nameAliases.contains(directiveTestPrefix + strictDirective.key))
+      !strictDirective.hasTestPrefix && hasTestEquivalent(strictDirective.key)
   }
 
   private val newLine: String = scala.build.internal.AmmUtil.lineSeparator
 
+  /** @return
+    *   true if any changes are needed; always false unless running with `check`, as changes are
+    *   applied right away otherwise
+    */
   def runRules(
     inputs: Inputs,
     buildOptions: BuildOptions,
+    check: Boolean,
+    removeCommas: Boolean,
+    migrateDirectives: Boolean,
     logger: Logger
-  )(using ScalaCliInvokeData): Unit = {
-    val (mainSources, testSources) = getProjectSources(inputs, logger)
+  )(using ScalaCliInvokeData): Boolean = {
+    val crossSources = getCrossSources(inputs, logger)
+
+    // runs first, so that directive migration sees the files without commas
+    val commasNeedRemoval =
+      removeCommas && removeCommaSeparators(inputs, crossSources, check, logger)
+    val migrationNeeded =
+      migrateDirectives && runMigration(inputs, buildOptions, crossSources, check, logger)
+    commasNeedRemoval || migrationNeeded
+  }
+
+  private def runMigration(
+    inputs: Inputs,
+    buildOptions: BuildOptions,
+    crossSources: CrossSources,
+    check: Boolean,
+    logger: Logger
+  ): Boolean = {
+    val (mainSources, testSources) = getProjectSources(inputs, crossSources, logger)
       .left.map(CompositeBuildException(_))
       .orExit(logger)
 
@@ -48,19 +80,84 @@ object BuiltInRules extends CommandHelpers {
       case 0 =>
         logger.message("No sources to migrate directives from.")
         logger.message("Nothing to do.")
+        false
       case 1 =>
         logger.message("No need to migrate directives for a single source file project.")
         logger.message("Nothing to do.")
-      case _ => migrateDirectives(inputs, buildOptions, mainSources, testSources, logger)
+        false
+      case _ =>
+        migrateDirectives(inputs, buildOptions, mainSources, testSources, check, logger)
   }
+
+  /** @return
+    *   true if any file needs its comma separators removed; always false unless running with
+    *   `check`, as changes are applied right away otherwise
+    */
+  private def removeCommaSeparators(
+    inputs: Inputs,
+    crossSources: CrossSources,
+    check: Boolean,
+    logger: Logger
+  ): Boolean = {
+    val projectSourcePaths =
+      (crossSources.paths.map(_.value._1) ++
+        (crossSources.inMemory.map(_.value.originalPath) ++
+          crossSources.unwrappedScripts.map(_.value.originalPath))
+          .flatMap(_.toOption.map(_._2))).toSet
+    inputs.flattened()
+      .collect { case f: (Script | SourceScalaFile | ProjectScalaFile | JavaFile) => f.path }
+      .filter(projectSourcePaths.contains)
+      .map { path =>
+        val content    = os.read(path)
+        val newContent = withoutCommaSeparators(content)
+        val changed    = newContent != content
+        if changed && !check then
+          val relativePath = LoggingUtilities(logger, inputs.workspace).relativePath(path)
+          logger.message(s"Removing comma separators from directives in $relativePath")
+          os.write.over(path, newContent)
+        changed && check
+      }
+      .contains(true)
+  }
+
+  private val directivePrefix           = "//>"
+  private val normalizedDirectivePrefix = "//> "
+
+  def withoutCommaSeparators(content: String): String = {
+    val (shebangSection, body, _) = SheBang.partitionOnShebangSection(content)
+    val edits                     = UsingDirectivesParser.extractLines(body.toIndexedSeq)
+      .directiveLines
+      .flatMap { line =>
+        val usingOffset = body.indexOf("using", line.lineStartOffset + directivePrefix.length)
+        val shift       = usingOffset - (line.lineStartOffset + normalizedDirectivePrefix.length)
+        UsingDirectivesParser.tokenize(line.content, line.lineNum, line.lineStartOffset) match
+          case Token.Using(_) +: Token.Ident(_, _) +: values =>
+            val separatorRemovals = values.drop(1).collect {
+              case Token.Comma(pos) => SourceEdit(pos.offset + shift, 1, "")
+            }
+            val commaEndingValueQuotes = values.collect {
+              case Token.Ident(value, pos)
+                  if value.endsWith(",") && body(pos.offset + shift) != '`' =>
+                SourceEdit(pos.offset + shift, value.length, s"\"${value.replace("\\", "\\\\")}\"")
+            }
+            separatorRemovals ++ commaEndingValueQuotes
+          case _ => Nil
+      }
+    shebangSection + edits.sortBy(-_.from).foldLeft(body) { (acc, edit) =>
+      acc.patch(edit.from, edit.replacement, edit.length)
+    }
+  }
+
+  private case class SourceEdit(from: Int, length: Int, replacement: String)
 
   private def migrateDirectives(
     inputs: Inputs,
     buildOptions: BuildOptions,
     mainSources: Sources,
     testSources: Sources,
+    check: Boolean,
     logger: Logger
-  ): Unit = {
+  ): Boolean = {
     // Only initial inputs are used, new inputs discovered during processing of
     // CrossSources.forInput may be shared between projects
     val writableInputs: Seq[OnDisk] = inputs.flattened()
@@ -78,13 +175,24 @@ object BuiltInRules extends CommandHelpers {
 
     given LoggingUtilities(logger, inputs.workspace)
 
+    val originalMainDirectives =
+      getExtractedDirectives(mainSources, buildOptions.suppressWarningOptions)
+        .filterNot(hasTargetDirectives)
+    val originalTestDirectives =
+      getExtractedDirectives(testSources, buildOptions.suppressWarningOptions)
+        .filterNot(hasTargetDirectives)
+
+    val allOriginalDirectives = originalMainDirectives ++ originalTestDirectives
+    val nameAliasesToUse      = pickNameAliases(
+      fromWritableInputs =
+        allOriginalDirectives.filter(d => isExtractedFromWritableInput(d.position)),
+      allExtracted = allOriginalDirectives,
+      logger = logger
+    )
+
     // Deal with directives from the Main scope
     val (directivesFromWritableMainInputs, testDirectivesFromMain) = {
-      val originalMainDirectives =
-        getExtractedDirectives(mainSources, buildOptions.suppressWarningOptions)
-          .filterNot(hasTargetDirectives)
-
-      val transformedMainDirectives = unifyCorrespondingNameAliases(originalMainDirectives)
+      val transformedMainDirectives = unifyNameAliases(originalMainDirectives, nameAliasesToUse)
 
       val allDirectives = for {
         transformedMainDirective <- transformedMainDirectives
@@ -108,12 +216,8 @@ object BuiltInRules extends CommandHelpers {
         testSources.paths.nonEmpty || testSources.inMemory.nonEmpty ||
         testDirectivesFromMain.nonEmpty
       ) {
-        val originalTestDirectives =
-          getExtractedDirectives(testSources, buildOptions.suppressWarningOptions)
-            .filterNot(hasTargetDirectives)
-
-        val transformedTestDirectives = unifyCorrespondingNameAliases(originalTestDirectives)
-          .pipe(maybeTransformIntoTestEquivalent)
+        val transformedTestDirectives = unifyNameAliases(originalTestDirectives, nameAliasesToUse)
+          .pipe(maybeTransformIntoTestEquivalent(_, nameAliasesToUse))
 
         val allDirectives = for {
           directivesWithTestPrefix              <- transformedTestDirectives.map(_.withTestPrefix)
@@ -137,31 +241,63 @@ object BuiltInRules extends CommandHelpers {
     projectFileContents.append(newLine)
 
     // Write extracted directives to project.scala
-    logger.message(s"Writing ${Constants.projectFileName}")
-    os.write.over(inputs.workspace / Constants.projectFileName, projectFileContents.toString)
+    val projectFilePath        = inputs.workspace / Constants.projectFileName
+    val newProjectFileContents = projectFileContents.toString
+    val projectFileNeedsUpdate =
+      if check then
+        reportCheckFailure(projectFilePath, newProjectFileContents)
+      else
+        logger.message(s"Writing ${Constants.projectFileName}")
+        os.write.over(projectFilePath, newProjectFileContents)
+        false
 
     def isProjectFile(position: Option[Position.File]): Boolean =
       position.exists(_.path.contains(inputs.workspace / Constants.projectFileName))
 
     // Remove directives from their original files, skip the project.scala file
-    directivesFromWritableMainInputs
+    val mainInputsNeedUpdate = directivesFromWritableMainInputs
       .filterNot(e => isProjectFile(e.position))
-      .foreach(d => removeDirectivesFrom(d.position))
-    directivesFromWritableTestInputs
+      .map(d => removeDirectivesFrom(d.position, check))
+    val testInputsNeedUpdate = directivesFromWritableTestInputs
       .filterNot(ttd => isProjectFile(ttd.positions))
-      .foreach(ttd =>
+      .map(ttd =>
         removeDirectivesFrom(
           position = ttd.positions,
+          check = check,
           toKeep = ttd.noTestPrefixAvailable.filterNot(_.existsTestEquivalent)
         )
       )
+
+    projectFileNeedsUpdate || (mainInputsNeedUpdate ++ testInputsNeedUpdate).contains(true)
   }
 
-  private def getProjectSources(inputs: Inputs, logger: Logger)(using
-    ScalaCliInvokeData
-  ): Either[::[BuildException], (Sources, Sources)] = {
-    val buildOptions = BuildOptions()
+  /** Logs a unified diff of the changes `fix` would have applied to `path`.
+    *
+    * @return
+    *   true if the file is out of date
+    */
+  private def reportCheckFailure(path: os.Path, newContents: String)(
+    using loggingUtilities: LoggingUtilities
+  ): Boolean =
+    val oldContents = if os.exists(path) then os.read(path) else ""
+    if oldContents == newContents then false
+    else
+      val diff = Diff(obtained = newContents, expected = oldContents)(
+        using DiffOptions.withContextSize(3).withShowLines(true).withForceAnsi(Some(false))
+      )
+      loggingUtilities.logger.message(
+        Seq(
+          s"--- ${loggingUtilities.relativePath(path)}",
+          "+++ <expected fix>",
+          diff.unifiedDiff
+        ).mkString(System.lineSeparator())
+      )
+      true
 
+  private def getCrossSources(inputs: Inputs, logger: Logger)(using
+    ScalaCliInvokeData
+  ): CrossSources = {
+    val buildOptions      = BuildOptions()
     val (crossSources, _) = CrossSources.forInputs(
       inputs,
       preprocessors = Sources.defaultPreprocessors(
@@ -174,7 +310,15 @@ object BuiltInRules extends CommandHelpers {
       exclude = buildOptions.internal.exclude,
       download = buildOptions.downloader
     ).orExit(logger)
+    crossSources
+  }
 
+  private def getProjectSources(
+    inputs: Inputs,
+    crossSources: CrossSources,
+    logger: Logger
+  ): Either[::[BuildException], (Sources, Sources)] = {
+    val buildOptions  = BuildOptions()
     val sharedOptions = crossSources.sharedOptions(buildOptions)
     val scopedSources = crossSources.scopedSources(sharedOptions).orExit(logger)
 
@@ -196,7 +340,7 @@ object BuiltInRules extends CommandHelpers {
       val (_, content, _) = SheBang.partitionOnShebangSection(os.read(path))
       logger.debug(s"Extracting directives from ${loggingUtilities.relativePath(path)}")
       ExtractedDirectives.from(
-        contentChars = content.toCharArray,
+        contentChars = content.toIndexedSeq,
         path = Right(path),
         suppressWarningOptions = suppressWarningOptions,
         logger = logger,
@@ -225,7 +369,7 @@ object BuiltInRules extends CommandHelpers {
       val (_, contentWithNoShebang, _) = SheBang.partitionOnShebangSection(content)
 
       ExtractedDirectives.from(
-        contentChars = contentWithNoShebang.toCharArray,
+        contentChars = contentWithNoShebang.toIndexedSeq,
         path = originOrPath,
         suppressWarningOptions = suppressWarningOptions,
         logger = logger,
@@ -242,27 +386,53 @@ object BuiltInRules extends CommandHelpers {
     directivesInElement.exists(key => targetDirectivesKeysSet.contains(key))
   }
 
-  private def unifyCorrespondingNameAliases(extractedDirectives: Seq[ExtractedDirectives]) =
-    extractedDirectives.map { extracted =>
-      // All keys that we migrate, not all in general
-      val allKeysGrouped   = usingDirectivesKeysGrouped ++ usingDirectivesWithTestPrefixKeysGrouped
-      val strictDirectives = extracted.directives
+  private def pickNameAliases(
+    fromWritableInputs: Seq[ExtractedDirectives],
+    allExtracted: Seq[ExtractedDirectives],
+    logger: Logger
+  ): Map[String, String] =
+    val aliasesInWritableInputs = fromWritableInputs.flatMap(_.directives.map(_.key)).toSet
+    val usedAliases             = allExtracted.flatMap(_.directives.map(_.key)).toSet
+    // All keys that we migrate, not all in general
+    val allKeysGrouped = usingDirectivesKeysGrouped ++ usingDirectivesWithTestPrefixKeysGrouped
 
-      val strictDirectivesWithNewKeys = strictDirectives.flatMap { strictDir =>
-        val newKeyOpt = allKeysGrouped.find(_.nameAliases.contains(strictDir.key))
-          .flatMap(_.nameAliases.headOption)
-          .map { key =>
-            if (key.startsWith("test"))
-              val withTestStripped = key.stripPrefix("test").stripPrefix(".")
-              "test." + withTestStripped.take(1).toLowerCase + withTestStripped.drop(1)
-            else
-              key
-          }
-
-        newKeyOpt.map(newKey => strictDir.copy(key = newKey))
+    def aliasToUse(key: Key): Option[String] =
+      val pickable       = pickableAliases(key)
+      val preferredAlias = pickable.find(preferredNameAliases.contains).getOrElse(pickable.head)
+      key.nameAliases.filter(aliasesInWritableInputs.contains) match {
+        // no spelling of this key in the files we rewrite - it still needs an entry when a
+        // source we only read uses it, as keys missing from the mapping get dropped
+        case Seq() => Option.when(key.nameAliases.exists(usedAliases.contains))(preferredAlias)
+        // a single spelling we can work with, so the user's one is kept
+        case Seq(onlyAliasUsed) if pickable.contains(onlyAliasUsed) => Some(onlyAliasUsed)
+        // several spellings, or a single one we can't use - replaced
+        case aliasesUsed =>
+          logger.message(
+            s"Unifying ${aliasesUsed.map(a => s"`$a`").mkString(", ")} into `$preferredAlias`"
+          )
+          Some(preferredAlias)
       }
 
-      extracted.copy(directives = strictDirectivesWithNewKeys)
+    allKeysGrouped
+      .flatMap(key => aliasToUse(key).toSeq.flatMap(picked => key.nameAliases.map(_ -> picked)))
+      .toMap
+
+  private def pickableAliases(key: Key): Seq[String] =
+    val prefixed = key.nameAliases.filter(_.startsWith(directiveTestPrefix))
+    if prefixed.nonEmpty then prefixed
+    else
+      val withTestCounterpart = key.nameAliases.filter(hasTestEquivalent)
+      if withTestCounterpart.nonEmpty then withTestCounterpart else key.nameAliases
+
+  private def unifyNameAliases(
+    extractedDirectives: Seq[ExtractedDirectives],
+    nameAliasesToUse: Map[String, String]
+  ) =
+    extractedDirectives.map { extracted =>
+      val directivesWithPickedAliases = extracted.directives.flatMap { directive =>
+        nameAliasesToUse.get(directive.key).map(alias => directive.copy(key = alias))
+      }
+      extracted.copy(directives = directivesWithPickedAliases)
     }
 
   /** Transforms directives into their 'test.' equivalent if it exists
@@ -272,8 +442,10 @@ object BuiltInRules extends CommandHelpers {
     *   an instance of TransformedTestDirectives containing transformed directives and those that
     *   could not be transformed since they have no 'test.' equivalent
     */
-  private def maybeTransformIntoTestEquivalent(extractedDirectives: Seq[ExtractedDirectives])
-    : Seq[TransformedTestDirectives] =
+  private def maybeTransformIntoTestEquivalent(
+    extractedDirectives: Seq[ExtractedDirectives],
+    nameAliasesToUse: Map[String, String]
+  ): Seq[TransformedTestDirectives] =
     for {
       extractedFromSingleElement <- extractedDirectives
       directives = extractedFromSingleElement.directives
@@ -282,7 +454,9 @@ object BuiltInRules extends CommandHelpers {
       val (withTestEquivalent, noTestEquivalent)       =
         noInitialTestPrefix.partition(_.existsTestEquivalent)
       val transformedToTestEquivalents = withTestEquivalent.map {
-        case StrictDirective(key, values, _, _) => StrictDirective("test." + key, values)
+        case StrictDirective(key, values, _, _) =>
+          val testKey = directiveTestPrefix + key
+          StrictDirective(nameAliasesToUse.getOrElse(testKey, testKey), values)
       }
 
       TransformedTestDirectives(
@@ -294,10 +468,11 @@ object BuiltInRules extends CommandHelpers {
 
   private def removeDirectivesFrom(
     position: Option[Position.File],
+    check: Boolean,
     toKeep: Seq[StrictDirective] = Nil
   )(
     using loggingUtilities: LoggingUtilities
-  ): Unit = {
+  ): Boolean =
     position match {
       case Some(Position.File(Right(path), _, _, offset)) =>
         val (shebangSection, strippedContent, newLine) =
@@ -310,19 +485,20 @@ object BuiltInRules extends CommandHelpers {
           newLine,
           newLine
         ))
-        val newContents  = keepLines + strippedContent.drop(offset).stripLeading()
+        val newContents  = (keepLines + strippedContent.drop(offset).stripLeading()).stripLeading()
         val relativePath = loggingUtilities.relativePath(path)
 
-        loggingUtilities.logger.message(s"Removing directives from $relativePath")
-        if (toKeep.nonEmpty) {
-          loggingUtilities.logger.message("  Keeping:")
-          toKeep.foreach(d => loggingUtilities.logger.message(s"    $d"))
-        }
-
-        os.write.over(path, newContents.stripLeading())
-      case _ => ()
+        if check then
+          reportCheckFailure(path, newContents)
+        else
+          loggingUtilities.logger.message(s"Removing directives from $relativePath")
+          if toKeep.nonEmpty then
+            loggingUtilities.logger.message("  Keeping:")
+            toKeep.foreach(d => loggingUtilities.logger.message(s"    $d"))
+          os.write.over(path, newContents)
+          false
+      case _ => false
     }
-  }
 
   private def createFormattedLinesAndAppend(
     strictDirectives: Seq[StrictDirective],

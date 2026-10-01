@@ -21,6 +21,7 @@ import scala.cli.commands.bloop.BloopJson
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.Properties
+import scala.util.control.NonFatal
 
 // format: off
 final case class SharedCompilationServerOptions(
@@ -147,11 +148,17 @@ final case class SharedCompilationServerOptions(
           os.remove(path)
         (path, true)
     }
-    if (deleteOnExit)
+    if deleteOnExit then
       Runtime.getRuntime.addShutdownHook(
         new Thread("delete-bloop-bsp-named-socket") {
           override def run() =
-            Files.deleteIfExists(socket.toNIO)
+            // Best-effort cleanup: the socket file may still be locked,
+            // and an exception thrown here would be printed by the default handler,
+            // polluting the command output.
+            try Files.deleteIfExists(socket.toNIO)
+            catch {
+              case NonFatal(_) => // ignored on purpose
+            }
         }
       )
     socket.toIO.getCanonicalFile.toPath

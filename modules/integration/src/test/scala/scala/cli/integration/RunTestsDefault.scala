@@ -30,7 +30,7 @@ class RunTestsDefault extends RunTestDefinitions
           "--repository",
           repoDir.toNIO.toUri.toASCIIString,
           "--jvm",
-          latestJava
+          latestJvmId
         ).call(cwd = root, stderr = os.Pipe)
         expect(r.out.trim() == expectedMessage)
         expect(!r.err.trim().contains("sun.misc.Unsafe"))
@@ -83,7 +83,7 @@ class RunTestsDefault extends RunTestDefinitions
         "--scala",
         Constants.scala3LegacyLts,
         "--jvm",
-        latestJava
+        latestJvmId
       ).call(cwd = root, mergeErrIntoOut = true)
       expect(r.out.trim().contains(expectedMessage))
       expect(!r.out.trim().contains("sun.misc.Unsafe"))
@@ -111,7 +111,7 @@ class RunTestsDefault extends RunTestDefinitions
         "--scala",
         Constants.scala3LegacyLts,
         "--jvm",
-        latestJava.toString,
+        latestJvmId,
         "."
       ).call(cwd = root, stderr = os.Pipe)
       expect(withSloth.out.trim().contains(expectedMessage))
@@ -125,7 +125,7 @@ class RunTestsDefault extends RunTestDefinitions
         "--scala",
         Constants.scala3LegacyLts,
         "--jvm",
-        latestJava.toString,
+        latestJvmId,
         "."
       ).call(cwd = root, stderr = os.Pipe)
       expect(withoutSloth.out.trim().contains(expectedMessage))
@@ -239,7 +239,7 @@ class RunTestsDefault extends RunTestDefinitions
         "--classpath",
         lib,
         "--jvm",
-        latestJava.toString,
+        latestJvmId,
         "."
       ).call(cwd = root, stderr = os.Pipe)
       expect(r.out.trim().contains(signedLibMessage))
@@ -280,7 +280,7 @@ class RunTestsDefault extends RunTestDefinitions
           "--classpath",
           preambleJar,
           "--jvm",
-          latestJava.toString,
+          latestJvmId,
           "."
         ).call(cwd = root, stderr = os.Pipe)
         expect(r.out.trim().contains(signedLibMessage))
@@ -585,9 +585,9 @@ class RunTestsDefault extends RunTestDefinitions
     }
 
     test(
-      s"pure Java run has no Scala on classpath --jvm ${Constants.minimumRunnerJava} $buildServerDesc"
+      s"pure Java run has no Scala on classpath --jvm ${Constants.minimumJavaTestRunnerJava} $buildServerDesc"
     ) {
-      val targetJvm = Constants.minimumRunnerJava
+      val targetJvm = Constants.minimumJavaTestRunnerJava
       TestInputs(
         os.rel / "Main.java" ->
           s"""public class Main {
@@ -616,4 +616,38 @@ class RunTestsDefault extends RunTestDefinitions
       }
     }
   }
+
+  for {
+    jvm <- Seq(
+      Constants.allJavaVersions.filter(_ >= Constants.minimumRunnerJavaVersion).min,
+      Constants.allJavaVersions.filter(_ < Constants.minimumRunnerJavaVersion).max
+    )
+    isLegacyJvm     = jvm < Constants.minimumRunnerJavaVersion
+    legacyWarning   = "Defaulting to a legacy runner module version"
+    expectationDesc = if isLegacyJvm then "falls back to a legacy version" else "runs"
+  }
+    test(s"runner module $expectationDesc on an older JVM ($jvm)") {
+      TestUtil.retryOnCi() {
+        val expectedMessage = "Hello, world!"
+        TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""").fromRoot { root =>
+          val res = os.proc(
+            TestUtil.cli,
+            "run",
+            ".",
+            "--runner",
+            "-S",
+            Constants.scala3LegacyLts,
+            "--jvm",
+            jvm,
+            TestUtil.extraOptions
+          ).call(cwd = root, stderr = os.Pipe)
+          expect(res.out.trim() == expectedMessage)
+          if isLegacyJvm then
+            expect(
+              res.err.trim().contains(s"$legacyWarning: ${Constants.runnerJava8LegacyVersion}")
+            )
+          else expect(!res.err.trim().contains(legacyWarning))
+        }
+      }
+    }
 }

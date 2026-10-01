@@ -10,7 +10,11 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 
 import scala.build.Ops.*
-import scala.build.errors.{UsingDirectiveValueNumError, UsingDirectiveWrongValueTypeError}
+import scala.build.errors.{
+  UnrecognizedJsEsVersionError,
+  UsingDirectiveValueNumError,
+  UsingDirectiveWrongValueTypeError
+}
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.ScalaJsLinkerConfig
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
@@ -745,7 +749,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           |//> using jsAvoidClasses false
           |//> using jsAvoidLetsAndConsts false
           |//> using jsModuleSplitStyleStr smallestmodules
-          |//> using jsEsVersionStr es2017
+          |//> using jsEsVersionStr es2022
           |""".stripMargin
     )
     testInputs.withInputs { (root, inputs) =>
@@ -768,7 +772,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           .orThrow
 
       val jsOptions = sources.buildOptions.scalaJsOptions
-      val jsConfig  = jsOptions.linkerConfig(TestLogger())
+      val jsConfig  = jsOptions.linkerConfig(TestLogger()).orThrow
       expect(
         jsOptions.version.contains("1.8.0"),
         jsOptions.mode.nameOpt.contains("mode"),
@@ -786,7 +790,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         jsConfig.esFeatures.allowBigIntsForLongs,
         !jsConfig.esFeatures.avoidClasses,
         !jsConfig.esFeatures.avoidLetsAndConsts,
-        jsConfig.esFeatures.esVersion == "ES2017",
+        jsConfig.esFeatures.esVersion == "ES2022",
         jsConfig.moduleSplitStyle == ScalaJsLinkerConfig.ModuleSplitStyle.SmallestModules
       )
     }
@@ -834,6 +838,29 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("js options in using directives failure - unrecognized es version") {
+    val testInputs = TestInputs(
+      os.rel / "something.sc" ->
+        """//> using jsEsVersionStr esnext
+          |""".stripMargin
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )
+      crossSources match {
+        case Left(e: UnrecognizedJsEsVersionError) =>
+          expect(e.message.contains("esnext"))
+          expect(e.positions.nonEmpty)
+        case o => fail("Exception expected", clues(o))
+      }
+    }
+  }
+
   test("CrossSources.forInputs respects the order of inputs passed") {
     val inputArgs @ Seq(project, main, abc, message) =
       Seq("project.scala", "Main.scala", "Abc.scala", "Message.scala")
@@ -870,6 +897,33 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           .getOrElse(sys.error("should not happen"))
       val onDiskPaths = onDiskSources.map(_.value._1.last)
       expect(onDiskPaths == inputArgs)
+    }
+  }
+
+  test("scalaOrganization directive is parsed into build options") {
+    val testInputs = TestInputs(
+      os.rel / "something.scala" ->
+        """//> using scalaOrganization ch.epfl.lara
+          |object Something
+          |""".stripMargin
+    )
+    testInputs.withInputs { (root, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        ).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       =
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        ).orThrow
+      expect(sources.buildOptions.scalaOptions.scalaOrganization.contains("ch.epfl.lara"))
     }
   }
 

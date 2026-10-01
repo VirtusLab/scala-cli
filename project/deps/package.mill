@@ -7,8 +7,9 @@ import scalalib.*
 object Cli {
   def runnerScala30LegacyVersion =
     "1.7.1" // last runner version to support pre-LTS Scala 3 versions
-  def runnerScala2LegacyVersion = "1.9.1" // last runner version to support pre-Scala-3 versions
-  def scala3GraalLegacyVersion  = "1.9.1" // last version to support pre-3.3 processing for Graal
+  def runnerScala2LegacyVersion = "1.9.1"  // last runner version to support pre-Scala-3 versions
+  def scala3GraalLegacyVersion  = "1.9.1"  // last version to support pre-3.3 processing for Graal
+  def runnerJava8LegacyVersion  = "1.17.0" // last runner version to support Java 8
 }
 
 object Scala {
@@ -16,18 +17,20 @@ object Scala {
   def scala213              = "2.13.18"
   def scala3LtsPrefix       = "3.9"                  // current LTS
   def scala3Lts             = s"$scala3LtsPrefix.0"
-  def scala3LegacyLtsPrefix = "3.3"                  // old LTS, still used to build the CLI itself
+  def scala3LtsRc           = s"$scala3LtsPrefix.0-RC6"
+  def scala3LegacyLtsPrefix = "3.3"                  // old LTS
   def scala3LtsPrefixes     = Seq(scala3LegacyLtsPrefix, scala3LtsPrefix).distinct
   def scala3LegacyLts       = s"$scala3LegacyLtsPrefix.8"
+  def scala3LegacyLtsRc     = s"$scala3LegacyLtsPrefix.9-RC1"
   def runnerScala3          = scala3LegacyLts
   def scala3NextPrefix      = "3.9"
   def scala3Next            = s"$scala3NextPrefix.0" // newest version of Scala
   def scala3NextAnnounced = s"$scala3NextPrefix.0" // newest version of Scala that's been announced
-  def scala3NextRc        = "3.10.0-RC2"           // the latest RC version of Scala Next
+  def scala3NextRc        = "3.10.0-RC3"           // the latest RC version of Scala Next
   def scala3NextRcAnnounced = "3.10.0-RC2" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
-  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3LegacyLts)
+  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Next)
 
   // The Scala version used by default to compile user input.
   def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3Next)
@@ -35,17 +38,29 @@ object Scala {
   // The latest Scala version supporting scala_legacy runner command
   def scalaLegacyRunnerVersion = "3.7.4"
 
+  // A fork of the Scala toolchain, used to test the `scalaOrganization` option & directive.
+  def forkOrganization = "ch.epfl.lara"
+  def forkVersion      = "3.10.1-RC1-bin-20260903-e1f9361-NIGHTLY"
+
   // as Scala 3.8 changes a lot of compatibilities,
   // these are the cutoff versions for the stable, RC and nightly series,
   // respectively
   def scala38Versions = Seq("3.8.0", "3.8.0-RC1", "3.8.0-RC1-bin-20250901-ca400bd-NIGHTLY")
 
-  val allScala2 = Seq(scala213, scala212)
-  val defaults  = Seq(defaultInternal, defaultUser).distinct
-  val allScala3 = Seq(scala3LegacyLts, scala3Next, scala3NextAnnounced, scala3NextRc).distinct
-  val all       = (allScala2 ++ allScala3 ++ defaults).distinct
-  val scala3MainVersions  = (defaults ++ allScala3).distinct
-  val runnerScalaVersions = (Seq(runnerScala3) ++ scala3MainVersions).distinct
+  // first Scala 3.9 versions of the stable and RC series; used as the cutoff
+  // for `scala-library` compiled with Scala 3 (GraalVM ArrayOps$ initialization, etc.)
+  def scala39Versions = Seq("3.9.0", "3.9.0-RC1")
+
+  val allScala2       = Seq(scala213, scala212)
+  val defaults        = Seq(defaultInternal, defaultUser).distinct
+  val legacyLtsScala3 = Seq(scala3LegacyLts, scala3LegacyLtsRc).distinct
+  val ltsScala3       = Seq(scala3Lts, scala3LtsRc).distinct
+  val nextScala3      =
+    Seq(scala3Next, scala3NextAnnounced, scala3NextRc, scala3NextRcAnnounced).distinct
+  val allScala3           = (defaults ++ legacyLtsScala3 ++ ltsScala3 ++ nextScala3).distinct
+  val all                 = (allScala2 ++ allScala3 ++ defaults).distinct
+  val scala3MainVersions  = (defaults ++ nextScala3).distinct
+  val runnerScalaVersions = (Seq(runnerScala3) ++ defaults ++ allScala3).distinct
 
   def scalaJs    = "1.22.0"
   def scalaJsCli = "1.22.0.1" // this must be compatible with the Scala.js version
@@ -92,21 +107,25 @@ object Scala {
 }
 
 object Java {
-  def minimumJavaLauncherJava       = 11
-  def minimumBloopJava: Int         = 17
-  def minimumScala38Java: Int       = 17
-  def minimumRunnerJava: Int        = 8
-  def minimumInternalJava: Int      = 16
-  def minimumJep512Java: Int        = 25
-  def minimumJep512PreviewJava: Int = 21
-  def defaultJava: Int              = minimumBloopJava
-  def cliKeyJavaVersions            = Seq(
+  // the CLI itself is built with Scala 3 Next, which emits Java 17 bytecode
+  def minimumJavaLauncherJava: Int   = 17
+  def minimumBloopJava: Int          = 17
+  def minimumScala38Java: Int        = 17
+  def minimumJavaTestRunnerJava: Int = 8
+  def minimumRunnerJava: Int         = 11 // TODO: bump to 17 when Scala 3.3 goes EOL
+  def minimumInternalJava: Int       = 16
+  def minimumJep512Java: Int         = 25
+  def minimumJep512PreviewJava: Int  = 21
+  def defaultJava: Int               = minimumBloopJava
+  def cliKeyJavaVersions             = Seq(
     minimumBloopJava,
     minimumInternalJava,
+    minimumRunnerJava,
     defaultJava,
+    minimumInternalJava,
     minimumJavaLauncherJava
   ).distinct
-  def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 23, 24, 25, 26)
+  def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 25, 27)
   def allJavaVersions: Seq[Int]  = (mainJavaVersions ++ cliKeyJavaVersions).distinct
 }
 
@@ -129,7 +148,8 @@ object Deps {
     def coursierPublish                   = "0.4.4"
     def dockerJava                        = "3.7.1"
     def jmh                               = "1.37"
-    def jsoniterScala                     = "2.40.1"
+    def munit                             = "1.3.6"
+    def jsoniterScala                     = "2.41.2"
     def jsoup                             = "1.23.2"
     def scalaMeta                         = "4.17.4"
     def scalafmt                          = "3.11.5"
@@ -140,15 +160,15 @@ object Deps {
     def maxScalaNativeForTypelevelToolkit = scalaNative05
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative05
-    def scalaPackager                     = "0.2.2"
-    def signingCli                        = "0.3.1"
+    def scalaPackager                     = "0.3.0"
+    def signingCli                        = "0.4.0"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.12.3"
     def javaClassName                     = "0.1.9"
     def bloop                             = "2.1.2"
     def bouncycastle                      = "1.86"
     def sbt1Version                       = "1.12.5"
-    def sbt2Version                       = "2.0.5"
+    def sbt2Version                       = "2.0.9"
     def sbtVersion                        = sbt2Version
     def mill012Version                    = "0.12.17"
     def mill1Version                      = BuildInfo.millVersion
@@ -191,7 +211,9 @@ object Deps {
   def coursierPublish    = mvn"io.get-coursier.publish::publish:${Versions.coursierPublish}"
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-  def dependency     = mvn"io.get-coursier::dependency:0.3.2"
+  def dependency                                     = mvn"io.get-coursier::dependency:0.3.3"
+  def directivesParser(v: String = Scala.scala3Next) =
+    mvn"org.scala-lang::scala3-directives-parser:$v"
   def bcpkixJdk18on  = mvn"org.bouncycastle:bcpkix-jdk18on:${Versions.bouncycastle}"
   def dockerJavaCore =
     mvn"com.github.docker-java:docker-java-core:${Versions.dockerJava}"
@@ -201,7 +223,7 @@ object Deps {
   def expecty       = mvn"com.eed3si9n.expecty::expecty:0.17.1"
   def fansi         = mvn"com.lihaoyi::fansi:0.5.1"
   def giter8        = mvn"org.foundweekends.giter8:giter8:0.18.0"
-  def guava         = mvn"com.google.guava:guava:33.7.1-jre"
+  def guava         = mvn"com.google.guava:guava:33.7.2-jre"
   def javaClassName =
     mvn"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
       .exclude(
@@ -213,7 +235,7 @@ object Deps {
   def jimfs                = mvn"com.google.jimfs:jimfs:1.3.2"
   def jmhGeneratorBytecode = mvn"org.openjdk.jmh:jmh-generator-bytecode:${Versions.jmh}"
   def jmhCore              = mvn"org.openjdk.jmh:jmh-core:${Versions.jmh}"
-  def jniUtils             = mvn"io.get-coursier.jniutils:windows-jni-utils:0.3.4"
+  def jniUtils             = mvn"io.get-coursier.jniutils:windows-jni-utils:0.4.0"
   def jsoniterCore         =
     mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScala}"
   def jsoniterMacros =
@@ -223,7 +245,8 @@ object Deps {
   def metaconfigTypesafe =
     mvn"org.scalameta::metaconfig-typesafe-config:0.18.8"
       .exclude(("org.scala-lang", "scala-compiler"))
-  def munit              = mvn"org.scalameta::munit:1.3.6"
+  def munit              = mvn"org.scalameta::munit:${Versions.munit}"
+  def munitDiff          = mvn"org.scalameta::munit-diff:${Versions.munit}"
   def nativeTestRunner   = mvn"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools        = mvn"org.scala-native::tools:${Versions.scalaNative}"
   def osLib              = mvn"com.lihaoyi::os-lib:0.11.8"
@@ -277,7 +300,7 @@ object Deps {
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
       .exclude(("com.lihaoyi", "os-lib_3"))
       .exclude(("com.lihaoyi", "os-lib_2.13"))
-  def slf4jNop                  = mvn"org.slf4j:slf4j-nop:2.0.19"
+  def slf4jNop                  = mvn"org.slf4j:slf4j-nop:2.0.20"
   def sttp                      = mvn"com.softwaremill.sttp.client3::core:3.11.0"
   def svm                       = mvn"org.graalvm.nativeimage:svm:$graalSvmVersion"
   def swoval                    = mvn"com.swoval:file-tree-views:2.1.12"

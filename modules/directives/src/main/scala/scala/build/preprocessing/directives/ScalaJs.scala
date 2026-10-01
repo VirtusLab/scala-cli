@@ -2,7 +2,9 @@ package scala.build.preprocessing.directives
 
 import os.Path
 
+import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
+import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
@@ -25,7 +27,7 @@ import scala.util.Try
 @DirectiveExamples("//> using jsAvoidClasses")
 @DirectiveExamples("//> using jsAvoidLetsAndConsts")
 @DirectiveExamples("//> using jsModuleSplitStyleStr smallestmodules")
-@DirectiveExamples("//> using jsEsVersionStr es2017")
+@DirectiveExamples("//> using jsEsVersionStr es2022")
 @DirectiveExamples("//> using jsEmitWasm")
 @DirectiveUsage(
   "//> using jsVersion|jsMode|jsModuleKind|… _value_",
@@ -96,10 +98,19 @@ final case class ScalaJs(
   jsAvoidClasses: Option[Boolean] = None,
   jsAvoidLetsAndConsts: Option[Boolean] = None,
   jsModuleSplitStyleStr: Option[String] = None,
-  jsEsVersionStr: Option[String] = None,
+  jsEsVersionStr: Option[Positioned[String]] = None,
   jsEmitWasm: Option[Boolean] = None
 ) extends HasBuildOptions {
-  def buildOptions: Either[BuildException, BuildOptions] =
+  def buildOptions: Either[BuildException, BuildOptions] = either {
+    val esVersionStr = value {
+      jsEsVersionStr
+        .map { positioned =>
+          ScalaJsOptions.normalizeEsVersion(positioned.value, positioned.positions)
+            .map(_ => positioned.value)
+        }
+        .sequence
+    }
+
     val scalaJsOptions = ScalaJsOptions(
       version = jsVersion,
       mode = ScalaJsMode(jsMode),
@@ -113,7 +124,7 @@ final case class ScalaJs(
       avoidClasses = jsAvoidClasses,
       avoidLetsAndConsts = jsAvoidLetsAndConsts,
       moduleSplitStyleStr = jsModuleSplitStyleStr,
-      esVersionStr = jsEsVersionStr,
+      esVersionStr = esVersionStr,
       noOpt = jsNoOpt,
       jsEmitWasm = jsEmitWasm.getOrElse(false)
     )
@@ -134,13 +145,13 @@ final case class ScalaJs(
             case true => Right(path)
           }
       )
-    val jsImportMapAsPath = jsEsModuleImportMap.map(absFilePath).sequence
-    jsImportMapAsPath.map(_ match
+    value(jsEsModuleImportMap.map(absFilePath).sequence) match
       case None            => BuildOptions(scalaJsOptions = scalaJsOptions)
       case Some(importmap) =>
         BuildOptions(
           scalaJsOptions = scalaJsOptions.copy(remapEsModuleImportMap = Some(importmap))
-        ))
+        )
+  }
 }
 
 class ImportMapNotFound(message: String, cause: Throwable)

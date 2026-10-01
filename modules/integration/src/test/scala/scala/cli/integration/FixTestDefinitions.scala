@@ -25,7 +25,7 @@ abstract class FixTestDefinitions
     val directive1           = "//> using dep com.lihaoyi::os-lib:0.11.3"
     val directive2           = "//> using dep com.lihaoyi::pprint:0.9.0"
     val mergedDirective1And2 =
-      "using dependency com.lihaoyi::os-lib:0.11.3 com.lihaoyi::pprint:0.9.0"
+      "using dep com.lihaoyi::os-lib:0.11.3 com.lihaoyi::pprint:0.9.0"
     val directive3 =
       if (actualScalaVersion.startsWith("2")) "//> using options -Xlint:unused"
       else "//> using options -Wunused:all"
@@ -68,6 +68,37 @@ abstract class FixTestDefinitions
     }
   }
 
+  test("--check failing for built-in rules only is not lost when scalafix passes") {
+    val fooFileName    = "Foo.scala"
+    val fooFileContent =
+      """//> using dep com.lihaoyi::os-lib:0.11.3
+        |object Foo {
+        |  def hello: String = "hello"
+        |}
+        |""".stripMargin
+    TestInputs(
+      os.rel / fooFileName -> fooFileContent,
+      os.rel / "Bar.scala" ->
+        """//> using dep com.lihaoyi::pprint:0.9.0
+          |object Bar {
+          |  def world: String = "world"
+          |}
+          |""".stripMargin,
+      os.rel / scalafixConfFileName ->
+        """rules = [
+          |  RedundantSyntax
+          |]
+          |""".stripMargin
+    ).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "fix", "--check", ".", extraOptions, "--power")
+        .call(cwd = root, mergeErrIntoOut = true, check = false)
+      expect(res.exitCode != 0)
+      expect(res.out.trim().contains("built-in rules failed."))
+      expect(!os.exists(root / projectFileName))
+      assertNoDiff(os.read(root / fooFileName), fooFileContent)
+    }
+  }
+
   test("sbt file in directory does not break fix") {
     TestInputs(
       os.rel / "Main.scala" ->
@@ -98,5 +129,6 @@ abstract class FixTestDefinitions
       .filterNot(_.trim().contains("repo dir"))
       .filterNot(_.trim().contains("local repo"))
       .filterNot(_.trim().contains("archive url"))
+      .filterNot(_.startsWith("WARNING: ")) // TEMP-LOCAL
       .mkString(System.lineSeparator())
 }

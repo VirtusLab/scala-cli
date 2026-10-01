@@ -15,7 +15,6 @@ import scala.build.internals.EnvVar
 import scala.cli.commands.CommandUtils
 import scala.cli.config.Keys
 import scala.cli.internal.Argv0
-import scala.cli.javaLauncher.JavaLauncherCli
 import scala.cli.launcher.{LauncherCli, LauncherOptions, PowerOptions}
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigDbUtils
@@ -273,21 +272,6 @@ object ScalaCli {
               ).toCliArgs
               val newArgs = powerArgs ++ finalScalaRunnerArgs ++ args0
               LauncherCli.runAndExit(ver, launcherOpts, newArgs)
-            case _ if
-                  javaMajorVersion < Constants.minimumLauncherJavaVersion
-                  && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
-              System.err.println(
-                s"[${Console.RED}error${Console.RESET}] Java $javaMajorVersion is not supported with this Scala CLI (JVM) launcher."
-              )
-              System.err.println(
-                s"[${Console.RED}error${Console.RESET}] Please upgrade to at least Java ${Constants.minimumLauncherJavaVersion} or use a native Scala CLI launcher instead."
-              )
-              sys.exit(1)
-            case _ if
-                  javaMajorVersion >= Constants.minimumLauncherJavaVersion
-                  && javaMajorVersion < Constants.minimumBloopJavaVersion
-                  && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
-              JavaLauncherCli.runAndExit(args.toSeq)
             case None =>
               launcherOpts.scalaRunner.progName
                 .foreach(pn => progName = pn)

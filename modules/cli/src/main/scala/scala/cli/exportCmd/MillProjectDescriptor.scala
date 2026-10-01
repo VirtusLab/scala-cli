@@ -37,7 +37,12 @@ final case class MillProjectDescriptor(
       .getOrElse(ScalaCli.getDefaultScalaVersion)
 
     if pureJava then MillProject()
-    else MillProject(scalaVersion = Some(sv))
+    else
+      MillProject(
+        scalaVersion = Some(sv),
+        extraDecls = options.customScalaOrganization.toSeq
+          .map(org => s"""def scalaOrganization = "$org"""")
+      )
   }
 
   private def scalaCompilerPlugins(buildOptions: BuildOptions): MillProject =

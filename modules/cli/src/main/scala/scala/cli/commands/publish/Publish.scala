@@ -2,7 +2,7 @@ package scala.cli.commands.publish
 
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
-import coursier.core.{Authentication, Configuration}
+import coursier.core.{Authentication, Configuration, ModuleName, Organization}
 import coursier.publish.checksum.ChecksumType
 import coursier.publish.checksum.logger.InteractiveChecksumLogger
 import coursier.publish.fileset.{FileSet, Path}
@@ -23,7 +23,12 @@ import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.compiler.ScalaCompilerMaker
-import scala.build.errors.{BuildException, CompositeBuildException, Severity}
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  CoursierDependencyError,
+  Severity
+}
 import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
@@ -68,6 +73,8 @@ import scala.cli.util.ConfigDbUtils
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.concurrent.duration.DurationInt
 import scala.util.control.NonFatal
+import scala.xml.transform.{RewriteRule, RuleTransformer}
+import scala.xml.{Elem, Node, PrettyPrinter, XML}
 
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
@@ -137,6 +144,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     )
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
+      internal =
+        baseOptions.internal.copy(keepResolution = baseOptions.customScalaOrganization.nonEmpty),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         publishOptions = baseOptions.notForBloopOptions.publishOptions.copy(
           organization =
@@ -454,6 +463,37 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
   }
 
+  private def withDependencyExclusions(
+    pom: String,
+    exclusions: Map[(String, String), Seq[(Organization, ModuleName)]]
+  ): String =
+    if exclusions.forall(_._2.isEmpty) then pom
+    else {
+      val addExclusions = new RewriteRule {
+        override def transform(node: Node): Seq[Node] = node match {
+          case e: Elem if e.label == "dependency" =>
+            val module = ((e \ "groupId").text.trim, (e \ "artifactId").text.trim)
+            exclusions.getOrElse(module, Nil) match {
+              case Nil      => e
+              case excluded =>
+                val nodes = excluded.map { (excludedOrg, excludedName) =>
+                  <exclusion>
+                    <groupId>{excludedOrg.value}</groupId>
+                    <artifactId>{excludedName.value}</artifactId>
+                  </exclusion>
+                }
+                val withoutExclusions = e.child.filterNot(_.label == "exclusions")
+                e.copy(child = withoutExclusions :+ <exclusions>{nodes}</exclusions>)
+            }
+          case other => other
+        }
+      }
+      val rewritten   = new RuleTransformer(addExclusions).transform(XML.loadString(pom))
+      val declaration = pom.linesIterator.takeWhile(_.trim.startsWith("<?")).mkString("\n")
+      val body        = new PrettyPrinter(Int.MaxValue, 2).formatNodes(rewritten)
+      if declaration.isEmpty then body else s"$declaration\n$body\n"
+    }
+
   private def buildFileSet(
     builds: Seq[Build.Successful],
     docBuilds: Seq[Build.Successful],
@@ -560,28 +600,62 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
       else None
 
-    val dependencies = builds.flatMap(_.artifacts.userDependencies)
-      .map(_.toCs(builds.head.artifacts.scalaOpt.map(_.params)))
-      .sequence
-      .left.map(CompositeBuildException(_))
-      .orExit(logger)
-      .map { dep0 =>
-        val config =
-          builds -> builds.length match {
-            case (b, 1) if b.head.scope != Scope.Main => Some(Configuration(b.head.scope.name))
-            case _                                    => None
-          }
-        logger.debug(
-          s"Dependency ${dep0.module.organization}:${dep0.module.name}:${dep0.versionConstraint.asString}"
-        )
-        (
-          dep0.module.organization,
-          dep0.module.name,
-          dep0.versionConstraint.asString,
-          config,
-          dep0.minimizedExclusions
-        )
+    val scalaOrganizations =
+      builds.flatMap(_.artifacts.scalaOpt).map(_.toolchain.organization).distinct
+    if scalaOrganizations.length > 1 then
+      val organizations = scalaOrganizations.mkString(", ")
+      logger.error(
+        s"""Detected different Scala organizations across scopes: $organizations.
+           |Published metadata can only describe one, so please set the same Scala organization in every scope.""".stripMargin
+      )
+      sys.exit(1)
+
+    val scalaToolchain = builds.head.artifacts.toolchain
+
+    val rewrittenPerBuild = builds.map { build =>
+      val scalaParamsOpt = build.artifacts.scalaOpt.map(_.params)
+      val csDependencies = build.artifacts.userDependencies
+        .map(_.toCs(scalaParamsOpt))
+        .sequence
+        .left.map(CompositeBuildException(_))
+        .orExit(logger)
+      build -> Artifacts.rewriteRootDeps(scalaToolchain)(csDependencies)
+    }
+    val rewrittenDependencies = rewrittenPerBuild.flatMap(_._2)
+
+    val publishedToolchain = rewrittenPerBuild
+      .flatMap { (build, roots) =>
+        build.artifacts.resolution.toSeq
+          .map(_.subset0(roots).left.map(CoursierDependencyError(_)).orExit(logger))
+          .flatMap(Artifacts.forkToolchainDependencies(scalaToolchain, _))
       }
+      .distinctBy(_.module)
+
+    val alignedDependencies = Artifacts.excludeUpstreamToolchain(
+      scalaToolchain,
+      publishedToolchain.map(_.module.name.value).toSet ++ scalaToolchain.providedModules.keySet
+    )(rewrittenDependencies)
+    val declaredModules = alignedDependencies.map(_.module).toSet
+
+    val dependencies =
+      (alignedDependencies ++ publishedToolchain.filterNot(dep => declaredModules(dep.module)))
+        .map { dep0 =>
+          val config =
+            builds -> builds.length match {
+              case (b, 1) if b.head.scope != Scope.Main => Some(Configuration(b.head.scope.name))
+              case _                                    => None
+            }
+          logger.debug(
+            s"Dependency ${dep0.module.organization}:${dep0.module.name}:${dep0.versionConstraint.asString}"
+          )
+          (
+            dep0.module.organization,
+            dep0.module.name,
+            dep0.versionConstraint.asString,
+            config,
+            dep0.minimizedExclusions
+          )
+        }
     val url = publishOptions.url.map(_.value)
     logger.debug(s"Published project URL: ${url.getOrElse("(not set)")}")
     val license = publishOptions.license.map(_.value).map { l =>
@@ -601,18 +675,23 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val pomProjectName = publishOptions.pomProjectNameForMaven(moduleName)
 
-    val pomContent = Pom.create(
-      organization = coursier.Organization(org),
-      moduleName = coursier.ModuleName(moduleName),
-      version = ver,
-      packaging = None,
-      url = url,
-      name = Some(pomProjectName),
-      dependencies = dependencies,
-      description = Some(description),
-      license = license,
-      scm = scm,
-      developers = developers
+    val pomContent = withDependencyExclusions(
+      Pom.create(
+        organization = coursier.Organization(org),
+        moduleName = coursier.ModuleName(moduleName),
+        version = ver,
+        packaging = None,
+        url = url,
+        name = Some(pomProjectName),
+        dependencies = dependencies,
+        description = Some(description),
+        license = license,
+        scm = scm,
+        developers = developers
+      ),
+      dependencies.map { case (depOrg, depName, _, _, exclusions) =>
+        (depOrg.value, depName.value) -> exclusions.toSet().toSeq.sorted
+      }.toMap
     )
 
     if isSonatype then {

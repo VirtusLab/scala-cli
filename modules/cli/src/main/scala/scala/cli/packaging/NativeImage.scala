@@ -9,13 +9,24 @@ import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.MsvcEnvironment
 import scala.build.internals.MsvcEnvironment.*
 import scala.build.postprocessing.SlothPatcher
-import scala.build.{Build, Logger, Positioned, coursierVersion}
+import scala.build.{Build, Logger, Positioned, coursierVersion, isScala39OrNewer}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
 import scala.cli.internal.CachedBinary
 import scala.util.Properties
 
 object NativeImage {
+
+  /** Since Scala 3.9, `scala-library` is compiled with Scala 3, which makes
+    * `scala.runtime.LambdaDeserialize` (the bootstrap of the `$deserializeLambda$` call site
+    * generated for each class defining a lambda) initialize `scala.collection.ArrayOps$`. GraalVM
+    * links that call site while parsing bytecode, so `ArrayOps$` ends up being initialized at build
+    * time and has to be allowed to.
+    */
+  private[packaging] def scala3StdLibOptions(scalaVersionOpt: Option[String]): Seq[String] =
+    if scalaVersionOpt.exists(_.coursierVersion.isScala39OrNewer) then
+      Seq("--initialize-at-build-time=scala.collection.ArrayOps$")
+    else Nil
 
   private def ensureHasNativeImageCommand(
     graalVMHome: os.Path,
@@ -152,8 +163,10 @@ object NativeImage {
           else
             s
 
+        val stdLibOptions = scala3StdLibOptions(builds.head.scalaParams.map(_.scalaVersion))
+
         try {
-          val args = extraOptions ++ scala3extraOptions ++ Seq(
+          val args = extraOptions ++ scala3extraOptions ++ stdLibOptions ++ Seq(
             s"-H:Path=${dest / os.up}",
             s"-H:Name=${stripSuffixIgnoreCase(dest.last, ".exe")}", // Case-insensitive strip suffix
             "-cp",

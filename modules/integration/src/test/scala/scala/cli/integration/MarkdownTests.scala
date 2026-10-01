@@ -315,7 +315,10 @@ class MarkdownTests extends ScalaCliSuite {
               |```
               |""".stripMargin
         ).fromRoot { root =>
-          val result = os.proc(TestUtil.cli, "sample.md", "--jvm", javaVersion).call(cwd = root)
+          val result =
+            os.proc(TestUtil.cli, "sample.md", "--jvm", TestUtil.jvmId(javaVersion)).call(cwd =
+              root
+            )
           expect(result.out.trim() == "md-compact")
         }
       }

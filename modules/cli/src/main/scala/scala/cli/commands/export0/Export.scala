@@ -233,6 +233,38 @@ object Export extends ScalaCommand[ExportOptions] {
       sys.exit(1)
     }
 
+    for {
+      orgMain <- optionsMain0.scalaOptions.scalaOrganization
+      orgTest <- optionsTest0.scalaOptions.scalaOrganization
+    } if (orgMain != orgTest) {
+      logger.error(
+        s"""Detected different Scala organizations in main ($orgMain) and test ($orgTest) scopes.
+           |Please set the Scala organization explicitly in the main and test scope with using directives or pass --scala-organization as parameter.""".stripMargin
+      )
+      sys.exit(1)
+    }
+
+    if (
+      optionsMain0.scalaOptions.scalaOrganization.isEmpty &&
+      optionsTest0.scalaOptions.scalaOrganization.nonEmpty
+    ) {
+      logger.error(
+        """Detected that the Scala organization is only set in the test scope.
+          |Please set the Scala organization explicitly in the main and test scopes with using directives or pass --scala-organization as parameter.""".stripMargin
+      )
+      sys.exit(1)
+    }
+
+    val millVersion0 = options.millVersion.getOrElse(Constants.millVersion)
+    if shouldExportToMill && optionsMain0.customScalaOrganization.nonEmpty &&
+      !MillProject.supportsScalaOrganization(millVersion0)
+    then
+      logger.error(
+        s"""Mill $millVersion0 ignores `ScalaModule.scalaOrganization`, so the exported build would silently use the official Scala toolchain.
+           |Export with --mill-version ${MillProject.lastSupportedMillVersion} or older, to sbt or to Maven instead, or drop the scalaOrganization setting.""".stripMargin
+      )
+      sys.exit(1)
+
     if (
       optionsMain0.scalaOptions.scalaVersion.isEmpty &&
       optionsTest0.scalaOptions.scalaVersion.nonEmpty

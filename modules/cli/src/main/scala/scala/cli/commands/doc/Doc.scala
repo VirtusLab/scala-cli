@@ -242,12 +242,15 @@ object Doc extends ScalaCommand[DocOptions] with BuildCommandHelpers {
       case Some((scalaParams, _)) =>
         val res: Fetch.Result = value {
           Artifacts.fetchAnyDependencies(
-            Seq(Positioned.none(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
+            Seq(Positioned.none(
+              dep"${builds.head.options.scalaOrganization}::scaladoc:${scalaParams.scalaVersion}"
+            )),
             value(builds.head.options.finalRepositories),
             Some(scalaParams),
             logger,
             builds.head.options.finalCache,
-            None
+            None,
+            toolchain = builds.head.artifacts.toolchain
           )
         }
         val destDir = builds.head.project.scaladocDir

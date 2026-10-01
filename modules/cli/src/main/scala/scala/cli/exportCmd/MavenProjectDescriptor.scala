@@ -2,10 +2,11 @@ package scala.cli.exportCmd
 import dependency.{AnyDependency, NoAttributes, ScalaNameAttributes}
 
 import scala.annotation.unused
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
-import scala.build.options.{BuildOptions, Scope, ShadowingSeq}
-import scala.build.{Logger, Positioned, Sources}
+import scala.build.options.{BuildOptions, ScalaOptions, Scope, ShadowingSeq}
+import scala.build.{Artifacts, Logger, Positioned, Sources}
 import scala.cli.ScalaCli
 import scala.cli.exportCmd.POMBuilderHelper.*
 import scala.xml.Elem
@@ -80,7 +81,8 @@ final case class MavenProjectDescriptor(
     options: BuildOptions,
     testOptions: BuildOptions,
     scope: Scope,
-    sources: Sources
+    sources: Sources,
+    toolchain: Artifacts.ScalaToolchain
   ): MavenProject = {
 
     val scalaV         = getScalaVersion(options)
@@ -132,18 +134,36 @@ final case class MavenProjectDescriptor(
           list.head.copy(scope = highestScope)
         }.toList
 
+        val forkedModules = toolchain.providedModules.keySet.toSeq.sorted
+        def isUpstreamToolchain(dep: MavenLibraryDependency) =
+          dep.groupId == ScalaOptions.defaultOrganization && forkedModules.contains(dep.artifactId)
+        val upstreamToolchainExclusions =
+          forkedModules.map(ScalaOptions.defaultOrganization -> _)
+        val resolvedDepsWithExclusions = resolvedDeps
+          .map: dep =>
+            if isUpstreamToolchain(dep) then
+              dep.copy(
+                groupId = options.scalaOrganization,
+                version = Artifacts.forkedVersionOf(toolchain, dep.artifactId)
+                  .map(_.asString)
+                  .getOrElse(scalaV)
+              )
+            else dep.copy(exclusions = upstreamToolchainExclusions)
+          .distinct
+
         val scalaDep = if (!ProjectDescriptor.isPureJavaProject(options, sources)) {
           val scalaDep = if scalaV.startsWith("3") then "scala3-library_3" else "scala-library"
           val scalaCompilerDep =
             if scalaV.startsWith("3") then "scala3-compiler_3" else "scala-compiler"
+          val scalaOrg = options.scalaOrganization
           List(
-            MavenLibraryDependency("org.scala-lang", scalaDep, scalaV, MavenScopes.Main),
-            MavenLibraryDependency("org.scala-lang", scalaCompilerDep, scalaV, MavenScopes.Main)
+            MavenLibraryDependency(scalaOrg, scalaDep, scalaV, MavenScopes.Main),
+            MavenLibraryDependency(scalaOrg, scalaCompilerDep, scalaV, MavenScopes.Main)
           )
         }
         else Nil
 
-        resolvedDeps ++ scalaDep
+        resolvedDepsWithExclusions ++ scalaDep
       }
 
       toDependencies(
@@ -175,7 +195,7 @@ final case class MavenProjectDescriptor(
 
     val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
     val mavenExecPlugin = buildJavaExecPlugin(jdkVersion)
-    val scalaPlugin     = buildScalaPlugin(jdkVersion)
+    val scalaPlugin     = buildScalaPlugin(jdkVersion, options.customScalaOrganization)
 
     val reqdPlugins =
       if (pureJava) Seq(mavenJavaPlugin, mavenExecPlugin) else Seq(mavenJavaPlugin, scalaPlugin)
@@ -185,7 +205,7 @@ final case class MavenProjectDescriptor(
     )
   }
 
-  private def buildScalaPlugin(jdkVersion: String): MavenPlugin = {
+  private def buildScalaPlugin(jdkVersion: String, scalaOrganization: Option[String]): MavenPlugin =
     val execElements =
       <executions>
         <execution>
@@ -196,14 +216,19 @@ final case class MavenProjectDescriptor(
         </execution>
       </executions>
 
+    val configElements = scalaOrganization.toSeq.map: org =>
+      <configuration>
+        <scalaOrganization>{org}</scalaOrganization>
+        <recompileMode>all</recompileMode>
+      </configuration>
+
     MavenPlugin(
       "net.alchim31.maven",
       "scala-maven-plugin",
       mavenScalaPluginVersion,
       jdkVersion,
-      execElements
+      execElements +: configElements
     )
-  }
 
   private def buildJavaCompilerPlugin(
     javacOptions: Seq[String],
@@ -232,7 +257,7 @@ final case class MavenProjectDescriptor(
       "maven-compiler-plugin",
       mavenPluginVersion,
       jdkVersion,
-      configNode
+      Seq(configNode)
     )
   }
 
@@ -242,7 +267,7 @@ final case class MavenProjectDescriptor(
       "exec-maven-plugin",
       mavenExecPluginVersion,
       jdkVersion,
-      <configuration></configuration>
+      Seq(<configuration></configuration>)
     )
 
   private def customResourcesSettings(options: BuildOptions): MavenProject = {
@@ -263,19 +288,28 @@ final case class MavenProjectDescriptor(
     optionsTest: BuildOptions,
     sourcesMain: Sources,
     sourcesTest: Sources
-  ): Either[BuildException, MavenProject] = {
+  ): Either[BuildException, MavenProject] = either {
     val jdk =
       optionsMain.javaOptions.jvmIdOpt.map(_.value)
         .getOrElse(Constants.defaultJavaVersion.toString)
+    val toolchain = value {
+      Artifacts.discoverToolchain(
+        optionsMain.scalaOrganization,
+        getScalaVersion(optionsMain),
+        value(optionsMain.finalRepositories),
+        logger,
+        optionsMain.finalCache
+      )
+    }
     val projectChunks = Seq(
       sources(sourcesMain, sourcesTest),
       javaOptionsSettings(optionsMain),
-      dependencySettings(optionsMain, optionsTest, Scope.Main, sourcesMain),
+      dependencySettings(optionsMain, optionsTest, Scope.Main, sourcesMain, toolchain),
       customResourcesSettings(optionsMain),
       plugins(optionsMain, jdk, sourcesMain),
       projectArtifactSettings(mavenAppGroupId, mavenAppArtifactId, mavenAppVersion)
     )
-    Right(projectChunks.foldLeft(MavenProject())(_ + _))
+    projectChunks.foldLeft(MavenProject())(_ + _)
   }
 
 }

@@ -122,8 +122,11 @@ final case class SbtProjectDescriptor(
       s"""scalaVersion := "$sv""""
     }
 
+    val scalaOrgSetting = options.customScalaOrganization
+      .map(org => s"""scalaOrganization := "$org"""")
+
     SbtProject(
-      settings = Seq(Seq(scalaVerSetting))
+      settings = Seq(Seq(scalaVerSetting) ++ scalaOrgSetting)
     )
   }
 

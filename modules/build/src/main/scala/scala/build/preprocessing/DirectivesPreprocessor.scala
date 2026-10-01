@@ -28,7 +28,7 @@ case class DirectivesPreprocessor(
 ) {
   def preprocess(content: String): Either[BuildException, PreprocessedDirectives] = for {
     directives <- ExtractedDirectives.from(
-      content.toCharArray,
+      content.toIndexedSeq,
       path,
       suppressWarningOptions,
       logger,

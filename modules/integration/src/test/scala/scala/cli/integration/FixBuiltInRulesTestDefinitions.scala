@@ -2,9 +2,236 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.util.Properties
-
 trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
+  test("built-in rules with --check") {
+    val mainFileName    = "Main.scala"
+    val mainFileContent =
+      s"""//> using objectWrapper
+         |//> using dep com.lihaoyi::os-lib:0.9.1
+         |
+         |object Main extends App {
+         |  println(os.pwd)
+         |}
+         |""".stripMargin
+    val inputs = TestInputs(
+      os.rel / mainFileName    -> mainFileContent,
+      os.rel / projectFileName ->
+        s"""//> using deps com.lihaoyi::pprint:0.6.6
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      def fix(check: Boolean) = os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false),
+        if check then Seq("--check") else Nil
+      ).call(cwd = root, mergeErrIntoOut = true, check = false)
+
+      val checkOutput = fix(check = true)
+      expect(checkOutput.exitCode != 0)
+      assertNoDiff(
+        filterDebugOutputs(checkOutput.out.trim()),
+        s"""Running built-in rules...
+           |Unifying `deps`, `dep` into `dep`
+           |--- $projectFileName
+           |+++ <expected fix>
+           |@@ -1,1 +1,3 @@
+           |-//> using deps com.lihaoyi::pprint:0.6.6
+           |+// Main
+           |+//> using objectWrapper
+           |+//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+           |--- $mainFileName
+           |+++ <expected fix>
+           |@@ -1,6 +1,3 @@
+           |-//> using objectWrapper
+           |-//> using dep com.lihaoyi::os-lib:0.9.1
+           |-
+           | object Main extends App {
+           |   println(os.pwd)
+           | }
+           |built-in rules failed.""".stripMargin
+      )
+
+      assertNoDiff(os.read(root / mainFileName), mainFileContent)
+
+      expect(fix(check = false).exitCode == 0)
+
+      val checkAfterFixOutput = fix(check = true)
+      expect(checkAfterFixOutput.exitCode == 0)
+      assertNoDiff(
+        filterDebugOutputs(checkAfterFixOutput.out.trim()),
+        """Running built-in rules...
+          |Built-in rules completed.""".stripMargin
+      )
+    }
+  }
+
+  test("built-in rules remove comma separators from directives") {
+    val mainFileName = "Main.scala"
+    val inputs       = TestInputs(
+      os.rel / mainFileName ->
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1, com.lihaoyi::pprint:0.6.6
+           |//> using options -Werror, -Wunused:imports,privates
+           |
+           |object Main extends App {
+           |  println(os.pwd)
+           |}
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      def fix(check: Boolean) = os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false),
+        if check then Seq("--check") else Nil
+      ).call(cwd = root, mergeErrIntoOut = true, check = false)
+
+      expect(fix(check = true).exitCode != 0)
+      expect(fix(check = false).exitCode == 0)
+      assertNoDiff(
+        os.read(root / mainFileName),
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+           |//> using options -Werror -Wunused:imports,privates
+           |
+           |object Main extends App {
+           |  println(os.pwd)
+           |}
+           |""".stripMargin
+      )
+      expect(fix(check = true).exitCode == 0)
+    }
+  }
+
+  test("built-in rules can be disabled separately") {
+    val mainFileContent =
+      """//> using dep com.lihaoyi::os-lib:0.9.1, com.lihaoyi::pprint:0.6.6
+        |
+        |object Main extends App
+        |""".stripMargin
+    val otherFileContent =
+      """//> using options -Werror, -deprecation
+        |
+        |object Other
+        |""".stripMargin
+    val inputs = TestInputs(
+      os.rel / "Main.scala"  -> mainFileContent,
+      os.rel / "Other.scala" -> otherFileContent
+    )
+
+    inputs.fromRoot { root =>
+      def fix(ruleOptions: String*) = os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false),
+        ruleOptions
+      ).call(cwd = root, mergeErrIntoOut = true)
+
+      val allDisabledOutput = fix("--remove-commas=false", "--migrate-directives=false")
+      expect(allDisabledOutput.out.text().contains("No rules were enabled"))
+      assertNoDiff(os.read(root / "Main.scala"), mainFileContent)
+      assertNoDiff(os.read(root / "Other.scala"), otherFileContent)
+
+      fix("--migrate-directives=false")
+      expect(!os.exists(root / projectFileName))
+      assertNoDiff(
+        os.read(root / "Main.scala"),
+        """//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+          |
+          |object Main extends App
+          |""".stripMargin
+      )
+      assertNoDiff(
+        os.read(root / "Other.scala"),
+        """//> using options -Werror -deprecation
+          |
+          |object Other
+          |""".stripMargin
+      )
+    }
+  }
+
+  test("comma separators are not removed from excluded sources") {
+    val excludedFileContent =
+      """//> using options -Werror, -deprecation
+        |
+        |object Generated
+        |""".stripMargin
+    val inputs = TestInputs(
+      os.rel / projectFileName -> "//> using exclude generated",
+      os.rel / "Main.scala"    ->
+        """//> using options -Werror, -deprecation
+          |
+          |object Main extends App
+          |""".stripMargin,
+      os.rel / "generated" / "Generated.scala" -> excludedFileContent
+    )
+
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false),
+        "--migrate-directives=false"
+      ).call(cwd = root, mergeErrIntoOut = true)
+
+      assertNoDiff(os.read(root / "generated" / "Generated.scala"), excludedFileContent)
+      assertNoDiff(
+        os.read(root / "Main.scala"),
+        """//> using options -Werror -deprecation
+          |
+          |object Main extends App
+          |""".stripMargin
+      )
+    }
+  }
+
+  test("comma separators are removed from sources for inactive targets") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" -> "object Main extends App",
+      os.rel / "Js.scala"   ->
+        """//> using target.platform js
+          |//> using options -Werror, -deprecation
+          |
+          |object Js
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false),
+        "--migrate-directives=false"
+      ).call(cwd = root, mergeErrIntoOut = true)
+
+      assertNoDiff(
+        os.read(root / "Js.scala"),
+        """//> using target.platform js
+          |//> using options -Werror -deprecation
+          |
+          |object Js
+          |""".stripMargin
+      )
+    }
+  }
+
   test("basic built-in rules") {
     val mainFileName = "Main.scala"
     val inputs       = TestInputs(
@@ -42,6 +269,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         """Running built-in rules...
           |Extracting directives from Main.scala
           |Extracting directives from project.scala
+          |Unifying `deps`, `dep` into `dep`
           |Writing project.scala
           |Removing directives from Main.scala
           |Built-in rules completed.""".stripMargin
@@ -54,7 +282,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
+          |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
           |""".stripMargin
       )
 
@@ -111,6 +339,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         """Running built-in rules...
           |Extracting directives from project.scala
           |Extracting directives from main.sc
+          |Unifying `deps`, `dep` into `dep`
           |Writing project.scala
           |Removing directives from main.sc
           |Built-in rules completed.""".stripMargin
@@ -123,7 +352,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
+          |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
           |""".stripMargin
       )
 
@@ -197,6 +426,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
           |Extracting directives from project.scala
           |Extracting directives from src/Main.scala
           |Extracting directives from test/MyTests.scala
+          |Unifying `deps`, `dep` into `dep`
           |Writing project.scala
           |Removing directives from src/Main.scala
           |Removing directives from test/MyTests.scala
@@ -211,11 +441,11 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+          |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
           |
           |// Test
           |//> using test.options -Xasync -Xfatal-warnings
-          |//> using test.dependency org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
+          |//> using test.dep org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
           |""".stripMargin
       )
 
@@ -343,6 +573,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
              |Extracting directives from ${includeRoot / "Included.scala"}
              |Extracting directives from snippet
              |Extracting directives from test/MyTests.scala
+             |Unifying `deps`, `dep` into `dep`
              |Writing project.scala
              |Removing directives from src/Main.scala
              |Removing directives from test/MyTests.scala
@@ -364,10 +595,10 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
              |//> using platforms jvm
              |//> using jvm 17
              |//> using options -Werror
-             |//> using files $includePath
+             |//> using file $includePath
              |//> using objectWrapper
              |//> using toolkit default
-             |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
+             |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
              |
              |//> using publish.ci.password env:PUBLISH_PASSWORD
              |//> using publish.ci.secretKey env:PUBLISH_SECRET_KEY
@@ -376,7 +607,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
              |
              |// Test
              |//> using test.options -Xasync -Xfatal-warnings
-             |//> using test.dependency org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
+             |//> using test.dep org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
              |""".stripMargin
         )
 
@@ -420,33 +651,32 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
     }
   }
 
-  if (!Properties.isWin) // TODO: fix this test for Windows CI
-    test("using directives with boolean values are handled correctly") {
-      val expectedMessage    = "Hello, world!"
-      def maybeScalapyPrefix =
-        if (actualScalaVersion.startsWith("2.13.")) ""
-        else "import me.shadaj.scalapy.py" + System.lineSeparator()
-      TestInputs(
-        os.rel / "Messages.scala" ->
-          s"""object Messages {
-             |  def hello: String = "$expectedMessage"
-             |}
-             |""".stripMargin,
-        os.rel / "Main.scala" ->
-          s"""//> using python true
-             |$maybeScalapyPrefix
-             |object Main extends App {
-             |  py.Dynamic.global.print(Messages.hello, flush = true)
-             |}
-             |""".stripMargin
-      ).fromRoot { root =>
-        os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-        val r = os.proc(TestUtil.cli, "--power", "run", ".", extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-        expect(r.out.trim() == expectedMessage)
-      }
+  test("using directives with boolean values are handled correctly") {
+    val expectedMessage    = "Hello, world!"
+    def maybeScalapyPrefix =
+      if (actualScalaVersion.startsWith("2.13.")) ""
+      else "import me.shadaj.scalapy.py" + System.lineSeparator()
+    TestInputs(
+      os.rel / "Messages.scala" ->
+        s"""object Messages {
+           |  def hello: String = "$expectedMessage"
+           |}
+           |""".stripMargin,
+      os.rel / "Main.scala" ->
+        s"""//> using python true
+           |$maybeScalapyPrefix
+           |object Main extends App {
+           |  py.Dynamic.global.print(Messages.hello, flush = true)
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions)
+        .call(cwd = root, stderr = os.Pipe)
+      val r = os.proc(TestUtil.cli, "--power", "run", ".", extraOptions)
+        .call(cwd = root, stderr = os.Pipe)
+      expect(r.out.trim() == expectedMessage)
     }
+  }
 
   {
     val directive = "//> using dep com.lihaoyi::os-lib:0.11.3"
@@ -461,7 +691,6 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
                           |println(os.pwd)
                           |""".stripMargin
       )
-      if !Properties.isWin // TODO: make this run on Windows CI
       testInputs = TestInputs(os.rel / inputFileName -> code)
     }
       test(
@@ -482,49 +711,48 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
       }
   }
 
-  if (!Properties.isWin)
-    test("all test directives get extracted into project.scala") {
-      val osLibDep               = "com.lihaoyi::os-lib:0.11.5"
-      val munitDep               = "org.scalameta::munit:1.1.1"
-      val pprintDep              = "com.lihaoyi::pprint:0.9.3"
-      val osLibDepDirective      = s"//> using dependency $osLibDep"
-      val osLibTestDepDirective  = s"//> using test.dependency $osLibDep"
-      val munitTestDepDirective  = s"//> using test.dependency $munitDep"
-      val pprintTestDepDirective = s"//> using test.dependency $pprintDep"
-      val mainFilePath           = os.rel / "Main.scala"
-      val testFilePath           = os.rel / "MyTests.test.scala"
-      TestInputs(
-        mainFilePath -> s"""$munitTestDepDirective
-                           |object Main extends App {
-                           |  def hello: String = "Hello, world!"
-                           |  println(hello)
-                           |}
-                           |""".stripMargin,
-        testFilePath -> s"""$osLibDepDirective
-                           |$pprintTestDepDirective
-                           |import munit.FunSuite
-                           |
-                           |class MyTests extends FunSuite {
-                           |  test("hello") {
-                           |    pprint.pprintln(os.pwd)
-                           |    assert(Main.hello == "Hello, world!")
-                           |  }
-                           |}
-                           |""".stripMargin
-      ).fromRoot { root =>
-        os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions).call(cwd = root)
-        val expectedProjectFileContents =
-          s"""// Test
-             |$osLibTestDepDirective
-             |$pprintTestDepDirective
-             |$munitTestDepDirective""".stripMargin
-        val projectFileContents = os.read(root / projectFileName)
-        expect(projectFileContents.trim() == expectedProjectFileContents)
-        val mainFileContents = os.read(root / mainFilePath)
-        expect(!mainFileContents.contains("//> using"))
-        val testFileContents = os.read(root / testFilePath)
-        expect(!testFileContents.contains("//> using"))
-        os.proc(TestUtil.cli, "test", ".", extraOptions).call(cwd = root)
-      }
+  test("all test directives get extracted into project.scala") {
+    val osLibDep               = "com.lihaoyi::os-lib:0.11.5"
+    val munitDep               = "org.scalameta::munit:1.1.1"
+    val pprintDep              = "com.lihaoyi::pprint:0.9.3"
+    val osLibDepDirective      = s"//> using dependency $osLibDep"
+    val osLibTestDepDirective  = s"//> using test.dependency $osLibDep"
+    val munitTestDepDirective  = s"//> using test.dependency $munitDep"
+    val pprintTestDepDirective = s"//> using test.dependency $pprintDep"
+    val mainFilePath           = os.rel / "Main.scala"
+    val testFilePath           = os.rel / "MyTests.test.scala"
+    TestInputs(
+      mainFilePath -> s"""$munitTestDepDirective
+                         |object Main extends App {
+                         |  def hello: String = "Hello, world!"
+                         |  println(hello)
+                         |}
+                         |""".stripMargin,
+      testFilePath -> s"""$osLibDepDirective
+                         |$pprintTestDepDirective
+                         |import munit.FunSuite
+                         |
+                         |class MyTests extends FunSuite {
+                         |  test("hello") {
+                         |    pprint.pprintln(os.pwd)
+                         |    assert(Main.hello == "Hello, world!")
+                         |  }
+                         |}
+                         |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions).call(cwd = root)
+      val expectedProjectFileContents =
+        s"""// Test
+           |$osLibTestDepDirective
+           |$pprintTestDepDirective
+           |$munitTestDepDirective""".stripMargin
+      val projectFileContents = os.read(root / projectFileName)
+      assertNoDiff(projectFileContents, expectedProjectFileContents)
+      val mainFileContents = os.read(root / mainFilePath)
+      expect(!mainFileContents.contains("//> using"))
+      val testFileContents = os.read(root / testFilePath)
+      expect(!testFileContents.contains("//> using"))
+      os.proc(TestUtil.cli, "test", ".", extraOptions).call(cwd = root)
     }
+  }
 }

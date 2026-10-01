@@ -292,6 +292,58 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
+  test("set es2022 version to scala-js-cli") {
+    val inputs = TestInputs(
+      os.rel / "run.sc" ->
+        s"""//> using jsEsVersionStr es2022
+           |
+           |import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |console.log("Hello from ES2022")
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, extraOptions, "run.sc", "--js")
+        .call(cwd = root, stderr = os.Pipe)
+      expect(res.out.trim() == "Hello from ES2022")
+      expect(!res.err.text().contains("unrecognized argument"))
+    }
+  }
+
+  private val unrecognizedEsVersionMessage = "Unrecognized Scala.js ECMA Script version: esnext"
+
+  test("fail on unrecognized jsEsVersion option") {
+    val inputs = TestInputs(
+      os.rel / "project.scala" -> """object Hello { def main(args: Array[String]): Unit = () }"""
+    )
+    inputs.fromRoot { root =>
+      val res =
+        os.proc(TestUtil.cli, "compile", extraOptions, ".", "--js", "--js-es-version", "esnext")
+          .call(cwd = root, check = false, mergeErrIntoOut = true)
+      expect(res.exitCode != 0)
+      val output = res.out.text()
+      expect(output.contains(unrecognizedEsVersionMessage))
+      expect(output.contains("esYYYY"))
+    }
+  }
+
+  test("fail on unrecognized jsEsVersion directive") {
+    val inputs = TestInputs(
+      os.rel / "project.scala" ->
+        """//> using jsEsVersionStr esnext
+          |object Hello { def main(args: Array[String]): Unit = () }
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "compile", extraOptions, ".", "--js")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      expect(res.exitCode != 0)
+      val output = res.out.text()
+      expect(output.contains(unrecognizedEsVersionMessage))
+      expect(output.contains("project.scala:1:"))
+    }
+  }
+
   test("Emit Wasm") {
     val outDir = "out"
 

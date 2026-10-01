@@ -22,6 +22,9 @@ For example, to disable built-in rules, you can run:
 scala-cli fix . --power --enable-built-in=false
 ```
 
+Both rule sets support the `--check` flag, which makes `fix` fail if any changes would have been applied,
+without actually changing anything. This is useful for CI.
+
 ## Built-in rules
 
 Currently, the only built-in rule is extraction of `using` directives into the `project.scala` configuration file.

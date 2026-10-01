@@ -121,11 +121,25 @@ final case class MavenLibraryDependency(
   groupId: String,
   artifactId: String,
   version: String,
-  scope: MavenScopes
+  scope: MavenScopes,
+  exclusions: Seq[(String, String)] = Nil
 ) {
 
   private val scopeParam =
     if scope == MavenScopes.Main then scala.xml.Null else <scope>{scope.name}</scope>
+
+  private val exclusionsParam =
+    if exclusions.isEmpty then NodeSeq.Empty
+    else
+      <exclusions>
+        {
+        exclusions.map: (excludedGroupId, excludedArtifactId) =>
+          <exclusion>
+            <groupId>{excludedGroupId}</groupId>
+            <artifactId>{excludedArtifactId}</artifactId>
+          </exclusion>
+      }
+      </exclusions>
 
   def toXml: Elem =
     <dependency>
@@ -133,6 +147,7 @@ final case class MavenLibraryDependency(
       <artifactId>{artifactId}</artifactId>
       <version>{version}</version>
       {scopeParam}
+      {exclusionsParam}
     </dependency>
 }
 
@@ -141,7 +156,7 @@ final case class MavenPlugin(
   artifactId: String,
   version: String,
   jdk: String,
-  additionalNode: Elem
+  additionalNodes: Seq[Elem]
 ) {
 
   def toXml: Elem =
@@ -149,6 +164,6 @@ final case class MavenPlugin(
       <groupId>{groupId}</groupId>
       <artifactId>{artifactId}</artifactId>
       <version>{version}</version>
-      {additionalNode}
+      {additionalNodes}
     </plugin>
 }

@@ -598,11 +598,13 @@ abstract class CompileTestDefinitions
   }
 
   test("override settings from tests") {
-    val olderJava = Constants.scala38MinJavaVersion.toString
-    val newerJava = Constants.allJavaVersions.max.toString
-    val inputs    = TestInputs(
+    val olderJava      = Constants.scala38MinJavaVersion.toString
+    val newerJava      = latestJava.toString
+    val olderJavaJvmId = TestUtil.jvmId(Constants.scala38MinJavaVersion)
+    val newerJavaJvmId = TestUtil.jvmId(latestJava)
+    val inputs         = TestInputs(
       os.rel / "MainStuff.scala" ->
-        s"""//> using jvm $olderJava
+        s"""//> using jvm $olderJavaJvmId
            |object MainStuff {
            |  def javaVer = sys.props("java.version")
            |  def main(args: Array[String]): Unit = {
@@ -612,7 +614,7 @@ abstract class CompileTestDefinitions
            |}
            |""".stripMargin,
       os.rel / "TestStuff.test.scala" ->
-        s"""//> using jvm $newerJava
+        s"""//> using jvm $newerJavaJvmId
            |//> using dep org.scalameta::munit:0.7.29
            |class TestStuff extends munit.FunSuite {
            |  test("the test") {

@@ -384,7 +384,7 @@ Project name to be used on Mill build file
 
 ### `--sbt-version`
 
-Version of SBT to be used for the export (2.0.5 by default)
+Version of SBT to be used for the export (2.0.9 by default)
 
 ### `--mill-version`
 
@@ -441,6 +441,18 @@ Enable running Scalafix rules (enabled by default)
 Aliases: `--built-in`, `--built-in-rules`, `--enable-built-in`
 
 Enable running built-in rules (enabled by default)
+
+### `--enable-directives-migration`
+
+Aliases: `--migrate-directives`
+
+Enable migrating using directives into project.scala, a built-in rule (enabled by default)
+
+### `--enable-comma-separators-removal`
+
+Aliases: `--remove-commas`
+
+Enable removing deprecated comma separators from using directives, a built-in rule (enabled by default)
 
 ## Fmt options
 
@@ -1411,7 +1423,7 @@ Create as many small modules as possible for the classes in the passed packages 
 
 ### `--js-es-version`
 
-The Scala.js ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021
+The Scala.js ECMA Script version: es5_1 or esYYYY (e.g. es2022), supported by the Scala.js version in use
 
 ### `--js-linker-path`
 
@@ -1565,6 +1577,10 @@ Pass extra argument(s) to scalafix.
 
 Run scalafix rule(s) explicitly, overriding the configuration file default.
 
+### `--scalafix-version`
+
+Pass scalafix version (0.14.9 by default).
+
 ## Scope options
 
 Available in commands:
@@ -1625,6 +1641,12 @@ Available in commands:
 Aliases: `-S`, `--scala`
 
 Set the Scala version (3.9.0 by default)
+
+### `--scala-organization`
+
+Aliases: `--scala-org`
+
+Set the organization the Scala toolchain artifacts are fetched from (org.scala-lang by default)
 
 ### `--scala-binary-version`
 
@@ -2265,7 +2287,7 @@ Available in commands:
 ### `--signing-cli-version`
 
 [Internal]
-scala-cli-signing version when running externally (0.3.1 by default)
+scala-cli-signing version when running externally (0.4.0 by default)
 
 ### `--signing-cli-java-arg`
 

@@ -40,7 +40,8 @@ object ReplArtifacts {
     cache: FileCache[Task],
     repositories: Seq[Repository],
     addScalapy: Option[String],
-    javaVersion: Int
+    javaVersion: Int,
+    toolchain: Artifacts.ScalaToolchain = Artifacts.ScalaToolchain()
   ): Either[BuildException, ReplArtifacts] = either {
     val isScala2             = scalaParams.scalaVersion.startsWith("2.")
     val firstNewReplNightly  = "3.8.0-RC1-bin-20251101-389483e-NIGHTLY".coursierVersion
@@ -52,13 +53,14 @@ object ReplArtifacts {
       ((scalaCoursierVersion >= firstNewReplNightly) || (scalaCoursierVersion >= firstNewReplRc) ||
       scalaCoursierVersion >= firstNewReplStable)
     val replDeps =
-      if isScala2 then Seq(dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}")
+      if isScala2 then
+        Seq(dep"${toolchain.organization}:scala-compiler:${scalaParams.scalaVersion}")
       else if shouldUseNewRepl then
         Seq(
-          dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}",
-          dep"org.scala-lang::scala3-repl:${scalaParams.scalaVersion}"
+          dep"${toolchain.organization}::scala3-compiler:${scalaParams.scalaVersion}",
+          dep"${toolchain.organization}::scala3-repl:${scalaParams.scalaVersion}"
         )
-      else Seq(dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}")
+      else Seq(dep"${toolchain.organization}::scala3-compiler:${scalaParams.scalaVersion}")
     val scalapyDeps =
       addScalapy.map(ver => dep"${Artifacts.scalaPyOrganization(ver)}::scalapy-core::$ver").toSeq
     val externalDeps                          = dependencies ++ scalapyDeps
@@ -68,7 +70,8 @@ object ReplArtifacts {
         repositories,
         Some(scalaParams),
         logger,
-        cache.withMessage(s"Downloading Scala compiler ${scalaParams.scalaVersion}")
+        cache.withMessage(s"Downloading Scala compiler ${scalaParams.scalaVersion}"),
+        toolchain = toolchain
       )
     }
     val depArtifacts: Seq[(String, os.Path)] = value {
@@ -77,7 +80,8 @@ object ReplArtifacts {
         repositories,
         Some(scalaParams),
         logger,
-        cache.withMessage(s"Downloading REPL dependencies")
+        cache.withMessage(s"Downloading REPL dependencies"),
+        toolchain = toolchain
       )
     }
     val mainClass =

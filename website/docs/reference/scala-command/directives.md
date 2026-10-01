@@ -466,7 +466,7 @@ Add Scala.js options
 
 `//> using jsModuleSplitStyleStr smallestmodules`
 
-`//> using jsEsVersionStr es2017`
+`//> using jsEsVersionStr es2022`
 
 `//> using jsEmitWasm`
 
