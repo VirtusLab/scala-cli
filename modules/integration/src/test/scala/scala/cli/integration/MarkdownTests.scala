@@ -324,6 +324,67 @@ class MarkdownTests extends ScalaCliSuite {
       }
     }
 
+  /** Runs a Markdown file with a Java snippet whose class name has to be inferred by
+    * java-class-name.
+    */
+  private def javaSnippetTest(
+    description: String,
+    source: String,
+    expectedOutput: String,
+    jvmOptions: Seq[String] = Nil
+  ): Unit =
+    test(s"run a .md file with a java snippet: $description") {
+      TestInputs(
+        os.rel / "sample.md" ->
+          s"""# Sample
+             |```java
+             |$source
+             |```
+             |""".stripMargin
+      ).fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "sample.md", jvmOptions)
+          .call(cwd = root, stderr = os.Pipe)
+        expect(res.out.trim() == expectedOutput)
+        // java-class-name used to report Java parser errors (e.g. for compact sources) to stderr
+        expect(!res.err.text().contains("-- Error:"))
+      }
+    }
+
+  // https://github.com/VirtusLab/scala-cli/issues/4514
+  javaSnippetTest(
+    description = "public enum with methods",
+    source =
+      "public enum Color { RED, GREEN; public static void main(String[] args) { System.out.println(RED); } }",
+    expectedOutput = "RED"
+  )
+  // https://github.com/VirtusLab/scala-cli/issues/4516
+  javaSnippetTest(
+    description = "public record with primitive components",
+    source =
+      "public record Point(int x, int y) { public static void main(String[] args) { System.out.println(new Point(1, 2)); } }",
+    expectedOutput = "Point[x=1, y=2]"
+  )
+  // https://github.com/VirtusLab/scala-cli/issues/4515
+  javaSnippetTest(
+    description = "public class after a package-private one in a package",
+    source =
+      """package demo;
+        |class Helper { static int answer() { return 42; } }
+        |public class Main { public static void main(String[] args) { System.out.println(Helper.answer()); } }
+        |""".stripMargin,
+    expectedOutput = "42"
+  )
+  // JEP 512: the implicit class of a compact source file is named after the generated source file
+  javaSnippetTest(
+    description = "compact source file with a public class before main",
+    source =
+      """public class Helper { static int answer() { return 42; } }
+        |void main() { System.out.println(getClass().getName() + ' ' + Helper.answer()); }
+        |""".stripMargin,
+    expectedOutput = "sample_md_snippet0 42",
+    jvmOptions = Seq("--jvm", TestUtil.jvmId(Constants.jep512MinJavaVersion))
+  )
+
   test("run a .md file with scala and java snippets") {
     val expectedOutput = "Hello world"
     TestInputs(

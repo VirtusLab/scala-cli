@@ -103,7 +103,7 @@ final case class JavaPreprocessor(
                     logger,
                     () => javaCommand()
                   )
-                  .className(v.content)
+                  .className(v.content, v.generatedSourceFileName)
               }
               val fileName = classNameOpt
                 .map(_ + ".java")

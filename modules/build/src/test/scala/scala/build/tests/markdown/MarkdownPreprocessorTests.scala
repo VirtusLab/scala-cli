@@ -169,4 +169,96 @@ class MarkdownPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
       expect(mainSources.inMemory.forall(!_.generatedRelPath.last.endsWith(".java")))
     }
   }
+
+  /** Checks the file name generated for a Java snippet in a Markdown file.
+    *
+    * @param expectedClassNameOpt
+    *   the class name expected to be inferred, or `None` for the default file name
+    */
+  private def javaSnippetFileNameTest(
+    description: String,
+    source: String,
+    expectedClassNameOpt: Option[String]
+  ): Unit =
+    test(s"a markdown file with a Java snippet: $description") {
+      TestInputs(
+        os.rel / "Example.md" ->
+          s"""# Example
+             |
+             |```java
+             |$source
+             |```""".stripMargin
+      ).withInputs { (root, inputs) =>
+        val (crossSources, _) =
+          CrossSources.forInputs(
+            inputs,
+            preprocessors,
+            TestLogger(),
+            SuppressWarningOptions()
+          ).orThrow
+
+        val mainSources =
+          crossSources.scopedSources(BuildOptions()).orThrow
+            .sources(Scope.Main, crossSources.sharedOptions(BuildOptions()), root, TestLogger())
+            .orThrow
+
+        val expectedFileName = expectedClassNameOpt.getOrElse("Example_md_snippet0")
+        expect(mainSources.inMemory.map(_.generatedRelPath) ==
+          Seq(os.rel / s"$expectedFileName.java"))
+      }
+    }
+
+  // https://github.com/VirtusLab/scala-cli/issues/4514
+  javaSnippetFileNameTest(
+    description = "public enum",
+    source = "public enum Color { RED, GREEN }",
+    expectedClassNameOpt = Some("Color")
+  )
+  javaSnippetFileNameTest(
+    description = "public enum with methods",
+    source =
+      """public enum Color {
+        |  RED, GREEN;
+        |  public static void main(String[] args) { System.out.println(RED); }
+        |}""".stripMargin,
+    expectedClassNameOpt = Some("Color")
+  )
+  // https://github.com/VirtusLab/scala-cli/issues/4516
+  javaSnippetFileNameTest(
+    description = "public record with primitive components",
+    source =
+      """public record Point(int x, int y) {
+        |  public static void main(String[] args) { System.out.println(new Point(1, 2)); }
+        |}""".stripMargin,
+    expectedClassNameOpt = Some("Point")
+  )
+  // https://github.com/VirtusLab/scala-cli/issues/4515
+  javaSnippetFileNameTest(
+    description = "package-private class in a package",
+    source =
+      """package demo;
+        |class Main { public static void main(String[] args) { System.out.println("Hello"); } }""".stripMargin,
+    expectedClassNameOpt = None
+  )
+  javaSnippetFileNameTest(
+    description = "public class after a package-private one in a package",
+    source =
+      """package demo;
+        |class Helper { static String greet() { return "Hello"; } }
+        |public class Main { public static void main(String[] args) { System.out.println(Helper.greet()); } }""".stripMargin,
+    expectedClassNameOpt = Some("Main")
+  )
+  // JEP 512 compact source files: the implicit class is named after the source file
+  javaSnippetFileNameTest(
+    description = "compact source file",
+    source = """void main() { System.out.println("Hello"); }""",
+    expectedClassNameOpt = None
+  )
+  javaSnippetFileNameTest(
+    description = "compact source file with a public class before main",
+    source =
+      """public class Helper { static String greet() { return "Hello"; } }
+        |void main() { System.out.println(Helper.greet()); }""".stripMargin,
+    expectedClassNameOpt = None
+  )
 }

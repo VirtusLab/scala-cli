@@ -9,6 +9,9 @@ import scala.cli.javaclassname.JavaParser
   * Should be used from Scala CLI when it's run on the JVM.
   */
 class JavaParserProxyJvm extends JavaParserProxy {
-  override def className(content: Array[Byte]): Either[BuildException, Option[String]] =
-    Right(JavaParser.parseRootPublicClassName(content))
+  override def className(
+    content: Array[Byte],
+    sourceFileName: String
+  ): Either[BuildException, Option[String]] =
+    Right(JavaParser.rootClassName(content, sourceFileName))
 }

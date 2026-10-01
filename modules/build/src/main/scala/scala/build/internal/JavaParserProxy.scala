@@ -14,9 +14,15 @@ trait JavaParserProxy {
     *
     * @param content
     *   the Java source to extract a class name from
+    * @param sourceFileName
+    *   the name of the file the source is going to be written to, which names the implicit class of
+    *   compact source files (JEP 512)
     * @return
     *   either some class name (if one was found) or none (if none was found), or a
     *   [[BuildException]]
     */
-  def className(content: Array[Byte]): Either[BuildException, Option[String]]
+  def className(
+    content: Array[Byte],
+    sourceFileName: String
+  ): Either[BuildException, Option[String]]
 }

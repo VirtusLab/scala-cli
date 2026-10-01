@@ -37,7 +37,10 @@ class JavaParserProxyBinary(
       () => javaCommand0.get()
     )
 
-  def className(content: Array[Byte]): Either[BuildException, Option[String]] = either {
+  def className(
+    content: Array[Byte],
+    sourceFileName: String
+  ): Either[BuildException, Option[String]] = either {
 
     val platformSuffix  = FetchExternalBinary.platformSuffix()
     val version         = javaClassNameVersionOpt.getOrElse(Constants.javaClassNameVersion)
@@ -60,16 +63,20 @@ class JavaParserProxyBinary(
     val binary =
       value(FetchExternalBinary.fetch(params, archiveCache, logger, javaCommand))
 
-    val source =
-      os.temp(content, suffix = ".java", perms = if (Properties.isWin) null else "rw-------")
+    // java-class-name names compact source files (JEP 512) after the source file, so the source
+    // has to be written under its actual file name
+    val sourceDir =
+      if Properties.isWin then os.temp.dir() else os.temp.dir(perms = "rwx------")
+    val source  = sourceDir / sourceFileName
     val command = binary.command
     val output  =
       try {
+        os.write(source, content)
         logger.debug(s"Running $command $source")
         val res = os.proc(command, source).call()
         res.out.trim()
       }
-      finally os.remove(source)
+      finally os.remove.all(sourceDir)
     if (output.isEmpty) None
     else Some(output)
   }
