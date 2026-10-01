@@ -1,5 +1,5 @@
 ---
-name: home-layout
+name: website-home-layout
 description: >-
   Homepage and product-page layout rules for Scala CLI website (sections,
   grids, chrome, features nav, icons). Use when editing Home, install,
@@ -18,7 +18,7 @@ description: >-
 | [components.md](./components.md) | Section*, IconBox, UseCaseTile, Features, wordmark, `>_` |
 | [chrome.md](./chrome.md) | Navbar, theme switch, search/GitHub, footer, jump navs |
 
-Also: [docs-chrome](../docs-chrome/SKILL.md), [responsive](../responsive/SKILL.md), [design-tokens](../design-tokens/SKILL.md).
+Also: [docs-chrome](../website-docs-chrome/SKILL.md), [responsive](../website-responsive/SKILL.md), [design-tokens](../website-design-tokens/SKILL.md).
 
 ## Hard constraints
 

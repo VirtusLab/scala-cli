@@ -47,7 +47,7 @@ Menu sits slightly below the trigger; hover bridge so the menu does not close in
 
 ### Mobile (≤996px)
 
-See [responsive](../responsive/SKILL.md). Must hide `.navbar__item` with `!important` (our `inline-flex` otherwise wins). Drawer: `.navbar-sidebar` styled like product menus; docs secondary panel uses Metronic sidebar language. Header uses our `ThemeSwitch` + square Lucide `X` close (`.sc-navbar-sidebar-close`), not Infima ColorModeToggle / IconClose.
+See [responsive](../website-responsive/SKILL.md). Must hide `.navbar__item` with `!important` (our `inline-flex` otherwise wins). Drawer: `.navbar-sidebar` styled like product menus; docs secondary panel uses Metronic sidebar language. Header uses our `ThemeSwitch` + square Lucide `X` close (`.sc-navbar-sidebar-close`), not Infima ColorModeToggle / IconClose.
 
 Glass blur must live on `.navbar::before`, **not** on `.navbar` — `backdrop-filter` on the nav creates a containing block that clips the fixed mobile drawer to navbar height.
 

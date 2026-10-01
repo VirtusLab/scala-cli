@@ -1,11 +1,11 @@
 ---
-name: design-tokens
+name: website-design-tokens
 description: Scala CLI website design tokens (brand colors, typography, gutters, motion, Infima mapping). Use when styling or editing tokens.css.
 ---
 
 # Design tokens
 
-Source of truth: [`src/css/tokens.css`](../../../src/css/tokens.css).
+Source of truth: [`src/css/tokens.css`](../../website/src/css/tokens.css).
 
 ## Brand (do not change)
 
@@ -58,4 +58,4 @@ Scale gutters with `min-width: 768px` / `1280px`. Do not invent parallel padding
 - `--ease-interactive`: `cubic-bezier(0.33, 1, 0.68, 1)`
 - Respect `prefers-reduced-motion`
 
-Layout rhythm: [home-layout](../home-layout/SKILL.md). Docs chrome: [docs-chrome](../docs-chrome/SKILL.md). Mobile: [responsive](../responsive/SKILL.md).
+Layout rhythm: [home-layout](../website-home-layout/SKILL.md). Docs chrome: [docs-chrome](../website-docs-chrome/SKILL.md). Mobile: [responsive](../website-responsive/SKILL.md).

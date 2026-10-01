@@ -1,5 +1,5 @@
 ---
-name: product-pages
+name: website-product-pages
 description: Product marketing pages for Scala CLI website. Use when editing landing, install, or use-case pages.
 ---
 
@@ -26,8 +26,8 @@ Do not edit visible strings, feature blurbs, or MDX docs prose. Redesign layout/
 
 ## Layout rules (Home + bands)
 
-**Source of truth:** [home-layout](../home-layout/SKILL.md) — sections/grid/separators, components, navbar/footer/jump navs.
+**Source of truth:** [home-layout](../website-home-layout/SKILL.md) — sections/grid/separators, components, navbar/footer/jump navs.
 
 When changing Home spacing, grids, or chrome, read that skill first and keep bands on `sc-section-y` + the shared 3-col grid.
 
-Docs work: [docs-chrome](../docs-chrome/SKILL.md). Mobile: [responsive](../responsive/SKILL.md).
+Docs work: [docs-chrome](../website-docs-chrome/SKILL.md). Mobile: [responsive](../website-responsive/SKILL.md).

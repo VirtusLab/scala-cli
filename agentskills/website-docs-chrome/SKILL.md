@@ -1,5 +1,5 @@
 ---
-name: docs-chrome
+name: website-docs-chrome
 description: >-
   Docs chrome styling for Scala CLI website (sidebar, breadcrumbs, admonitions,
   code, TOC, paginator). Use when editing docs layout, tokens.css docs rules,

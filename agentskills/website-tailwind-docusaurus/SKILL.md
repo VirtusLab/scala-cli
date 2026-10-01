@@ -1,5 +1,5 @@
 ---
-name: tailwind-docusaurus
+name: website-tailwind-docusaurus
 description: Tailwind v4 + Infima coexistence in Docusaurus. Use when styling, adding utilities, or debugging CSS conflicts.
 ---
 

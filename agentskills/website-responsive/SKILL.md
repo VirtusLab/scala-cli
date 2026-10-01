@@ -1,5 +1,5 @@
 ---
-name: responsive
+name: website-responsive
 description: >-
   Mobile/tablet responsive rules for Scala CLI website (996px Infima breakpoint,
   navbar collapse, overflow, sticky chrome). Use when editing mobile CSS or

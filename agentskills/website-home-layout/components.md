@@ -51,7 +51,7 @@
 - Sticky/fixed nav appears only after site header has scrolled over the Features **title** (`.sc-features-title`); hides when leaving the section.
 - Active tab = last feature whose top has passed under the nav bottom (scroll probe), not jumpy IntersectionObserver multi-hit.
 - Desktop (≥1024): underline tabs; mobile: compact select + progress.
-- Placement / glass / overscroll: see [chrome.md](./chrome.md) + [responsive](../responsive/SKILL.md).
+- Placement / glass / overscroll: see [chrome.md](./chrome.md) + [responsive](../website-responsive/SKILL.md).
 - Each `ImageBox`: `md:grid-cols-2 md:gap-6` (1+1), same gap as site grid.
 
 ## Install sticky TOC

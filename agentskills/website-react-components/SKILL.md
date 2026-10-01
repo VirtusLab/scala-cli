@@ -1,5 +1,5 @@
 ---
-name: react-components
+name: website-react-components
 description: TSX component conventions for the Scala CLI Docusaurus website.
 ---
 
@@ -34,7 +34,7 @@ Local / swizzled chrome (do not revert to stock Infima look):
 
 Also under `src/components/`: `ThemeSwitch`, `NavbarDevTools`, `ScalaCliWordmark`, `HomeNavbarEffect`, sticky navs.
 
-Product layout: [home-layout](../home-layout/SKILL.md). Docs: [docs-chrome](../docs-chrome/SKILL.md). Mobile: [responsive](../responsive/SKILL.md).
+Product layout: [home-layout](../website-home-layout/SKILL.md). Docs: [docs-chrome](../website-docs-chrome/SKILL.md). Mobile: [responsive](../website-responsive/SKILL.md).
 
 New files under `src/theme/**` often need a **yarn start restart**.
 
