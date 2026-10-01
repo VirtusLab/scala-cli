@@ -207,7 +207,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
             s"Uploading ${missingSetSecrets.length} GitHub repository $name"
         }
 
-        LibSodiumJni.init(coursierCache, ArchiveCache().withCache(coursierCache), logger)
+        LibSodiumJni.init(coursierCache, ArchiveCache().copy(cache = coursierCache), logger)
 
         lazy val pubKey = SecretCreate.publicKey(
           ghRepoOrg,

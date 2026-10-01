@@ -6,7 +6,7 @@ import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
 import com.oracle.svm.core.headers.LibC;
 import coursier.exec.ErrnoException;
-import coursier.exec.GraalvmErrnoExtras;
+import coursier.exec.graalvm.GraalvmErrnoExtras;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
 import org.graalvm.nativeimage.Platform;
 import org.graalvm.nativeimage.Platforms;

@@ -93,7 +93,7 @@ object LauncherCli {
     val cliSubPath       = s"org/virtuslab/scala-cli/cli_$scalaBinaryVersion"
     val mavenMetadataUrl =
       s"${RepositoryUtils.snapshotsRepositoryUrl}/$cliSubPath/maven-metadata.xml"
-    val artifact = Artifact(mavenMetadataUrl).withChanging(true)
+    val artifact = Artifact(mavenMetadataUrl).copy(changing = true)
     cache.fileWithTtl0(artifact) match {
       case Left(_) =>
         System.err.println(s"Unable to find nightly ${ScalaCli.fullRunnerName} version")

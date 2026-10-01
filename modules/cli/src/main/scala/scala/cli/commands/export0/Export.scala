@@ -107,7 +107,7 @@ object Export extends ScalaCommand[ExportOptions] {
     )
     val launcherTasks = launcherArtifacts.map {
       case (path, url) =>
-        val art = Artifact(url).withChanging(true)
+        val art = Artifact(url).copy(changing = true)
         cache.file(art).run.flatMap {
           case Left(e)  => Task.fail(e)
           case Right(f) => Task.delay {

@@ -48,13 +48,11 @@ final case class JavaOptions(
     }
     val jvmCache = JvmCache()
       .withIndex(indexTask)
-      .withArchiveCache(
-        archiveCache.withCache(
-          cache.withMessage("Downloading JVM")
-        )
+      .copy(
+        archiveCache = archiveCache.copy(cache = cache.withMessage("Downloading JVM")),
+        os = finalJvmIndexOs,
+        architecture = jvmIndexArch.getOrElse(JvmChannel.defaultArchitecture())
       )
-      .withOs(finalJvmIndexOs)
-      .withArchitecture(jvmIndexArch.getOrElse(JvmChannel.defaultArchitecture()))
     JavaHome().withCache(jvmCache)
   }
 

@@ -478,7 +478,7 @@ trait CliLaunchers extends SbtModule { self =>
     val entries       = cp.map(path => ClassPathEntry.Url(path.toNIO.toUri.toASCIIString))
     val loaderContent = coursier.launcher.ClassLoaderContent(entries)
     val params        = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
-      .withDeterministic(true)
+      .copy(deterministic = true)
       .withPreamble(preamble)
 
     BootstrapGenerator.generate(params, dest.toNIO)
@@ -518,9 +518,11 @@ trait CliLaunchers extends SbtModule { self =>
     }
     val loaderContent = coursier.launcher.ClassLoaderContent(entries)
     val params        = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
-      .withDeterministic(true)
+      .copy(
+        deterministic = true,
+        javaProperties = Seq("scala-cli.kind" -> "jvm.standaloneLauncher")
+      )
       .withPreamble(preamble)
-      .withJavaProperties(Seq("scala-cli.kind" -> "jvm.standaloneLauncher"))
 
     BootstrapGenerator.generate(params, dest.toNIO)
 
@@ -546,7 +548,7 @@ trait HasTests extends SbtModule {
       Deps.expecty,
       Deps.munit
     )
-    override def forkArgs: T[Seq[String]] = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
+    override def forkArgs: T[Seq[String]]        = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
     override def forkEnv: T[Map[String, String]] = super.forkEnv() ++ Seq(
       // bloop rifle hard-codes a 30s timeout for `bloop about`, which no CLI option can raise;
       // loaded CI machines regularly exceed it, so extend all bloop rifle timeouts for tests
