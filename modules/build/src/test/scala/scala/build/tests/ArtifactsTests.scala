@@ -94,7 +94,7 @@ class ArtifactsTests extends TestUtil.ScalaCliBuildSuite {
       toolchain.providedModules.keySet
     )(Artifacts.rewriteRootDeps(toolchain)(Seq(osLib, upstreamLibrary)))
     expect(rewritten.module.organization.value == fork)
-    expect(aligned.exclusions().contains(
+    expect(aligned.minimizedExclusions.toSet().contains(
       Organization("org.scala-lang") -> ModuleName("scala3-library_3")
     ))
   }
@@ -105,7 +105,7 @@ class ArtifactsTests extends TestUtil.ScalaCliBuildSuite {
       toolchain,
       toolchain.providedModules.keySet + "scala3-library_sjs1_3"
     )(Seq(dependency("org.scalameta", "munit_sjs1_3", "1.0.0")))
-    expect(munit.exclusions().contains(
+    expect(munit.minimizedExclusions.toSet().contains(
       Organization("org.scala-lang") -> ModuleName("scala3-library_sjs1_3")
     ))
   }
@@ -116,7 +116,7 @@ class ArtifactsTests extends TestUtil.ScalaCliBuildSuite {
       Artifacts.excludeUpstreamToolchain(toolchain, toolchain.providedModules.keySet)(
         Seq(dependency(fork, "scala3-library_3", "3.10.1"))
       )
-    expect(forkLibrary.exclusions().isEmpty)
+    expect(forkLibrary.minimizedExclusions.toSet().isEmpty)
   }
 
   private def module(organization: String, name: String) =

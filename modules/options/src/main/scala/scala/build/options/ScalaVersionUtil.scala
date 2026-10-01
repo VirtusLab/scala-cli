@@ -111,7 +111,7 @@ object ScalaVersionUtil {
       val branch = s"$versionPrefix.x"
       val url    =
         s"https://api.github.com/repos/scala/scala/commits?sha=$branch&per_page=20"
-      val artifact = Artifact(url).withChanging(true)
+      val artifact = Artifact(url).copy(changing = true)
       val file     = value {
         cache.fileWithTtl0(artifact).left.map { err =>
           new ScalaVersionError(
@@ -135,7 +135,7 @@ object ScalaVersionUtil {
       either {
         val scala2NightlyRepo =
           "https://scala-ci.typesafe.com/ui/api/v1/ui/nativeBrowser/scala-integration/org/scala-lang/scala-compiler"
-        val artifact = Artifact(scala2NightlyRepo).withChanging(true)
+        val artifact = Artifact(scala2NightlyRepo).copy(changing = true)
         val res      = cache.fileWithTtl0(artifact)
           .left.map { err =>
             val msg =

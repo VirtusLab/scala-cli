@@ -13,7 +13,7 @@ class OfflineTests extends TestUtil.ScalaCliBuildSuite {
     internal = InternalOptions(
       cache = Some(FileCache()
         .withLocation(directories.cacheDir.toString)
-        .withCachePolicies(Seq(coursier.cache.CachePolicy.LocalOnly)))
+        .copy(cachePolicies = Seq(coursier.cache.CachePolicy.LocalOnly)))
     )
   )
 

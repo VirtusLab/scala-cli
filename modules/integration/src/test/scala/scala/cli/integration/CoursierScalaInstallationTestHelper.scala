@@ -4,7 +4,6 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.nio.charset.Charset
 
-import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.util.Properties
 import scala.util.matching.Regex
 
@@ -38,16 +37,11 @@ trait CoursierScalaInstallationTestHelper {
         val batchWrapperScript: os.Path = localBin / "scala.bat"
         val charset                     = Charset.defaultCharset().toString
         val batchWrapperContent         = new String(os.read.bytes(batchWrapperScript), charset)
-        val setCommandLine              = batchWrapperContent
-          .lines()
-          .iterator()
-          .asScala
-          .toList
-          .find(_.startsWith("SET CMDLINE="))
-          .getOrElse("")
-        val scriptPathRegex = """SET CMDLINE="(.*\\bin\\scala\.bat)" %CMD_LINE_ARGS%""".r
-        val batchScript     =
-          setCommandLine match { case scriptPathRegex(extractedPath) => extractedPath }
+        val batchScript                 =
+          CoursierScalaInstallationTestHelper.windowsWrapperTarget(batchWrapperContent)
+            .getOrElse(sys.error(
+              s"Could not find the underlying scala.bat in $batchWrapperScript:\n$batchWrapperContent"
+            ))
         val batchScriptPath = os.Path(batchScript)
         val oldContent      = os.read(batchScriptPath)
         val newContent      = CoursierScalaInstallationTestHelper.patchWindowsScalaScript(
@@ -118,6 +112,15 @@ object CoursierScalaInstallationTestHelper {
     s"$winOverrideStart[\\s\\S]*?$winOverrideEnd\\r?\\n?".r
   private val winCliCommonPattern: Regex =
     """(?im)^call "%_PROG_HOME%\\libexec\\cli-common-platform.bat".*$""".r
+  // coursier < 2.1.26 wrappers: SET CMDLINE="…\bin\scala.bat" %CMD_LINE_ARGS%
+  // coursier >= 2.1.26 wrappers: SET RUN_CMD="…\bin\scala.bat"
+  private val winWrapperTargetPattern: Regex =
+    """(?im)^SET (?:CMDLINE|RUN_CMD)="(.*\\bin\\scala\.bat)"""".r
+
+  /** Extracts the path of the underlying `scala.bat` from a `cs install`-generated Windows wrapper
+    */
+  def windowsWrapperTarget(wrapperContent: String): Option[String] =
+    winWrapperTargetPattern.findFirstMatchIn(wrapperContent).map(_.group(1))
 
   def patchUnixScalaScript(content: String, cli: Seq[String]): String =
     val withEvalRestored = unixEvalBlockPattern.replaceAllIn(

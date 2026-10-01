@@ -535,14 +535,15 @@ object Artifacts {
           .left.map(CoursierDependencyError(_))
       }
       // this is actually fetcher.artifacts, which is a private field…
-      val artifacts = coursier.Artifacts()
-        .withCache(fetcher.cache)
-        .withClassifiers(fetcher.classifiers)
-        .withMainArtifactsOpt(fetcher.mainArtifactsOpt)
-        .withArtifactTypesOpt(fetcher.artifactTypesOpt)
-        .withExtraArtifactsSeq(fetcher.extraArtifactsSeq)
-        .withClasspathOrder(fetcher.classpathOrder)
-        .withTransformArtifacts(fetcher.transformArtifacts)
+      val artifacts = coursier.Artifacts().copy(
+        cache = fetcher.cache,
+        classifiers = fetcher.classifiers,
+        mainArtifactsOpt = fetcher.mainArtifactsOpt,
+        artifactTypesOpt = fetcher.artifactTypesOpt,
+        extraArtifactsSeq = fetcher.extraArtifactsSeq,
+        classpathOrder = fetcher.classpathOrder,
+        transformArtifacts = fetcher.transformArtifacts
+      )
       artifacts
         .withResolution(resolution)
         .runResult()
@@ -839,17 +840,17 @@ object Artifacts {
     // FIXME Many parameters that we could allow to customize here
     val defaultResolve = coursier.Resolve()
     val resolve        = defaultResolve
-      .withCache(cache)
-      // repository order matters here, since in some cases coursier resolves only the head
-      .withRepositories(extraRepositoriesWithFallback ++ defaultResolve.repositories)
-      .withDependencies(rewriteRootDeps(toolchain)(
-        dependencies.map(_.value)
-      ))
+      .copy(
+        cache = cache,
+        // repository order matters here, since in some cases coursier resolves only the head
+        repositories = extraRepositoriesWithFallback ++ defaultResolve.repositories,
+        dependencies = rewriteRootDeps(toolchain)(dependencies.map(_.value)),
+        mapDependenciesOpt = toolchainRewriteOpt
+      )
       .mapResolutionParams(_.addForceVersion0(forceVersion*))
-      .withMapDependenciesOpt(toolchainRewriteOpt)
 
     var fetcher = coursier.Fetch()
-      .withResolve(resolve)
+      .copy(resolve = resolve)
       .withArtifactsCache(cache)
 
     for (classifiers <- classifiersOpt) {
@@ -908,7 +909,7 @@ object Artifacts {
         moduleNames.map(name => Organization(ScalaOptions.defaultOrganization) -> ModuleName(name))
       dependencies.map: dep =>
         if dep.module.organization.value == toolchain.organization then dep
-        else dep.withMinimizedExclusions(dep.minimizedExclusions.join(upstreamToolchain))
+        else dep.copy(minimizedExclusions = dep.minimizedExclusions.join(upstreamToolchain))
 
   def forkToolchainDependencies(
     toolchain: ScalaToolchain,
@@ -959,7 +960,7 @@ object Artifacts {
     then None
     else
       forkedVersionOf(toolchain, module.name.value).map { version =>
-        module.withOrganization(Organization(toolchain.organization)) -> version
+        module.copy(organization = Organization(toolchain.organization)) -> version
       }
 
   private[build] def toolchainRewrite(
@@ -972,7 +973,7 @@ object Artifacts {
       Some: dep =>
         forkedModule(toolchain, dep.module) match
           case Some((forkModule, forkVersion)) =>
-            dep.withModule(forkModule).withVersionConstraint(forkVersion)
+            dep.copy(module = forkModule, versionConstraint = forkVersion)
           case None => dep
 
   def fetchCsDependencies(
