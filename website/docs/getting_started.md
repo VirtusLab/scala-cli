@@ -3,7 +3,7 @@ title: Getting started
 sidebar_position: 2
 ---
 
-import {ChainedSnippets, GiflikeVideo} from "../src/components/MarkdownComponents.js";
+import {ChainedSnippets, GiflikeVideo} from "../src/components/MarkdownComponents";
 
 :::info
 This article requires knowledge of the Scala language (how to define a class or method) as well as Scala tooling (the REPL, and basics of dependency management and unit tests).

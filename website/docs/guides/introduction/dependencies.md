@@ -3,7 +3,7 @@ title: Managing dependencies
 sidebar_position: 3
 ---
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 # Managing dependencies
 

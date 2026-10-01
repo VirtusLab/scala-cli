@@ -18,7 +18,7 @@ If you encounter any bugs or have feedback to share, make sure to reach out to t
 on [GitHub](https://github.com/VirtusLab/scala-cli).
 :::
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 The `publish local` sub-command publishes a Scala CLI project in the local Ivy2
 repository, just like how `sbt publishLocal` or `mill __.publishLocal` do. This

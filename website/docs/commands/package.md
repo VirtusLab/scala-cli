@@ -10,7 +10,7 @@ You can pass it explicitly or set it globally by running:
     scala-cli config power true
 :::
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../src/components/MarkdownComponents";
 
 The `package` command can package your Scala code in various formats, such as:
 - [lightweight launcher JARs](#default-package-format)

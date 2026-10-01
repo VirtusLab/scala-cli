@@ -3,7 +3,7 @@ title: Snippets
 sidebar_position: 43
 ---
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 # Snippets
 

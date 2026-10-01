@@ -3,7 +3,7 @@ title: Scala.js
 sidebar_position: 40
 ---
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 Scala CLI can compile, run, test, and package Scala.js sources.
 

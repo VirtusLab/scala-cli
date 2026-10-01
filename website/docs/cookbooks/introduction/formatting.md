@@ -3,7 +3,7 @@ title: Formatting
 sidebar_position: 5
 ---
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 Scala CLI also lets you format your code using the [Scalafmt](https://scalameta.org/scalafmt/) formatter.
 

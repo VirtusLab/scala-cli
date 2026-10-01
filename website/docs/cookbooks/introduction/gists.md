@@ -3,7 +3,7 @@ title: GitHub gists
 sidebar_position: 8
 ---
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 ## Running code from gists
 

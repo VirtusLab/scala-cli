@@ -3,7 +3,7 @@ title: Compile
 sidebar_position: 5
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../src/components/MarkdownComponents";
 
 Scala CLI compiles your code with its `compile` command:
 

@@ -3,7 +3,7 @@ title: Scripts
 sidebar_position: 30
 ---
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 # Scripts
 

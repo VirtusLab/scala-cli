@@ -1,7 +1,7 @@
 # AGENTS.md — Guidance for AI agents contributing to Scala CLI
 
 Short reference for AI agents. For task-specific guidance (directives, integration tests), load skills from *
-*[agentskills/](agentskills/)** when relevant.
+*[agentskills/](agentskills/)** when relevant (including `website-*` skills for the Docusaurus site).
 
 > **LLM Policy**: All AI-assisted contributions must comply with the
 > [LLM usage policy](https://github.com/scala/scala3/blob/HEAD/LLM_POLICY.md). The contributor (human) is responsible

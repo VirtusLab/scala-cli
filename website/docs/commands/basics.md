@@ -2,7 +2,7 @@
 title: Basics
 sidebar_position: 3
 ---
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../src/components/MarkdownComponents";
 
 
 Scala CLI is a command line tool that executes a given sub-command on the inputs it’s provided with, using a
@@ -210,7 +210,7 @@ More details in the [GitHub gists cookbook](../cookbooks/introduction/gists.md).
 Scala CLI accepts inputs via a `zip` archive path.
 It unpacks the archive and runs it:
 
-```scala titleHello.scala
+```scala title="Hello.scala"
 object Hello extends App {
   println("Hello")
 }

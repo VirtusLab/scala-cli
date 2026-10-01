@@ -3,7 +3,7 @@ title: Migrating from the old Scala runner
 sidebar_position: 15
 ---
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 # Migrating from the old `scala` runner
 
