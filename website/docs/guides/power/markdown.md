@@ -11,7 +11,7 @@ If you encounter any bugs or have feedback to share, make sure to reach out to t
 on [GitHub](https://github.com/VirtusLab/scala-cli).
 :::
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 Scala CLI can compile, run, test, and package markdown (`.md`) sources.
 

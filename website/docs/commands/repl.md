@@ -3,7 +3,7 @@ title: REPL
 sidebar_position: 8
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../src/components/MarkdownComponents";
 
 The `repl` command starts a Scala REPL, which lets you interactively run your code and inspect its results:
 

@@ -3,7 +3,7 @@ title: Version
 sidebar_position: 25
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../src/components/MarkdownComponents";
 
 The `version` sub-command prints the currently used Scala CLI version and the associated Scala version.
 

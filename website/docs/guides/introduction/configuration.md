@@ -3,7 +3,7 @@ title: Configuration
 sidebar_position: 2
 ---
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 Scala CLI can be configured in two ways:
 - on the command-line
