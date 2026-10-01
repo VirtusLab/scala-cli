@@ -1,6 +1,6 @@
 package scala.build.internal
 
-import coursier.exec.Execve
+import coursier.exec.{Chdir, Execve}
 import org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv
 import org.scalajs.jsenv.nodejs.NodeJSEnv
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
