@@ -37,4 +37,23 @@ class TestUtilTests extends ScalaCliSuite {
       Vector("Compilation failed")
     )
   }
+
+  test("JVM unified logging lines are dropped") {
+    val lines = Vector(
+      """[9.163s][warning][os,thread] Failed to start thread "Unknown thread" - pthread_create failed (EAGAIN) for attributes: stacksize: 1024k, guardsize: 4k, detached.""",
+      "Hello, world!",
+      "[0.012s][info ][gc     ] Using G1",
+      "[0.5s][error][os] something"
+    )
+    assertEquals(TestUtil.dropJvmLogLines(lines), Vector("Hello, world!"))
+  }
+
+  test("regular output resembling JVM unified logging is kept") {
+    val lines = Vector(
+      "[warning] not a JVM log line",
+      "[1, 2, 3]",
+      "[info][gc] missing decorations"
+    )
+    assertEquals(TestUtil.dropJvmLogLines(lines), lines)
+  }
 }

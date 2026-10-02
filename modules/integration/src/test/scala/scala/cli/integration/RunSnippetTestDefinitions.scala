@@ -67,7 +67,7 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
             "--jvm",
             TestUtil.jvmId(javaVersion)
           ).call(cwd = root)
-          expect(res.out.trim() == msg)
+          expect(TestUtil.stableStdout(res) == msg)
         }
       }
     }

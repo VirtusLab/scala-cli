@@ -1314,7 +1314,7 @@ abstract class RunTestDefinitions
         ).fromRoot { root =>
           val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
-          expect(res.out.trim() == "1")
+          expect(TestUtil.stableStdout(res) == "1")
         }
       }
     }
@@ -1329,7 +1329,7 @@ abstract class RunTestDefinitions
         ).fromRoot { root =>
           val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
-          expect(res.out.trim() == "hello from a trait")
+          expect(TestUtil.stableStdout(res) == "hello from a trait")
         }
       }
     }
@@ -1346,7 +1346,7 @@ abstract class RunTestDefinitions
         ).fromRoot { root =>
           val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
-          expect(res.out.trim() == "hello from A")
+          expect(TestUtil.stableStdout(res) == "hello from A")
         }
       }
     }
@@ -1363,7 +1363,7 @@ abstract class RunTestDefinitions
         ).fromRoot { root =>
           val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
-          expect(res.out.trim() == "hello from B")
+          expect(TestUtil.stableStdout(res) == "hello from B")
         }
       }
     }
@@ -1380,7 +1380,7 @@ abstract class RunTestDefinitions
         ).fromRoot { root =>
           val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
-          expect(res.out.trim() == "hello from JChild")
+          expect(TestUtil.stableStdout(res) == "hello from JChild")
         }
       }
     }
@@ -1397,7 +1397,7 @@ abstract class RunTestDefinitions
         ).fromRoot { root =>
           val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
             .call(cwd = root)
-          expect(res.out.trim() == "hello from JImpl")
+          expect(TestUtil.stableStdout(res) == "hello from JImpl")
         }
       }
     }
@@ -1447,7 +1447,7 @@ abstract class RunTestDefinitions
         ).fromRoot { root =>
           val res = os.proc(TestUtil.cli, "run", ".", "--jvm", javaJvmId)
             .call(cwd = root)
-          expect(res.out.trim() == "Hello")
+          expect(TestUtil.stableStdout(res) == "Hello")
         }
       }
     }
@@ -1467,7 +1467,7 @@ abstract class RunTestDefinitions
               javaJvmId,
               "--runner"
             ).call(cwd = root)
-            expect(res.out.trim() == "1")
+            expect(TestUtil.stableStdout(res) == "1")
           }
         }
       }
@@ -2804,35 +2804,37 @@ abstract class RunTestDefinitions
     test(
       s"run a simple hello world with the runner module on the classpath, Scala $actualScalaVersion and Java $javaVersion"
     ) {
-      val expectedMessage     = "Hello, world!"
-      val legacyRunnerWarning = "Defaulting to a legacy runner module version"
-      TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""")
-        .fromRoot { root =>
-          val res =
-            os.proc(
-              TestUtil.cli,
-              "run",
-              ".",
-              "--runner",
-              extraOptions,
-              "--jvm",
-              TestUtil.jvmId(javaVersion)
-            )
-              .call(cwd = root, stderr = os.Pipe)
-          expect(res.out.trim() == expectedMessage)
-          val isLegacyJvm        = javaVersion < Constants.minimumRunnerJavaVersion
-          val isLegacyScala      = actualScalaVersion.startsWith("2")
-          val legacyWarningCheck = {
-            val check = res.err.trim().contains(legacyRunnerWarning)
-            if isLegacyJvm || isLegacyScala then check else !check
+      TestUtil.retryOnCi() {
+        val expectedMessage     = "Hello, world!"
+        val legacyRunnerWarning = "Defaulting to a legacy runner module version"
+        TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""")
+          .fromRoot { root =>
+            val res =
+              os.proc(
+                TestUtil.cli,
+                "run",
+                ".",
+                "--runner",
+                extraOptions,
+                "--jvm",
+                TestUtil.jvmId(javaVersion)
+              )
+                .call(cwd = root, stderr = os.Pipe)
+            expect(TestUtil.stableStdout(res) == expectedMessage)
+            val isLegacyJvm        = javaVersion < Constants.minimumRunnerJavaVersion
+            val isLegacyScala      = actualScalaVersion.startsWith("2")
+            val legacyWarningCheck = {
+              val check = res.err.trim().contains(legacyRunnerWarning)
+              if isLegacyJvm || isLegacyScala then check else !check
+            }
+            expect(legacyWarningCheck)
+            if isLegacyJvm && !isLegacyScala then
+              expect(
+                res.err.trim()
+                  .contains(s"$legacyRunnerWarning: ${Constants.runnerJava8LegacyVersion}")
+              )
           }
-          expect(legacyWarningCheck)
-          if isLegacyJvm && !isLegacyScala then
-            expect(
-              res.err.trim()
-                .contains(s"$legacyRunnerWarning: ${Constants.runnerJava8LegacyVersion}")
-            )
-        }
+      }
     }
 
   for (parallelInstancesCount <- Seq(2, 5, 10))

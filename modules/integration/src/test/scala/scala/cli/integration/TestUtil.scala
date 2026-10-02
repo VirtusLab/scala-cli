@@ -157,6 +157,21 @@ object TestUtil {
       else (acc :+ line)                                          -> false
     }._1
 
+  private val jvmUnifiedLogLineRegex =
+    """^\[[^\]\s]+\]\[\s*(?:error|warning|info|debug|trace)\s*\]\[[^\]]+\].*""".r
+
+  /** Drops lines printed by the JVM's unified logging (e.g. `[9.163s][warning][os,thread] Failed to
+    * start thread "Unknown thread" - pthread_create failed (EAGAIN)`). The JVM prints those to
+    * stdout by default, and they depend on the resources available on the machine at the time, so
+    * keeping them would make output assertions flaky.
+    */
+  def dropJvmLogLines(lines: Seq[String]): Seq[String] =
+    lines.filterNot(jvmUnifiedLogLineRegex.matches)
+
+  /** Trimmed stdout of the process, without lines printed by the JVM's unified logging. */
+  def stableStdout(result: os.CommandResult): String =
+    dropJvmLogLines(result.out.lines()).mkString(System.lineSeparator()).trim()
+
   def fullStableOutput(result: os.CommandResult): String = {
     val stableLines = removeAnsiColors(result.toString).trim().linesIterator.filterNot { str =>
       // these lines are not stable and can easily change
@@ -172,7 +187,7 @@ object TestUtil {
         )
       shouldNotContain.exists(str.contains)
     }.toVector
-    dropBackgroundThreadStackTraces(stableLines).mkString(System.lineSeparator())
+    dropBackgroundThreadStackTraces(dropJvmLogLines(stableLines)).mkString(System.lineSeparator())
   }
 
   def fullStableOutputLines(result: os.CommandResult): Vector[String] =
