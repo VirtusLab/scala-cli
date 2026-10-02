@@ -72,6 +72,65 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
       }
     }
 
+  // java-class-name regressions are independent of the Scala version
+  if scalaVersionArgs.isEmpty then {
+
+    /** Runs a Java source whose class name has to be inferred by java-class-name. The sources avoid
+      * string literals, so that they can be passed on the command line on all platforms.
+      */
+    def javaSnippetTest(
+      description: String,
+      source: String,
+      expectedOutput: String,
+      jvmOptions: Seq[String] = Nil
+    ): Unit =
+      test(s"java snippet: $description") {
+        emptyInputs.fromRoot { root =>
+          val res =
+            os.proc(TestUtil.cli, "run", "--java-snippet", source, extraOptions, jvmOptions)
+              .call(cwd = root, stderr = os.Pipe)
+          expect(res.out.trim() == expectedOutput)
+          // java-class-name used to report Java parser errors (e.g. for compact sources) to stderr
+          expect(!res.err.text().contains("-- Error:"))
+        }
+      }
+
+    // https://github.com/VirtusLab/scala-cli/issues/4514
+    javaSnippetTest(
+      description = "public enum with methods",
+      source =
+        "public enum Color { RED, GREEN; public static void main(String[] args) { System.out.println(RED); } }",
+      expectedOutput = "RED"
+    )
+    // https://github.com/VirtusLab/scala-cli/issues/4516
+    javaSnippetTest(
+      description = "public record with primitive components",
+      source =
+        "public record Point(int x, int y) { public static void main(String[] args) { System.out.println(new Point(1, 2)); } }",
+      expectedOutput = "Point[x=1, y=2]"
+    )
+    // https://github.com/VirtusLab/scala-cli/issues/4515
+    javaSnippetTest(
+      description = "public class after a package-private one in a package",
+      source =
+        """package demo;
+          |class Helper { static int answer() { return 42; } }
+          |public class Main { public static void main(String[] args) { System.out.println(Helper.answer()); } }
+          |""".stripMargin,
+      expectedOutput = "42"
+    )
+    // JEP 512: the implicit class of a compact source file is named after the generated source file
+    javaSnippetTest(
+      description = "compact source file with a public class before main",
+      source =
+        """public class Helper { static int answer() { return 42; } }
+          |void main() { System.out.println(getClass().getName() + ' ' + Helper.answer()); }
+          |""".stripMargin,
+      expectedOutput = "java_snippet 42",
+      jvmOptions = Seq("--jvm", TestUtil.jvmId(Constants.jep512MinJavaVersion))
+    )
+  }
+
   test("correctly run a markdown snippet") {
     emptyInputs.fromRoot { root =>
       val msg       = "Hello world"

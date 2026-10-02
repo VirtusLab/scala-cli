@@ -202,11 +202,12 @@ final case class MarkdownPreprocessor(
     suppressWarningOptions: SuppressWarningOptions,
     maybeRecoverOnError: BuildException => Option[BuildException]
   )(using ScalaCliInvokeData): Either[BuildException, PreprocessedSource.InMemory] = either {
-    val classNameOpt = value {
-      javaParser.className(block.body.getBytes(StandardCharsets.UTF_8))
+    val mdBaseName       = subPath.last.stripSuffix(".md")
+    val fallbackBaseName = s"${mdBaseName}_md_snippet$index"
+    val classNameOpt     = value {
+      javaParser.className(block.body.getBytes(StandardCharsets.UTF_8), s"$fallbackBaseName.java")
     }
-    val mdBaseName   = subPath.last.stripSuffix(".md")
-    val baseName     = classNameOpt.getOrElse(s"${mdBaseName}_md_snippet$index")
+    val baseName     = classNameOpt.getOrElse(fallbackBaseName)
     val javaFileName =
       if isTest then s"$baseName.test.java"
       else s"$baseName.java"
