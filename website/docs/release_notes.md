@@ -2,7 +2,7 @@
 title: Release notes
 sidebar_position: 99
 ---
-import {ChainedSnippets} from "../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../src/components/MarkdownComponents";
 import ReactPlayer from 'react-player'
 
 

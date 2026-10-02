@@ -3,7 +3,7 @@ title: Run
 sidebar_position: 6
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../src/components/MarkdownComponents";
 
 The `run` command runs your Scala code:
 

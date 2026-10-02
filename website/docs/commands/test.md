@@ -3,7 +3,7 @@ title: Test
 sidebar_position: 7
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../src/components/MarkdownComponents";
 
 The `test` command runs test suites in the test sources.
 Test sources are compiled separately (after the 'main' sources), and may use different dependencies, compiler options,

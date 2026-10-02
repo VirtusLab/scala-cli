@@ -1,6 +1,6 @@
 # Experimental Spark features
 
-import {ChainedSnippets, GiflikeVideo} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets, GiflikeVideo} from "../../src/components/MarkdownComponents";
 
 ## Packaging
 

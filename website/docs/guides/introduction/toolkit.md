@@ -3,7 +3,7 @@ title: Scala Toolkit
 sidebar_position: 7
 ---
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 :::caution
 Newer versions of toolkits dropped support for Scala 2.12

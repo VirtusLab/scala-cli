@@ -18,7 +18,7 @@ If you encounter any bugs or have feedback to share, make sure to reach out to t
 on [GitHub](https://github.com/VirtusLab/scala-cli).
 :::
 
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents";
 
 The `publish setup` sub-command configures your project for publishing to Maven repositories,
 such as Maven Central or GitHub Packages. It checks that all required parameters for publishing are set, and tries
