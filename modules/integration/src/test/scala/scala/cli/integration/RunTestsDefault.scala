@@ -641,7 +641,7 @@ class RunTestsDefault extends RunTestDefinitions
             jvm,
             TestUtil.extraOptions
           ).call(cwd = root, stderr = os.Pipe)
-          expect(res.out.trim() == expectedMessage)
+          expect(TestUtil.stableStdout(res) == expectedMessage)
           if isLegacyJvm then
             expect(
               res.err.trim().contains(s"$legacyWarning: ${Constants.runnerJava8LegacyVersion}")

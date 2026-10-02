@@ -70,7 +70,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
           withLauncher(root) { launcher =>
             val res = os.proc(launcher, "run", ".", extraOptions, "--jvm", jvmId)
               .call(cwd = root)
-            expect(res.out.trim() == expectedMessage)
+            expect(TestUtil.stableStdout(res) == expectedMessage)
           }
         }
       }
@@ -124,7 +124,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
                 )
                   .call(cwd = root, stderr = os.Pipe)
                 expect(res.err.trim().contains(javaVersion.toString))
-                expect(res.out.trim() == expectedMessage)
+                expect(TestUtil.stableStdout(res) == expectedMessage)
               }
             }
         }
