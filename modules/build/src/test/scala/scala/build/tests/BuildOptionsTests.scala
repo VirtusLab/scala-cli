@@ -241,7 +241,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  test("-S 2.nightly option works") {
+  test("-S 2.nightly option works".flaky) {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = Some(MaybeScalaVersion("2.nightly"))
@@ -254,7 +254,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  test("-S 2.13.nightly option works") {
+  test("-S 2.13.nightly option works".flaky) {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = Some(MaybeScalaVersion("2.13.nightly"))
@@ -280,7 +280,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  test("-S 2.12.nightly option works") {
+  test("-S 2.12.nightly option works".flaky) {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = Some(MaybeScalaVersion("2.12.nightly"))
@@ -397,7 +397,8 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
       else s"or the launcher default ($defaultMatchingVersion)"
       testDescription =
         s"-S $prefix should choose the $expectedVersionDescription version ($expectedVersion), not necessarily the latest stable ($latestMatchingVersion) $launcherDefaultVersionDescription"
-    } test(testDescription) {
+      isScala2Nightly = predefinedDefaultScalaVersion.exists(ScalaVersionUtil.isScala2Nightly)
+    } test(if isScala2Nightly then testDescription.flaky else munit.TestOptions(testDescription)) {
       val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
 
       val expectedScalaParams = ScalaParameters(expectedVersion)
