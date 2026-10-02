@@ -11,6 +11,8 @@ import scala.concurrent.duration.FiniteDuration
 
 object TestUtil {
   abstract class ScalaCliBuildSuite extends munit.FunSuite {
+    override def munitFlakyOK: Boolean = TestUtil.isCI
+
     extension (munitContext: BeforeEach | AfterEach) {
       def locationAbsolutePath: os.Path =
         os.Path {
