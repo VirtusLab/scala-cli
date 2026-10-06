@@ -8,6 +8,272 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.18.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.18.0)
+
+### Scala CLI is now built with Scala 3 Next, with some modules at 3.9 LTS or 3.3 LTS with `-Yfuture-lazy-vals`
+This release is the biggest internal overhaul of Scala CLI in a while. Scala CLI itself is now built with Scala 3 Next,
+rather than the 3.3 LTS. At the time of this release that means Scala 3.9.0, with the main modules additionally
+cross-compiled and tested against the Scala 3.10 RCs (currently 3.10.0-RC3).
+
+From now on, Scala CLI will keep being built with the latest Scala Next version, except for the few modules
+which are locked to an LTS series, as they're consumed by other tools or loaded on the user's class path:
+
+| Module                  | Scala version                       | Why                                                                                                |
+|-------------------------|-------------------------------------|----------------------------------------------------------------------------------------------------|
+| most modules            | Scala 3 Next (currently 3.9.0)      | they're only ever used internally, by Scala CLI itself                                             |
+| `runner`, `test-runner` | 3.3 LTS (with `-Yfuture-lazy-vals`) | they're loaded on the user's class path, so they stay at 3.3 until it reaches its EOL              |
+| `specification-level`   | 3.3 LTS (with `-Yfuture-lazy-vals`) | it's a dependency for other tools, so it stays at 3.3 until it reaches its EOL                     |
+| `config`                | 3.3 LTS (with `-Yfuture-lazy-vals`) | it's a dependency of other tools (i.e. `coursier`); it will be bumped to 3.9 LTS in Scala CLI 1.19 |
+
+The modules which stayed at Scala 3.3 LTS are now compiled with the `-Yfuture-lazy-vals` compiler option (and
+an explicit bytecode target: Java 11 for `runner` and `test-runner`, Java 17 for the rest). This makes their `lazy val`s use the newer implementation, which doesn't rely on
+`sun.misc.Unsafe`, unlike the legacy one. As a result, they can be used on JDK 24+ without issues, such as the
+`sun.misc.Unsafe` deprecation warnings (which will become errors on future JDKs).
+
+```scala title=jdk-demo/LazyHello.scala
+//> using jvm 25
+object LazyHello:
+  lazy val greeting: String = s"Hello from JDK ${Runtime.version.feature}!"
+  def main(args: Array[String]): Unit = println(greeting)
+```
+
+```bash
+scala-cli run jdk-demo
+# Hello from JDK 25!
+```
+
+Other noteworthy changes tied to this:
+- **The JVM launcher of Scala CLI now requires Java 17 or newer.** Support for launching Scala CLI with JDK 11 to 16
+  (which used to be handled by downloading JDK 17 and re-launching the CLI with it) has been dropped. Note that this
+  only concerns the JVM running Scala CLI itself: the native launchers are not affected, and your code can still be
+  compiled for and run with older JVMs (i.e. with `--jvm 11` or `--jvm 8`).
+- **The using directives parser now lives in the Scala 3 compiler repository.** Scala CLI's own `directives-parser`
+  module has been replaced with the `org.scala-lang::scala3-directives-parser` artifact, so the `//> using` directive
+  syntax is now parsed by the very same code that's maintained alongside the compiler.
+- The sources have been migrated to newer Scala 3 syntax, where applicable.
+- [`scala-cli-signing`](https://github.com/VirtusLab/scala-cli-signing),
+  [`java-class-name`](https://github.com/VirtusLab/java-class-name) and
+  [`scala-js-cli`](https://github.com/VirtusLab/scala-js-cli) have also been re-built with Scala 3.9 for the purpose
+  of this release.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4466](https://github.com/VirtusLab/scala-cli/pull/4466), [#4489](https://github.com/VirtusLab/scala-cli/pull/4489) and [#4508](https://github.com/VirtusLab/scala-cli/pull/4508)
+
+### Documentation website redesign
+The Scala CLI website has been redesigned - now with a refreshed home page, installation page and documentation layout, 
+as well as a better search experience.
+
+Added by [@cyp3rius](https://github.com/cyp3rius) in [#4522](https://github.com/VirtusLab/scala-cli/pull/4522)
+
+### `fix` sub-command improvements
+The `fix` sub-command received a number of improvements in this release.
+
+#### Deprecated comma separators get removed from using directives
+A new built-in rule removes the deprecated comma separators from using directives (it can be turned off with
+`--enable-comma-separators-removal=false`).
+
+#### Directive aliases are retained
+`fix` used to rewrite the directives it moved to `project.scala` with their canonical names
+(i.e. `//> using dep` would become `//> using dependency`). The aliases are now retained.
+
+#### `--check` works for built-in rules, and reports what fails
+`--check` used to only be supported by the `scalafix` rules. It now works for built-in rules as well, printing a diff
+of what would have been changed, rather than changing anything.
+
+```scala title=fix-demo/Main.scala
+//> using dep com.lihaoyi::os-lib:0.11.4, com.lihaoyi::pprint:0.9.0
+object Main extends App:
+  pprint.pprintln(os.pwd.last)
+```
+
+```scala title=fix-demo/Utils.scala
+//> using dep com.lihaoyi::upickle:4.1.0
+object Utils
+```
+
+```bash run-fail
+scala-cli fix fix-demo --power --check
+```
+
+```text
+Running built-in rules...
+--- project.scala
++++ <expected fix>
+@@ -1,1 +1,2 @@
+-
++// Main
++//> using dep com.lihaoyi::os-lib:0.11.4 com.lihaoyi::pprint:0.9.0 com.lihaoyi::upickle:4.1.0
+--- Main.scala
++++ <expected fix>
+@@ -1,3 +1,2 @@
+-//> using dep com.lihaoyi::os-lib:0.11.4, com.lihaoyi::pprint:0.9.0
+ object Main extends App:
+   pprint.pprintln(os.pwd.last)
+--- Utils.scala
++++ <expected fix>
+@@ -1,2 +1,1 @@
+-//> using dep com.lihaoyi::upickle:4.1.0
+ object Utils
+built-in rules failed.
+```
+
+<!-- Expected:
++++ <expected fix>
++//> using dep com.lihaoyi::os-lib:0.11.4 com.lihaoyi::pprint:0.9.0 com.lihaoyi::upickle:4.1.0
+built-in rules failed.
+-->
+
+Running without `--check` applies the changes: the commas get removed and the `dep` alias is kept.
+
+```bash
+scala-cli fix fix-demo --power
+cat fix-demo/project.scala
+# // Main
+# //> using dep com.lihaoyi::os-lib:0.11.4 com.lihaoyi::pprint:0.9.0 com.lihaoyi::upickle:4.1.0
+```
+
+<!-- Expected:
+//> using dep com.lihaoyi::os-lib:0.11.4 com.lihaoyi::pprint:0.9.0 com.lihaoyi::upickle:4.1.0
+-->
+
+#### Pass a custom `scalafix` version with `--scalafix-version`, excluded sources are respected
+The `scalafix` version used under the hood can now be overridden with the `--scalafix-version` option.
+Additionally, `scalafix` rules are now only run on the project's sources, so they respect the
+`//> using exclude` directive (rather than scanning the whole directory).
+
+```text title=lint-demo/.scalafix.conf
+rules = [
+  DisableSyntax
+]
+DisableSyntax.noVars = true
+```
+
+```scala title=lint-demo/project.scala
+//> using exclude legacy
+```
+
+```scala title=lint-demo/Counter.scala
+object Counter:
+  val count = 0
+```
+
+```scala title=lint-demo/legacy/Legacy.scala
+object Legacy:
+  var count = 0 // excluded, so not linted
+```
+
+```bash
+scala-cli fix lint-demo --power --enable-built-in=false --scalafix-version 0.14.8 --check
+```
+
+Added by [@warcholjakub](https://github.com/warcholjakub) in [#4486](https://github.com/VirtusLab/scala-cli/pull/4486), [#4491](https://github.com/VirtusLab/scala-cli/pull/4491), [#4492](https://github.com/VirtusLab/scala-cli/pull/4492), [#4501](https://github.com/VirtusLab/scala-cli/pull/4501), [#4503](https://github.com/VirtusLab/scala-cli/pull/4503) and [#4504](https://github.com/VirtusLab/scala-cli/pull/4504)
+
+### Better support for virtual Java inputs
+Scala CLI uses [`java-class-name`](https://github.com/VirtusLab/java-class-name) to figure out the name of the public
+class of Java sources which don't come from a file (and so don't have a file name): Java snippets passed with
+`--java-snippet`, Java sources piped through standard input and Java code blocks in Markdown inputs.
+Bumping it to 0.2.0 fixes a number of issues with those:
+- public `enum`s and `record`s with primitive components used to crash `java-class-name`;
+- package-private classes used to be treated as public in sources with a `package` clause;
+- [JEP 512](https://openjdk.org/jeps/512) compact source files (with unnamed top-level `main` methods) are now
+  better supported.
+
+```bash
+echo 'public enum Color { RED, GREEN; public static void main(String[] args) { System.out.println(GREEN); } }' | scala-cli run _.java
+# GREEN
+```
+
+<!-- Expected:
+GREEN
+-->
+
+```bash
+scala-cli run --java-snippet 'public record Point(int x, int y) { public static void main(String[] args) { System.out.println(new Point(1, 2)); } }'
+# Point[x=1, y=2]
+```
+
+<!-- Expected:
+Point[x=1, y=2]
+-->
+
+```bash
+scala-cli run --java-snippet 'package demo;
+class Helper { static String greet() { return "Hello from a package-private helper!"; } }
+public class Main { public static void main(String[] args) { System.out.println(Helper.greet()); } }'
+# Hello from a package-private helper!
+```
+
+<!-- Expected:
+Hello from a package-private helper!
+-->
+
+```bash
+scala-cli run --jvm 25 --java-snippet 'void main() { System.out.println("Hello from a JEP 512 compact source snippet!"); }'
+# Hello from a JEP 512 compact source snippet!
+```
+
+<!-- Expected:
+Hello from a JEP 512 compact source snippet!
+-->
+
+Fixed by [@Gedochao](https://github.com/Gedochao) in [#4521](https://github.com/VirtusLab/scala-cli/pull/4521)
+
+### Features
+* feat: support scalaOrganization for forked Scala toolchains by [@warcholjakub](https://github.com/warcholjakub) in [#4479](https://github.com/VirtusLab/scala-cli/pull/4479)
+* feat: support --check for built-in rules in fix by [@warcholjakub](https://github.com/warcholjakub) in [#4486](https://github.com/VirtusLab/scala-cli/pull/4486)
+* feat: report what fails fix --check for built-in rules by [@warcholjakub](https://github.com/warcholjakub) in [#4491](https://github.com/VirtusLab/scala-cli/pull/4491)
+* feat: add --scalafix-version option to fix by [@warcholjakub](https://github.com/warcholjakub) in [#4503](https://github.com/VirtusLab/scala-cli/pull/4503)
+* feat: remove deprecated comma separators from directives in fix by [@warcholjakub](https://github.com/warcholjakub) in [#4504](https://github.com/VirtusLab/scala-cli/pull/4504)
+
+### Fixes
+* Support newer `esVersion` strings; hard error on unknown `esVersion` by [@Gedochao](https://github.com/Gedochao) in [#4482](https://github.com/VirtusLab/scala-cli/pull/4482)
+* fix: make fix respect excluded sources when running scalafix by [@warcholjakub](https://github.com/warcholjakub) in [#4492](https://github.com/VirtusLab/scala-cli/pull/4492)
+* fix: retain directive aliases in `fix` by [@warcholjakub](https://github.com/warcholjakub) in [#4501](https://github.com/VirtusLab/scala-cli/pull/4501)
+
+### Compatibility
+* Temporarily pin `config` to legacy 3.3 LTS with `-Yfuture-lazy-vals` by [@Gedochao](https://github.com/Gedochao) in [#4489](https://github.com/VirtusLab/scala-cli/pull/4489)
+* Run tests for Java 27 by [@Gedochao](https://github.com/Gedochao) in [#4485](https://github.com/VirtusLab/scala-cli/pull/4485)
+* refactor how ES version is validated by [@Gedochao](https://github.com/Gedochao) in [#4484](https://github.com/VirtusLab/scala-cli/pull/4484)
+
+### Documentation
+* Redesign website: Docusaurus 3, TypeScript, Tailwind, LLM entry points by [@cyp3rius](https://github.com/cyp3rius) in [#4522](https://github.com/VirtusLab/scala-cli/pull/4522)
+* Backport #4522 to `main` by [@Gedochao](https://github.com/Gedochao) in [#4524](https://github.com/VirtusLab/scala-cli/pull/4524)
+
+### Build and internal changes
+* Add `.gitattributes` to recognize `.mill` files as Scala by [@xuwei-k](https://github.com/xuwei-k) in [#4483](https://github.com/VirtusLab/scala-cli/pull/4483)
+* fix: `fix` tests not working on Windows by [@warcholjakub](https://github.com/warcholjakub) in [#4502](https://github.com/VirtusLab/scala-cli/pull/4502)
+* fix: make `all test directives get extracted` test pass on Windows by [@warcholjakub](https://github.com/warcholjakub) in [#4510](https://github.com/VirtusLab/scala-cli/pull/4510)
+* test: sources generated under .scala-build are not linted by [@warcholjakub](https://github.com/warcholjakub) in [#4493](https://github.com/VirtusLab/scala-cli/pull/4493)
+* refactor: misc flaky test fixes by [@Gedochao](https://github.com/Gedochao) in [#4490](https://github.com/VirtusLab/scala-cli/pull/4490)
+* Temporarily label Scala 2 nightlies' tests as flaky by [@Gedochao](https://github.com/Gedochao) in [#4527](https://github.com/VirtusLab/scala-cli/pull/4527)
+* Ignore JVM log lines in exact-stdout integration test assertions by [@Gedochao](https://github.com/Gedochao) in [#4528](https://github.com/VirtusLab/scala-cli/pull/4528)
+
+### Updates
+* Update scala-cli.sh launcher for 1.17.1 by @github-actions[bot] in [#4480](https://github.com/VirtusLab/scala-cli/pull/4480)
+* Build Scala CLI with Scala 3 Next by [@Gedochao](https://github.com/Gedochao) in [#4466](https://github.com/VirtusLab/scala-cli/pull/4466)
+* Bump the npm-dependencies group in /website with 4 updates by @dependabot[bot] in [#4488](https://github.com/VirtusLab/scala-cli/pull/4488)
+* Bump image-size from 2.0.2 to 2.0.4 in /website by @dependabot[bot] in [#4505](https://github.com/VirtusLab/scala-cli/pull/4505)
+* Bump Scala 3 Next RC to 3.10.0-RC3 by [@Gedochao](https://github.com/Gedochao) in [#4508](https://github.com/VirtusLab/scala-cli/pull/4508)
+* Update windows-jni-utils to 0.4.0 by @scala-steward in [#4497](https://github.com/VirtusLab/scala-cli/pull/4497)
+* Update jsoniter-scala-core, ... to 2.41.2 by @scala-steward in [#4507](https://github.com/VirtusLab/scala-cli/pull/4507)
+* Update dependency to 0.3.3 by @scala-steward in [#4496](https://github.com/VirtusLab/scala-cli/pull/4496)
+* Update `scala-cli-signing` to 0.4.0 by @scala-steward in [#4500](https://github.com/VirtusLab/scala-cli/pull/4500)
+* Update slf4j-nop to 2.0.20 by @scala-steward in [#4499](https://github.com/VirtusLab/scala-cli/pull/4499)
+* Update sbt to 2.0.9 by @scala-steward in [#4498](https://github.com/VirtusLab/scala-cli/pull/4498)
+* Bump undici from 7.29.0 to 7.30.0 in /website by @dependabot[bot] in [#4513](https://github.com/VirtusLab/scala-cli/pull/4513)
+* Bump sass from 1.104.1 to 1.105.0 in /website in the npm-dependencies group by @dependabot[bot] in [#4511](https://github.com/VirtusLab/scala-cli/pull/4511)
+* Update scala-packager, scala-packager-cli to 0.3.0 by @scala-steward in [#4512](https://github.com/VirtusLab/scala-cli/pull/4512)
+* Update guava to 33.7.2-jre by @scala-steward in [#4517](https://github.com/VirtusLab/scala-cli/pull/4517)
+* Bump `coursier` to 2.1.26 (was 2.1.25-M26) by [@Gedochao](https://github.com/Gedochao) in [#4520](https://github.com/VirtusLab/scala-cli/pull/4520)
+* Bump fast-uri from 3.1.7 to 3.1.8 in /website by @dependabot[bot] in [#4525](https://github.com/VirtusLab/scala-cli/pull/4525)
+* Bump brace-expansion from 1.1.18 to 1.1.21 in /website by @dependabot[bot] in [#4526](https://github.com/VirtusLab/scala-cli/pull/4526)
+* Bump `java-class-name` to 0.2.0 by [@Gedochao](https://github.com/Gedochao) in [#4521](https://github.com/VirtusLab/scala-cli/pull/4521)
+
+## New Contributors
+* [@xuwei-k](https://github.com/xuwei-k) made their first contribution in [#4483](https://github.com/VirtusLab/scala-cli/pull/4483)
+* [@cyp3rius](https://github.com/cyp3rius) made their first contribution in [#4522](https://github.com/VirtusLab/scala-cli/pull/4522)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.17.1...v1.18.0
+
 ## [v1.17.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.17.1)
 
 ### Java 8+ support in the pure Java test runner
