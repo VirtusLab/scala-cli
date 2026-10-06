@@ -32,12 +32,12 @@
     "@types/react": "^19.3.0",
     "clsx": "^2.1.1",
     "docusaurus-plugin-sass": "^0.2.7",
-    "lucide-react": "^1.49.0",
+    "lucide-react": "^1.50.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-loadable": "^5.5.0",
     "react-player": "^3.4.0",
-    "sass": "^1.105.0",
+    "sass": "^1.105.1",
     "search-insights": "^2.17.3",
     "tailwind-merge": "^3.7.0"
   },
@@ -65,10 +65,10 @@
   "devDependencies": {
     "@docusaurus/tsconfig": "^3.10.2",
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^26.6.3",
+    "@types/node": "^26.6.4",
     "@types/react-dom": "^19.3.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3",
-    "typescript": "~5.8.0"
+    "typescript": "~7.0.2"
   }
 }
