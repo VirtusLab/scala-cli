@@ -84,7 +84,7 @@ object Scala {
     val max37  = 4
     val max38  = 4
     val max39  = patchVer(scala3Lts)
-    val max310  = patchVer(scala3Next)
+    val max310 = patchVer(scala3Next)
     (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
       (0 to max30).map(i => s"3.0.$i") ++

@@ -224,7 +224,7 @@ case object ScalaPreprocessor extends Preprocessor {
         extractedDirectives
       ))
 
-    if (preprocessedDirectives.isEmpty) None
+    if (preprocessedDirectives.isEmpty && !isSheBang) None
     else {
       val allRequirements    = Seq(preprocessedDirectives.globalReqs)
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_.orElse(_))
