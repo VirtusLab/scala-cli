@@ -4,8 +4,7 @@ sidebar_position: 7
 ---
 
 Currently, Scala CLI supports Scala 3, 2.13 and 2.12. The table below lists the last supported version of Scala in Scala
-CLI. If you want to use a newer Scala version,
-it is recommended to update scala-cli.
+CLI. If you want to use a newer Scala version, it is recommended to update scala-cli.
 
 | Scala CLI versions | Scala 3 | Scala 2.13 | Scala 2.12 |
 |--------------------|:-------:|-----------:|-----------:|
@@ -41,5 +40,6 @@ it is recommended to update scala-cli.
 | 1.12.3 - 1.12.5    |  3.8.2  |    2.13.18 |    2.12.21 |
 | 1.13.0 - 1.14.0    |  3.8.3  |    2.13.18 |    2.12.21 |
 | 1.15.0 - 1.16.0    |  3.8.4  |    2.13.18 |    2.12.21 |
-| 1.17.0 - current   |  3.9.0  |    2.13.18 |    2.12.21 |
+| 1.17.0 - 1.18.0    |  3.9.0  |    2.13.18 |    2.12.21 |
+| 1.19.0 - current   | 3.10.0  |    2.13.18 |    2.12.21 |
 

@@ -1640,7 +1640,7 @@ Available in commands:
 
 Aliases: `-S`, `--scala`
 
-Set the Scala version (3.9.0 by default)
+Set the Scala version (3.10.0 by default)
 
 ### `--scala-organization`
 
