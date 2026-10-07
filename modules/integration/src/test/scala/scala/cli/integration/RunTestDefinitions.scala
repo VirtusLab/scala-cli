@@ -792,7 +792,7 @@ abstract class RunTestDefinitions
     test("CLI args passed to shebang in Scala file") {
       val inputs = TestInputs(
         os.rel / "f.scala" ->
-          s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang
+          s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang ${extraOptions.mkString(" ")}
               |object Hello {
               |    def main(args: Array[String]) = {
               |        println(args.toList)

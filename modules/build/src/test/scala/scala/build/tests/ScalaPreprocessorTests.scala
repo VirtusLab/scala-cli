@@ -2,9 +2,11 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.nio.charset.StandardCharsets
+
 import scala.build.input.{ScalaCliInvokeData, Script, SourceScalaFile}
 import scala.build.options.SuppressWarningOptions
-import scala.build.preprocessing.{ScalaPreprocessor, ScriptPreprocessor}
+import scala.build.preprocessing.{PreprocessedSource, ScalaPreprocessor, ScriptPreprocessor}
 
 class ScalaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
 
@@ -32,6 +34,30 @@ class ScalaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
       val directivesPositions = result.head.directivesPositions.get
       expect(directivesPositions.startPos == 0 -> 0)
       expect(directivesPositions.endPos == 3   -> lastUsingLine.length)
+    }
+  }
+
+  test("should strip the shebang line from a .scala file with no using directives") {
+    val code =
+      """object Main {
+        |  def main(args: Array[String]): Unit = println(args.toList)
+        |}""".stripMargin
+    TestInputs(os.rel / "Main.scala" ->
+      s"""#!/usr/bin/env -S scala-cli shebang
+         |$code""".stripMargin).fromRoot { root =>
+      val scalaFile = SourceScalaFile(root, os.sub / "Main.scala")
+      val result    = ScalaPreprocessor.preprocess(
+        scalaFile,
+        logger = TestLogger(),
+        allowRestrictedFeatures = false,
+        suppressWarningOptions = SuppressWarningOptions()
+      )(using ScalaCliInvokeData.dummy).get.getOrElse(sys.error("preprocessing failed"))
+      expect(result.length == 1)
+      result.head match
+        case inMemory: PreprocessedSource.InMemory =>
+          val content = new String(inMemory.content, StandardCharsets.UTF_8)
+          expect(content == s"\n$code")
+        case other => fail(s"Expected an in-memory source with the shebang stripped, got: $other")
     }
   }
 

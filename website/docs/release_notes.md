@@ -3607,7 +3607,7 @@ scala-cli -e 'println("Hello, Scala Native!")' --native
 # Hello, Scala Native!
 ```
 
-Added by [@scala-steward](https://github.com/scala-steward) in [#2982.](https://github.com/VirtusLab/scala-cli/pull/2982.)
+Added by [@scala-steward](https://github.com/scala-steward) in [#2982](https://github.com/VirtusLab/scala-cli/pull/2982)
 
 ### Scala Toolkit 0.4.0 & 0.3.0 defaults
 This Scala CLI version treats Scala Toolkit 0.4.0 as the default version under most circumstances.
@@ -3641,7 +3641,7 @@ scala-cli -e 'println(os.pwd)' --toolkit default --native
 
 Scala Native 0.4.x has been dropped in Scala Toolkit 0.4.0 and above, so the last version supporting it, 0.3.0 (and lower), will now make the build default to Scala Native 0.4.17.
 
-```bash
+```bash fail
 scala-cli -e 'println(os.pwd)' --toolkit 0.3.0 --native
 # [warn] Scala Toolkit Version(0.3.0) does not support Scala Native 0.5.3, 0.4.17 should be used instead.
 # [warn] Scala Native default version 0.5.3 is not supported in this build. Using 0.4.17 instead.
