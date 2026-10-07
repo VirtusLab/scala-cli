@@ -444,9 +444,12 @@ jobs:
       continue-on-error: true
       env:
         CHOCO_SECRET: ${{ secrets.CHOCO_SECRET_KEY }}
-    - uses: vedantmgoyal9/winget-releaser@a8fff44b123f115ce4c21543edf8b677376fc7e0
-      with:
-        identifier: VirtusLab.ScalaCLI
-        installers-regex: '\.msi$'
-        fork-user: scala-steward
-        token: ${{ secrets.STEWARD_WINGET_TOKEN }}
+    - name: Install komac
+      run: .github/scripts/install-komac.sh
+      shell: bash
+    - name: Publish to WinGet
+      run: .github/scripts/publish-winget.sh
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.STEWARD_WINGET_TOKEN }}
+        KOMAC_FORK_OWNER: scala-steward
