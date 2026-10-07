@@ -444,7 +444,7 @@ jobs:
       continue-on-error: true
       env:
         CHOCO_SECRET: ${{ secrets.CHOCO_SECRET_KEY }}
-    - uses: vedantmgoyal9/winget-releaser@main
+    - uses: vedantmgoyal9/winget-releaser@a8fff44b123f115ce4c21543edf8b677376fc7e0
       with:
         identifier: VirtusLab.ScalaCLI
         installers-regex: '\.msi$'
