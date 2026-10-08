@@ -1,50 +1,33 @@
-# scala-cli-signing
+# signing
 
-This project provides a CLI to
-- create PGP keys
-- sign files
-- verify signatures.
+PGP signing support in Scala CLI: creating PGP keys, signing files and verifying signatures,
+using [bouncycastle](https://www.bouncycastle.org).
 
-It's written in Scala, and uses [bouncycastle](https://www.bouncycastle.org). Native launchers of the CLI are generated with GraalVM
-native-image. Keys (public / secret) are identified and passed around as individual files.
+This code used to live in a separate project, [scala-cli-signing](https://github.com/VirtusLab/scala-cli-signing),
+whose source history was imported into this repository. Scala CLI native launchers used to run a separate
+scala-cli-signing binary, so that they didn't have to include bouncycastle. Signing now always runs within Scala CLI,
+on both JVM and native launchers.
 
-This project is kind of a sidecar of [Scala CLI](https://github.com/VirtusLab/scala-cli). It deals with [bouncycastle](https://www.bouncycastle.org) for Scala CLI, so that native launchers of Scala CLI
-don't have to depend on it, and don't need to have native image process the bouncycastle classes.
+## Where things are
 
-Note that Scala CLI depends on some scala-cli-signing modules, but the Scala CLI classes calling scala-cli-signing classes that use bouncycastle are being substituted by others at native image build time (look for `@Substitute` in the Scala CLI sources). Those substitute classes manage to run equivalent stuff by downloading a scala-cli-signing binary, and running it in a separate process.
+- `modules/signing` (this module, published as `org.virtuslab.scala-cli::signing`): `PasswordOption` and `Secret`
+  (package `scala.cli.signing`), used by option & directive handling across Scala CLI, without depending on
+  bouncycastle.
+- `modules/cli`:
+  - `scala.cli.commands.pgp`: the `pgp create`, `pgp key-id`, `pgp sign` and `pgp verify` sub-commands (as well as
+    `pgp pull` and `pgp push`)
+  - `scala.cli.signing.util`: the bouncycastle-based signer (`BouncycastleSigner`, used by `publish`), key generation
+    helpers, and `BouncycastleSetup`, which registers the bouncycastle security provider before PGP operations
+  - `scala.cli.signing.internal.BCInitializer` and
+    `META-INF/native-image/org.virtuslab/scala-cli-signing/`: the GraalVM native-image configuration for
+    bouncycastle
 
-That way
-- Scala CLI JVM launchers use scala-cli-signing directly
-- Scala CLI native launchers use bits of scala-cli-signing as a library, and other parts by downloading and running the scala-cli-signing CLI binary in a separate process.
+## Building & testing
 
-## Building
-
-scala-cli-signing is built with Mill.
-
-Compile everything with
 ```text
-$ ./mill __.compile
+$ ./mill -i 'signing[].compile'
+$ ./mill -i 'cli[].test' 'scala.cli.signing.*'
+$ ./mill -i integration.test.jvm 'scala.cli.integration.Pgp*'
 ```
 
-Generate a native launcher of the CLI with
-```text
-$ ./mill show native-cli.base-image.nativeImage
-```
-
-As of writing this, there are no tests in this repository. New versions of scala-cli-signing are tested when bumping the scala-cli-signing version in Scala CLI.
-
-## Modules
-
-- `shared`: some classes that are used both by Scala CLI (even in native launchers) and scala-cli-signing
-- `cli-options`: the case-app options of the commands of the scala-cli-signing CLI. These are used by Scala CLI to generate its reference doc, as the scala-cli-signing CLI commands are also exposed as sub-commands of Scala CLI.
-- `cli`: the scala-cli-signing CLI itself, with commands such as `pgp create`, `pgp sign`, `pgp verify`
-- `native-cli`: some GraalVM native-image-specific parts of the scala-cli-signing CLI
-
-## Releases
-
-- [Create a release](https://github.com/scala-cli/scala-cli-signing/releases/new) from the GitHub UI (creating or pushing a tag is not enough).
-  The corresponding tag name should start with a `v`, like `v0.1.2`.
-- Watch the corresponding [GitHub actions](https://github.com/scala-cli/scala-cli-signing/actions) job, restart it if it failed because of a transient error.
-- Once the job is done running:
-  - artifacts should have been added to the release as assets
-  - the sync to Maven Central should be on-going
+The module is versioned and released together with the rest of Scala CLI.
