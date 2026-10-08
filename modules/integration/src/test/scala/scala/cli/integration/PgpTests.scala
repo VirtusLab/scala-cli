@@ -2,8 +2,6 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.File
-
 class PgpTests extends ScalaCliSuite {
   private val pubKeyInputs = TestInputs(
     os.rel / "key.pub" ->
@@ -40,26 +38,15 @@ class PgpTests extends ScalaCliSuite {
         |""".stripMargin
   )
 
-  def pgpKeyIdTest(useSigningJvmLauncher: Boolean) =
+  test("pgp key-id") {
     pubKeyInputs.fromRoot { root =>
-      val signingCliArgs = if (useSigningJvmLauncher) Seq("--force-jvm-signing-cli") else Seq.empty
-      val res            =
-        os.proc(TestUtil.cli, "--power", "pgp", "key-id", signingCliArgs, "key.pub").call(cwd =
-          root
-        )
+      val res =
+        os.proc(TestUtil.cli, "--power", "pgp", "key-id", "key.pub").call(cwd = root)
       val output         = res.out.trim()
       val expectedOutput = "914d298df8fa4d20"
       expect(output == expectedOutput)
     }
-
-  test("pgp key-id") {
-    pgpKeyIdTest(false)
   }
-
-  if (TestUtil.isNativeCli)
-    test("pgp key-id - use jvm launcher of signing cli for native Scala CLI") {
-      pgpKeyIdTest(true)
-    }
 
   test("pgp pull") {
     // random key that I pushed to the default ker server at some point
@@ -83,63 +70,6 @@ class PgpTests extends ScalaCliSuite {
   test("pgp push") {
     pubKeyInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "--power", "pgp", "push", "key.pub").call(cwd = root)
-    }
-  }
-
-  test("pgp push with binary") {
-    pubKeyInputs.fromRoot { root =>
-      val res = os.proc(
-        TestUtil.cli,
-        "--power",
-        "pgp",
-        "push",
-        "key.pub",
-        "--force-signing-externally",
-        "-v",
-        "-v",
-        "-v"
-      ).call(
-        cwd = root,
-        stderr = os.Pipe
-      )
-      val errOutput = res.err.trim()
-
-      expect(errOutput.contains(
-        "Getting https://github.com/VirtusLab/scala-cli-signing/releases/download/"
-      ))
-      expect(
-        !errOutput.contains("coursier.cache.ArtifactError$NotFound") ||
-        errOutput.contains(
-          """Could not fetch binary, fetching JVM dependencies:
-            |  org.virtuslab.scala-cli-signing""".stripMargin
-        )
-      )
-    }
-  }
-
-  test("pgp push with external JVM process, java version too low") {
-    pubKeyInputs.fromRoot { root =>
-      val java8Home =
-        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
-
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "pgp",
-        "push",
-        "key.pub",
-        "--force-signing-externally",
-        "--force-jvm-signing-cli",
-        "-v",
-        "-v",
-        "-v"
-      ).call(
-        cwd = root,
-        env = Map(
-          "JAVA_HOME" -> java8Home.toString,
-          "PATH"      -> ((java8Home / "bin").toString + File.pathSeparator + System.getenv("PATH"))
-        )
-      )
     }
   }
 
@@ -181,6 +111,47 @@ class PgpTests extends ScalaCliSuite {
           .call(cwd = root, mergeErrIntoOut = true)
 
       expect(verifyProc.out.text().contains(s"$tmpFileAsc: valid signature"))
+    }
+  }
+
+  test("pgp create + sign + verify round-trip, secret key passed by absolute path") {
+    TestInputs(os.rel / "foo.txt" -> "Hello, world!\n").fromRoot { root =>
+      val password = "value:1234"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "create",
+        "--email",
+        "test@example.com",
+        "--password",
+        password,
+        "--dest",
+        "key"
+      ).call(cwd = root)
+      val secretKey = root / "key.skr"
+      val publicKey = root / "key.pub"
+      expect(os.exists(secretKey))
+      expect(os.exists(publicKey))
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "sign",
+        "--secret-key",
+        s"file:$secretKey",
+        "--password",
+        password,
+        "foo.txt"
+      ).call(cwd = root)
+      val signature = root / "foo.txt.asc"
+      expect(os.exists(signature))
+
+      val verifyProc =
+        os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", "key.pub", "foo.txt.asc")
+          .call(cwd = root, mergeErrIntoOut = true)
+      expect(verifyProc.out.text().contains("foo.txt.asc: valid signature"))
     }
   }
 

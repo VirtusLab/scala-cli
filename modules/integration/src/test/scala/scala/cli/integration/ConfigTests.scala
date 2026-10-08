@@ -2,8 +2,6 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.File
-
 import scala.util.Properties
 
 class ConfigTests extends ScalaCliSuite {
@@ -198,92 +196,38 @@ class ConfigTests extends ScalaCliSuite {
         createDefaultPgpKeyTest(pgpPasswordOption)
       }
 
-  if (TestUtil.isNativeCli)
-    test(s"Create a PGP key with external JVM process, java version too low") {
-      TestUtil.retryOnCi() {
-        TestInputs().fromRoot { root =>
-          val configFile = {
-            val dir = root / "config"
-            os.makeDir.all(dir, perms = if (Properties.isWin) null else "rwx------")
-            dir / "config.json"
-          }
-
-          val java8Home =
-            os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
-
-          val extraEnv = Map(
-            "JAVA_HOME" -> java8Home.toString,
-            "PATH" -> ((java8Home / "bin").toString + File.pathSeparator + System.getenv("PATH")),
-            "SCALA_CLI_CONFIG" -> configFile.toString
-          )
-
-          val pgpCreated = os.proc(
-            TestUtil.cli,
-            "--power",
-            "config",
-            "--create-pgp-key",
-            "--email",
-            "alex@alex.me",
-            "--pgp-password",
-            "none",
-            "--force-jvm-signing-cli",
-            "-v",
-            "-v",
-            "-v"
-          )
-            .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
-
-          val javaCommandLine = pgpCreated.out.text()
-            .linesIterator
-            .dropWhile(!_.equals("  Running")).slice(1, 2)
-            .toSeq
-
-          expect(javaCommandLine.nonEmpty)
-          expect(javaCommandLine.head.contains("17"))
-
-          val passwordInConfig =
-            os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key-password")
-              .call(cwd = root, env = extraEnv, stderr = os.Pipe)
-          expect(passwordInConfig.out.text().isEmpty())
-
-          val secretKey = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key")
-            .call(cwd = root, env = extraEnv, stderr = os.Pipe)
-            .out.trim()
-          val rawPublicKey =
-            os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password-value")
-              .call(cwd = root, env = extraEnv, stderr = os.Pipe)
-              .out.trim()
-
-          val tmpFile    = root / "test-file"
-          val tmpFileAsc = root / "test-file.asc"
-          os.write(tmpFile, "Hello")
-
-          val q = "\""
-
-          def maybeEscape(arg: String): String =
-            if (Properties.isWin) q + arg + q
-            else arg
-
-          os.proc(
-            TestUtil.cli,
-            "--power",
-            "pgp",
-            "sign",
-            "--secret-key",
-            maybeEscape(secretKey),
-            tmpFile
-          ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
-
-          val pubKeyFile = root / "key.pub"
-          os.write(pubKeyFile, rawPublicKey)
-          val verifyResult =
-            os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", pubKeyFile, tmpFileAsc)
-              .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
-
-          expect(verifyResult.out.text().contains("valid signature"))
-        }
+  test("Create a PGP key, deprecated external signing options are ignored") {
+    TestInputs().fromRoot { root =>
+      val configFile = {
+        val dir = root / "config"
+        os.makeDir.all(dir, perms = if (Properties.isWin) null else "rwx------")
+        dir / "config.json"
       }
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+      val res      = os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "--create-pgp-key",
+        "--email",
+        "alex@alex.me",
+        "--pgp-password",
+        "none",
+        "--force-signing-externally",
+        "--force-jvm-signing-cli"
+      )
+        .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
+      val output = res.out.text()
+      expect(output.contains("Deprecated option '--force-signing-externally' is ignored"))
+      expect(output.contains("Deprecated option '--force-jvm-signing-cli' is ignored"))
+
+      val publicKey =
+        os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password-value")
+          .call(cwd = root, env = extraEnv, stderr = os.Pipe)
+          .out.trim()
+      expect(publicKey.startsWith("-----BEGIN PGP PUBLIC KEY BLOCK-----"))
     }
+  }
 
   def createDefaultPgpKeyTest(pgpPasswordOption: String): Unit = {
     TestInputs().fromRoot { root =>
