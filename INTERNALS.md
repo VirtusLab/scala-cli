@@ -22,6 +22,9 @@ These are:
 - `runner`: simple app that starts a main class, catches any exception it throws and pretty-prints it.
 - `test-runner`: finds test frameworks, test suites, and runs them
 - `tasty-lib`: edits file names in `.tasty` files
+- `signing-shared`: password / secret types used by the PGP signing options
+- `signing`: PGP key creation, signing and verification with BouncyCastle (formerly
+  [scala-cli-signing](https://github.com/VirtusLab/scala-cli-signing))
 
 ## Tests
 

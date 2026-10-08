@@ -32,6 +32,7 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
     args: RemainingArgs,
     logger: Logger
   ): Unit = {
+    options.scalaSigning.warnAboutIgnoredOptions(logger)
     Publish.maybePrintLicensesAndExit(options.publishParams)
     Publish.maybePrintChecksumsAndExit(options.sharedPublish)
 
@@ -50,7 +51,6 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       options.publishParams,
       options.sharedPublish,
       PublishRepositoryOptions(),
-      options.scalaSigning,
       PublishConnectionOptions(),
       options.mainClass,
       None
@@ -92,7 +92,6 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       publishLocal = true,
       m2Local = options.m2,
       m2HomeOpt = m2HomeOpt,
-      forceSigningExternally = options.scalaSigning.forceSigningExternally.getOrElse(false),
       parallelUpload = Some(true),
       watch = options.watch.watch,
       isCi = options.publishParams.isCi,

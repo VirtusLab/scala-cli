@@ -24,6 +24,7 @@ object Config extends ScalaCommand[ConfigOptions] {
     .withPrimaryGroup(HelpGroup.Config)
 
   override def runCommand(options: ConfigOptions, args: RemainingArgs, logger: Logger): Unit = {
+    options.scalaSigning.warnAboutIgnoredOptions(logger)
     val directories = Directories.directories
 
     if (options.dump) {
@@ -47,9 +48,8 @@ object Config extends ScalaCommand[ConfigOptions] {
               )
               sys.exit(1)
             }
-            val coursierCache = options.coursier.coursierCache(logger)
-            val secKeyEntry   = Keys.pgpSecretKey
-            val pubKeyEntry   = Keys.pgpPublicKey
+            val secKeyEntry = Keys.pgpSecretKey
+            val pubKeyEntry = Keys.pgpPublicKey
 
             val mail = options.email
               .filter(_.trim.nonEmpty)
@@ -72,16 +72,7 @@ object Config extends ScalaCommand[ConfigOptions] {
             else
               options.pgpPassword.map(scala.cli.signing.shared.Secret.apply)
 
-            val (pgpPublic, pgpSecret) =
-              ThrowawayPgpSecret.pgpSecret(
-                mail,
-                passwordOpt,
-                logger,
-                coursierCache,
-                options.jvm,
-                options.coursier,
-                options.scalaSigning.cliOptions()
-              ).orExit(logger)
+            val (pgpPublic, pgpSecret) = ThrowawayPgpSecret.pgpSecret(mail, passwordOpt, logger)
 
             db.set(secKeyEntry, PasswordOption.Value(pgpSecret.toConfig))
             db.set(pubKeyEntry, PasswordOption.Value(pgpPublic.toConfig))

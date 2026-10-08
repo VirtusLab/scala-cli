@@ -77,13 +77,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     }
   }
 
-  private def actualHelp(command: Command[?]): Help[?] =
-    command match {
-      case ext: scala.cli.commands.pgp.ExternalCommand =>
-        ext.actualHelp
-      case _ =>
-        command.finalHelp
-    }
+  private def actualHelp(command: Command[?]): Help[?] = command.finalHelp
 
   private def scalacOptionForwarding =
     """## Scalac options forwarding

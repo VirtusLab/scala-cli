@@ -40,6 +40,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     args: RemainingArgs,
     logger: Logger
   ): Unit = {
+    options.scalaSigning.warnAboutIgnoredOptions(logger)
     Publish.maybePrintLicensesAndExit(options.publishParams)
 
     val coursierCache = options.coursier.coursierCache(logger)
@@ -120,7 +121,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     }
 
     val missingFields =
-      OptionChecks.checks(options, configDb, inputs.workspace, coursierCache, logger, backend)
+      OptionChecks.checks(options, configDb, inputs.workspace, logger, backend)
         .filter(check => checkKinds(check.kind))
         .flatMap {
           check =>

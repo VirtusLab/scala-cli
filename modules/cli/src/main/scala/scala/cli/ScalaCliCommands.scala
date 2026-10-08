@@ -16,12 +16,6 @@ class ScalaCliCommands(
 
   lazy val actualDefaultCommand = new default.Default(help)
 
-  // for debugging purposes - allows to run the scala-cli-signing binary from the Scala CLI JVM launcher
-  private lazy val pgpUseBinaryCommands =
-    java.lang.Boolean.getBoolean("scala-cli.pgp.binary-commands")
-  private def pgpCommands       = new pgp.PgpCommands
-  private def pgpBinaryCommands = new pgp.PgpCommandsSubst
-
   private def allCommands = Seq[ScalaCommand[?]](
     addpath.AddPath,
     bloop.Bloop,
@@ -60,13 +54,9 @@ class ScalaCliCommands(
     uninstallcompletions.UninstallCompletions,
     update.Update,
     version.Version
-  ) ++ (if (pgpUseBinaryCommands) Nil else pgpCommands.allScalaCommands.toSeq) ++
-    (if (pgpUseBinaryCommands) pgpBinaryCommands.allScalaCommands.toSeq else Nil)
+  ) ++ Seq(pgp.PgpCreate, pgp.PgpKeyId, pgp.PgpSign, pgp.PgpVerify)
 
-  def commands =
-    allCommands ++
-      (if (pgpUseBinaryCommands) Nil else pgpCommands.allExternalCommands.toSeq) ++
-      (if (pgpUseBinaryCommands) pgpBinaryCommands.allExternalCommands.toSeq else Nil)
+  def commands = allCommands
 
   override def description: String = {
     val coreFeaturesString =

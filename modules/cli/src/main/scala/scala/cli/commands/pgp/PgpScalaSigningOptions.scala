@@ -2,8 +2,8 @@ package scala.cli.commands.pgp
 
 import caseapp.*
 
-import scala.build.internal.Constants
-import scala.build.options as bo
+import scala.build.Logger
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.tags
 
@@ -11,33 +11,38 @@ import scala.cli.commands.tags
 final case class PgpScalaSigningOptions(
   @Group(HelpGroup.Signing.toString)
   @Tag(tags.restricted)
-  @HelpMessage(s"scala-cli-signing version when running externally (${Constants.scalaCliSigningVersion} by default)")
+  @HelpMessage("Ignored legacy option. Deprecated, signing now always runs within Scala CLI.")
   @Hidden
     signingCliVersion: Option[String] = None,
   @Group(HelpGroup.Signing.toString)
   @Tag(tags.restricted)
-  @HelpMessage("Pass arguments to the Java command when running scala-cli-singing externally on JVM")
+  @HelpMessage("Ignored legacy option. Deprecated, signing now always runs within Scala CLI.")
   @ValueDescription("option")
   @Hidden
     signingCliJavaArg: List[String] = Nil,
   @Group(HelpGroup.Signing.toString)
-  @HelpMessage("When running Scala CLI on the JVM, force running scala-cli-singing externally")
+  @HelpMessage("Ignored legacy option. Deprecated, signing now always runs within Scala CLI.")
   @Hidden
   @Tag(tags.restricted)
     forceSigningExternally: Option[Boolean] = None,
   @Group(HelpGroup.Signing.toString)
   @Tag(tags.restricted)
-  @HelpMessage("When running Scala CLI on the JVM, force running scala-cli-singing using a native launcher or a JVM launcher")
+  @HelpMessage("Ignored legacy option. Deprecated, signing now always runs within Scala CLI.")
   @Hidden
     forceJvmSigningCli: Option[Boolean] = None
 ) { // format: on
-  def cliOptions(): bo.ScalaSigningCliOptions =
-    bo.ScalaSigningCliOptions(
-      javaArgs = signingCliJavaArg,
-      forceExternal = forceSigningExternally,
-      forceJvm = forceJvmSigningCli,
-      signingCliVersion = signingCliVersion
-    )
+  def warnAboutIgnoredOptions(logger: Logger): Unit = {
+    val passedOptions = Seq(
+      signingCliVersion.map(_ => "--signing-cli-version"),
+      Option.when(signingCliJavaArg.nonEmpty)("--signing-cli-java-arg"),
+      forceSigningExternally.map(_ => "--force-signing-externally"),
+      forceJvmSigningCli.map(_ => "--force-jvm-signing-cli")
+    ).flatten
+    for (option <- passedOptions)
+      logger.message(
+        s"$warnPrefix Deprecated option '$option' is ignored, signing now always runs within Scala CLI."
+      )
+  }
 }
 
 object PgpScalaSigningOptions {

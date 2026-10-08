@@ -2287,22 +2287,22 @@ Available in commands:
 ### `--signing-cli-version`
 
 [Internal]
-scala-cli-signing version when running externally (0.4.0 by default)
+Ignored legacy option. Deprecated, signing now always runs within Scala CLI.
 
 ### `--signing-cli-java-arg`
 
 [Internal]
-Pass arguments to the Java command when running scala-cli-singing externally on JVM
+Ignored legacy option. Deprecated, signing now always runs within Scala CLI.
 
 ### `--force-signing-externally`
 
 [Internal]
-When running Scala CLI on the JVM, force running scala-cli-singing externally
+Ignored legacy option. Deprecated, signing now always runs within Scala CLI.
 
 ### `--force-jvm-signing-cli`
 
 [Internal]
-When running Scala CLI on the JVM, force running scala-cli-singing using a native launcher or a JVM launcher
+Ignored legacy option. Deprecated, signing now always runs within Scala CLI.
 
 ### Pgp sign options
 

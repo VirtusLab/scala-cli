@@ -15,6 +15,7 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
   )
 
   override def runCommand(options: PgpPushOptions, args: RemainingArgs, logger: Logger): Unit = {
+    options.scalaSigning.warnAboutIgnoredOptions(logger)
     val backend = ScalaCliSttpBackend.httpURLConnection(logger)
 
     val keyServerUri = options.shared.keyServerUriOptOrExit(logger).getOrElse {
@@ -28,8 +29,6 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
       sys.exit(1)
     }
 
-    lazy val coursierCache = options.coursier.coursierCache(logger)
-
     for (key <- all) {
       val path = os.Path(key, os.pwd)
       if (!os.exists(path)) {
@@ -38,19 +37,7 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
       }
       val keyContent = os.read(path)
 
-      val keyId =
-        (new PgpProxyMaker).get(
-          options.scalaSigning.forceSigningExternally.getOrElse(false)
-        ).keyId(
-          keyContent,
-          key,
-          coursierCache,
-          logger,
-          options.jvm,
-          options.coursier,
-          options.scalaSigning.cliOptions()
-        )
-          .orExit(logger)
+      val keyId = PgpProxy.keyId(keyContent, key).orExit(logger)
 
       if (keyId.isEmpty)
         if (options.force) {

@@ -587,14 +587,9 @@ trait Core extends ScalaCliCrossSbtModule
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
          |  def defaultGraalVMVersion = "${deps.graalVmCommunityVersion}"
          |
-         |  def scalaCliSigningOrganization = "${signing(crossScalaVersion).pomSettings().organization}"
-         |  def scalaCliSigningName = "${signing(crossScalaVersion).artifactName()}"
-         |  def scalaCliSigningVersion = "${signing(crossScalaVersion).publishVersion()}"
          |  def javaClassNameOrganization = "${Deps.javaClassName.dep.module.organization.value}"
          |  def javaClassNameName = "${Deps.javaClassName.dep.module.name.value}"
          |  def javaClassNameVersion = "${Deps.javaClassName.dep.versionConstraint.asString}"
-         |
-         |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
          |
          |  def libsodiumVersion = "${deps.libsodiumVersion}"
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.versionConstraint.asString}"
@@ -950,7 +945,6 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |  def defaultGraalVMJavaVersion = "${deps.graalVmJavaVersion}"
          |  def defaultGraalVMVersion = "${deps.graalVmCommunityVersion}"
          |  def scalaPyVersion = "${Deps.scalaPy.dep.versionConstraint.asString}"
-         |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
          |  def defaultMillVersion = "${BuildInfo.millVersion}"
          |  def mill012Version = "${Deps.Versions.mill012Version}"
          |  def mill1Version = "${Deps.Versions.mill1Version}"

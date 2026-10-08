@@ -1,97 +1,43 @@
 package scala.cli.commands.pgp
 
-import coursier.cache.FileCache
-import coursier.util.Task
+import caseapp.core.RemainingArgs
+
+import java.nio.charset.StandardCharsets
 
 import scala.build.errors.BuildException
-import scala.build.{Logger, options as bo}
-import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
-import scala.util.Properties
+import scala.cli.signing.commands.{PgpCreate, PgpCreateOptions, PgpKeyId}
+import scala.cli.signing.shared.{PasswordOption, Secret}
+import scala.cli.signing.util.BouncycastleSetup
 
-/** A proxy running the PGP operations externally using scala-cli-singing. This is done either using
-  * it's native image launchers or running it in a JVM process. This construct is not used when PGP
-  * commands are evoked from CLI (see [[PgpCommandsSubst]] and [[PgpCommands]]), but rather when PGP
-  * operations are used internally. <br>
-  *
-  * This is the 'native' counterpart of [[PgpProxyJvm]]
+/** Runs PGP operations used internally by Scala CLI (rather than evoked directly from the command
+  * line via the `pgp` sub-commands).
   */
-class PgpProxy {
+object PgpProxy {
   def createKey(
     pubKey: String,
     secKey: String,
     mail: String,
     quiet: Boolean,
-    passwordOpt: Option[String],
-    cache: FileCache[Task],
-    logger: Logger,
-    jvmOptions: SharedJvmOptions,
-    coursierOptions: CoursierOptions,
-    signingCliOptions: bo.ScalaSigningCliOptions
-  ): Either[BuildException, Int] = {
-
-    val (passwordOption, extraEnv) = passwordOpt match
-      case Some(value) =>
-        (
-          Seq("--password", s"env:SCALA_CLI_RANDOM_KEY_PASSWORD"),
-          Map("SCALA_CLI_RANDOM_KEY_PASSWORD" -> value)
-        )
-      case None => (Nil, Map.empty)
-    val quietOptions = if quiet then Seq("--quiet") else Nil
-    (new PgpCreateExternal).tryRun(
-      cache,
-      Seq(
-        "pgp",
-        "create",
-        "--pub-dest",
-        pubKey,
-        "--secret-dest",
-        secKey,
-        "--email",
-        mail
-      ) ++ passwordOption ++ quietOptions,
-      extraEnv,
-      logger,
-      allowExecve = false,
-      jvmOptions,
-      coursierOptions,
-      signingCliOptions
+    passwordOpt: Option[String]
+  ): Unit = {
+    BouncycastleSetup.ensureProviderRegistered()
+    PgpCreate.tryRun(
+      PgpCreateOptions(
+        email = mail,
+        password = passwordOpt.map(password => PasswordOption.Value(Secret(password))),
+        pubDest = Some(pubKey),
+        secretDest = Some(secKey),
+        quiet = quiet
+      ),
+      RemainingArgs(Seq(), Nil)
     )
   }
 
-  def keyId(
-    key: String,
-    keyPrintablePath: String,
-    cache: FileCache[Task],
-    logger: Logger,
-    jvmOptions: SharedJvmOptions,
-    coursierOptions: CoursierOptions,
-    signingCliOptions: bo.ScalaSigningCliOptions
-  ): Either[BuildException, String] = {
-    val keyPath =
-      if (Properties.isWin)
-        os.temp(key, prefix = "key", suffix = ".pub")
-      else
-        os.temp(key, prefix = "key", suffix = ".pub", perms = "rwx------")
-    val maybeRawOutput =
-      try {
-        (new PgpKeyIdExternal).output(
-          cache,
-          Seq(keyPath.toString),
-          Map(),
-          logger,
-          jvmOptions,
-          coursierOptions,
-          signingCliOptions
-        ).map(_.trim)
-      }
-      finally os.remove(keyPath)
-    maybeRawOutput.flatMap { rawOutput =>
-      if (rawOutput.isEmpty)
-        Left(new PgpError(s"No public key found in $keyPrintablePath"))
-      else
-        Right(rawOutput)
-    }
+  def keyId(key: String, keyPrintablePath: String): Either[BuildException, String] = {
+    BouncycastleSetup.ensureProviderRegistered()
+    PgpKeyId.get(key.getBytes(StandardCharsets.UTF_8), fingerprint = false)
+      .headOption
+      .toRight(new PgpError(s"No public key found in $keyPrintablePath"))
   }
-
 }

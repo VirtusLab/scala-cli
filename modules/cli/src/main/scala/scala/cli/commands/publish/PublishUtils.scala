@@ -1,6 +1,5 @@
 package scala.cli.commands.publish
 
-import coursier.cache.{ArchiveCache, FileCache}
 import coursier.publish.checksum.logger.ChecksumLogger
 import coursier.publish.checksum.{ChecksumType, Checksums}
 import coursier.publish.fileset.FileSet
@@ -8,17 +7,15 @@ import coursier.publish.signing.{GpgSigner, Signer}
 
 import java.net.URI
 import java.time.Instant
-import java.util.function.Supplier
 
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.options.{BuildOptions, ComputeVersion, PublishContextualOptions, PublishOptions}
+import scala.build.options.{ComputeVersion, PublishContextualOptions, PublishOptions}
 import scala.build.{Logger, ScalaArtifacts}
-import scala.cli.commands.pgp.PgpExternalCommand
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.config.{ConfigDb, Keys, PasswordOption, PublishCredentials}
 import scala.cli.errors.MissingPublishOptionError
-import scala.cli.publish.BouncycastleSignerMaker
+import scala.cli.signing.util.{BouncycastleSetup, BouncycastleSigner}
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.concurrent.ExecutionContextExecutorService
 
@@ -51,32 +48,12 @@ object PublishUtils {
 
   def getBouncyCastleSigner(
     secretKey: PasswordOption,
-    secretKeyPasswordOpt: Option[PasswordOption],
-    buildOptions: Option[BuildOptions],
-    forceSigningExternally: Boolean,
-    logger: Logger
+    secretKeyPasswordOpt: Option[PasswordOption]
   ): Signer = {
-    val getLauncher: Supplier[Array[String]] = { () =>
-      val archiveCache = buildOptions.map(_.archiveCache)
-        .getOrElse(ArchiveCache())
-      val fileCache = buildOptions.map(_.finalCache).getOrElse(FileCache())
-      PgpExternalCommand.launcher(
-        fileCache,
-        archiveCache,
-        logger,
-        buildOptions.getOrElse(BuildOptions())
-      ) match {
-        case Left(e)              => throw new Exception(e)
-        case Right(binaryCommand) => binaryCommand.toArray
-      }
-    }
-
-    (new BouncycastleSignerMaker).get(
-      forceSigningExternally,
-      secretKeyPasswordOpt.fold(null)(_.toCliSigning),
-      secretKey.toCliSigning,
-      getLauncher,
-      logger
+    BouncycastleSetup.ensureProviderRegistered()
+    BouncycastleSigner(
+      secretKey.toCliSigning.getBytes(),
+      secretKeyPasswordOpt.map(_.toCliSigning.get())
     )
   }
 

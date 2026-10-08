@@ -1,7 +1,5 @@
 package scala.cli.commands.publish
 
-import coursier.cache.FileCache
-import coursier.util.Task
 import sttp.client3.*
 
 import scala.build.Logger
@@ -14,7 +12,6 @@ object OptionChecks {
     options: PublishSetupOptions,
     configDb: => ConfigDb,
     workspace: os.Path,
-    coursierCache: FileCache[Task],
     logger: Logger,
     backend: SttpBackend[Identity, Any]
   ): Seq[OptionCheck] =
@@ -25,7 +22,7 @@ object OptionChecks {
       RepositoryCheck(options, logger),
       UserCheck(options, () => configDb, workspace, logger),
       PasswordCheck(options, () => configDb, workspace, logger),
-      PgpSecretKeyCheck(options, coursierCache, () => configDb, logger, backend),
+      PgpSecretKeyCheck(options, () => configDb, logger, backend),
       LicenseCheck(options, logger),
       UrlCheck(options, workspace, logger),
       ScmCheck(options, workspace, logger),

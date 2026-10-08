@@ -1,7 +1,5 @@
 package scala.cli.commands.publish.checks
 
-import coursier.cache.{ArchiveCache, FileCache}
-import coursier.util.Task
 import sttp.client3.*
 import sttp.model.Uri
 
@@ -14,10 +12,9 @@ import scala.build.options.PublishOptions as BPublishOptions
 import scala.build.options.publish.ConfigPasswordOption
 import scala.build.options.publish.ConfigPasswordOption.*
 import scala.cli.commands.config.ThrowawayPgpSecret
-import scala.cli.commands.pgp.{KeyServer, PgpProxyMaker}
+import scala.cli.commands.pgp.{KeyServer, PgpProxy}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, SetSecret}
-import scala.cli.commands.util.JvmUtils
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError
 import scala.cli.signing.shared.PasswordOption
@@ -43,7 +40,6 @@ import scala.cli.util.ConfigPasswordOptionHelpers.*
   */
 final case class PgpSecretKeyCheck(
   options: PublishSetupOptions,
-  coursierCache: FileCache[Task],
   configDb: () => ConfigDb,
   logger: Logger,
   backend: SttpBackend[Identity, Any]
@@ -64,15 +60,6 @@ final case class PgpSecretKeyCheck(
         .getOrElse(false)
     ) ||
     opt0.gpgSignatureId.isDefined
-  }
-
-  def javaCommand: Either[BuildException, () => String] = either {
-    () =>
-      value(JvmUtils.javaOptions(options.sharedJvm)).javaHome(
-        ArchiveCache().copy(cache = coursierCache),
-        coursierCache,
-        logger.verbosity
-      ).value.javaCommand
   }
 
   private lazy val keyServers: Either[BuildException, Seq[Uri]] = {
@@ -98,19 +85,7 @@ final case class PgpSecretKeyCheck(
     either {
       pubKeyOpt match {
         case Some(pubKey) =>
-          val keyId = value {
-            (new PgpProxyMaker).get(
-              options.scalaSigning.forceSigningExternally.getOrElse(false)
-            ).keyId(
-              pubKey.get().value,
-              "[generated key]",
-              coursierCache,
-              logger,
-              options.sharedJvm,
-              options.coursier,
-              options.scalaSigning.cliOptions()
-            )
-          }
+          val keyId = value(PgpProxy.keyId(pubKey.get().value, "[generated key]"))
 
           value(keyServers).forall { keyServer =>
             KeyServer.check(keyId, keyServer, backend) match
@@ -185,17 +160,8 @@ final case class PgpSecretKeyCheck(
       }
       .getOrElse(ThrowawayPgpSecret.pgpPassPhrase())
 
-    val (pgpPublic, pgpSecret) = value {
-      ThrowawayPgpSecret.pgpSecret(
-        value(maybeMail),
-        Some(passwordSecret),
-        logger,
-        coursierCache,
-        options.sharedJvm,
-        options.coursier,
-        options.scalaSigning.cliOptions()
-      )
-    }
+    val (pgpPublic, pgpSecret) =
+      ThrowawayPgpSecret.pgpSecret(value(maybeMail), Some(passwordSecret), logger)
 
     PGPKeys(
       Some(ConfigPasswordOption.ActualOption(PasswordOption.Value(pgpSecret))),
@@ -218,17 +184,7 @@ final case class PgpSecretKeyCheck(
             .get()
             .value
 
-          val keyId = (new PgpProxyMaker).get(
-            options.scalaSigning.forceSigningExternally.getOrElse(false)
-          ).keyId(
-            publicKeyString,
-            "[generated key]",
-            coursierCache,
-            logger,
-            options.sharedJvm,
-            options.coursier,
-            options.scalaSigning.cliOptions()
-          ).orThrow
+          val keyId = PgpProxy.keyId(publicKeyString, "[generated key]").orThrow
 
           value(keyServers)
             .map { keyServer =>

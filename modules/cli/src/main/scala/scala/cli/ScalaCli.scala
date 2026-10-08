@@ -16,7 +16,6 @@ import scala.cli.commands.CommandUtils
 import scala.cli.config.Keys
 import scala.cli.internal.Argv0
 import scala.cli.launcher.{LauncherCli, LauncherOptions, PowerOptions}
-import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
 
@@ -296,8 +295,6 @@ object ScalaCli {
     val (systemProps, scalaCliArgs) = partitionArgs(remainingArgs)
     if systemProps.nonEmpty then launcherJavaPropArgs = systemProps.toList
     setSystemProps(systemProps)
-
-    (new BouncycastleSignerMaker).maybeInit()
 
     coursier.Resolve.proxySetup()
 

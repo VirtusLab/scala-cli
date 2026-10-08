@@ -16,8 +16,7 @@ final case class PublishOptions(
   scalaVersionSuffix: Option[String] = None,
   scalaPlatformSuffix: Option[String] = None,
   local: PublishContextualOptions = PublishContextualOptions(),
-  ci: PublishContextualOptions = PublishContextualOptions(),
-  signingCli: ScalaSigningCliOptions = ScalaSigningCliOptions()
+  ci: PublishContextualOptions = PublishContextualOptions()
 ) {
   def retained(isCi: Boolean): PublishContextualOptions =
     if (isCi) ci

@@ -40,13 +40,11 @@ import scala.build.options.{
   ComputeVersion,
   ConfigMonoid,
   PublishContextualOptions,
-  ScalaSigningCliOptions,
   Scope
 }
 import scala.build.postprocessing.SlothPatcher
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package as PackageCmd
-import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.PublishUtils.*
 import scala.cli.commands.shared.{
@@ -103,7 +101,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     publishParams: PublishParamsOptions,
     sharedPublish: SharedPublishOptions,
     publishRepo: PublishRepositoryOptions,
-    scalaSigning: PgpScalaSigningOptions,
     publishConnection: PublishConnectionOptions,
     mainClass: MainClassOptions,
     ivy2LocalLike: Option[Boolean]
@@ -190,13 +187,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           ci = ConfigMonoid.sum(Seq(
             baseOptions.notForBloopOptions.publishOptions.ci,
             if publishParams.isCi then contextualOptions else PublishContextualOptions()
-          )),
-          signingCli = ScalaSigningCliOptions(
-            signingCliVersion = scalaSigning.signingCliVersion,
-            forceExternal = scalaSigning.forceSigningExternally,
-            forceJvm = scalaSigning.forceJvmSigningCli,
-            javaArgs = scalaSigning.signingCliJavaArg
-          )
+          ))
         )
       )
     )
@@ -217,6 +208,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
 
   override def runCommand(options: PublishOptions, args: RemainingArgs, logger: Logger): Unit = {
+    options.signingCli.warnAboutIgnoredOptions(logger)
     maybePrintLicensesAndExit(options.publishParams)
     maybePrintChecksumsAndExit(options.sharedPublish)
 
@@ -230,7 +222,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       publishParams = options.publishParams,
       sharedPublish = options.sharedPublish,
       publishRepo = options.publishRepo,
-      scalaSigning = options.signingCli,
       publishConnection = options.connectionOptions,
       mainClass = options.mainClass,
       ivy2LocalLike = options.ivy2LocalLike
@@ -270,7 +261,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       publishLocal = false,
       m2Local = false,
       m2HomeOpt = None,
-      forceSigningExternally = options.signingCli.forceSigningExternally.getOrElse(false),
       parallelUpload = options.parallelUpload,
       options.watch.watch,
       isCi = options.publishParams.isCi,
@@ -295,7 +285,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     publishLocal: Boolean,
     m2Local: Boolean = false,
     m2HomeOpt: Option[os.Path] = None,
-    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     watch: Boolean,
     isCi: Boolean,
@@ -329,7 +318,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             m2HomeOpt = m2HomeOpt,
             logger = logger,
             allowExit = false,
-            forceSigningExternally = forceSigningExternally,
             parallelUpload = parallelUpload,
             isCi = isCi,
             configDb = configDb,
@@ -364,7 +352,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         m2HomeOpt = m2HomeOpt,
         logger = logger,
         allowExit = true,
-        forceSigningExternally = forceSigningExternally,
         parallelUpload = parallelUpload,
         isCi = isCi,
         configDb = configDb,
@@ -387,7 +374,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     m2HomeOpt: Option[os.Path],
     logger: Logger,
     allowExit: Boolean,
-    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     isCi: Boolean,
     configDb: () => ConfigDb,
@@ -446,7 +432,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               m2Local = m2Local,
               m2HomeOpt = m2HomeOpt,
               logger = logger,
-              forceSigningExternally = forceSigningExternally,
               parallelUpload = parallelUpload,
               withTestScope = withTestScope,
               isCi = isCi,
@@ -808,7 +793,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     m2Local: Boolean,
     m2HomeOpt: Option[os.Path],
     logger: Logger,
-    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     withTestScope: Boolean,
     isCi: Boolean,
@@ -910,17 +894,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           (fs, modVersionOpt0)
         }
     }
-
-    def getBouncyCastleSigner(
-      secretKey: PasswordOption,
-      secretKeyPasswordOpt: Option[PasswordOption]
-    ) = PublishUtils.getBouncyCastleSigner(
-      secretKey = secretKey,
-      secretKeyPasswordOpt = secretKeyPasswordOpt,
-      buildOptions = builds.headOption.map(_.options),
-      forceSigningExternally = forceSigningExternally,
-      logger = logger
-    )
 
     val signerKind: PSigner = publishOptions.contextual(isCi).signer.getOrElse {
       if !repoParams.supportsSig then PSigner.Nop
