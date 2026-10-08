@@ -124,8 +124,6 @@ object options extends Cross[Options](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object `signing-shared` extends Cross[SigningShared](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
-object signing extends Cross[Signing](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
 object directives extends Cross[Directives](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object core extends Cross[Core](Scala.scala3MainVersions)
@@ -718,30 +716,6 @@ trait SigningShared extends ScalaCliCrossSbtModule
   override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(Deps.jsoniterMacros)
 }
 
-trait Signing extends ScalaCliCrossSbtModule
-    with ScalaCliPublishModule
-    with HasTests
-    with ScalaCliScalafixModule
-    with LocatedInModules {
-  override def crossScalaVersion: String                     = crossValue
-  override def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
-    `signing-shared`(crossScalaVersion)
-  )
-  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
-    Deps.bcpgJdk18on,
-    Deps.bcutilJdk18on,
-    Deps.caseApp,
-    Deps.coursierPublish
-  )
-  override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(Deps.jsoniterMacros)
-
-  object test extends ScalaCliTests with ScalaCliScalafixModule {
-    override def forkArgs: T[Seq[String]] = Task {
-      super.forkArgs() ++ Seq("--add-opens=java.base/java.util=ALL-UNNAMED")
-    }
-  }
-}
-
 trait Options extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with HasTests
@@ -999,7 +973,6 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
     `build-module`(crossScalaVersion),
     config(crossScalaVersion),
-    signing(crossScalaVersion),
     `specification-level`(crossScalaVersion)
   )
 
@@ -1007,6 +980,8 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
     Task.Anon(super.repositoriesTask() ++ customRepositories)
 
   override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    Deps.bcpgJdk18on,
+    Deps.bcutilJdk18on,
     Deps.caseApp,
     Deps.coursierLauncher,
     Deps.coursierPublish.exclude((organization, "config_2.13")).exclude((organization, "config_3")),
@@ -1607,7 +1582,6 @@ def unitTests(): Command[(msg: String, results: Seq[TestResult])] = Task.Command
   core(Scala.defaultInternal).test.testForked()()
   directives(Scala.defaultInternal).test.testForked()()
   options(Scala.defaultInternal).test.testForked()()
-  signing(Scala.defaultInternal).test.testForked()()
 }
 
 def scala(args: Task[Args] = Task.Anon(Args())) = Task.Command {
