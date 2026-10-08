@@ -163,7 +163,6 @@ object Deps {
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative05
     def scalaPackager                     = "0.3.0"
-    def signingCli                        = "0.4.0"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.12.3"
     def javaClassName                     = "0.2.0"
@@ -216,6 +215,8 @@ object Deps {
   def directivesParser(v: String = Scala.scala3Next) =
     mvn"org.scala-lang::scala3-directives-parser:$v"
   def bcpkixJdk18on  = mvn"org.bouncycastle:bcpkix-jdk18on:${Versions.bouncycastle}"
+  def bcpgJdk18on    = mvn"org.bouncycastle:bcpg-jdk18on:${Versions.bouncycastle}"
+  def bcutilJdk18on  = mvn"org.bouncycastle:bcutil-jdk18on:${Versions.bouncycastle}"
   def dockerJavaCore =
     mvn"com.github.docker-java:docker-java-core:${Versions.dockerJava}"
       .exclude("org.bouncycastle" -> "bcpkix-jdk18on")
@@ -283,26 +284,6 @@ object Deps {
       .exclude("org.jline" -> "jline") // to prevent incompatibilities with GraalVM <23
       .exclude("com.lihaoyi" -> "sourcecode_2.13")
       .exclude("org.scala-lang.modules" -> "scala-collection-compat_2.13")
-  def signingCliShared =
-    mvn"org.virtuslab.scala-cli-signing::shared:${Versions.signingCli}"
-      // to prevent collisions with scala-cli's case-app version
-      .exclude(("com.github.alexarchambault", "case-app_3"))
-      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
-      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
-      .exclude(("com.lihaoyi", "os-lib_3"))
-      .exclude(("com.lihaoyi", "os-lib_2.13"))
-      .exclude(("org.virtuslab.scala-cli", "config_3"))
-  def signingCli =
-    mvn"org.virtuslab.scala-cli-signing::cli:${Versions.signingCli}"
-      // to prevent collisions with scala-cli's case-app version
-      .exclude(("com.github.alexarchambault", "case-app_3"))
-      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
-      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
-      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-      .exclude(("io.get-coursier.publish", "publish_2.13"))
-      .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-      .exclude(("com.lihaoyi", "os-lib_3"))
-      .exclude(("com.lihaoyi", "os-lib_2.13"))
   def slf4jNop                  = mvn"org.slf4j:slf4j-nop:2.0.20"
   def sonatypeCentralClientRequests =
     mvn"com.lumidion::sonatype-central-client-requests:0.6.0"

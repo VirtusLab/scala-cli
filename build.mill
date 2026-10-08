@@ -122,6 +122,10 @@ object config extends Cross[Config](Scala.allScala3)
     with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 in Scala CLI 1.19
 object options extends Cross[Options](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
+object `signing-shared` extends Cross[SigningShared](Scala.scala3MainVersions)
+    with CrossScalaDefaultToInternal
+object signing extends Cross[Signing](Scala.scala3MainVersions)
+    with CrossScalaDefaultToInternal
 object directives extends Cross[Directives](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object core extends Cross[Core](Scala.scala3MainVersions)
@@ -583,9 +587,9 @@ trait Core extends ScalaCliCrossSbtModule
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
          |  def defaultGraalVMVersion = "${deps.graalVmCommunityVersion}"
          |
-         |  def scalaCliSigningOrganization = "${Deps.signingCli.dep.module.organization.value}"
-         |  def scalaCliSigningName = "${Deps.signingCli.dep.module.name.value}"
-         |  def scalaCliSigningVersion = "${Deps.signingCli.dep.versionConstraint.asString}"
+         |  def scalaCliSigningOrganization = "${signing(crossScalaVersion).pomSettings().organization}"
+         |  def scalaCliSigningName = "${signing(crossScalaVersion).artifactName()}"
+         |  def scalaCliSigningVersion = "${signing(crossScalaVersion).publishVersion()}"
          |  def javaClassNameOrganization = "${Deps.javaClassName.dep.module.organization.value}"
          |  def javaClassNameName = "${Deps.javaClassName.dep.module.name.value}"
          |  def javaClassNameVersion = "${Deps.javaClassName.dep.versionConstraint.asString}"
@@ -710,6 +714,39 @@ trait Config extends ScalaCliCrossSbtModule
   override def scalacOptions: T[Seq[String]] = super.scalacOptions()
 }
 
+trait SigningShared extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
+    with ScalaCliScalafixModule
+    with LocatedInModules {
+  override def crossScalaVersion: String   = crossValue
+  override def mvnDeps: T[Seq[Dep]]        = super.mvnDeps() ++ Seq(Deps.jsoniterCore, Deps.osLib)
+  override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(Deps.jsoniterMacros)
+}
+
+trait Signing extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
+    with HasTests
+    with ScalaCliScalafixModule
+    with LocatedInModules {
+  override def crossScalaVersion: String                     = crossValue
+  override def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
+    `signing-shared`(crossScalaVersion)
+  )
+  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    Deps.bcpgJdk18on,
+    Deps.bcutilJdk18on,
+    Deps.caseApp,
+    Deps.coursierPublish
+  )
+  override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(Deps.jsoniterMacros)
+
+  object test extends ScalaCliTests with ScalaCliScalafixModule {
+    override def forkArgs: T[Seq[String]] = Task {
+      super.forkArgs() ++ Seq("--add-opens=java.base/java.util=ALL-UNNAMED")
+    }
+  }
+}
+
 trait Options extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with HasTests
@@ -717,7 +754,8 @@ trait Options extends ScalaCliCrossSbtModule
     with LocatedInModules {
   override def crossScalaVersion: String                     = crossValue
   override def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
-    core(crossScalaVersion)
+    core(crossScalaVersion),
+    `signing-shared`(crossScalaVersion)
   )
   override def compileModuleDeps: Seq[JavaModule] = Seq(
     `build-macros`(crossScalaVersion)
@@ -727,8 +765,7 @@ trait Options extends ScalaCliCrossSbtModule
   }
 
   override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
-    Deps.bloopConfig,
-    Deps.signingCliShared
+    Deps.bloopConfig
   )
   override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(
     Deps.jsoniterMacros,
@@ -968,6 +1005,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
     `build-module`(crossScalaVersion),
     config(crossScalaVersion),
+    signing(crossScalaVersion),
     `specification-level`(crossScalaVersion)
   )
 
@@ -985,7 +1023,6 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
     Deps.metaconfigTypesafe,
     Deps.pythonNativeLibs,
     Deps.scalaPackager.exclude("com.lihaoyi" -> "os-lib_2.13"),
-    Deps.signingCli.exclude((organization, "config_2.13")).exclude((organization, "config_3")),
     Deps.slf4jNop, // to silence jgit
     Deps.sttp,
     Deps.scalafixInterfaces,
@@ -1576,6 +1613,7 @@ def unitTests(): Command[(msg: String, results: Seq[TestResult])] = Task.Command
   core(Scala.defaultInternal).test.testForked()()
   directives(Scala.defaultInternal).test.testForked()()
   options(Scala.defaultInternal).test.testForked()()
+  signing(Scala.defaultInternal).test.testForked()()
 }
 
 def scala(args: Task[Args] = Task.Anon(Args())) = Task.Command {
