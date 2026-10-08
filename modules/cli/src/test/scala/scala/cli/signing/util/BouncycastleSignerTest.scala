@@ -2,7 +2,7 @@ package scala.cli.signing.util
 
 import java.nio.file.Paths
 
-import scala.cli.signing.shared.Secret
+import scala.cli.signing.Secret
 
 class BouncycastleSignerTest extends munit.FunSuite {
   test("init") {

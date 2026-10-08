@@ -5,7 +5,7 @@ import caseapp.*
 import scala.cli.commands.pgp.{PgpScalaSigningOptions, SharedPgpPushPullOptions}
 import scala.cli.commands.shared.*
 import scala.cli.commands.tags
-import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.PasswordOption
 import scala.cli.signing.util.ArgParsers.*
 
 // format: off

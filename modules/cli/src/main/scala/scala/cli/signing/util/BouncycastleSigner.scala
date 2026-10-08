@@ -22,7 +22,7 @@ import org.bouncycastle.openpgp.operator.jcajce.{
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, PrintWriter, StringWriter}
 
-import scala.cli.signing.shared.Secret
+import scala.cli.signing.Secret
 import scala.cli.signing.util.Util.maybeDecodeBase64
 import scala.jdk.CollectionConverters.*
 import scala.util.Try

@@ -1,4 +1,4 @@
-package scala.cli.signing.shared
+package scala.cli.signing
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*

@@ -70,7 +70,7 @@ object Config extends ScalaCommand[ConfigOptions] {
             else if (options.pgpPassword.contains("random"))
               Some(ThrowawayPgpSecret.pgpPassPhrase())
             else
-              options.pgpPassword.map(scala.cli.signing.shared.Secret.apply)
+              options.pgpPassword.map(scala.cli.signing.Secret.apply)
 
             val (pgpPublic, pgpSecret) = ThrowawayPgpSecret.pgpSecret(mail, passwordOpt, logger)
 

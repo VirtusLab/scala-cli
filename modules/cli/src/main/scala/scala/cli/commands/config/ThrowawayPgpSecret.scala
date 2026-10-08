@@ -4,7 +4,7 @@ import java.security.SecureRandom
 
 import scala.build.Logger
 import scala.cli.commands.pgp.PgpCreate
-import scala.cli.signing.shared.Secret
+import scala.cli.signing.Secret
 import scala.util.Properties
 
 object ThrowawayPgpSecret {

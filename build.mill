@@ -122,7 +122,7 @@ object config extends Cross[Config](Scala.allScala3)
     with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 in Scala CLI 1.19
 object options extends Cross[Options](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
-object `signing-shared` extends Cross[SigningShared](Scala.scala3MainVersions)
+object signing extends Cross[Signing](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object directives extends Cross[Directives](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
@@ -707,7 +707,7 @@ trait Config extends ScalaCliCrossSbtModule
   override def scalacOptions: T[Seq[String]] = super.scalacOptions()
 }
 
-trait SigningShared extends ScalaCliCrossSbtModule
+trait Signing extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
     with LocatedInModules {
@@ -724,7 +724,7 @@ trait Options extends ScalaCliCrossSbtModule
   override def crossScalaVersion: String                     = crossValue
   override def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
     core(crossScalaVersion),
-    `signing-shared`(crossScalaVersion)
+    signing(crossScalaVersion)
   )
   override def compileModuleDeps: Seq[JavaModule] = Seq(
     `build-macros`(crossScalaVersion)

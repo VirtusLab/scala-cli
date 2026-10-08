@@ -1,4 +1,4 @@
-package scala.cli.signing.shared
+package scala.cli.signing
 
 final class Secret[+T](
   value0: T

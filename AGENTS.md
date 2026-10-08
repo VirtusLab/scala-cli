@@ -53,7 +53,7 @@ Modules live under `modules/`. The dependency graph flows roughly as:
 specification-level → config → core → options → directives → build-module → cli
                                          ↑           ↑
                                          │   directives-parser
-                                  signing-shared
+                                     signing
 ```
 
 ### Module overview
@@ -67,7 +67,7 @@ The list below may not be exhaustive — check `modules/` and `build.mill` for t
 | `build-macros`                                | Compile-time macros (e.g. `EitherCps`).                                                                          |
 | `core`                                        | Core types: `Inputs`, `Sources`, build constants, Bloop integration, JVM/JS/Native tooling.                      |
 | `options`                                     | `BuildOptions`, `SharedOptions`, and all option types.                                                           |
-| `signing-shared`                              | `PasswordOption` / `Secret` types shared by signing-related options.                                             |
+| `signing`                                     | `PasswordOption` / `Secret` types shared by signing-related options.                                             |
 | `directives-parser`                           | Pure Scala 3 parser for `//> using` directive syntax: comment extraction, lexing, and parsing into AST nodes.    |
 | `directives`                                  | Using directive handlers — the bridge between `//> using` directives and `BuildOptions`.                         |
 | `build-module` (aliased from `build` in mill) | The main build pipeline: preprocessing, compilation, post-processing. Most business logic lives here.            |

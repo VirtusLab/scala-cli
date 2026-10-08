@@ -14,7 +14,7 @@ import scala.build.errors.CheckScalaCliVersionError
 import scala.build.internal.Constants.{ghName, ghOrg, version as scalaCliVersion}
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
-import scala.cli.signing.shared.Secret
+import scala.cli.signing.Secret
 import scala.cli.util.ArgHelpers.*
 import scala.util.control.NonFatal
 import scala.util.{Properties, Try}

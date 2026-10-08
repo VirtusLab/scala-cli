@@ -1,7 +1,7 @@
 package scala.build.options
 
 import scala.build.options.publish.{ConfigPasswordOption, Signer}
-import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.PasswordOption
 
 /** Publishing-related options, that can have different values locally and on CIs */
 final case class PublishContextualOptions(

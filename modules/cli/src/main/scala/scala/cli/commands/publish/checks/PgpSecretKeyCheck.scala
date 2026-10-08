@@ -17,7 +17,7 @@ import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, SetSecret}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError
-import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.PasswordOption
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 
 /** Checks if:

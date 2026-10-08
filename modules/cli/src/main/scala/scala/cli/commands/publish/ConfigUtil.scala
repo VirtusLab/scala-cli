@@ -4,38 +4,38 @@ import scala.build.errors.ConfigDbException
 
 object ConfigUtil {
 
-  extension [T](sec: scala.cli.signing.shared.Secret[T]) {
+  extension [T](sec: scala.cli.signing.Secret[T]) {
     def toConfig: scala.cli.config.Secret[T] =
       scala.cli.config.Secret(sec.value)
   }
   extension [T](sec: scala.cli.config.Secret[T]) {
-    def toCliSigning: scala.cli.signing.shared.Secret[T] =
-      scala.cli.signing.shared.Secret(sec.value)
+    def toCliSigning: scala.cli.signing.Secret[T] =
+      scala.cli.signing.Secret(sec.value)
   }
-  extension (opt: scala.cli.signing.shared.PasswordOption) {
+  extension (opt: scala.cli.signing.PasswordOption) {
     def toConfig: scala.cli.config.PasswordOption =
       opt match {
-        case v: scala.cli.signing.shared.PasswordOption.Value =>
+        case v: scala.cli.signing.PasswordOption.Value =>
           scala.cli.config.PasswordOption.Value(v.value.toConfig)
-        case v: scala.cli.signing.shared.PasswordOption.Env =>
+        case v: scala.cli.signing.PasswordOption.Env =>
           scala.cli.config.PasswordOption.Env(v.name)
-        case v: scala.cli.signing.shared.PasswordOption.File =>
+        case v: scala.cli.signing.PasswordOption.File =>
           scala.cli.config.PasswordOption.File(v.path.toNIO)
-        case v: scala.cli.signing.shared.PasswordOption.Command =>
+        case v: scala.cli.signing.PasswordOption.Command =>
           scala.cli.config.PasswordOption.Command(v.command)
       }
   }
   extension (opt: scala.cli.config.PasswordOption) {
-    def toCliSigning: scala.cli.signing.shared.PasswordOption =
+    def toCliSigning: scala.cli.signing.PasswordOption =
       opt match {
         case v: scala.cli.config.PasswordOption.Value =>
-          scala.cli.signing.shared.PasswordOption.Value(v.value.toCliSigning)
+          scala.cli.signing.PasswordOption.Value(v.value.toCliSigning)
         case v: scala.cli.config.PasswordOption.Env =>
-          scala.cli.signing.shared.PasswordOption.Env(v.name)
+          scala.cli.signing.PasswordOption.Env(v.name)
         case v: scala.cli.config.PasswordOption.File =>
-          scala.cli.signing.shared.PasswordOption.File(os.Path(v.path, os.pwd))
+          scala.cli.signing.PasswordOption.File(os.Path(v.path, os.pwd))
         case v: scala.cli.config.PasswordOption.Command =>
-          scala.cli.signing.shared.PasswordOption.Command(v.command)
+          scala.cli.signing.PasswordOption.Command(v.command)
       }
   }
 

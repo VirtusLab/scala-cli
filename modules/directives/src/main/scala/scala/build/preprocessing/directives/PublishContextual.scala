@@ -8,7 +8,7 @@ import scala.build.errors.{BuildException, CompositeBuildException, MalformedInp
 import scala.build.options.*
 import scala.build.options.publish.ConfigPasswordOption
 import scala.cli.commands.SpecificationLevel
-import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.PasswordOption
 
 trait PublishContextual {
   def computeVersion: Option[Positioned[String]]

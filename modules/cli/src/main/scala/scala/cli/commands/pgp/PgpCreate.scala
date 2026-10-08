@@ -7,7 +7,7 @@ import java.io.{ByteArrayOutputStream, File}
 
 import scala.build.Logger
 import scala.cli.commands.ScalaCommand
-import scala.cli.signing.shared.Secret
+import scala.cli.signing.Secret
 import scala.cli.signing.util.{BouncycastleSetup, PgpHelper}
 
 object PgpCreate extends ScalaCommand[PgpCreateOptions] {

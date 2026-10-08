@@ -1,6 +1,6 @@
 package scala.build.options.publish
 
-import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.PasswordOption
 
 /** Can be either a [[PasswordOption]], or something like "config:…" pointing at a config entry */
 sealed abstract class ConfigPasswordOption extends Product with Serializable

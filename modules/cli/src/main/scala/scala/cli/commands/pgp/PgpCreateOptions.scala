@@ -4,7 +4,7 @@ import caseapp.*
 
 import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup}
 import scala.cli.commands.tags
-import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.PasswordOption
 import scala.cli.signing.util.ArgParsers.*
 
 // format: off

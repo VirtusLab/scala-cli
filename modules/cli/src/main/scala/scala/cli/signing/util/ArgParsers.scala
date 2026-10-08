@@ -2,7 +2,7 @@ package scala.cli.signing.util
 
 import caseapp.core.argparser.{ArgParser, SimpleArgParser}
 
-import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.PasswordOption
 
 abstract class LowPriorityArgParsers {
 
