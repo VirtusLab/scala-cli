@@ -39,8 +39,12 @@ class ScalaCliCommands(
     `new`.New,
     repl.Repl,
     package0.Package,
+    pgp.PgpCreate,
+    pgp.PgpKeyId,
     pgp.PgpPull,
     pgp.PgpPush,
+    pgp.PgpSign,
+    pgp.PgpVerify,
     publish.Publish,
     publish.PublishLocal,
     publish.PublishSetup,
@@ -54,7 +58,7 @@ class ScalaCliCommands(
     uninstallcompletions.UninstallCompletions,
     update.Update,
     version.Version
-  ) ++ Seq(pgp.PgpCreate, pgp.PgpKeyId, pgp.PgpSign, pgp.PgpVerify)
+  )
 
   def commands = allCommands
 

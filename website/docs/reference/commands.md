@@ -536,6 +536,26 @@ Install Scala CLI in a sub-directory of the home directory
 
 Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [install home](./cli-options.md#install-home-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
+### pgp create
+
+Create PGP key pair
+
+The `pgp-create` sub-command is experimental.
+Please bear in mind that non-ideal user experience should be expected.
+If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [pgp create](./cli-options.md#pgp-create-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
+
+### pgp key-id
+
+Print the key ID of PGP public keys
+
+The `pgp-key-id` sub-command is experimental.
+Please bear in mind that non-ideal user experience should be expected.
+If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [pgp key id](./cli-options.md#pgp-key-id-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
+
 ### pgp pull
 
 Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [pgp pull](./cli-options.md#pgp-pull-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
@@ -544,25 +564,23 @@ Accepts option groups: [global suppress warning](./cli-options.md#global-suppres
 
 Accepts option groups: [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp push](./cli-options.md#pgp-push-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
-### pgp create
-
-Create PGP key pair
-
-Accepts option groups: [pgp create](./cli-options.md#pgp-create-options)
-
-### pgp key-id
-
-Accepts option groups: [pgp key id](./cli-options.md#pgp-key-id-options)
-
 ### pgp sign
 
 Sign files with PGP
 
-Accepts option groups: [pgp sign](./cli-options.md#pgp-sign-options)
+The `pgp-sign` sub-command is experimental.
+Please bear in mind that non-ideal user experience should be expected.
+If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [pgp sign](./cli-options.md#pgp-sign-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### pgp verify
 
 Verify PGP signatures
 
-Accepts option groups: [pgp verify](./cli-options.md#pgp-verify-options)
+The `pgp-verify` sub-command is experimental.
+Please bear in mind that non-ideal user experience should be expected.
+If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [pgp verify](./cli-options.md#pgp-verify-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 

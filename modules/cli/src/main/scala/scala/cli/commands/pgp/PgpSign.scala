@@ -5,15 +5,19 @@ import caseapp.core.RemainingArgs
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 
+import scala.build.Logger
+import scala.cli.commands.ScalaCommand
 import scala.cli.signing.util.{BouncycastleSetup, BouncycastleSigner, Util}
 
-object PgpSign extends PgpCommand[PgpSignOptions] {
+object PgpSign extends ScalaCommand[PgpSignOptions] {
 
-  override def names = List(
+  override def hidden                  = true
+  override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
+  override def names                   = List(
     List("pgp", "sign")
   )
 
-  def run(options: PgpSignOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: PgpSignOptions, args: RemainingArgs, logger: Logger): Unit = {
     BouncycastleSetup.ensureProviderRegistered()
 
     // This key is potentially private (not secret) - may have no password
@@ -25,7 +29,7 @@ object PgpSign extends PgpCommand[PgpSignOptions] {
     val allArgs = args.all
 
     if (options.stdout && allArgs.length > 1) {
-      System.err.println(s"--stdout cannot be specified with multiple input files.")
+      logger.error("--stdout cannot be specified with multiple input files.")
       sys.exit(1)
     }
 
@@ -53,7 +57,7 @@ object PgpSign extends PgpCommand[PgpSignOptions] {
 
       res match {
         case Left(err) =>
-          System.err.println(err)
+          logger.error(err)
           sys.exit(1)
         case Right(value) =>
           dest match {
@@ -61,7 +65,7 @@ object PgpSign extends PgpCommand[PgpSignOptions] {
               if (options.force)
                 os.write.over(destPath, value)
               else if (os.exists(destPath)) {
-                System.err.println(
+                logger.error(
                   s"Error: ${arg + ".asc"} already exists. Pass --force to force overwriting it."
                 )
                 sys.exit(1)

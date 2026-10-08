@@ -37,7 +37,7 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
       }
       val keyContent = os.read(path)
 
-      val keyId = PgpProxy.keyId(keyContent, key).orExit(logger)
+      val keyId = PgpKeyId.keyId(keyContent, key).orExit(logger)
 
       if (keyId.isEmpty)
         if (options.force) {

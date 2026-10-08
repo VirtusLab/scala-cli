@@ -12,7 +12,7 @@ import scala.build.options.PublishOptions as BPublishOptions
 import scala.build.options.publish.ConfigPasswordOption
 import scala.build.options.publish.ConfigPasswordOption.*
 import scala.cli.commands.config.ThrowawayPgpSecret
-import scala.cli.commands.pgp.{KeyServer, PgpProxy}
+import scala.cli.commands.pgp.{KeyServer, PgpKeyId}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, SetSecret}
 import scala.cli.config.{ConfigDb, Keys}
@@ -85,7 +85,7 @@ final case class PgpSecretKeyCheck(
     either {
       pubKeyOpt match {
         case Some(pubKey) =>
-          val keyId = value(PgpProxy.keyId(pubKey.get().value, "[generated key]"))
+          val keyId = value(PgpKeyId.keyId(pubKey.get().value, "[generated key]"))
 
           value(keyServers).forall { keyServer =>
             KeyServer.check(keyId, keyServer, backend) match
@@ -184,7 +184,7 @@ final case class PgpSecretKeyCheck(
             .get()
             .value
 
-          val keyId = PgpProxy.keyId(publicKeyString, "[generated key]").orThrow
+          val keyId = PgpKeyId.keyId(publicKeyString, "[generated key]").orThrow
 
           value(keyServers)
             .map { keyServer =>

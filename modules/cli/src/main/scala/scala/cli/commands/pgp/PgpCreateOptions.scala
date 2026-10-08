@@ -2,19 +2,43 @@ package scala.cli.commands.pgp
 
 import caseapp.*
 
+import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup}
+import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers.*
 
+// format: off
 @HelpMessage("Create PGP key pair")
 final case class PgpCreateOptions(
-  email: String,
-  password: Option[PasswordOption] = None,
-  dest: Option[String] = None,
-  pubDest: Option[String] = None,
-  secretDest: Option[String] = None,
-  verbose: Int @@ Counter = Tag.of(0),
-  quiet: Boolean = false
-) {
+  @Recurse
+    global: GlobalOptions = GlobalOptions(),
+  @Group(HelpGroup.PGP.toString)
+  @HelpMessage("E-mail address to associate to the key pair")
+  @Tag(tags.experimental)
+  @Tag(tags.inShortHelp)
+    email: String,
+  @Group(HelpGroup.PGP.toString)
+  @HelpMessage("Password to protect the secret key with, e.g. value:… / env:… / file:… / command:… (no password if not specified)")
+  @ValueDescription("password")
+  @Tag(tags.experimental)
+    password: Option[PasswordOption] = None,
+  @Group(HelpGroup.PGP.toString)
+  @HelpMessage("Path prefix to write the key pair to (DEST.pub and DEST.skr)")
+  @ValueDescription("path")
+  @Tag(tags.experimental)
+    dest: Option[String] = None,
+  @Group(HelpGroup.PGP.toString)
+  @HelpMessage("Path to write the public key to (key.pub by default)")
+  @ValueDescription("path")
+  @Tag(tags.experimental)
+    pubDest: Option[String] = None,
+  @Group(HelpGroup.PGP.toString)
+  @HelpMessage("Path to write the secret key to (key.skr by default)")
+  @ValueDescription("path")
+  @Tag(tags.experimental)
+    secretDest: Option[String] = None
+) extends HasGlobalOptions {
+  // format: on
   def publicKeyPath: os.Path = {
     val str = pubDest.filter(_.trim.nonEmpty)
       .orElse(secretDest.filter(_.trim.nonEmpty).map(_.stripSuffix(".skr") + ".pub"))
@@ -29,8 +53,6 @@ final case class PgpCreateOptions(
       .getOrElse("key.skr")
     os.Path(str, os.pwd)
   }
-  def verbosity: Int =
-    Tag.unwrap(verbose) + (if (quiet) -1 else 0)
 }
 
 object PgpCreateOptions {

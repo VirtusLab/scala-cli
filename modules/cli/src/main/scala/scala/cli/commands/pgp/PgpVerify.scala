@@ -1,20 +1,24 @@
 package scala.cli.commands.pgp
 
-import caseapp.*
+import caseapp.core.RemainingArgs
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.{PGPPublicKeyRingCollection, PGPUtil}
 
 import java.io.{ByteArrayInputStream, InputStream}
 
+import scala.build.Logger
+import scala.cli.commands.ScalaCommand
 import scala.cli.signing.util.{BouncycastleSetup, BouncycastleSigner}
 
-object PgpVerify extends PgpCommand[PgpVerifyOptions] {
+object PgpVerify extends ScalaCommand[PgpVerifyOptions] {
 
-  override def names = List(
+  override def hidden                  = true
+  override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
+  override def names                   = List(
     List("pgp", "verify")
   )
 
-  def run(options: PgpVerifyOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: PgpVerifyOptions, args: RemainingArgs, logger: Logger): Unit = {
     BouncycastleSetup.ensureProviderRegistered()
 
     val keyContent = os.read.bytes(options.keyPath)
@@ -28,7 +32,7 @@ object PgpVerify extends PgpCommand[PgpVerifyOptions] {
 
     val invalidPaths = args.all.filter(!_.endsWith(".asc"))
     if (invalidPaths.nonEmpty) {
-      System.err.println(s"Invalid signature paths: ${invalidPaths.mkString(", ")}")
+      logger.error(s"Invalid signature paths: ${invalidPaths.mkString(", ")}")
       sys.exit(1)
     }
 
@@ -40,7 +44,7 @@ object PgpVerify extends PgpCommand[PgpVerifyOptions] {
         val sig =
           BouncycastleSigner.readSignature(new ByteArrayInputStream(signatureContent)) match {
             case Left(err) =>
-              System.err.println(err)
+              logger.error(err)
               sys.exit(1)
             case Right(sig0) => sig0
           }
@@ -63,7 +67,7 @@ object PgpVerify extends PgpCommand[PgpVerifyOptions] {
       val msg =
         if (verified) "valid signature"
         else "invalid signature"
-      System.err.println(s"$path: $msg")
+      logger.message(s"$path: $msg")
     }
 
     if (results.exists(!_._2))

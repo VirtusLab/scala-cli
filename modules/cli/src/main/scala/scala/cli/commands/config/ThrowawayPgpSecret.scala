@@ -3,7 +3,7 @@ package scala.cli.commands.config
 import java.security.SecureRandom
 
 import scala.build.Logger
-import scala.cli.commands.pgp.PgpProxy
+import scala.cli.commands.pgp.PgpCreate
 import scala.cli.signing.shared.Secret
 import scala.util.Properties
 
@@ -31,12 +31,12 @@ object ThrowawayPgpSecret {
     val pubKey = dir / "pub"
     val secKey = dir / "sec"
     try {
-      PgpProxy.createKey(
-        pubKey.toString,
-        secKey.toString,
-        mail,
-        logger.verbosity <= 0,
-        password.map(_.value)
+      PgpCreate.createKey(
+        email = mail,
+        password = password,
+        publicKeyPath = pubKey,
+        secretKeyPath = secKey,
+        logger = if logger.verbosity <= 0 then Logger.nop else logger
       )
       (Secret(os.read(pubKey)), Secret(os.read(secKey)))
     }

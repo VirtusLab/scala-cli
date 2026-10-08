@@ -5,13 +5,20 @@ import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.{PGPPublicKeyRingCollection, PGPUtil}
 
 import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 
+import scala.build.Logger
+import scala.build.errors.BuildException
+import scala.cli.commands.ScalaCommand
+import scala.cli.errors.PgpError
 import scala.cli.signing.util.BouncycastleSetup
 import scala.jdk.CollectionConverters.*
 
-object PgpKeyId extends PgpCommand[PgpKeyIdOptions] {
+object PgpKeyId extends ScalaCommand[PgpKeyIdOptions] {
 
-  override def names = List(
+  override def hidden                  = true
+  override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
+  override def names                   = List(
     List("pgp", "key-id")
   )
 
@@ -27,6 +34,7 @@ object PgpKeyId extends PgpCommand[PgpKeyIdOptions] {
   }
 
   def get(keyContent: Array[Byte], fingerprint: Boolean): Seq[String] = {
+    BouncycastleSetup.ensureProviderRegistered()
 
     val pgpPubRingCollection = new PGPPublicKeyRingCollection(
       PGPUtil.getDecoderStream(new ByteArrayInputStream(keyContent)),
@@ -45,18 +53,19 @@ object PgpKeyId extends PgpCommand[PgpKeyIdOptions] {
     }
   }
 
-  def run(options: PgpKeyIdOptions, args: RemainingArgs): Unit = {
-    BouncycastleSetup.ensureProviderRegistered()
+  def keyId(key: String, keyPrintablePath: String): Either[BuildException, String] =
+    get(key.getBytes(StandardCharsets.UTF_8), fingerprint = false)
+      .headOption
+      .toRight(new PgpError(s"No public key found in $keyPrintablePath"))
+
+  override def runCommand(options: PgpKeyIdOptions, args: RemainingArgs, logger: Logger): Unit =
     for (arg <- args.all) {
       val path = os.Path(arg, os.pwd)
-      if (options.verbosity >= 2)
-        System.err.println(s"Reading $path")
+      logger.debug(s"Reading $path")
       val keyContent = os.read.bytes(path)
       val values     = get(keyContent, options.fingerprint)
-      if (options.verbosity >= 2)
-        System.err.println(s"Values: $values")
+      logger.debug(s"Values: $values")
       for (value <- values)
         println(value)
     }
-  }
 }
