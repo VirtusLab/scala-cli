@@ -1,0 +1,43 @@
+package build
+
+import _root_.build.project.deps.Deps
+import mill.*
+import mill.meta.MillBuildRootModule
+import mill.scalalib.*
+
+object `package` extends MillBuildRootModule {
+  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    Deps.millScalafix,
+    Deps.scalafixInterfaces,
+    Deps.sonatypeCentralClientRequests,
+    Deps.coursierLauncher,
+    Deps.jgit
+  )
+  override def moduleDeps: Seq[JavaModule] =
+    super.moduleDeps ++ Seq(`mill-native-image`, `mill-native-image-upload`)
+
+  /** Sources of the mill-native-image git submodule, compiled against the running Mill version */
+  trait MillNativeImageSourceModule extends ScalaModule {
+    def submoduleDir: os.Path            = moduleDir / os.up / os.up / "mill-native-image"
+    override def scalaVersion: T[String] = mill.util.BuildInfo.scalaVersion
+  }
+
+  object `mill-native-image` extends MillNativeImageSourceModule {
+    override def sources: T[Seq[PathRef]] = Task.Sources(
+      submoduleDir / "plugin" / "src",
+      submoduleDir / "plugin" / "src-mill1"
+    )
+    // provided by Mill at runtime
+    override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(
+      mvn"com.lihaoyi::mill-libs-scalalib:${mill.util.BuildInfo.millVersion}"
+    )
+  }
+
+  object `mill-native-image-upload` extends MillNativeImageSourceModule {
+    override def sources: T[Seq[PathRef]] = Task.Sources(submoduleDir / "upload" / "src")
+    // provided by Mill at runtime
+    override def compileMvnDeps: T[Seq[Dep]] =
+      super.compileMvnDeps() ++ Seq(Deps.osLib, Deps.ujson)
+    override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(Deps.sttpClient4)
+  }
+}

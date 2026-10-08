@@ -33,6 +33,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          submodules: true
 
       - name: Log in to the Container registry
         uses: docker/login-action@v4
