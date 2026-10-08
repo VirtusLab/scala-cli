@@ -1,21 +1,21 @@
-package scala.cli.signing.commands
+package scala.cli.commands.pgp
 
 import caseapp.*
-import caseapp.core.app.Command
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.{PGPPublicKeyRingCollection, PGPUtil}
 
 import java.io.{ByteArrayInputStream, InputStream}
 
-import scala.cli.signing.util.BouncycastleSigner
+import scala.cli.signing.util.{BouncycastleSetup, BouncycastleSigner}
 
-object PgpVerify extends Command[PgpVerifyOptions] {
+object PgpVerify extends PgpCommand[PgpVerifyOptions] {
 
   override def names = List(
     List("pgp", "verify")
   )
 
   def run(options: PgpVerifyOptions, args: RemainingArgs): Unit = {
+    BouncycastleSetup.ensureProviderRegistered()
 
     val keyContent = os.read.bytes(options.keyPath)
 

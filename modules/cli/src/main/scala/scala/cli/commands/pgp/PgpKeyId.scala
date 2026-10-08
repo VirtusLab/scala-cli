@@ -1,15 +1,15 @@
-package scala.cli.signing.commands
+package scala.cli.commands.pgp
 
 import caseapp.core.RemainingArgs
-import caseapp.core.app.Command
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.{PGPPublicKeyRingCollection, PGPUtil}
 
 import java.io.ByteArrayInputStream
 
+import scala.cli.signing.util.BouncycastleSetup
 import scala.jdk.CollectionConverters.*
 
-object PgpKeyId extends Command[PgpKeyIdOptions] {
+object PgpKeyId extends PgpCommand[PgpKeyIdOptions] {
 
   override def names = List(
     List("pgp", "key-id")
@@ -45,7 +45,8 @@ object PgpKeyId extends Command[PgpKeyIdOptions] {
     }
   }
 
-  def run(options: PgpKeyIdOptions, args: RemainingArgs): Unit =
+  def run(options: PgpKeyIdOptions, args: RemainingArgs): Unit = {
+    BouncycastleSetup.ensureProviderRegistered()
     for (arg <- args.all) {
       val path = os.Path(arg, os.pwd)
       if (options.verbosity >= 2)
@@ -57,4 +58,5 @@ object PgpKeyId extends Command[PgpKeyIdOptions] {
       for (value <- values)
         println(value)
     }
+  }
 }

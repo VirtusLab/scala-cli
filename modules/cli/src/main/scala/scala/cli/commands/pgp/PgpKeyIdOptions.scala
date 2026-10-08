@@ -1,4 +1,4 @@
-package scala.cli.signing.commands
+package scala.cli.commands.pgp
 
 import caseapp.*
 

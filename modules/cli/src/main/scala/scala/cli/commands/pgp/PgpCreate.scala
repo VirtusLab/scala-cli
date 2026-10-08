@@ -1,14 +1,13 @@
-package scala.cli.signing.commands
+package scala.cli.commands.pgp
 
 import caseapp.core.RemainingArgs
-import caseapp.core.app.Command
 import org.bouncycastle.bcpg.ArmoredOutputStream
 
 import java.io.{ByteArrayOutputStream, File}
 
-import scala.cli.signing.util.PgpHelper
+import scala.cli.signing.util.{BouncycastleSetup, PgpHelper}
 
-object PgpCreate extends Command[PgpCreateOptions] {
+object PgpCreate extends PgpCommand[PgpCreateOptions] {
 
   override def names = List(
     List("pgp", "create")
@@ -18,8 +17,10 @@ object PgpCreate extends Command[PgpCreateOptions] {
     if (p.startsWith(os.pwd)) p.relativeTo(os.pwd).segments.mkString(File.separator)
     else p.toString
 
-  def run(options: PgpCreateOptions, args: RemainingArgs): Unit =
+  def run(options: PgpCreateOptions, args: RemainingArgs): Unit = {
+    BouncycastleSetup.ensureProviderRegistered()
     tryRun(options, args)
+  }
 
   def tryRun(options: PgpCreateOptions, args: RemainingArgs): Unit = {
 

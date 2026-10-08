@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.errors.BuildException
 import scala.cli.errors.PgpError
-import scala.cli.signing.commands.{PgpCreate, PgpCreateOptions, PgpKeyId}
 import scala.cli.signing.shared.{PasswordOption, Secret}
 import scala.cli.signing.util.BouncycastleSetup
 

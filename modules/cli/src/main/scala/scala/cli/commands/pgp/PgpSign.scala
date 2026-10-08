@@ -1,20 +1,20 @@
-package scala.cli.signing.commands
+package scala.cli.commands.pgp
 
 import caseapp.core.RemainingArgs
-import caseapp.core.app.Command
 
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 
-import scala.cli.signing.util.{BouncycastleSigner, Util}
+import scala.cli.signing.util.{BouncycastleSetup, BouncycastleSigner, Util}
 
-object PgpSign extends Command[PgpSignOptions] {
+object PgpSign extends PgpCommand[PgpSignOptions] {
 
   override def names = List(
     List("pgp", "sign")
   )
 
   def run(options: PgpSignOptions, args: RemainingArgs): Unit = {
+    BouncycastleSetup.ensureProviderRegistered()
 
     // This key is potentially private (not secret) - may have no password
     val secretKey = BouncycastleSigner.readSecretKey {
