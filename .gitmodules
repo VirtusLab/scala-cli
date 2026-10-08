@@ -1,0 +1,3 @@
+[submodule "mill-native-image"]
+	path = mill-native-image
+	url = https://github.com/alexarchambault/mill-native-image

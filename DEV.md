@@ -9,6 +9,29 @@ Intellij / Metals out of the box.
 
 The Scala CLI sources ship with Mill launchers, so that Mill itself doesn't need to be installed on your system.
 
+The build depends on git submodules, so make sure they're checked out before building:
+
+```bash
+git clone --recurse-submodules https://github.com/VirtusLab/scala-cli.git
+# or, in an existing clone
+git submodule update --init
+```
+
+### Mill plugins built from source
+
+The [mill-native-image](https://github.com/alexarchambault/mill-native-image) Mill plugin (and its
+`mill-native-image-upload` companion) is not pulled as a published artifact. Instead, its sources live in the
+`mill-native-image/` git submodule and are compiled by the Mill meta-build (`mill-build/build.mill`).
+The meta-build also declares the other Mill plugin dependencies of the build.
+
+To bump it, check out the desired commit in the submodule and commit the updated submodule pointer:
+
+```bash
+git -C mill-native-image fetch origin
+git -C mill-native-image checkout <commit>
+git add mill-native-image
+```
+
 ### Common commands
 
 #### Running the CLI from sources

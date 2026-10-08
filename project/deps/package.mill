@@ -246,6 +246,8 @@ object Deps {
   def metaconfigTypesafe =
     mvn"org.scalameta::metaconfig-typesafe-config:0.18.8"
       .exclude(("org.scala-lang", "scala-compiler"))
+  // Mill plugin, used by the meta-build (mill-build/build.mill)
+  def millScalafix       = mvn"com.goyeau::mill-scalafix::0.6.2"
   def munit              = mvn"org.scalameta::munit:${Versions.munit}"
   def munitDiff          = mvn"org.scalameta::munit-diff:${Versions.munit}"
   def nativeTestRunner   = mvn"org.scala-native::test-runner:${Versions.scalaNative}"
@@ -302,7 +304,10 @@ object Deps {
       .exclude(("com.lihaoyi", "os-lib_3"))
       .exclude(("com.lihaoyi", "os-lib_2.13"))
   def slf4jNop                  = mvn"org.slf4j:slf4j-nop:2.0.20"
+  def sonatypeCentralClientRequests =
+    mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   def sttp                      = mvn"com.softwaremill.sttp.client3::core:3.11.0"
+  def sttpClient4               = mvn"com.softwaremill.sttp.client4::core:4.0.27"
   def svm                       = mvn"org.graalvm.nativeimage:svm:$graalSvmVersion"
   def swoval                    = mvn"com.swoval:file-tree-views:2.1.12"
   def testInterface             = mvn"org.scala-sbt:test-interface:1.0"
@@ -314,6 +319,7 @@ object Deps {
   def toolkitTest               = mvn"org.scala-lang:toolkit-test:$toolkitVersion"
   val typelevelToolkitVersion   = "0.2.0"
   def typelevelToolkit          = mvn"org.typelevel:toolkit:$typelevelToolkitVersion"
+  def ujson                     = mvn"com.lihaoyi::ujson:4.4.3"
   // Lives at https://github.com/VirtusLab/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
