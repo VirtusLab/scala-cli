@@ -151,7 +151,7 @@ object Deps {
     def dockerJava                        = "3.7.1"
     def jmh                               = "1.37"
     def munit                             = "1.3.6"
-    def jsoniterScala                     = "2.41.2"
+    def jsoniterScala                     = "2.41.4"
     def jsoup                             = "1.23.2"
     def scalaMeta                         = "4.17.4"
     def scalafmt                          = "3.11.5"
@@ -303,7 +303,7 @@ object Deps {
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
       .exclude(("com.lihaoyi", "os-lib_3"))
       .exclude(("com.lihaoyi", "os-lib_2.13"))
-  def slf4jNop                  = mvn"org.slf4j:slf4j-nop:2.0.20"
+  def slf4jNop                      = mvn"org.slf4j:slf4j-nop:2.0.20"
   def sonatypeCentralClientRequests =
     mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   def sttp                      = mvn"com.softwaremill.sttp.client3::core:3.11.0"
