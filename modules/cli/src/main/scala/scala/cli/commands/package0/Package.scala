@@ -1169,6 +1169,28 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       }
   }
 
+  /** Picks the entry-point module among the `.js` files emitted by the Scala.js linker when it
+    * produced more than one file (module splitting, or the WebAssembly backend, which emits
+    * `main.js` together with internal helpers such as `__loader.js`).
+    *
+    * The choice must not depend on directory-listing order, which is filesystem-specific: importing
+    * an internal helper module instead of the entry point silently does nothing (e.g. the test
+    * bridge never starts and `scala-cli test` hangs).
+    *
+    * Preference order: `main.js` (the linker's default public module ID, used whether or not
+    * there's a main class), then `<mainClass>.js`, then the first non-internal (not `__`-prefixed)
+    * module in sorted order, then the first module in sorted order.
+    */
+  def jsEntryModule(jsFiles: Seq[os.RelPath], mainClassOpt: Option[String]): Option[os.RelPath] = {
+    val sorted                       = jsFiles.sortBy(_.toString)
+    def find(name: String)           = sorted.find(_ == os.rel / name)
+    def isInternal(file: os.RelPath) = file.last.startsWith("__")
+    find("main.js")
+      .orElse(mainClassOpt.flatMap(mc => find(s"$mc.js")))
+      .orElse(sorted.find(!isInternal(_)))
+      .orElse(sorted.headOption)
+  }
+
   def linkJs(
     builds: Seq[Build.Successful],
     dest: os.Path,
@@ -1227,7 +1249,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             logger.message(s"Emitted js source maps to: $sourceMapDest")
           }
           dest
-        case _ @Seq(jsSource, _*) =>
+        case jsSources @ Seq(firstJsSource, _*) =>
           os.copy(
             linkingDir,
             dest,
@@ -1238,13 +1260,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           logger.debug(
             s"Scala.js linker generated multiple files for js multi-modules. Copied files to $dest directory."
           )
-          val jsFileToReturn = os.rel / {
-            mainClassOpt match {
-              case Some(_) if os.exists(linkingDir / "main.js")  => "main.js"
-              case Some(mc) if os.exists(linkingDir / s"$mc.js") => s"$mc.js"
-              case _                                             => jsSource.relativeTo(linkingDir)
-            }
-          }
+          val jsFileToReturn =
+            jsEntryModule(jsSources.map(_.relativeTo(linkingDir)), mainClassOpt)
+              .getOrElse(firstJsSource.relativeTo(linkingDir))
           dest / jsFileToReturn
         case Nil =>
           logger.debug("Scala.js linker did not generate any .js files.")
