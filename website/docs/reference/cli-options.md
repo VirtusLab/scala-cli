@@ -1393,6 +1393,10 @@ Enable jsdom
 
 Enable Wasm output (Scala.js Wasm backend). Uses Node.js by default. To show more options for Wasm pass `--help-wasm`
 
+### `--js-wasm-jspi`
+
+Use JavaScript Promise Integration (JSPI) in Wasm output, required by js.async/js.await (Scala.js 1.22+)
+
 ### `--js-runtime`
 
 JS runtime to run the output on: node (default), deno, bun

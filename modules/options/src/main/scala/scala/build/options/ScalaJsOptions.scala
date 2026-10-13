@@ -32,6 +32,7 @@ final case class ScalaJsOptions(
   esVersionStr: Option[String] = None,
   noOpt: Option[Boolean] = None,
   jsEmitWasm: Boolean = false,
+  jsWasmJspi: Boolean = false,
   jsRuntime: JSRuntime = JSRuntime.default
 ) {
   def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] =
@@ -136,6 +137,10 @@ final case class ScalaJsOptions(
 
   def linkerConfig(logger: Logger): Either[BuildException, ScalaJsLinkerConfig] =
     esVersion.map { resolvedEsVersion =>
+      if jsWasmJspi && !jsEmitWasm then
+        logger.message(
+          "Warning: --js-wasm-jspi only applies to Wasm output (--js-emit-wasm), ignoring it"
+        )
       val esFeatureDefaults = ScalaJsLinkerConfig.ESFeatures()
       val esFeatures        = ScalaJsLinkerConfig.ESFeatures(
         allowBigIntsForLongs =
@@ -154,7 +159,8 @@ final case class ScalaJsOptions(
         esFeatures = esFeatures,
         jsHeader = header,
         remapEsModuleImportMap = remapEsModuleImportMap,
-        emitWasm = jsEmitWasm
+        emitWasm = jsEmitWasm,
+        wasmUseJspi = jsWasmJspi
       )
     }
 

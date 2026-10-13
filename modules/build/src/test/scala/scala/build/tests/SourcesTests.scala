@@ -796,6 +796,40 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("wasmJspi using directive enables JSPI for Wasm output") {
+    val testInputs = TestInputs(
+      os.rel / "something.sc" ->
+        """//> using wasm
+          |//> using wasmJspi
+          |//> using jsModuleKind es
+          |""".stripMargin
+    )
+    testInputs.withInputs { (root, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        ).orThrow
+
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       =
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        )
+          .orThrow
+
+      val jsOptions = sources.buildOptions.scalaJsOptions
+      val jsConfig  = jsOptions.linkerConfig(TestLogger()).orThrow
+      expect(jsOptions.jsEmitWasm, jsOptions.jsWasmJspi)
+      expect(jsConfig.linkerCliArgs.contains("--useJSPI"))
+    }
+  }
+
   test("js options in using directives failure - multiple values") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
