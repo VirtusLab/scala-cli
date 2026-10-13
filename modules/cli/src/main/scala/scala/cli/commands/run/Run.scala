@@ -556,7 +556,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                       )
                   }
                 }
-                process.onExit().thenApply(_ => if os.exists(jsDest) then os.remove(jsDest))
+                process.onExit().thenApply(_ => if os.exists(jsDest) then os.remove.all(jsDest))
                 Right((process, None))
               }
             }
@@ -613,7 +613,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                           esModule = esModule
                         )
                       }
-                      process.onExit().thenApply(_ => if os.exists(jsDest) then os.remove(jsDest))
+                      process.onExit().thenApply(_ =>
+                        if os.exists(jsDest) then os.remove.all(jsDest)
+                      )
                       Right((process, None))
                     }
                   }
@@ -842,7 +844,10 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         noOpt = noOpt,
         logger = logger
       ).map(outputPath => f(outputPath))
-    finally if os.exists(dest) then os.remove(dest)
+    // `dest` starts as a file, but `linkJs` replaces it with a directory when the linker emits
+    // several files (Wasm, or JS module splitting), so a plain `os.remove` would throw
+    // `DirectoryNotEmptyException` and fail the command after it already succeeded.
+    finally if os.exists(dest) then os.remove.all(dest)
   }
 
   def withNativeLauncher[T](
