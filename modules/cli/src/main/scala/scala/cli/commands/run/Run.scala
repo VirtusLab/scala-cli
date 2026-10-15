@@ -704,6 +704,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                       case s: Script       => fwd(s.path.toString)
                       case s: MarkdownFile => fwd(s.path.toString)
                       case _: SbtFile      => ""
+                      case _: MillFile     => ""
                       case s: OnDisk       => fwd(s.path.toString)
                       case null            => ""
                     }.filter(_.nonEmpty).distinct

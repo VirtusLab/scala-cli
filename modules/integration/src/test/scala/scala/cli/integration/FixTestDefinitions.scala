@@ -123,6 +123,37 @@ abstract class FixTestDefinitions
     }
   }
 
+  test("mill file in directory is not compiled or fixed by fix") {
+    val millContent =
+      """package build
+        |import mill.*, scalalib.*
+        |object foo extends ScalaModule {}
+        |""".stripMargin
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / "build.mill"         -> millContent,
+      os.rel / scalafixConfFileName ->
+        """rules = [
+          |  RedundantSyntax
+          |]
+          |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        extraOptions
+      ).call(cwd = root)
+      val updatedMillContent = os.read(root / "build.mill")
+      expect(updatedMillContent == millContent)
+    }
+  }
+
   def filterDebugOutputs(output: String): String =
     output
       .linesIterator

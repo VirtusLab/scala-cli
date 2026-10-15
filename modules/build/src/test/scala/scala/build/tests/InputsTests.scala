@@ -149,6 +149,36 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("mill file is recognized as MillFile when passed explicitly") {
+    TestInputs(os.rel / "build.mill" -> "").fromRoot { root =>
+      val elements = Inputs.validateArgs(
+        Seq((root / "build.mill").toString),
+        root,
+        download = _ => Right(Array.emptyByteArray),
+        stdinOpt = None,
+        acceptFds = false,
+        enableMarkdown = false
+      )(using ScalaCliInvokeData.dummy)
+      elements match {
+        case Seq(Right(Seq(f: MillFile))) =>
+          assert(f.path == root / "build.mill")
+        case _ => fail(s"Unexpected elements: $elements")
+      }
+    }
+  }
+
+  test("mill file is picked up from directory scan") {
+    TestInputs(
+      os.rel / "build.mill"              -> "",
+      os.rel / "module" / "package.mill" -> ""
+    ).fromRoot { root =>
+      val dir       = Directory(root)
+      val singles   = dir.singleFilesFromDirectory(enableMarkdown = false)
+      val millFiles = singles.collect { case f: MillFile => f.path }
+      assert(millFiles == Seq(root / "build.mill", root / "module" / "package.mill"))
+    }
+  }
+
   test("URLs with query parameters") {
     val urlBase =
       "https://gist.githubusercontent.com/USER/hash/raw/hash"

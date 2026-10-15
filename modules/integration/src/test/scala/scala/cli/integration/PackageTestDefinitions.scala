@@ -1630,6 +1630,32 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
   }
 
+  test("mill file in directory is not compiled by package") {
+    val message = "Hello from package"
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""object Main {
+           |  def main(args: Array[String]): Unit = println("$message")
+           |}
+           |""".stripMargin,
+      os.rel / "build.mill" ->
+        """package build
+          |import mill.*, scalalib.*
+          |object foo extends ScalaModule
+          |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+      val launcher = root / (if Properties.isWin then "Main.bat" else "Main")
+      expect(os.isFile(launcher))
+      val output = TestUtil.maybeUseBash(launcher)(cwd = root).out.trim()
+      expect(output == message)
+    }
+  }
+
   test("package --library preserves user META-INF/MANIFEST.MF from resources") {
     val message = "Hello from library"
     TestInputs(

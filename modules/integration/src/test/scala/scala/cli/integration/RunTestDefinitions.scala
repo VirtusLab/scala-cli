@@ -2935,6 +2935,25 @@ abstract class RunTestDefinitions
       expect(output == message)
     }
   }
+
+  test("mill file in directory is not compiled by run") {
+    val message = "Hello from run"
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""object Main {
+           |  def main(args: Array[String]): Unit = println("$message")
+           |}
+           |""".stripMargin,
+      os.rel / "build.mill" ->
+        """package build
+          |import mill.*, scalalib.*
+          |object foo extends ScalaModule
+          |""".stripMargin
+    ).fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
+      expect(output == message)
+    }
+  }
   if actualScalaVersion.startsWith("3") then
     cleanBloopFixture
       .test("compilation server download respects COURSIER_REPOSITORIES for Bloop download") {

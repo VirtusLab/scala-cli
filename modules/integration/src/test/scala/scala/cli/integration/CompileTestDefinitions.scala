@@ -1019,6 +1019,23 @@ abstract class CompileTestDefinitions
     }
   }
 
+  test("mill file in directory is not compiled") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / "build.mill" ->
+        """package build
+          |import mill.*, scalalib.*
+          |object foo extends ScalaModule
+          |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
+    }
+  }
+
   if actualScalaVersion.startsWith("3") then
     test(s"compile --sloth --print-class-path with signed dependency strips signatures") {
       TestInputs(
