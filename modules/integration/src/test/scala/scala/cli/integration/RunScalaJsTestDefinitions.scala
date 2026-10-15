@@ -428,7 +428,10 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  test("Run Wasm with js.async/js.await via --js-wasm-jspi") {
+  // Ignored until the bundled Scala.js linker CLI understands --useJSPI
+  // (https://github.com/VirtusLab/scala-js-cli/pull/209); the released
+  // scala-js-cli rejects the flag. Enable it when scalaJsCli is bumped.
+  test("Run Wasm with js.async/js.await via --js-wasm-jspi".ignore) {
     val inputs = TestInputs(
       os.rel / "Async.scala" ->
         """import scala.scalajs.js
