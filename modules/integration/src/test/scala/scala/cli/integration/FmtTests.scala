@@ -336,4 +336,42 @@ class FmtTests extends ScalaCliSuite {
       expect(updatedContent == expectedSbtFormattedContent)
     }
   }
+
+  val millUnformattedContent: String =
+    """package build
+      |import mill.*, scalalib.*
+      |object foo    extends   ScalaModule:
+      |  def scalaVersion    =       "3.3.6"
+      |""".stripMargin
+  val expectedMillFormattedContent: String = noCrLf {
+    """package build
+      |import mill.*, scalalib.*
+      |object foo extends ScalaModule:
+      |  def scalaVersion = "3.3.6"
+      |""".stripMargin
+  }
+  val millInputs: TestInputs = TestInputs(
+    os.rel / confFileName ->
+      s"""|version = "${Constants.defaultScalafmtVersion}"
+          |runner.dialect = scala3
+          |""".stripMargin,
+    os.rel / "build.mill"              -> millUnformattedContent,
+    os.rel / "module" / "package.mill" -> millUnformattedContent
+  )
+
+  test("mill file is formatted when passed explicitly") {
+    millInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "fmt", "build.mill").call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "build.mill"))
+      expect(updatedContent == expectedMillFormattedContent)
+    }
+  }
+
+  test("mill files are formatted when directory is passed") {
+    millInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+      for path <- Seq(root / "build.mill", root / "module" / "package.mill") do
+        expect(noCrLf(os.read(path)) == expectedMillFormattedContent)
+    }
+  }
 }

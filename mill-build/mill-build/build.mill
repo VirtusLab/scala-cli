@@ -3,10 +3,9 @@ package build
 import mill.*
 import mill.meta.MillBuildRootModule
 
-/**
- * Compiles `project/deps/package.mill` as a plain Scala source, so that the meta-build
- * (`mill-build/build.mill`) can reuse the dependencies declared there.
- */
+/** Compiles `project/deps/package.mill` as a plain Scala source, so that the meta-build
+  * (`mill-build/build.mill`) can reuse the dependencies declared there.
+  */
 object `package` extends MillBuildRootModule {
   def depsSources: T[Seq[PathRef]] =
     Task.Sources(moduleDir / os.up / os.up / "project" / "deps" / "package.mill")
