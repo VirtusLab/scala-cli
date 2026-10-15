@@ -1,0 +1,28 @@
+[
+  {
+    "name": "com.github.plokhotnyuk.jsoniter_scala.core.ByteArrayAccess",
+    "methods": [
+      {
+        "name": "unsignedMultiplyHighFallback1",
+        "parameterTypes": [
+          "long",
+          "long"
+        ]
+      },
+      {
+        "name": "unsignedMultiplyHighFallback2",
+        "parameterTypes": [
+          "long",
+          "long"
+        ]
+      },
+      {
+        "name": "unsignedMultiplyHighFallback3",
+        "parameterTypes": [
+          "long",
+          "long"
+        ]
+      }
+    ]
+  }
+]
