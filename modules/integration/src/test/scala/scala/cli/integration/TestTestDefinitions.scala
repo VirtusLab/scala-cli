@@ -386,6 +386,33 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
+  // The linker emits multiple .js files in these cases, so the right entry module has to be picked,
+  // and the linked output (a directory) has to be cleaned up afterwards
+  for {
+    (description, jsOptions) <- Seq(
+      "Wasm"             -> Seq("--js-emit-wasm"),
+      "module splitting" -> Seq("--js-module-split-style", "smallestmodules")
+    )
+  }
+    test(s"successful test JS with $description") {
+      successfulTestInputs().fromRoot { root =>
+        val output = os.proc(
+          TestUtil.cli,
+          "--power",
+          "test",
+          extraOptions,
+          ".",
+          "--js",
+          "--js-module-kind",
+          "es",
+          jsOptions
+        )
+          .call(cwd = root, timeout = 120.seconds.toMillis)
+          .out.text()
+        expect(output.contains("Hello from tests"))
+      }
+    }
+
   test("run only one test from munit") {
     val inputs: TestInputs = TestInputs(
       os.rel / "MyTests.scala" ->
