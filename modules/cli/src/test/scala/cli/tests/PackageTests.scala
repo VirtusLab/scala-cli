@@ -132,4 +132,32 @@ class PackageTests extends TestUtil.ScalaCliSuite {
       }
     }
   }
+
+  test("jsEntryModule prefers main.js over internal modules regardless of listing order") {
+    val mainJs: os.RelPath   = os.rel / "main.js"
+    val loaderJs: os.RelPath = os.rel / "__loader.js"
+    // Scala.js WebAssembly backend output, in the order an ext4 directory listing may yield it
+    val wasmOutput = Seq(loaderJs, mainJs)
+    expect(Package.jsEntryModule(wasmOutput, None) == Some(mainJs))
+    expect(Package.jsEntryModule(wasmOutput.reverse, None) == Some(mainJs))
+    expect(Package.jsEntryModule(wasmOutput, Some("foo.Main")) == Some(mainJs))
+  }
+
+  test("jsEntryModule falls back to <mainClass>.js") {
+    val internalJs: os.RelPath  = os.rel / "internal-abc.js"
+    val mainClassJs: os.RelPath = os.rel / "foo.Main.js"
+    val files                   = Seq(internalJs, mainClassJs)
+    expect(Package.jsEntryModule(files, Some("foo.Main")) == Some(mainClassJs))
+  }
+
+  test("jsEntryModule falls back deterministically, skipping __-prefixed modules") {
+    val loaderJs: os.RelPath = os.rel / "__loader.js"
+    val aJs: os.RelPath      = os.rel / "a.js"
+    val bJs: os.RelPath      = os.rel / "b.js"
+    val files                = Seq(loaderJs, bJs, aJs)
+    expect(Package.jsEntryModule(files, None) == Some(aJs))
+    expect(Package.jsEntryModule(files.reverse, None) == Some(aJs))
+    expect(Package.jsEntryModule(Seq(loaderJs), None) == Some(loaderJs))
+    expect(Package.jsEntryModule(Nil, None).isEmpty)
+  }
 }

@@ -36,6 +36,8 @@ object ElementsUtils {
             Script(d.path, p.subRelativeTo(d.path), None)
           case p if p.last.endsWith(".sbt") =>
             SbtFile(d.path, p.subRelativeTo(d.path))
+          case p if p.last.endsWith(".mill") =>
+            MillFile(d.path, p.subRelativeTo(d.path))
         }
         .toVector
         .sortBy(_.subPath.segments)
@@ -71,6 +73,7 @@ object ElementsUtils {
             case _: MarkdownFile      => "md:"
             case _: JarFile           => "jar:"
             case _: SbtFile           => "sbt:"
+            case _: MillFile          => "mill:"
           }
           Iterator(prefix, elem.path.toString, "\n").map(bytes)
         case v: Virtual =>
