@@ -377,6 +377,26 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
+  test("successful test Wasm") {
+    successfulTestInputs().fromRoot { root =>
+      // The Wasm backend emits several files (main.js, __loader.js, main.wasm), so the linked
+      // output is a directory: the command must still exit 0 after cleaning it up.
+      val output = os.proc(
+        TestUtil.cli,
+        "--power",
+        "test",
+        extraOptions,
+        ".",
+        "--js-emit-wasm",
+        "--js-module-kind",
+        "es"
+      )
+        .call(cwd = root)
+        .out.text()
+      expect(output.contains("Hello from tests"))
+    }
+  }
+
   test("successful test esmodule import JS") {
     successfulESModuleTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
