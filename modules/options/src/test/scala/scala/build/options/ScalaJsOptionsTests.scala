@@ -83,4 +83,24 @@ class ScalaJsOptionsTests extends munit.FunSuite {
   test("the es version is passed to the linker") {
     expect(linkerArgsFor("es2022").containsSlice(Seq("--esVersion", "ES2022")))
   }
+
+  private def linkerArgs(options: ScalaJsOptions): Seq[String] =
+    options.linkerConfig(Logger.nop) match {
+      case Right(config) => config.linkerCliArgs
+      case Left(e)       => sys.error(s"Expected a linker config, got $e")
+    }
+
+  test("JSPI is passed to the linker with Wasm output") {
+    val args = linkerArgs(ScalaJsOptions(jsEmitWasm = true, jsWasmJspi = true))
+    expect(args.contains("--emitWasm"))
+    expect(args.contains("--useJSPI"))
+  }
+
+  test("JSPI is off by default") {
+    expect(!linkerArgs(ScalaJsOptions(jsEmitWasm = true)).contains("--useJSPI"))
+  }
+
+  test("JSPI is not passed to the linker without Wasm output") {
+    expect(!linkerArgs(ScalaJsOptions(jsWasmJspi = true)).contains("--useJSPI"))
+  }
 }
