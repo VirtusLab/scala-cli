@@ -428,38 +428,38 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  // Ignored until the bundled Scala.js linker CLI understands --useJSPI
-  // (https://github.com/VirtusLab/scala-js-cli/pull/209); the released
-  // scala-js-cli rejects the flag. Enable it when scalaJsCli is bumped.
-  test("Run Wasm with js.async/js.await via --js-wasm-jspi".ignore) {
-    val inputs = TestInputs(
-      os.rel / "Async.scala" ->
-        """import scala.scalajs.js
-          |
-          |object Async {
-          |  def main(args: Array[String]): Unit =
-          |    js.async {
-          |      val x = js.await(js.Promise.resolve[Int](21))
-          |      println(s"JSPI ${x * 2}")
-          |    }
-          |}
-          |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val output = os.proc(
-        TestUtil.cli,
-        "--power",
-        "run",
-        "Async.scala",
-        "--js-emit-wasm",
-        "--js-module-kind",
-        "es",
-        "--js-wasm-jspi",
-        extraOptions
-      ).call(cwd = root).out.trim()
-      expect(output == "JSPI 42")
+  // The Scala 3.3 compiler has no js.async/js.await support (linking fails with
+  // "Referring to non-existent method scala.scalajs.js.package$.async").
+  if (!actualScalaVersion.startsWith(Constants.scala3LegacyLtsPrefix))
+    test("Run Wasm with js.async/js.await via --js-wasm-jspi") {
+      val inputs = TestInputs(
+        os.rel / "Async.scala" ->
+          """import scala.scalajs.js
+            |
+            |object Async {
+            |  def main(args: Array[String]): Unit =
+            |    js.async {
+            |      val x = js.await(js.Promise.resolve[Int](21))
+            |      println(s"JSPI ${x * 2}")
+            |    }
+            |}
+            |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "Async.scala",
+          "--js-emit-wasm",
+          "--js-module-kind",
+          "es",
+          "--js-wasm-jspi",
+          extraOptions
+        ).call(cwd = root).out.trim()
+        expect(output == "JSPI 42")
+      }
     }
-  }
 
   test("Wasm without an ES module kind fails fast") {
     val inputs = TestInputs(
