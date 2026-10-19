@@ -535,4 +535,94 @@ class MainClassTests extends TestUtil.ScalaCliBuildSuite {
       expect(found.contains("hello_sc"))
     }
   }
+
+  test("an @main method named main is picked over its no-arg static forwarder on JDK 25") {
+    TestInputs(
+      os.rel / "main.scala" ->
+        s"""//> using jvm $jep512MinJava
+           |@main def main(): Unit = println(1)
+           |""".stripMargin
+    ).withBuild(defaultOptions, buildThreads, None, buildTests = false) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow.successfulOpt.get
+      val found = build.foundMainClasses()
+      expect(found == Seq("main", "main$package"))
+      expect(build.retainedMainClass(found, "run", TestLogger()) == Right("main"))
+      expect(build.retainedMainClassOpt(found, TestLogger()).contains("main"))
+    }
+  }
+
+  test("a classic main is picked over JEP 512 main methods in Java sources") {
+    TestInputs(
+      os.rel / "Classic.java" ->
+        s"""//> using jvm $jep512MinJava
+           |public class Classic {
+           |  public static void main(String[] args) {}
+           |}
+           |""".stripMargin,
+      os.rel / "InstanceNoArgs.java" ->
+        """public class InstanceNoArgs {
+          |  void main() {}
+          |}
+          |""".stripMargin,
+      os.rel / "StaticNoArgs.java" ->
+        """public class StaticNoArgs {
+          |  static void main() {}
+          |}
+          |""".stripMargin
+    ).withBuild(baseOptions, buildThreads, None, buildTests = false) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow.successfulOpt.get
+      val found = build.foundMainClasses()
+      expect(found == Seq("Classic", "InstanceNoArgs", "StaticNoArgs"))
+      expect(build.retainedMainClass(found, "run", TestLogger()) == Right("Classic"))
+    }
+  }
+
+  test("several classic mains stay ambiguous and still list JEP 512 main methods") {
+    TestInputs(
+      os.rel / "A.java" ->
+        s"""//> using jvm $jep512MinJava
+           |public class A {
+           |  public static void main(String[] args) {}
+           |}
+           |""".stripMargin,
+      os.rel / "B.java" ->
+        """public class B {
+          |  public static void main(String[] args) {}
+          |}
+          |""".stripMargin,
+      os.rel / "C.java" ->
+        """public class C {
+          |  void main() {}
+          |}
+          |""".stripMargin
+    ).withBuild(baseOptions, buildThreads, None, buildTests = false) { (_, _, maybeBuild) =>
+      val build  = maybeBuild.orThrow.successfulOpt.get
+      val found  = build.foundMainClasses()
+      val result = build.retainedMainClass(found, "run", TestLogger())
+      expect(found == Seq("A", "B", "C"))
+      expect(result.isLeft)
+      expect(result.left.exists(_.getMessage.contains("A, B, C")))
+    }
+  }
+
+  test("several JEP 512 main methods without a classic main stay ambiguous") {
+    TestInputs(
+      os.rel / "A.java" ->
+        s"""//> using jvm $jep512MinJava
+           |public class A {
+           |  void main() {}
+           |}
+           |""".stripMargin,
+      os.rel / "B.java" ->
+        """public class B {
+          |  static void main() {}
+          |}
+          |""".stripMargin
+    ).withBuild(baseOptions, buildThreads, None, buildTests = false) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow.successfulOpt.get
+      val found = build.foundMainClasses()
+      expect(found == Seq("A", "B"))
+      expect(build.retainedMainClass(found, "run", TestLogger()).isLeft)
+    }
+  }
 }
