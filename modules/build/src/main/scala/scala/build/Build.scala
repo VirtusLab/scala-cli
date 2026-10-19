@@ -200,6 +200,10 @@ object Build {
           .filterNot(scriptInferredMainClasses.contains(_))
           .filterNot(mainClassesFoundOnExtraClasspath.contains(_))
           .filterNot(mainClassesFoundInUserExtraDependencies.contains(_))
+      // JEP 512 main methods rank below classic `static void main(String[])` ones, as Scala emits
+      // e.g. a no-arg `static main()` forwarder in `main$package` for `@main def main()`
+      val (rawInputClassicMainClasses, rawInputJep512MainClasses) =
+        rawInputInferredMainClasses.partition(mc => !mainClassKind(mc).exists(_.requiresJep512))
       val extraClasspathInferredMainClasses =
         mainClassesFoundOnExtraClasspath.filter(mainClasses.contains(_))
       val userExtraDependenciesInferredMainClasses =
@@ -227,6 +231,19 @@ object Build {
         userExtraDependenciesInferredMainClasses
       ) match {
         case (Seq(pickedMainClass), scriptInferredMainClasses, _, _) =>
+          logMessageOnLesserPriorityMainClasses(
+            pickedMainClass = pickedMainClass,
+            mainClassDescriptor = "script main classes",
+            lesserPriorityMainClasses = scriptInferredMainClasses
+          )
+          Right(pickedMainClass)
+        case (_, scriptInferredMainClasses, _, _) if rawInputClassicMainClasses.length == 1 =>
+          val pickedMainClass = rawInputClassicMainClasses.head
+          logMessageOnLesserPriorityMainClasses(
+            pickedMainClass = pickedMainClass,
+            mainClassDescriptor = "JEP 512 main classes",
+            lesserPriorityMainClasses = rawInputJep512MainClasses
+          )
           logMessageOnLesserPriorityMainClasses(
             pickedMainClass = pickedMainClass,
             mainClassDescriptor = "script main classes",
