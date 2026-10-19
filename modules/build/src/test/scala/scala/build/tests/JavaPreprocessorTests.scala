@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext
 
 class JavaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
   private val javaPreprocessor = JavaPreprocessor(
-    archiveCache = ArchiveCache().withCache(
+    archiveCache = ArchiveCache().copy(cache =
       new Cache[Task] {
         def fetch: Fetch[Task] = _ => sys.error("shouldn't be used")
         def file(artifact: Artifact): EitherT[Task, ArtifactError, File] =
