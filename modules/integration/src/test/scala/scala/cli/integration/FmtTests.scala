@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.cli.integration.TestUtil.removeAnsiColors
+import scala.cli.integration.TestUtil.{removeAnsiColors, stableStdoutOf}
 
 class FmtTests extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
@@ -98,24 +98,23 @@ class FmtTests extends ScalaCliSuite {
     simpleInputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "fmt", "--check").call(cwd = root, check = false)
       expect(res.exitCode == 1)
-      val out            = res.out.text()
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == noCrLf(simpleInputsUnformattedContent))
-      expect(noCrLf(out) == "error: --test failed\n")
+      expect(TestUtil.stableStdout(res) == "error: --test failed")
     }
   }
 
   test("filter correctly with --check") {
     simpleInputsWithFilter.fromRoot { root =>
-      val out = os.proc(TestUtil.cli, "fmt", ".", "--check").call(cwd = root).out.trim()
+      val out = stableStdoutOf(TestUtil.cli, "fmt", ".", "--check")(cwd = root)
       expect(out == "All files are formatted with scalafmt :)")
     }
   }
 
   test("--scalafmt-help") {
     emptyInputs.fromRoot { root =>
-      val out1 = os.proc(TestUtil.cli, "fmt", "--scalafmt-help").call(cwd = root).out.trim()
-      val out2 = os.proc(TestUtil.cli, "fmt", "-F", "--help").call(cwd = root).out.trim()
+      val out1 = stableStdoutOf(TestUtil.cli, "fmt", "--scalafmt-help")(cwd = root)
+      val out2 = stableStdoutOf(TestUtil.cli, "fmt", "-F", "--help")(cwd = root)
       expect(out1.nonEmpty)
       expect(out1 == out2)
       val outLines       = out1.linesIterator.toSeq
@@ -283,8 +282,8 @@ class FmtTests extends ScalaCliSuite {
 
   test("default values in help") {
     TestInputs.empty.fromRoot { root =>
-      val res            = os.proc(TestUtil.cli, "fmt", "--help").call(cwd = root)
-      val lines          = removeAnsiColors(res.out.trim()).linesIterator.toVector
+      val res            = stableStdoutOf(TestUtil.cli, "fmt", "--help")(cwd = root)
+      val lines          = removeAnsiColors(res).linesIterator.toVector
       val fmtVersionHelp = lines.find(_.contains("--fmt-version")).getOrElse("")
       expect(fmtVersionHelp.contains(s"(${Constants.defaultScalafmtVersion} by default)"))
     }

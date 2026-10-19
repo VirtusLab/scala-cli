@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
-import scala.cli.integration.TestUtil.normalizeConsoleOutput
+import scala.cli.integration.TestUtil.{normalizeConsoleOutput, stableStdoutOf}
 import scala.util.Properties
 
 trait RunScriptTestDefinitions { this: RunTestDefinitions =>
@@ -18,8 +18,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output =
-        os.proc(TestUtil.cli, extraOptions, extraArgs, fileName).call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, extraArgs, fileName)(cwd = root)
       if (!ignoreErrors)
         expect(output == message)
     }
@@ -47,9 +46,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "main.sc", "Other.scala")
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, "main.sc", "Other.scala")(cwd = root)
       expect(output == message)
     }
   }
@@ -65,9 +62,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc").call(cwd =
-        root
-      ).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, "print.sc", "messages.sc")(cwd = root)
       expect(output == message)
       expect(
         !output.contains("Script file named 'main.sc' detected, keep in mind that accessing it")
@@ -83,9 +78,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
-        root
-      ).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, "main.sc")(cwd = root)
       expect(output == message)
     }
   }
@@ -101,9 +94,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
             |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
-        root
-      ).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, "main.sc")(cwd = root)
       expect(output == message)
     }
   }
@@ -124,8 +115,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
               |""".stripMargin
       )
       inputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, extraOptions, "testScript.sc")
-          .call(cwd = root).out.trim()
+        val output = stableStdoutOf(TestUtil.cli, extraOptions, "testScript.sc")(cwd = root)
         expect(output.contains(message))
       }
     }
@@ -143,9 +133,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
             |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
-        root
-      ).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, "main.sc")(cwd = root)
       expect(output == message)
     }
   }
@@ -161,9 +149,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
             |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc").call(cwd =
-        root
-      ).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, "--power", "main.sc")(cwd = root)
       expect(output == message)
     }
   }
@@ -185,7 +171,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         cwd = root,
         stderr = os.Pipe
       )
-      val output = result.out.trim()
+      val output = TestUtil.stableStdout(result)
       val err    = result.err.trim()
       expect(output == "")
       expect(err.contains(
@@ -212,7 +198,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         cwd = root,
         stderr = os.Pipe
       )
-      val output = result.out.trim()
+      val output = TestUtil.stableStdout(result)
       val err    = result.err.trim()
       expect(output == "3")
       expect(err.contains(
@@ -240,7 +226,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         cwd = root,
         stderr = os.Pipe
       )
-      val output = result.out.trim()
+      val output = TestUtil.stableStdout(result)
       val err    = result.err.trim()
       expect(output == message2)
       expect(err.contains(
@@ -265,8 +251,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
             |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc")
-        .call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, "--power", "main.sc")(cwd = root)
       expect(output == message2)
     }
   }
@@ -282,9 +267,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
              |""".stripMargin
       )
       inputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, extraOptions, "message.sc", "main.sc").call(cwd =
-          root
-        ).out.trim()
+        val output = stableStdoutOf(TestUtil.cli, extraOptions, "message.sc", "main.sc")(cwd = root)
         expect(output == message)
         expect(
           !output.contains("Script file named 'main.sc' detected, keep in mind that accessing it")
@@ -307,7 +290,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
           .call(cwd = root, check = false, mergeErrIntoOut = true)
 
         expect(res.exitCode == 1)
-        val output = res.out.trim()
+        val output = TestUtil.stableStdout(res)
         expect(
           output.contains("Script file named 'main.sc' detected, keep in mind that accessing it")
         )
@@ -328,9 +311,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
     val mainClassName = if (actualScalaVersion.startsWith("3")) "print_sc" else "print"
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", mainClassName).call(cwd =
-          root
-        ).out.trim()
+        stableStdoutOf(TestUtil.cli, extraOptions, "dir", "--main-class", mainClassName)(cwd = root)
       expect(output == message)
     }
   }
@@ -349,10 +330,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, scriptPath.toString)
-        .call(cwd = root)
-        .out.text()
-        .trim
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, scriptPath.toString)(cwd = root)
       expect(output == expectedClassName)
     }
   }
@@ -382,10 +360,8 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "dir", scriptPath.toString)
-        .call(cwd = root)
-        .out.text()
-        .trim
+      val output =
+        stableStdoutOf(TestUtil.cli, extraOptions, "dir", scriptPath.toString)(cwd = root)
       expect(output == expectedClassName)
     }
   }
@@ -412,7 +388,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         "scala.colored-stack-traces=false"
       )
       val res            = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
-      val output         = res.out.lines()
+      val output         = TestUtil.dropJvmLogLines(res.out.lines())
       val exceptionLines = output.dropWhile(!_.startsWith("Exception in thread "))
       val tab            = "\t"
       val expectedLines  =
@@ -546,7 +522,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         "."
       )
       val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
-      val output = res.out.lines()
+      val output = TestUtil.dropJvmLogLines(res.out.lines()).toVector
       val exceptionLines: Vector[String] = output
         .map(stripAnsi)
         .dropWhile(!_.startsWith("Exception in thread "))
@@ -582,14 +558,8 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
       os.rel / "scripts" / "Script-1.sc" -> """def world: String = "world"""".stripMargin
     )
     inputs.fromRoot { root =>
-      val res = os.proc(
-        TestUtil.cli,
-        "run",
-        extraOptions,
-        "."
-      )
-        .call(cwd = root)
-      expect(res.out.trim() == "Hello world")
+      val res = stableStdoutOf(TestUtil.cli, "run", extraOptions, ".")(cwd = root)
+      expect(res == "Hello world")
     }
   }
 
@@ -599,31 +569,30 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
       os.rel / "main0.sc" -> "f.f(args(0))"
     )
     inputs.fromRoot { root =>
-      val p =
-        os.proc(TestUtil.cli, "main0.sc", "f.sc", "--", "20").call(cwd = root)
-      val res = p.out.trim()
+      val p   = stableStdoutOf(TestUtil.cli, "main0.sc", "f.sc", "--", "20")(cwd = root)
+      val res = p
       expect(res == "202020")
     }
   }
   test("CLI args passed to script") {
     val inputs = TestInputs(os.rel / "f.sc" -> "println(args(0))")
     inputs.fromRoot { root =>
-      val p = os.proc(TestUtil.cli, "f.sc", "--", "16").call(cwd = root)
-      expect(p.out.trim() == "16")
+      val p = stableStdoutOf(TestUtil.cli, "f.sc", "--", "16")(cwd = root)
+      expect(p == "16")
     }
   }
   test("print the name of script") {
     val inputs = TestInputs(os.rel / "hello.sc" -> "println(scriptPath)")
     inputs.fromRoot { root =>
-      val p = os.proc(TestUtil.cli, "hello.sc").call(cwd = root)
-      expect(p.out.trim() == "hello.sc")
+      val p = stableStdoutOf(TestUtil.cli, "hello.sc")(cwd = root)
+      expect(p == "hello.sc")
     }
   }
   test("print the name of nested script") {
     val inputs = TestInputs(os.rel / "dir" / "hello.sc" -> "println(scriptPath)")
     inputs.fromRoot { root =>
-      val p = os.proc(TestUtil.cli, "dir/hello.sc").call(cwd = root)
-      expect(p.out.trim() == "dir/hello.sc")
+      val p = stableStdoutOf(TestUtil.cli, "dir/hello.sc")(cwd = root)
+      expect(p == "dir/hello.sc")
     }
   }
 
@@ -637,8 +606,8 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
       )
       inputs.fromRoot { root =>
         os.perms.set(root / "f.sc", os.PermSet.fromString("rwx------"))
-        val p = os.proc("./f.sc", "1", "2", "3", "-v").call(cwd = root)
-        expect(p.out.trim() == "List(1, 2, 3, -v)")
+        val p = stableStdoutOf("./f.sc", "1", "2", "3", "-v")(cwd = root)
+        expect(p == "List(1, 2, 3, -v)")
       }
     }
 
@@ -653,8 +622,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
     )
     val cmd = TestUtil.cli ++ Seq(scriptName)
     inputs.fromRoot { root =>
-      val actual = os.proc(cmd)
-        .call(cwd = root).out.trim()
+      val actual = stableStdoutOf(cmd)(cwd = root)
       expect(actual == expected)
     }
   }
@@ -669,11 +637,18 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val output = if (!Properties.isWin) {
         os.perms.set(root / "script-with-shebang", os.PermSet.fromString("rwx------"))
-        os.proc("./script-with-shebang", "1", "2", "3", "-v").call(cwd = root).out.trim()
+        stableStdoutOf("./script-with-shebang", "1", "2", "3", "-v")(cwd = root)
       }
       else
-        os.proc(TestUtil.cli, "shebang", "script-with-shebang", "1", "2", "3", "-v")
-          .call(cwd = root).out.trim()
+        stableStdoutOf(
+          TestUtil.cli,
+          "shebang",
+          "script-with-shebang",
+          "1",
+          "2",
+          "3",
+          "-v"
+        )(cwd = root)
       expect(output == "List(1, 2, 3, -v)")
     }
   }
@@ -872,9 +847,14 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         )
           .fromRoot { root =>
             val wrapperOptions = if (useObjectWrapper) Seq("--power", "--object-wrapper") else Nil
-            val r = os.proc(TestUtil.cli, "run", sourceFileName, wrapperOptions, extraOptions)
-              .call(cwd = root)
-            expect(r.out.trim() == expectedMessage)
+            val r              = stableStdoutOf(
+              TestUtil.cli,
+              "run",
+              sourceFileName,
+              wrapperOptions,
+              extraOptions
+            )(cwd = root)
+            expect(r == expectedMessage)
           }
       }
 
@@ -901,9 +881,14 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         )
           .fromRoot { root =>
             val wrapperOptions = if (useObjectWrapper) Seq("--power", "--object-wrapper") else Nil
-            val r = os.proc(TestUtil.cli, "run", sourceFileName, wrapperOptions, extraOptions)
-              .call(cwd = root)
-            expect(r.out.trim() == expectedMessage)
+            val r              = stableStdoutOf(
+              TestUtil.cli,
+              "run",
+              sourceFileName,
+              wrapperOptions,
+              extraOptions
+            )(cwd = root)
+            expect(r == expectedMessage)
           }
       }
 
@@ -914,7 +899,10 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         else if isScala38OrNewer then Constants.defaultJvmVersion
         else 8
       val oldJavaHome =
-        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", jvmIndex).call().out.trim(), os.pwd)
+        os.Path(
+          stableStdoutOf(TestUtil.cs, "java-home", "--jvm", jvmIndex)(),
+          os.pwd
+        )
 
       val dr = os.Path.driveRoot
 
@@ -950,7 +938,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         else
           os.proc(TestUtil.cli, "shebang", "script-with-shebang", "1", "2", "3", "-v")
 
-        val output = proc.call(cwd = root, env = extraEnv).out.trim()
+        val output = TestUtil.stableStdout(proc.call(cwd = root, env = extraEnv))
 
         val expectedOutput = "List(1, 2, 3, -v)"
 

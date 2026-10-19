@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
-import scala.cli.integration.TestUtil.ProcOps
+import scala.cli.integration.TestUtil.{ProcOps, stableStdoutOf}
 import scala.cli.integration.util.BloopUtil
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
@@ -281,7 +281,7 @@ abstract class CompileTestDefinitions
     mainAndTestInputs.fromRoot { root =>
       val tempOutput = root / "output"
       val output     =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "compile",
           "--test",
@@ -290,9 +290,9 @@ abstract class CompileTestDefinitions
           "--print-class-path",
           extraOptions,
           "."
-        ).call(cwd =
+        )(cwd =
           root
-        ).out.trim()
+        )
       val classPath = output.split(File.pathSeparator).map(_.trim).filter(_.nonEmpty)
       val isDefinedTestPathInClassPath = // expected test class path - root / Constants.workspaceDirName / project_(hash) / classes / test
         classPath.exists(p =>
@@ -553,9 +553,7 @@ abstract class CompileTestDefinitions
              |""".stripMargin
       )
       inputs.fromRoot { root =>
-        os.proc(TestUtil.cli, "compile", extraOptions, fileName)
-          .call(cwd = root)
-          .out.trim()
+        stableStdoutOf(TestUtil.cli, "compile", extraOptions, fileName)(cwd = root)
 
         val expectedCoverageFilePath = root / "scoverage.coverage"
         expect(os.exists(expectedCoverageFilePath))
@@ -579,14 +577,8 @@ abstract class CompileTestDefinitions
     )
     inputs.fromRoot { root =>
       val res =
-        os.proc(
-          TestUtil.cli,
-          "compile",
-          "--print-class-path",
-          extraOptions,
-          "."
-        ).call(cwd = root)
-      val classPath          = res.out.trim().split(File.pathSeparator)
+        stableStdoutOf(TestUtil.cli, "compile", "--print-class-path", extraOptions, ".")(cwd = root)
+      val classPath          = res.split(File.pathSeparator)
       val classPathFileNames = classPath.map(_.split("[\\\\/]+").last)
       expect(classPathFileNames.exists(_.startsWith("spark-core_")))
       // usually a duplicate is there if we don't call .distrinct when necessary here or there
@@ -658,7 +650,7 @@ abstract class CompileTestDefinitions
 
     inputs.fromRoot { root =>
       val res =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "--power",
           "compile",
@@ -666,9 +658,8 @@ abstract class CompileTestDefinitions
           "--print-class-path",
           ".",
           extraOptions
-        )
-          .call(cwd = root)
-      val classPath  = res.out.trim().split(File.pathSeparator)
+        )(cwd = root)
+      val classPath  = res.split(File.pathSeparator)
       val outputDir  = os.Path(classPath.head, root)
       val classFiles = os.walk(outputDir)
         .filter(_.last.endsWith(".class"))
@@ -1060,7 +1051,7 @@ abstract class CompileTestDefinitions
           "."
         ).call(cwd = root, stderr = os.Pipe)
 
-        val printedClasspath = r.out.trim()
+        val printedClasspath = TestUtil.stableStdout(r)
         // The classpath should contain the sloth cache path for the signed jar
         expect(printedClasspath.contains(slothCacheSegment))
 
@@ -1110,7 +1101,7 @@ abstract class CompileTestDefinitions
 
         // Either the original jar is returned, or if a cache entry exists,
         // verify the signature is still valid
-        val printedClasspath = r.out.trim()
+        val printedClasspath = TestUtil.stableStdout(r)
         if !printedClasspath.contains(signedJavaJar.toString) then
           val cachedPath = printedClasspath
             .split(File.pathSeparator)
@@ -1135,7 +1126,7 @@ abstract class CompileTestDefinitions
              |""".stripMargin,
         os.rel / "resources" / "META-INF" / "MANIFEST.MF" -> userManifestResourceContent
       ).fromRoot { root =>
-        val r = os.proc(
+        val r = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "compile",
@@ -1143,9 +1134,9 @@ abstract class CompileTestDefinitions
           slothOptions,
           "--print-class-path",
           "."
-        ).call(cwd = root, stderr = os.Pipe)
+        )(cwd = root, stderr = os.Pipe)
 
-        val printedClasspath = r.out.trim()
+        val printedClasspath = r
         val classesMain      = findProjectClassesDir(printedClasspath, root)
         expect(!classesMain.toString.contains(slothCacheSegment))
         val manifestPath = classesMain / "META-INF" / "MANIFEST.MF"
@@ -1164,18 +1155,18 @@ abstract class CompileTestDefinitions
 
     test("compile --sloth patches the compilation output in place") {
       TestInputs(os.rel / "Main.scala" -> lazyValMainSource).fromRoot { root =>
-        val withoutSloth = os.proc(
+        val withoutSloth = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "compile",
           extraOptions,
           "--print-class-path",
           "."
-        ).call(cwd = root, stderr = os.Pipe)
+        )(cwd = root, stderr = os.Pipe)
         val unpatchedBytes =
-          classFileBytes(findProjectClassesDir(withoutSloth.out.trim(), root), "Main$")
+          classFileBytes(findProjectClassesDir(withoutSloth, root), "Main$")
 
-        val withSloth = os.proc(
+        val withSloth = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "compile",
@@ -1183,8 +1174,8 @@ abstract class CompileTestDefinitions
           slothOptions,
           "--print-class-path",
           "."
-        ).call(cwd = root, stderr = os.Pipe)
-        val patchedClasspath = withSloth.out.trim()
+        )(cwd = root, stderr = os.Pipe)
+        val patchedClasspath = withSloth
         val patchedClasses   = findProjectClassesDir(patchedClasspath, root)
         expect(!patchedClasses.toString.contains(slothCacheSegment))
         val patchedBytes = classFileBytes(patchedClasses, "Main$")
@@ -1196,7 +1187,7 @@ abstract class CompileTestDefinitions
           patchedClasspath,
           "Main"
         ).call(cwd = root, stderr = os.Pipe)
-        expect(run.out.trim() == "Hello from lazy val")
+        expect(TestUtil.stableStdout(run) == "Hello from lazy val")
         expect(!run.err.trim().contains("sun.misc.Unsafe"))
       }
     }
@@ -1206,7 +1197,7 @@ abstract class CompileTestDefinitions
         val outPlain = root / "out-plain"
         val outSloth = root / "out-sloth"
 
-        val plainCp = os.proc(
+        val plainCp = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "compile",
@@ -1215,7 +1206,7 @@ abstract class CompileTestDefinitions
           outPlain,
           "--print-class-path",
           "."
-        ).call(cwd = root, stderr = os.Pipe).out.trim()
+        )(cwd = root, stderr = os.Pipe)
         val classesMain  = findProjectClassesDir(plainCp, root)
         val outPlainMain = outPlain / "Main$.class"
         val outSlothMain = outSloth / "Main$.class"
@@ -1225,7 +1216,7 @@ abstract class CompileTestDefinitions
           classFileBytes(outPlain, "Main$")
         ))
 
-        val slothCp = os.proc(
+        val slothCp = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "compile",
@@ -1235,7 +1226,7 @@ abstract class CompileTestDefinitions
           outSloth,
           "--print-class-path",
           "."
-        ).call(cwd = root, stderr = os.Pipe).out.trim()
+        )(cwd = root, stderr = os.Pipe)
         expect(os.isFile(outSlothMain))
         expect(!java.util.Arrays.equals(
           classFileBytes(outPlain, "Main$"),
@@ -1256,7 +1247,7 @@ abstract class CompileTestDefinitions
           s"$outSloth${File.pathSeparator}$deps",
           "Main"
         ).call(cwd = root, stderr = os.Pipe)
-        expect(run.out.trim() == "Hello from lazy val")
+        expect(TestUtil.stableStdout(run) == "Hello from lazy val")
         expect(!run.err.trim().contains("sun.misc.Unsafe"))
       }
     }
@@ -1275,11 +1266,11 @@ abstract class CompileTestDefinitions
           ).call(cwd = root, stderr = os.Pipe)
 
         val first      = compileSloth()
-        val firstCp    = first.out.trim()
+        val firstCp    = TestUtil.stableStdout(first)
         val firstBytes = classFileBytes(findProjectClassesDir(firstCp, root), "Main$")
 
         val second      = compileSloth()
-        val secondCp    = second.out.trim()
+        val secondCp    = TestUtil.stableStdout(second)
         val secondBytes = classFileBytes(findProjectClassesDir(secondCp, root), "Main$")
         expect(java.util.Arrays.equals(firstBytes, secondBytes))
 
@@ -1289,7 +1280,7 @@ abstract class CompileTestDefinitions
           secondCp,
           "Main"
         ).call(cwd = root, stderr = os.Pipe)
-        expect(run.out.trim() == "Hello from lazy val")
+        expect(TestUtil.stableStdout(run) == "Hello from lazy val")
         expect(!run.err.trim().contains("sun.misc.Unsafe"))
       }
     }
@@ -1311,7 +1302,7 @@ abstract class CompileTestDefinitions
           "."
         ).call(cwd = root, stderr = os.Pipe)
 
-        val printedClasspath = r.out.trim()
+        val printedClasspath = TestUtil.stableStdout(r)
         val classesMain      = findProjectClassesDir(printedClasspath, root)
         val outMain          = out / "Main$.class"
         expect(!classesMain.toString.contains(slothCacheSegment))

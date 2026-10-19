@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
   test("built-in rules with --check") {
     val mainFileName    = "Main.scala"
@@ -34,7 +36,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
       val checkOutput = fix(check = true)
       expect(checkOutput.exitCode != 0)
       assertNoDiff(
-        filterDebugOutputs(checkOutput.out.trim()),
+        filterDebugOutputs(TestUtil.stableStdout(checkOutput)),
         s"""Running built-in rules...
            |Unifying `deps`, `dep` into `dep`
            |--- $projectFileName
@@ -63,7 +65,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
       val checkAfterFixOutput = fix(check = true)
       expect(checkAfterFixOutput.exitCode == 0)
       assertNoDiff(
-        filterDebugOutputs(checkAfterFixOutput.out.trim()),
+        filterDebugOutputs(TestUtil.stableStdout(checkAfterFixOutput)),
         """Running built-in rules...
           |Built-in rules completed.""".stripMargin
       )
@@ -252,7 +254,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
 
     inputs.fromRoot { root =>
 
-      val fixOutput = os.proc(
+      val fixOutput = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "fix",
@@ -261,8 +263,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
         "-v",
         extraOptions,
         enableRulesOptions(enableScalafix = false)
-      )
-        .call(cwd = root, mergeErrIntoOut = true).out.trim()
+      )(cwd = root, mergeErrIntoOut = true)
 
       assertNoDiff(
         filterDebugOutputs(fixOutput),
@@ -322,7 +323,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
     inputs.fromRoot { root =>
 
       val fixOutput =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "--power",
           "fix",
@@ -331,8 +332,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
           "-v",
           extraOptions,
           enableRulesOptions(enableScalafix = false)
-        )
-          .call(cwd = root, mergeErrIntoOut = true).out.trim()
+        )(cwd = root, mergeErrIntoOut = true)
 
       assertNoDiff(
         filterDebugOutputs(fixOutput),
@@ -408,7 +408,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
     inputs.fromRoot { root =>
 
       val fixOutput =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "--power",
           "fix",
@@ -417,8 +417,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
           "-v",
           extraOptions,
           enableRulesOptions(enableScalafix = false)
-        )
-          .call(cwd = root, mergeErrIntoOut = true).out.trim()
+        )(cwd = root, mergeErrIntoOut = true)
 
       assertNoDiff(
         filterDebugOutputs(fixOutput),
@@ -672,9 +671,11 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
     ).fromRoot { root =>
       os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions)
         .call(cwd = root, stderr = os.Pipe)
-      val r = os.proc(TestUtil.cli, "--power", "run", ".", extraOptions)
-        .call(cwd = root, stderr = os.Pipe)
-      expect(r.out.trim() == expectedMessage)
+      val r = stableStdoutOf(TestUtil.cli, "--power", "run", ".", extraOptions)(
+        cwd = root,
+        stderr = os.Pipe
+      )
+      expect(r == expectedMessage)
     }
   }
 
@@ -704,9 +705,11 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
           ))
           expect(!os.exists(root / projectFileName))
           expect(os.read(root / inputFileName) == code)
-          val runResult = os.proc(TestUtil.cli, "run", ".", extraOptions)
-            .call(cwd = root, stderr = os.Pipe)
-          expect(runResult.out.trim() == root.toString)
+          val runResult = stableStdoutOf(TestUtil.cli, "run", ".", extraOptions)(
+            cwd = root,
+            stderr = os.Pipe
+          )
+          expect(runResult == root.toString)
         }
       }
   }

@@ -3,6 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 import os.CommandResult
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 class SipScalaTests extends ScalaCliSuite
@@ -148,11 +149,11 @@ class SipScalaTests extends ScalaCliSuite
 
   def testExportCommandHelp(isPowerMode: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, powerArgs(isPowerMode), "export", "-h").call(
+      val res = stableStdoutOf(TestUtil.cli, powerArgs(isPowerMode), "export", "-h")(
         cwd = root,
         stderr = os.Pipe
       )
-      val output = res.out.trim()
+      val output = res
       if (!isPowerMode) expect(output.contains("The `export` sub-command is experimental."))
       else expect(output.contains("The `export` sub-command is experimental."))
     }
@@ -160,9 +161,12 @@ class SipScalaTests extends ScalaCliSuite
   def testConfigCommandHelp(isPowerMode: Boolean, isFullHelp: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
       val helpParams = if (isFullHelp) Seq("--full-help") else Seq("-h")
-      val helpOutput = os.proc(TestUtil.cli, powerArgs(isPowerMode), "config", helpParams)
-        .call(cwd = root, stderr = os.Pipe)
-        .out.trim()
+      val helpOutput = stableStdoutOf(
+        TestUtil.cli,
+        powerArgs(isPowerMode),
+        "config",
+        helpParams
+      )(cwd = root, stderr = os.Pipe)
       if (isPowerMode) {
         expect(helpOutput.contains("(power)"))
         expect(helpOutput.contains("repositories.mirrors"))
@@ -270,7 +274,7 @@ class SipScalaTests extends ScalaCliSuite
           val binary       = "scala".prepareBinary(root)
           val csBinaryName = root / ".scala.aux"
           os.move(binary, csBinaryName)
-          val output = os.proc(csBinaryName, "test", "--usage").call(check = false).out.text().trim
+          val output   = stableStdoutOf(csBinaryName, "test", "--usage")(check = false)
           val usageMsg = TestUtil.removeAnsiColors(output)
           expect(usageMsg == "Usage: scala test [options]")
       }
@@ -278,8 +282,7 @@ class SipScalaTests extends ScalaCliSuite
 
   def testDefaultHelpOutput(isPowerMode: Boolean): Unit = TestInputs.empty.fromRoot { root =>
     for (helpOptions <- HelpTests.variants) {
-      val output =
-        os.proc(TestUtil.cli, powerArgs(isPowerMode), helpOptions).call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, powerArgs(isPowerMode), helpOptions)(cwd = root)
       val restrictedFeaturesMentioned = output.contains("package")
       if (!isPowerMode) expect(!restrictedFeaturesMentioned)
       else expect(restrictedFeaturesMentioned)
@@ -288,9 +291,7 @@ class SipScalaTests extends ScalaCliSuite
 
   def testReplHelpOutput(isPowerMode: Boolean): Unit = TestInputs.empty.fromRoot { root =>
     val output =
-      os.proc(TestUtil.cli, powerArgs(isPowerMode), "repl", "--help-full").call(cwd =
-        root
-      ).out.trim()
+      stableStdoutOf(TestUtil.cli, powerArgs(isPowerMode), "repl", "--help-full")(cwd = root)
     val restrictedFeaturesMentioned   = output.contains("compute-version")
     val experimentalFeaturesMentioned = output.contains("--python")
     if (!isPowerMode) expect(!restrictedFeaturesMentioned && !experimentalFeaturesMentioned)
@@ -437,10 +438,16 @@ class SipScalaTests extends ScalaCliSuite
     )
 
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "--power", "export", ".", "--object-wrapper", "--md")
-        .call(cwd = root, mergeErrIntoOut = true)
+      val res = stableStdoutOf(
+        TestUtil.cli,
+        "--power",
+        "export",
+        ".",
+        "--object-wrapper",
+        "--md"
+      )(cwd = root, mergeErrIntoOut = true)
 
-      val output = res.out.trim()
+      val output = res
 
       assertNoDiff(
         output,
@@ -515,16 +522,15 @@ class SipScalaTests extends ScalaCliSuite
     ) {
       TestInputs(os.rel / "simple.sc" -> code)
         .fromRoot { root =>
-          val r = os.proc(
+          val r = stableStdoutOf(
             TestUtil.cli,
             "--cli-default-scala-version",
             sv,
             "run",
             "simple.sc",
             "--with-compiler"
-          )
-            .call(cwd = root)
-          expect(r.out.trim() == sv)
+          )(cwd = root)
+          expect(r == sv)
         }
     }
     test(
@@ -532,7 +538,7 @@ class SipScalaTests extends ScalaCliSuite
     ) {
       TestInputs(os.rel / "simple.sc" -> code)
         .fromRoot { root =>
-          val r = os.proc(
+          val r = stableStdoutOf(
             TestUtil.cli,
             "--cli-default-scala-version",
             sv,
@@ -541,9 +547,8 @@ class SipScalaTests extends ScalaCliSuite
             "--with-compiler",
             "-S",
             anotherVersion
-          )
-            .call(cwd = root)
-          expect(r.out.trim() == anotherVersion)
+          )(cwd = root)
+          expect(r == anotherVersion)
         }
     }
 
@@ -552,9 +557,14 @@ class SipScalaTests extends ScalaCliSuite
     ) {
       TestInputs.empty.fromRoot { root =>
         val r =
-          os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "version", "--scala-version")
-            .call(cwd = root)
-        expect(r.out.trim() == sv)
+          stableStdoutOf(
+            TestUtil.cli,
+            "--cli-default-scala-version",
+            sv,
+            "version",
+            "--scala-version"
+          )(cwd = root)
+        expect(r == sv)
       }
     }
 
@@ -632,7 +642,7 @@ class SipScalaTests extends ScalaCliSuite
             else
               (localRepoPath / "thecache" / "https" / "repo1.maven.org" /
                 "maven2").toNIO.toUri.toASCIIString
-          val r = os.proc(
+          val r = stableStdoutOf(
             TestUtil.cli,
             "--cli-default-scala-version",
             sv,
@@ -644,9 +654,8 @@ class SipScalaTests extends ScalaCliSuite
             "--offline",
             "--power",
             buildServerOptions
-          )
-            .call(cwd = root)
-          expect(r.out.trim() == sv)
+          )(cwd = root)
+          expect(r == sv)
         }
     }
 
@@ -676,7 +685,7 @@ class SipScalaTests extends ScalaCliSuite
           }
           val buildServerOptions = if (withBloop) Nil else Seq("--server=false")
           os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
-          val r = os.proc(
+          val r = stableStdoutOf(
             TestUtil.cli,
             "--cli-default-scala-version",
             sv,
@@ -692,9 +701,8 @@ class SipScalaTests extends ScalaCliSuite
             "--offline",
             "--power",
             buildServerOptions
-          )
-            .call(cwd = root)
-          expect(r.out.trim() == sv)
+          )(cwd = root)
+          expect(r == sv)
         }
     }
   }
@@ -720,7 +728,7 @@ class SipScalaTests extends ScalaCliSuite
       ).call(cwd = root)
       expect(exportRes.exitCode == 0)
       val sbtRes = sbtCommand(Constants.sbt2Version, "run").call(cwd = root / outputDir)
-      val output = sbtRes.out.trim()
+      val output = TestUtil.stableStdout(sbtRes)
       expect(output.contains(expectedMessage))
     }
   }
@@ -759,7 +767,7 @@ class SipScalaTests extends ScalaCliSuite
         ).call(cwd = root)
         expect(exportRes.exitCode == 0)
         val millRes = millCommand(root, s"$millDefaultProjectName.run").call(cwd = root / outputDir)
-        val output  = millRes.out.trim()
+        val output  = TestUtil.stableStdout(millRes)
         expect(output.contains(expectedMessage))
       }
     }
@@ -804,16 +812,14 @@ class SipScalaTests extends ScalaCliSuite
     val scriptName = "script.sc"
     TestInputs(os.rel / "script.sc" -> "println(1)").fromRoot { root =>
       val scala3Nightly =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "-e",
           "println(dotty.tools.dotc.config.Properties.versionNumberString)",
           "-S",
           "3.nightly",
           "--with-compiler"
-        )
-          .call(cwd = root)
-          .out.trim()
+        )(cwd = root)
       val res =
         os.proc(TestUtil.cli, "--cli-default-scala-version", scala3Nightly, "run", scriptName)
           .call(cwd = root, stderr = os.Pipe)
@@ -866,7 +872,7 @@ class SipScalaTests extends ScalaCliSuite
             check = false // need to clean up even on failure
           )
         expect(r.exitCode == 0)
-        expect(r.out.trim() == scalaVersion)
+        expect(TestUtil.stableStdout(r) == scalaVersion)
       }
     }
   }
@@ -878,11 +884,14 @@ class SipScalaTests extends ScalaCliSuite
       TestInputs.empty.fromRoot { root =>
         val sv                          = Constants.scala3NextRc
         val launcherVersionOverrideHelp =
-          os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "--scalac-help")
-            .call(cwd = root).out.trim()
+          stableStdoutOf(
+            TestUtil.cli,
+            "--cli-default-scala-version",
+            sv,
+            "--scalac-help"
+          )(cwd = root)
         val standardVersionOverrideHelp =
-          os.proc(TestUtil.cli, "--scalac-help", "-S", sv)
-            .call(cwd = root).out.trim()
+          stableStdoutOf(TestUtil.cli, "--scalac-help", "-S", sv)(cwd = root)
         val migrationPrefix = sv.take(2) + (sv.charAt(2).asDigit + 1).toString
         expect(launcherVersionOverrideHelp.contains(s"$migrationPrefix-migration"))
         expect(launcherVersionOverrideHelp == standardVersionOverrideHelp)

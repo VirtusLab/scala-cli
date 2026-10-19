@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.cli.integration.util.DockerServer
 import scala.io.Codec
 import scala.jdk.CollectionConverters.*
@@ -65,10 +66,9 @@ abstract class RunTestDefinitions
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output =
-        os.proc(TestUtil.cli, extraOptions, fileName, "--command").call(cwd = root).out.trim()
-      val command      = output.linesIterator.toVector
-      val actualOutput = os.proc(command).call(cwd = root).out.trim()
+      val output  = stableStdoutOf(TestUtil.cli, extraOptions, fileName, "--command")(cwd = root)
+      val command = output.linesIterator.toVector
+      val actualOutput = stableStdoutOf(command)(cwd = root)
       expect(actualOutput == message)
     }
   }
@@ -102,9 +102,7 @@ abstract class RunTestDefinitions
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "--use-manifest", ".")
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, "--use-manifest", ".")(cwd = root)
       expect(output == message)
     }
   }
@@ -120,7 +118,7 @@ abstract class RunTestDefinitions
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "run", extraOptions, "--main-class", "print")
         .call(cwd = root / "dir", check = false, mergeErrIntoOut = true)
-      val output = res.out.trim()
+      val output = TestUtil.stableStdout(res)
       expect(res.exitCode != 0)
       expect(output.contains("No inputs provided"))
     }
@@ -135,8 +133,8 @@ abstract class RunTestDefinitions
           |""".stripMargin
     ).fromRoot { root =>
       val bspEntry = root / ".bsp" / "scala-cli.json"
-      val res      = os.proc(TestUtil.cli, "run", extraOptions, ".").call(cwd = root)
-      expect(res.out.trim() == "Hello from run")
+      val res      = stableStdoutOf(TestUtil.cli, "run", extraOptions, ".")(cwd = root)
+      expect(res == "Hello from run")
       assert(os.exists(bspEntry))
     }
   }
@@ -150,10 +148,16 @@ abstract class RunTestDefinitions
           |""".stripMargin
     ).fromRoot { root =>
       val bspEntry = root / ".bsp" / "scala-cli.json"
-      val res = os.proc(TestUtil.cli, "run", extraOptions, ".", "--auto-setup-ide=false").call(cwd =
+      val res      = stableStdoutOf(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        ".",
+        "--auto-setup-ide=false"
+      )(cwd =
         root
       )
-      expect(res.out.trim() == "Hello from run")
+      expect(res == "Hello from run")
       assert(!os.exists(bspEntry))
     }
   }
@@ -169,9 +173,15 @@ abstract class RunTestDefinitions
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val out1 = os.proc(TestUtil.cli, "run", extraOptions, ".", "--debug", "--command")
-        .call(cwd = root).out.trim().lines.toList.asScala
-      val out2 = os.proc(
+      val out1 = stableStdoutOf(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        ".",
+        "--debug",
+        "--command"
+      )(cwd = root).lines.toList.asScala
+      val out2 = stableStdoutOf(
         TestUtil.cli,
         "run",
         extraOptions,
@@ -181,7 +191,7 @@ abstract class RunTestDefinitions
         "--debug-mode",
         "listen",
         "--command"
-      ).call(cwd = root).out.trim().lines.toList.asScala
+      )(cwd = root).lines.toList.asScala
 
       def debugString(server: String, port: String) =
         s"-agentlib:jdwp=transport=dt_socket,server=$server,suspend=y,address=$port"
@@ -203,9 +213,7 @@ abstract class RunTestDefinitions
     )
     val message = "Hello"
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "run", extraOptions, ".", "--", message)
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(TestUtil.cli, "run", extraOptions, ".", "--", message)(cwd = root)
       expect(output == message)
     }
   }
@@ -221,9 +229,7 @@ abstract class RunTestDefinitions
     )
     val message = "Hello"
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "run", extraOptions, ".", "--", message)
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(TestUtil.cli, "run", extraOptions, ".", "--", message)(cwd = root)
       expect(output == message)
     }
   }
@@ -329,11 +335,10 @@ abstract class RunTestDefinitions
 
   def fd(): Unit = {
     emptyInputs.fromRoot { root =>
-      val cliCmd         = (TestUtil.cli ++ extraOptions).mkString(" ")
-      val cmd            = s""" $cliCmd <(echo 'println("Hello" + " from fd")') """
-      val res            = os.proc("bash", "-c", cmd).call(cwd = root)
-      val expectedOutput = "Hello from fd" + System.lineSeparator()
-      expect(res.out.text() == expectedOutput)
+      val cliCmd = (TestUtil.cli ++ extraOptions).mkString(" ")
+      val cmd    = s""" $cliCmd <(echo 'println("Hello" + " from fd")') """
+      val res    = stableStdoutOf("bash", "-c", cmd)(cwd = root)
+      expect(res == "Hello from fd")
     }
   }
 
@@ -351,7 +356,7 @@ abstract class RunTestDefinitions
       "--scala",
       actualScalaVersion
     )
-    val shapelessJar = os.proc(cmd).call().out.trim()
+    val shapelessJar = stableStdoutOf(cmd)()
     expect(os.isFile(os.Path(shapelessJar, os.pwd)))
 
     val inputs = TestInputs(
@@ -369,13 +374,21 @@ abstract class RunTestDefinitions
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val baseOutput = os.proc(TestUtil.cli, extraOptions, ".", "--extra-jar", shapelessJar)
-        .call(cwd = root)
-        .out.trim()
+      val baseOutput = stableStdoutOf(
+        TestUtil.cli,
+        extraOptions,
+        ".",
+        "--extra-jar",
+        shapelessJar
+      )(cwd = root)
       expect(baseOutput == "Hello with shapeless")
-      val output = os.proc(TestUtil.cli, extraOptions, ".", "--compile-only-jar", shapelessJar)
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(
+        TestUtil.cli,
+        extraOptions,
+        ".",
+        "--compile-only-jar",
+        shapelessJar
+      )(cwd = root)
       expect(output == "Hello from test")
     }
   }
@@ -405,9 +418,7 @@ abstract class RunTestDefinitions
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".")
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, ".")(cwd = root)
       expect(output.contains("John"))
       expect(!output.contains("jsoniter-scala-macros"))
     }
@@ -435,15 +446,11 @@ abstract class RunTestDefinitions
     }
 
     inputs(compileOnly = false).fromRoot { root =>
-      val baseOutput = os.proc(TestUtil.cli, extraOptions, ".")
-        .call(cwd = root)
-        .out.trim()
+      val baseOutput = stableStdoutOf(TestUtil.cli, extraOptions, ".")(cwd = root)
       expect(baseOutput == "Hello with shapeless")
     }
     inputs(compileOnly = true).fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".")
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, ".")(cwd = root)
       expect(output == "Hello from test")
     }
   }
@@ -509,7 +516,7 @@ abstract class RunTestDefinitions
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, ".")(cwd = root)
       expect(output == message)
     }
   }
@@ -523,7 +530,7 @@ abstract class RunTestDefinitions
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, ".")(cwd = root)
       expect(output == "hello")
     }
   }
@@ -594,8 +601,8 @@ abstract class RunTestDefinitions
   private def nonWritableTest(): Unit = {
     simpleDirInputs.fromRoot { root =>
       def run(): String = {
-        val res = os.proc(TestUtil.cli, "dir").call(cwd = root)
-        res.out.trim()
+        val res = stableStdoutOf(TestUtil.cli, "dir")(cwd = root)
+        res
       }
 
       val classDirBefore = os.Path(run(), os.pwd)
@@ -618,8 +625,8 @@ abstract class RunTestDefinitions
   private def forbiddenDirTest(): Unit = {
     simpleDirInputs.fromRoot { root =>
       def run(options: String*): String = {
-        val res = os.proc(TestUtil.cli, "dir", options).call(cwd = root)
-        res.out.trim()
+        val res = stableStdoutOf(TestUtil.cli, "dir", options)(cwd = root)
+        res
       }
 
       val classDirBefore = os.Path(run(), os.pwd)
@@ -658,9 +665,14 @@ abstract class RunTestDefinitions
   test("resources via command line") {
     val expectedMessage = "hello"
     resourcesInputs(resourceContent = expectedMessage).fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", "src", "--resource-dirs", "./src/proj/resources")
-        .call(cwd = root)
-      expect(res.out.trim() == expectedMessage)
+      val res = stableStdoutOf(
+        TestUtil.cli,
+        "run",
+        "src",
+        "--resource-dirs",
+        "./src/proj/resources"
+      )(cwd = root)
+      expect(res == expectedMessage)
     }
   }
   test("resources via directive") {
@@ -670,8 +682,8 @@ abstract class RunTestDefinitions
       resourceContent = expectedMessage
     )
       .fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "run", ".").call(cwd = root)
-        expect(res.out.trim() == expectedMessage)
+        val res = stableStdoutOf(TestUtil.cli, "run", ".")(cwd = root)
+        expect(res == expectedMessage)
       }
   }
   test("resources via test directive") {
@@ -685,9 +697,8 @@ abstract class RunTestDefinitions
           .call(cwd = root, check = false, stderr = os.Pipe)
         expect(err.err.trim().contains("java.lang.NullPointerException"))
         expect(err.exitCode == 1)
-        val res = os.proc(TestUtil.cli, "run", ".", "--test")
-          .call(cwd = root)
-        expect(res.out.trim() == expectedMessage)
+        val res = stableStdoutOf(TestUtil.cli, "run", ".", "--test")(cwd = root)
+        expect(res == expectedMessage)
       }
   }
 
@@ -697,15 +708,15 @@ abstract class RunTestDefinitions
       resourceContent = expectedMessage,
       classPathResourcePath = "data"
     ).fromRoot { root =>
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cli,
         "run",
         extraOptions,
         "src",
         "--resource",
         "./src/proj/resources/test/data"
-      ).call(cwd = root)
-      expect(res.out.trim() == expectedMessage)
+      )(cwd = root)
+      expect(res == expectedMessage)
     }
   }
 
@@ -716,8 +727,8 @@ abstract class RunTestDefinitions
       resourceContent = expectedMessage,
       classPathResourcePath = "data"
     ).fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", extraOptions, ".").call(cwd = root)
-      expect(res.out.trim() == expectedMessage)
+      val res = stableStdoutOf(TestUtil.cli, "run", extraOptions, ".")(cwd = root)
+      expect(res == expectedMessage)
     }
   }
 
@@ -742,9 +753,11 @@ abstract class RunTestDefinitions
       os.copy(launcherPath, binDir / "scala-cli")
       val updatedPath =
         binDir.toString + File.pathSeparator + Option(System.getenv("PATH")).getOrElse("")
-      val res = os.proc("/bin/bash", "-c", "./MyScript.scala from tests")
-        .call(cwd = root, env = Map("PATH" -> updatedPath))
-      expect(res.out.trim() == "Hello from tests")
+      val res = stableStdoutOf("/bin/bash", "-c", "./MyScript.scala from tests")(
+        cwd = root,
+        env = Map("PATH" -> updatedPath)
+      )
+      expect(res == "Hello from tests")
     }
   }
 
@@ -802,8 +815,8 @@ abstract class RunTestDefinitions
       )
       inputs.fromRoot { root =>
         os.perms.set(root / "f.scala", os.PermSet.fromString("rwx------"))
-        val p = os.proc("./f.scala", "1", "2", "3", "-v").call(cwd = root)
-        expect(p.out.trim() == "List(1, 2, 3, -v)")
+        val p = stableStdoutOf("./f.scala", "1", "2", "3", "-v")(cwd = root)
+        expect(p == "List(1, 2, 3, -v)")
       }
     }
 
@@ -816,8 +829,8 @@ abstract class RunTestDefinitions
             """object Main extends App { println(System.getProperty("java.version"))}"""
         )
       inputs.fromRoot { root =>
-        val p   = os.proc(TestUtil.cli, "run.scala", "--jvm", jvm).call(cwd = root)
-        val res = p.out.trim()
+        val p   = stableStdoutOf(TestUtil.cli, "run.scala", "--jvm", jvm)(cwd = root)
+        val res = p
         expect(res.startsWith(s"1.$jvm") || res.startsWith(s"$jvm."))
       }
     }
@@ -828,8 +841,8 @@ abstract class RunTestDefinitions
           s"""//> using jvm $jvm
              |object Main extends App { println(System.getProperty("java.version"))}""".stripMargin)
       inputs.fromRoot { root =>
-        val p   = os.proc(TestUtil.cli, "run.scala").call(cwd = root)
-        val res = p.out.trim()
+        val p   = stableStdoutOf(TestUtil.cli, "run.scala")(cwd = root)
+        val res = p
         expect(res.startsWith(s"1.$jvm") || res.startsWith(s"$jvm."))
       }
     }
@@ -845,8 +858,8 @@ abstract class RunTestDefinitions
            |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val p = os.proc(TestUtil.cli, "Hello.scala").call(cwd = root)
-      expect(p.out.trim() == root.toString)
+      val p = stableStdoutOf(TestUtil.cli, "Hello.scala")(cwd = root)
+      expect(p == root.toString)
     }
   }
 
@@ -858,10 +871,8 @@ abstract class RunTestDefinitions
           |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "Hello.scala", "--java-opt", "-Dfoo=bar").call(
-        cwd = root
-      )
-      expect(res.out.trim() == "bar")
+      val res = stableStdoutOf(TestUtil.cli, "Hello.scala", "--java-opt", "-Dfoo=bar")(cwd = root)
+      expect(res == "bar")
     }
   }
 
@@ -873,10 +884,8 @@ abstract class RunTestDefinitions
           |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "Hello.scala", "-Dfoo=bar").call(
-        cwd = root
-      )
-      expect(res.out.trim() == "bar")
+      val res = stableStdoutOf(TestUtil.cli, "Hello.scala", "-Dfoo=bar")(cwd = root)
+      expect(res == "bar")
     }
   }
 
@@ -901,9 +910,8 @@ abstract class RunTestDefinitions
             |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "Hello.scala")
-        .call(cwd = root)
-      expect(res.out.trim() == s"$hello$world")
+      val res = stableStdoutOf(TestUtil.cli, "Hello.scala")(cwd = root)
+      expect(res == s"$hello$world")
     }
   }
 
@@ -1117,7 +1125,7 @@ abstract class RunTestDefinitions
       DockerServer.withServer(image, root.toString, 80 -> 9083) { _ =>
         DockerServer.withServer(image, root.toString, 80 -> 9084) { _ =>
 
-          val okRes = os.proc(
+          val okRes = stableStdoutOf(
             TestUtil.cli,
             proxyArgs,
             "-Dcoursier.cache.throw-exceptions=true",
@@ -1125,9 +1133,8 @@ abstract class RunTestDefinitions
             ".",
             "--cache",
             os.rel / "tmp-cache-ok"
-          )
-            .call(cwd = root / okDir, env = configEnv)
-          val okOutput = okRes.out.trim()
+          )(cwd = root / okDir, env = configEnv)
+          val okOutput = okRes
           expect(okOutput == "Hello proxy")
 
           val wrongRes = os.proc(
@@ -1145,7 +1152,7 @@ abstract class RunTestDefinitions
               mergeErrIntoOut = true,
               check = false
             )
-          val wrongOutput = wrongRes.out.trim()
+          val wrongOutput = TestUtil.stableStdout(wrongRes)
           expect(wrongRes.exitCode == 1)
           expect(wrongOutput.contains(
             """Unable to tunnel through proxy. Proxy returns "HTTP/1.1 407 Proxy Authentication Required""""
@@ -1220,7 +1227,7 @@ abstract class RunTestDefinitions
         )
           .call(cwd = root, mergeErrIntoOut = true, check = false)
         expect(res.exitCode == 1)
-        val output       = res.out.trim()
+        val output       = TestUtil.stableStdout(res)
         val errorMessage =
           output.linesWithSeparators.toSeq.takeRight(6).mkString // dropping compilation logs
         val extraOptionsString  = extraOptions.mkString(" ")
@@ -1298,8 +1305,8 @@ abstract class RunTestDefinitions
             |}
             |""".stripMargin
       ).fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "run", ".", extraOptions).call(cwd = root)
-        expect(res.out.trim() == "hello from a user class")
+        val res = stableStdoutOf(TestUtil.cli, "run", ".", extraOptions)(cwd = root)
+        expect(res == "hello from a user class")
       }
     }
   }
@@ -1312,9 +1319,15 @@ abstract class RunTestDefinitions
         TestInputs(
           os.rel / "T.scala" -> "class A { def main(): Unit = println(1) }"
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
-            .call(cwd = root)
-          expect(TestUtil.stableStdout(res) == "1")
+          val res = stableStdoutOf(
+            TestUtil.cli,
+            "run",
+            ".",
+            extraOptions,
+            "--jvm",
+            javaJvmId
+          )(cwd = root)
+          expect(res == "1")
         }
       }
     }
@@ -1327,9 +1340,15 @@ abstract class RunTestDefinitions
               |class A extends T
               |""".stripMargin
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
-            .call(cwd = root)
-          expect(TestUtil.stableStdout(res) == "hello from a trait")
+          val res = stableStdoutOf(
+            TestUtil.cli,
+            "run",
+            ".",
+            extraOptions,
+            "--jvm",
+            javaJvmId
+          )(cwd = root)
+          expect(res == "hello from a trait")
         }
       }
     }
@@ -1344,9 +1363,15 @@ abstract class RunTestDefinitions
               |""".stripMargin,
           os.rel / "A.scala" -> "class A extends AbstractBase"
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
-            .call(cwd = root)
-          expect(TestUtil.stableStdout(res) == "hello from A")
+          val res = stableStdoutOf(
+            TestUtil.cli,
+            "run",
+            ".",
+            extraOptions,
+            "--jvm",
+            javaJvmId
+          )(cwd = root)
+          expect(res == "hello from A")
         }
       }
     }
@@ -1361,9 +1386,15 @@ abstract class RunTestDefinitions
               |""".stripMargin,
           os.rel / "B.scala" -> "class B extends Iface"
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
-            .call(cwd = root)
-          expect(TestUtil.stableStdout(res) == "hello from B")
+          val res = stableStdoutOf(
+            TestUtil.cli,
+            "run",
+            ".",
+            extraOptions,
+            "--jvm",
+            javaJvmId
+          )(cwd = root)
+          expect(res == "hello from B")
         }
       }
     }
@@ -1378,9 +1409,15 @@ abstract class RunTestDefinitions
               |""".stripMargin,
           os.rel / "JChild.java" -> "public class JChild extends AbstractBase {}"
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
-            .call(cwd = root)
-          expect(TestUtil.stableStdout(res) == "hello from JChild")
+          val res = stableStdoutOf(
+            TestUtil.cli,
+            "run",
+            ".",
+            extraOptions,
+            "--jvm",
+            javaJvmId
+          )(cwd = root)
+          expect(res == "hello from JChild")
         }
       }
     }
@@ -1395,9 +1432,15 @@ abstract class RunTestDefinitions
               |""".stripMargin,
           os.rel / "JImpl.java" -> "public class JImpl implements Iface {}"
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "--jvm", javaJvmId)
-            .call(cwd = root)
-          expect(TestUtil.stableStdout(res) == "hello from JImpl")
+          val res = stableStdoutOf(
+            TestUtil.cli,
+            "run",
+            ".",
+            extraOptions,
+            "--jvm",
+            javaJvmId
+          )(cwd = root)
+          expect(res == "hello from JImpl")
         }
       }
     }
@@ -1445,9 +1488,8 @@ abstract class RunTestDefinitions
               |}
               |""".stripMargin
         ).fromRoot { root =>
-          val res = os.proc(TestUtil.cli, "run", ".", "--jvm", javaJvmId)
-            .call(cwd = root)
-          expect(TestUtil.stableStdout(res) == "Hello")
+          val res = stableStdoutOf(TestUtil.cli, "run", ".", "--jvm", javaJvmId)(cwd = root)
+          expect(res == "Hello")
         }
       }
     }
@@ -1458,7 +1500,7 @@ abstract class RunTestDefinitions
           TestInputs(
             os.rel / "T.scala" -> "class A { def main(): Unit = println(1) }"
           ).fromRoot { root =>
-            val res = os.proc(
+            val res = stableStdoutOf(
               TestUtil.cli,
               "run",
               ".",
@@ -1466,8 +1508,8 @@ abstract class RunTestDefinitions
               "--jvm",
               javaJvmId,
               "--runner"
-            ).call(cwd = root)
-            expect(TestUtil.stableStdout(res) == "1")
+            )(cwd = root)
+            expect(res == "1")
           }
         }
       }
@@ -1504,15 +1546,14 @@ abstract class RunTestDefinitions
       os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
     )
     inputs.fromRoot { root =>
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cli,
         "run",
         extraOptions,
         ".",
         "--list-main-classes"
-      )
-        .call(cwd = root)
-      val output      = res.out.trim()
+      )(cwd = root)
+      val output      = res
       val mainClasses = output.split(" ").toSet
 
       val scriptMainClassName = if (actualScalaVersion.startsWith("3"))
@@ -1546,10 +1587,7 @@ abstract class RunTestDefinitions
     )
 
     inputs.fromRoot { root =>
-      def runCli() =
-        os.proc(TestUtil.cli, extraOptions, projectDir)
-          .call(cwd = root)
-          .out.trim()
+      def runCli() = stableStdoutOf(TestUtil.cli, extraOptions, projectDir)(cwd = root)
 
       val output1 = runCli()
       expect(output1 == "non null")
@@ -1575,7 +1613,7 @@ abstract class RunTestDefinitions
       )
 
       // run jar
-      val output = os.proc(TestUtil.cli, helloJarPath).call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, helloJarPath)(cwd = root)
       expect(output == "Hello World")
     }
   }
@@ -1591,8 +1629,11 @@ abstract class RunTestDefinitions
 
       inputs.fromRoot { root =>
         val res =
-          os.proc(TestUtil.cli, "hello.sc").call(cwd = root, mergeErrIntoOut = true, check = false)
-        val output = res.out.trim()
+          stableStdoutOf(
+            TestUtil.cli,
+            "hello.sc"
+          )(cwd = root, mergeErrIntoOut = true, check = false)
+        val output = res
         expect(output.contains(exceptionMsg))
       }
     }
@@ -1600,9 +1641,13 @@ abstract class RunTestDefinitions
   if isScala39OrNewer then
     test("scripts should not warn about dollar-sign identifiers in wrapper (Scala 3.9+)") {
       TestInputs(os.rel / "snippet.sc" -> """println("hello")""").fromRoot { root =>
-        val defaultRes = os.proc(TestUtil.cli, "run", extraOptions, "snippet.sc")
-          .call(cwd = root, mergeErrIntoOut = true)
-        val defaultOutput = defaultRes.out.trim()
+        val defaultRes = stableStdoutOf(
+          TestUtil.cli,
+          "run",
+          extraOptions,
+          "snippet.sc"
+        )(cwd = root, mergeErrIntoOut = true)
+        val defaultOutput = defaultRes
         expect(!defaultOutput.contains("reserved for internal compiler use"))
         expect(!defaultOutput.contains("should not contain `$`"))
       }
@@ -1616,8 +1661,8 @@ abstract class RunTestDefinitions
            |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, ".", "--toolkit", Constants.toolkitVersion)
-        .call(cwd = root).out.trim()
+      val output =
+        stableStdoutOf(TestUtil.cli, ".", "--toolkit", Constants.toolkitVersion)(cwd = root)
 
       expect(output == root.toString())
     }
@@ -1637,8 +1682,12 @@ abstract class RunTestDefinitions
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, ".", "--toolkit", s"typelevel:${Constants.typelevelToolkitVersion}")
-          .call(cwd = root).out.trim()
+        stableStdoutOf(
+          TestUtil.cli,
+          ".",
+          "--toolkit",
+          s"typelevel:${Constants.typelevelToolkitVersion}"
+        )(cwd = root)
 
       expect(output == root.toString())
     }
@@ -1692,7 +1741,7 @@ abstract class RunTestDefinitions
         val resFixedWorkspace = // should run fine for a forced workspace with no classpath separator on path
           os.proc(TestUtil.cli, "run", relPath.toString, "--workspace", ".", extraOptions)
             .call(cwd = root)
-        expect(resFixedWorkspace.out.trim() == msg)
+        expect(TestUtil.stableStdout(resFixedWorkspace) == msg)
       }
   }
 
@@ -1787,9 +1836,8 @@ abstract class RunTestDefinitions
         .call(cwd = root, check = false)
       expect(res1.exitCode == 1)
       // running `validMainFile` should succeed, since it only depends on main scope deps
-      val res2 = os.proc(TestUtil.cli, "run", projectFile, validMainFile)
-        .call(cwd = root)
-      expect(res2.out.trim() == root.toString())
+      val res2 = stableStdoutOf(TestUtil.cli, "run", projectFile, validMainFile)(cwd = root)
+      expect(res2 == root.toString())
       // test scope should have access to both main and test deps
       os.proc(TestUtil.cli, "test", projectFile, testFile)
         .call(cwd = root, stderr = os.Pipe)
@@ -1860,9 +1908,14 @@ abstract class RunTestDefinitions
         .call(cwd = root, check = false)
       expect(res1.exitCode == 1)
       // running `validMainFile` should succeed, since it only depends on the main scope jar
-      val res2 = os.proc(TestUtil.cli, "run", projectFile, validMainFile, extraOptions)
-        .call(cwd = root)
-      expect(res2.out.trim() == expectedMessage1)
+      val res2 = stableStdoutOf(
+        TestUtil.cli,
+        "run",
+        projectFile,
+        validMainFile,
+        extraOptions
+      )(cwd = root)
+      expect(res2 == expectedMessage1)
       // test scope should have access to both main and test deps
       val res3 = os.proc(TestUtil.cli, "test", projectFile, testFile, extraOptions)
         .call(cwd = root, stderr = os.Pipe)
@@ -1883,8 +1936,8 @@ abstract class RunTestDefinitions
     )
     inputs.fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, extraOptions, ".", "--exclude", "*Main.scala").call(cwd = root)
-      val output = res.out.trim()
+        stableStdoutOf(TestUtil.cli, extraOptions, ".", "--exclude", "*Main.scala")(cwd = root)
+      val output = res
       expect(output == message)
     }
   }
@@ -1906,8 +1959,8 @@ abstract class RunTestDefinitions
           |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root)
-      expect(res.out.trim() == message)
+      val res = stableStdoutOf(TestUtil.cli, extraOptions, ".")(cwd = root)
+      expect(res == message)
     }
   }
 
@@ -2004,9 +2057,8 @@ abstract class RunTestDefinitions
     inputs.fromRoot { root =>
       TestUtil.initializeGit(root, "v1.0.0")
 
-      val res =
-        os.proc(TestUtil.cli, "--power", extraOptions, ".").call(cwd = root)
-      val output = res.out.trim()
+      val res    = stableStdoutOf(TestUtil.cli, "--power", extraOptions, ".")(cwd = root)
+      val output = res
 
       val projectDir = os.list(root / ".scala-build").filter(
         _.baseName.startsWith(root.baseName + "_")
@@ -2037,7 +2089,7 @@ abstract class RunTestDefinitions
         TestUtil.initializeGit(root, "v1.0.0")
 
         val res =
-          os.proc(
+          stableStdoutOf(
             TestUtil.cli,
             "--power",
             extraOptions,
@@ -2046,8 +2098,8 @@ abstract class RunTestDefinitions
             "git",
             "--project-version",
             "35.0.1"
-          ).call(cwd = root)
-        val output = res.out.trim()
+          )(cwd = root)
+        val output = res
 
         val projectDir = os.list(root / ".scala-build").filter(
           _.baseName.startsWith(root.baseName + "_")
@@ -2241,15 +2293,14 @@ abstract class RunTestDefinitions
         """val xyz = 42
           |""".stripMargin
     ).fromRoot { root =>
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cli,
         "compile",
         "Main.scala",
         "--suppress-directives-in-multiple-files-warning"
-      )
-        .call(cwd = root, mergeErrIntoOut = true)
+      )(cwd = root, mergeErrIntoOut = true)
 
-      val output = TestUtil.removeAnsiColors(res.out.trim())
+      val output = TestUtil.removeAnsiColors(res)
 
       expect(output.contains(
         """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
@@ -2479,7 +2530,7 @@ abstract class RunTestDefinitions
          |println("$msg")
          |""".stripMargin).fromRoot { root =>
       val res = os.proc(TestUtil.cli, "run", extraOptions, input).call(cwd = root, stderr = os.Pipe)
-      expect(res.out.trim() == msg)
+      expect(TestUtil.stableStdout(res) == msg)
       expect(res.err.trim().contains(s"JVM ($jvmId)"))
     }
   }
@@ -2497,12 +2548,12 @@ abstract class RunTestDefinitions
       val input = "script.sc"
       TestInputs(os.rel / input -> s"println(\"$msg\")")
         .fromRoot { root =>
-          val res = os.proc(customCall, "run", extraOptions, "--server=false", input)
-            .call(
+          val res =
+            stableStdoutOf(customCall, "run", extraOptions, "--server=false", input)(
               cwd = root,
               stderr = os.Pipe
             )
-          expect(res.out.trim() == msg)
+          expect(res == msg)
         }
     }
 
@@ -2531,7 +2582,7 @@ abstract class RunTestDefinitions
       }
       else {
         expect(result.exitCode == 0)
-        expect(result.out.trim() == root.toString)
+        expect(TestUtil.stableStdout(result) == root.toString)
       }
     }
   }
@@ -2591,7 +2642,7 @@ abstract class RunTestDefinitions
       (0 to 2).foreach { _ =>
         val res = os.proc(TestUtil.cli, "run", input, extraOptions)
           .call(cwd = root, stderr = os.Pipe)
-        expect(res.out.trim() == msg)
+        expect(TestUtil.stableStdout(res) == msg)
         expect(!res.err.trim().toLowerCase.contains("error"))
       }
     }
@@ -2611,7 +2662,7 @@ abstract class RunTestDefinitions
         ))
         expect(errOutput.contains(s"Other options are ignored: $invalidOpt"))
         expect(!errOutput.contains(validOpt))
-        expect(res.out.trim() == expectedOutput)
+        expect(TestUtil.stableStdout(res) == expectedOutput)
       }
   }
 
@@ -2633,7 +2684,7 @@ abstract class RunTestDefinitions
         expect(errOutput.contains(s"Only java properties are supported in .scala-jvmopts file"))
         expect(errOutput.contains(s"Other options are ignored: $invalidOpt"))
         expect(!errOutput.contains(validOpt))
-        expect(res.out.trim() == expectedOutput)
+        expect(TestUtil.stableStdout(res) == expectedOutput)
       }
   }
 
@@ -2662,28 +2713,38 @@ abstract class RunTestDefinitions
         inputs.fromRoot { root =>
           val localCache        = root / "local-cache"
           val dependencyVersion = "42.7.4"
-          val csRes             = os.proc(
+          val csRes             = stableStdoutOf(
             TestUtil.cs,
             "fetch",
             "--cache",
             localCache,
             s"org.postgresql:postgresql:$dependencyVersion"
-          )
-            .call(cwd = root)
-          val dependencyJar = csRes.out.trim().linesIterator.toSeq.head
+          )(cwd = root)
+          val dependencyJar = csRes.linesIterator.toSeq.head
 
           // pass classpath via -cp
           val res =
-            os.proc(TestUtil.cli, "run", inputPathToCall, extraOptions, "-cp", dependencyJar)
-              .call(cwd = root)
-          expect(res.out.trim() == expectedMessage)
+            stableStdoutOf(
+              TestUtil.cli,
+              "run",
+              inputPathToCall,
+              extraOptions,
+              "-cp",
+              dependencyJar
+            )(cwd = root)
+          expect(res == expectedMessage)
 
           // pass classpath via args file
           val argsFileName = "args.txt"
           os.write(root / argsFileName, s"-cp $dependencyJar")
-          val res2 = os.proc(TestUtil.cli, "run", inputPathToCall, extraOptions, s"@$argsFileName")
-            .call(cwd = root)
-          expect(res2.out.trim() == expectedMessage)
+          val res2 = stableStdoutOf(
+            TestUtil.cli,
+            "run",
+            inputPathToCall,
+            extraOptions,
+            s"@$argsFileName"
+          )(cwd = root)
+          expect(res2 == expectedMessage)
         }
       }
   }
@@ -2782,16 +2843,15 @@ abstract class RunTestDefinitions
       os.rel / "example.test.scala" ->
         s"""object $expectedMain2 extends App { println("Hello from the test scope") }"""
     ).fromRoot { root =>
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cli,
         "run",
         ".",
         "--test",
         "--list-main-classes",
         extraOptions
-      )
-        .call(cwd = root)
-      expect(res.out.trim() == expectedOutput)
+      )(cwd = root)
+      expect(res == expectedOutput)
     }
   }
 
@@ -2931,7 +2991,7 @@ abstract class RunTestDefinitions
            |""".stripMargin,
       os.rel / "build.sbt" -> """name := "my-project""""
     ).fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, ".")(cwd = root)
       expect(output == message)
     }
   }
@@ -2950,7 +3010,7 @@ abstract class RunTestDefinitions
           |object foo extends ScalaModule
           |""".stripMargin
     ).fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, ".")(cwd = root)
       expect(output == message)
     }
   }

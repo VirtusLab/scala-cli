@@ -4,6 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 class ConfigTests extends ScalaCliSuite {
@@ -20,29 +21,29 @@ class ConfigTests extends ScalaCliSuite {
           cwd = root,
           env = configEnv
         )
-      expect(before.out.trim().isEmpty)
+      expect(TestUtil.stableStdout(before).isEmpty)
 
       os.proc(TestUtil.cli, "config", "publish.user.name", name, "--power").call(
         cwd = root,
         env = configEnv
       )
       val res =
-        os.proc(TestUtil.cli, "config", "publish.user.name", "--power").call(
+        stableStdoutOf(TestUtil.cli, "config", "publish.user.name", "--power")(
           cwd = root,
           env = configEnv
         )
-      expect(res.out.trim() == name)
+      expect(res == name)
 
       os.proc(TestUtil.cli, "config", "publish.user.name", "--unset", "--power").call(
         cwd = root,
         env = configEnv
       )
       val after =
-        os.proc(TestUtil.cli, "config", "publish.user.name", "--power").call(
+        stableStdoutOf(TestUtil.cli, "config", "publish.user.name", "--power")(
           cwd = root,
           env = configEnv
         )
-      expect(after.out.trim().isEmpty)
+      expect(after.isEmpty)
     }
   }
 
@@ -79,9 +80,11 @@ class ConfigTests extends ScalaCliSuite {
     TestInputs.empty.fromRoot { root =>
 
       def emptyCheck(): Unit = {
-        val value = os.proc(TestUtil.cli, "--power", "config", key)
-          .call(cwd = root, env = configEnv)
-        expect(value.out.trim().isEmpty)
+        val value = stableStdoutOf(TestUtil.cli, "--power", "config", key)(
+          cwd = root,
+          env = configEnv
+        )
+        expect(value.isEmpty)
       }
 
       def unset(): Unit =
@@ -89,14 +92,21 @@ class ConfigTests extends ScalaCliSuite {
           .call(cwd = root, env = configEnv)
 
       def read(): String = {
-        val res = os.proc(TestUtil.cli, "--power", "config", key)
-          .call(cwd = root, env = configEnv)
-        res.out.trim()
+        val res = stableStdoutOf(TestUtil.cli, "--power", "config", key)(
+          cwd = root,
+          env = configEnv
+        )
+        res
       }
       def readDecoded(env: Map[String, String] = Map.empty): String = {
-        val res = os.proc(TestUtil.cli, "--power", "config", key, "--password-value")
-          .call(cwd = root, env = configEnv ++ env)
-        res.out.trim()
+        val res = stableStdoutOf(
+          TestUtil.cli,
+          "--power",
+          "config",
+          key,
+          "--password-value"
+        )(cwd = root, env = configEnv ++ env)
+        res
       }
 
       emptyCheck()
@@ -150,9 +160,11 @@ class ConfigTests extends ScalaCliSuite {
         Map("SCALA_CLI_CONFIG" -> confFile.toString) ++
           TestUtil.putCsInPathViaEnv(root / "bin")
 
-      val res = os.proc(TestUtil.cli, "--power", "config", "httpProxy.address")
-        .call(cwd = root, env = extraEnv)
-      val value = res.out.trim()
+      val res = stableStdoutOf(TestUtil.cli, "--power", "config", "httpProxy.address")(
+        cwd = root,
+        env = extraEnv
+      )
+      val value = res
       expect(value == proxyAddr)
 
       os.proc(TestUtil.cli, "config", "interactive", "false")
@@ -185,9 +197,14 @@ class ConfigTests extends ScalaCliSuite {
       val confFile = confDir / "test-config.json"
       val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
 
-      val res = os.proc(TestUtil.cli, "--power", "config", "httpProxy.address", proxyAddr)
-        .call(cwd = root, env = extraEnv, check = false, mergeErrIntoOut = true)
-      val output = res.out.trim()
+      val res = stableStdoutOf(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "httpProxy.address",
+        proxyAddr
+      )(cwd = root, env = extraEnv, check = false, mergeErrIntoOut = true)
+      val output = res
       expect(output.contains(" has wrong permissions"))
     }
   }
@@ -209,7 +226,10 @@ class ConfigTests extends ScalaCliSuite {
           }
 
           val java8Home =
-            os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+            os.Path(
+              stableStdoutOf(TestUtil.cs, "java-home", "--jvm", "zulu:8")(),
+              os.pwd
+            )
 
           val extraEnv = Map(
             "JAVA_HOME" -> java8Home.toString,
@@ -246,13 +266,20 @@ class ConfigTests extends ScalaCliSuite {
               .call(cwd = root, env = extraEnv, stderr = os.Pipe)
           expect(passwordInConfig.out.text().isEmpty())
 
-          val secretKey = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key")
-            .call(cwd = root, env = extraEnv, stderr = os.Pipe)
-            .out.trim()
+          val secretKey = stableStdoutOf(
+            TestUtil.cli,
+            "--power",
+            "config",
+            "pgp.secret-key"
+          )(cwd = root, env = extraEnv, stderr = os.Pipe)
           val rawPublicKey =
-            os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password-value")
-              .call(cwd = root, env = extraEnv, stderr = os.Pipe)
-              .out.trim()
+            stableStdoutOf(
+              TestUtil.cli,
+              "--power",
+              "config",
+              "pgp.public-key",
+              "--password-value"
+            )(cwd = root, env = extraEnv, stderr = os.Pipe)
 
           val tmpFile    = root / "test-file"
           val tmpFileAsc = root / "test-file.asc"
@@ -339,13 +366,20 @@ class ConfigTests extends ScalaCliSuite {
         .call(cwd = root, env = extraEnv, stderr = os.Pipe)
       expect(passwordInConfig.out.text().isEmpty())
 
-      val secretKey = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key")
-        .call(cwd = root, env = extraEnv, stderr = os.Pipe)
-        .out.trim()
+      val secretKey = stableStdoutOf(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "pgp.secret-key"
+      )(cwd = root, env = extraEnv, stderr = os.Pipe)
       val rawPublicKey =
-        os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password-value")
-          .call(cwd = root, env = extraEnv, stderr = os.Pipe)
-          .out.trim()
+        stableStdoutOf(
+          TestUtil.cli,
+          "--power",
+          "config",
+          "pgp.public-key",
+          "--password-value"
+        )(cwd = root, env = extraEnv, stderr = os.Pipe)
 
       val tmpFile    = root / "test-file"
       val tmpFileAsc = root / "test-file.asc"
@@ -452,12 +486,12 @@ class ConfigTests extends ScalaCliSuite {
           realm
         )
           .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
-        val credentialsAsStringRes = os.proc(
+        val credentialsAsStringRes = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "config",
           "repositories.credentials"
-        ).call(cwd = root, env = extraEnv)
+        )(cwd = root, env = extraEnv)
         val linePrefix                  = "configRepo0"
         val expectedCredentialsAsString =
           s"""$linePrefix.host=$host
@@ -465,8 +499,8 @@ class ConfigTests extends ScalaCliSuite {
              |$linePrefix.password=value:$password
              |$linePrefix.realm=$realm
              |$linePrefix.auto=true""".stripMargin
-        expect(credentialsAsStringRes.out.trim() == expectedCredentialsAsString)
-        val res = os.proc(
+        expect(credentialsAsStringRes == expectedCredentialsAsString)
+        val res = stableStdoutOf(
           TestUtil.cli,
           "run",
           "--repository",
@@ -474,9 +508,8 @@ class ConfigTests extends ScalaCliSuite {
           "hello",
           "--",
           "TestUser"
-        )
-          .call(cwd = root, env = extraEnv)
-        val output = res.out.trim()
+        )(cwd = root, env = extraEnv)
+        val output = res
         expect(output == "Hello TestUser")
       }
     }
@@ -508,9 +541,10 @@ class ConfigTests extends ScalaCliSuite {
           "--password-value"
         )
           .call(cwd = root, env = configEnv ++ envVars)
-        val credsFromConfig = os.proc(TestUtil.cli, "--power", "config", key)
-          .call(cwd = root, env = configEnv)
-          .out.trim()
+        val credsFromConfig = stableStdoutOf(TestUtil.cli, "--power", "config", key)(
+          cwd = root,
+          env = configEnv
+        )
         expect(credsFromConfig.contains(password))
         expect(credsFromConfig.contains(user))
       }
@@ -537,13 +571,14 @@ class ConfigTests extends ScalaCliSuite {
         addProc().call(cwd = root, env = configEnv)
         val second = addProc().call(cwd = root, env = configEnv, mergeErrIntoOut = true)
         expect(second.exitCode == 0)
-        val combined = second.out.trim()
+        val combined = TestUtil.stableStdout(second)
         expect(combined.contains("identical"))
         expect(combined.contains("already configured"))
         expect(combined.contains(host))
-        val credsFromConfig = os.proc(TestUtil.cli, "--power", "config", key)
-          .call(cwd = root, env = configEnv)
-          .out.trim()
+        val credsFromConfig = stableStdoutOf(TestUtil.cli, "--power", "config", key)(
+          cwd = root,
+          env = configEnv
+        )
         if key == "publish.credentials" then
           val lines = credsFromConfig.linesIterator.map(_.trim).filter(_.nonEmpty).toSeq
           expect(lines.length == 1)
@@ -613,9 +648,12 @@ class ConfigTests extends ScalaCliSuite {
         env = configEnv,
         check = false
       )
-      val propertiesFromConfig = os.proc(TestUtil.cli, "--power", "config", key)
-        .call(cwd = root, env = configEnv)
-        .out.trim()
+      val propertiesFromConfig = stableStdoutOf(
+        TestUtil.cli,
+        "--power",
+        "config",
+        key
+      )(cwd = root, env = configEnv)
 
       expect(propertiesFromConfig.contains(props))
       expect(propertiesFromConfig.contains(props2))
@@ -679,14 +717,14 @@ class ConfigTests extends ScalaCliSuite {
         s"$repoUri=$fakeRepoUrl"
       ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
 
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cli,
         "run",
         "--repository",
         fakeRepoUrl,
         "hello"
-      ).call(cwd = root, env = extraEnv)
-      expect(res.out.trim() == "Hello World")
+      )(cwd = root, env = extraEnv)
+      expect(res == "Hello World")
     }
   }
 
@@ -754,9 +792,11 @@ class ConfigTests extends ScalaCliSuite {
         s"maven:$repoUri=*"
       ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
 
-      val res = os.proc(TestUtil.cli, "run", "--server=false", "hello")
-        .call(cwd = root, env = extraEnv ++ Map("COURSIER_CACHE" -> freshCache.toString))
-      expect(res.out.trim() == "Hello World")
+      val res = stableStdoutOf(TestUtil.cli, "run", "--server=false", "hello")(
+        cwd = root,
+        env = extraEnv ++ Map("COURSIER_CACHE" -> freshCache.toString)
+      )
+      expect(res == "Hello World")
     }
   }
 
@@ -816,12 +856,8 @@ class ConfigTests extends ScalaCliSuite {
         repoUri
       ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
 
-      val res = os.proc(
-        TestUtil.cli,
-        "run",
-        "hello"
-      ).call(cwd = root, env = extraEnv)
-      expect(res.out.trim() == "Hello World")
+      val res = stableStdoutOf(TestUtil.cli, "run", "hello")(cwd = root, env = extraEnv)
+      expect(res == "Hello World")
     }
   }
 
@@ -890,12 +926,8 @@ class ConfigTests extends ScalaCliSuite {
         s"$repoUri=$fakeRepoUrl"
       ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
 
-      val res = os.proc(
-        TestUtil.cli,
-        "run",
-        "hello"
-      ).call(cwd = root, env = extraEnv)
-      expect(res.out.trim() == "Hello World")
+      val res = stableStdoutOf(TestUtil.cli, "run", "hello")(cwd = root, env = extraEnv)
+      expect(res == "Hello World")
     }
   }
 
@@ -935,7 +967,7 @@ class ConfigTests extends ScalaCliSuite {
           val buildExpectedToSucceed = !offlineSetting || prefillCache
           val r                      = os.proc(TestUtil.cli, "run", "simple.sc", "--with-compiler")
             .call(cwd = root, env = envs, check = buildExpectedToSucceed)
-          if (buildExpectedToSucceed) expect(r.out.trim() == Constants.scala3Next)
+          if (buildExpectedToSucceed) expect(TestUtil.stableStdout(r) == Constants.scala3Next)
           else expect(r.exitCode == 1)
           os.proc(TestUtil.cli, "config", "offline", "--unset")
             .call(cwd = root, env = envs)

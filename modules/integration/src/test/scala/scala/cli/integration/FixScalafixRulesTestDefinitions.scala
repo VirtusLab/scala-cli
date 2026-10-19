@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 trait FixScalafixRulesTestDefinitions {
@@ -164,7 +165,7 @@ trait FixScalafixRulesTestDefinitions {
   test("--scalafix-version overrides the default scalafix version") {
     val scalafixVersion = "0.14.8"
     simpleInputs.fromRoot { root =>
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cli,
         "fix",
         "--power",
@@ -174,8 +175,8 @@ trait FixScalafixRulesTestDefinitions {
         "--scalafix-arg",
         "--version",
         scalaVersionArgs
-      ).call(cwd = root)
-      expect(res.out.trim() == scalafixVersion)
+      )(cwd = root)
+      expect(res == scalafixVersion)
     }
   }
 

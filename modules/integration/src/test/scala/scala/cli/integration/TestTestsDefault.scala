@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.File
 
 import scala.cli.integration.Constants.{allJavaVersions, munitVersion}
-import scala.cli.integration.TestUtil.StringOps
+import scala.cli.integration.TestUtil.{StringOps, stableStdoutOf}
 
 class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDefault {
 
@@ -47,7 +47,7 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
           "--jvm",
           latestJvmId
         ).call(cwd = root, stderr = os.Pipe)
-        val out = r.out.trim()
+        val out = TestUtil.stableStdout(r)
         expect(out.contains(marker))
         expect(out.contains(expectedMessage))
         expect(out.contains("1 total"))
@@ -102,7 +102,7 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
           "--jvm",
           latestJvmId
         ).call(cwd = root, stderr = os.Pipe)
-        val out = r.out.trim()
+        val out = TestUtil.stableStdout(r)
         expect(r.exitCode == 0)
         expect(out.contains(marker))
         expect(out.contains("1 total"))
@@ -197,9 +197,14 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
     )
 
     inputs.fromRoot { root =>
-      val compileRes = os.proc(TestUtil.cli, "compile", "--print-class-path", extraOptions, ".")
-        .call(cwd = root)
-      val cp = compileRes.out.trim().split(File.pathSeparator)
+      val compileRes = stableStdoutOf(
+        TestUtil.cli,
+        "compile",
+        "--print-class-path",
+        extraOptions,
+        "."
+      )(cwd = root)
+      val cp = compileRes.split(File.pathSeparator)
       expect(cp.length == 1) // only class dir, no scala JARs
       os.proc(TestUtil.cli, "test", extraOptions, ".")
         .call(cwd = root, stdout = os.Inherit)
@@ -253,7 +258,7 @@ class TestTestsDefault extends TestTestDefinitions with LazyValTests with TestDe
         val res =
           os.proc(TestUtil.cli, "test", ".", "-S", scalaVersion, TestUtil.extraOptions)
             .call(cwd = root, stderr = os.Pipe)
-        val out = res.out.trim()
+        val out = TestUtil.stableStdout(res)
         expect(out.contains(expectedMessage))
         val err = res.err.trim()
         expect(err.contains(expectedWarning))

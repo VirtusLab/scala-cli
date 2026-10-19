@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
   protected def extraOptions: Seq[String] =
@@ -145,14 +147,12 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           .call(cwd = root)
 
       def output(): String =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cs,
           s"-J-Divy.home=${root / "ivy2"}",
           "launch",
           s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
-        )
-          .call(cwd = root)
-          .out.trim()
+        )(cwd = root)
 
       val expectedMessage1 = "Hello"
       val expectedMessage2 = "olleH"
@@ -191,14 +191,12 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           )
 
       def output(): String =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cs,
           s"-J-Divy.home=${root / "ivyhome"}",
           "launch",
           s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
-        )
-          .call(cwd = root)
-          .out.trim()
+        )(cwd = root)
 
       publishLocal()
       expect(output() == "Hello")
@@ -226,14 +224,12 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           )
 
       def output(): String =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cs,
           s"-J-Divy.home=${root / "userhome" / ".ivy2"}",
           "launch",
           s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
-        )
-          .call(cwd = root)
-          .out.trim()
+        )(cwd = root)
 
       publishLocal()
       expect(output() == "Hello")
@@ -344,8 +340,8 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
         .call(cwd = root)
       val publishedDep =
         s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
-      val r = os.proc(TestUtil.cli, "run", "--dep", publishedDep, extraOptions).call(cwd = root)
-      expect(r.out.trim() == expectedMessage)
+      val r = stableStdoutOf(TestUtil.cli, "run", "--dep", publishedDep, extraOptions)(cwd = root)
+      expect(r == expectedMessage)
     }
   }
 
@@ -424,24 +420,20 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           .call(cwd = root)
 
       lazy val depsCp: String =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cs,
           "fetch",
           "--classpath",
           s"com.lihaoyi:os-lib_$testedPublishedScalaVersion:0.11.3"
-        )
-          .call(cwd = root)
-          .out.trim()
+        )(cwd = root)
 
       def output(): String =
-        os.proc(
+        stableStdoutOf(
           "java",
           "-cp",
           s"$jarPath${java.io.File.pathSeparator}$depsCp",
           "Project"
-        )
-          .call(cwd = root)
-          .out.trim()
+        )(cwd = root)
 
       val expectedMessage1 = "Hello"
       val expectedMessage2 = "olleH"

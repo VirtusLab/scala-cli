@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 class InstallHomeTests extends ScalaCliSuite {
@@ -98,28 +99,28 @@ class InstallHomeTests extends ScalaCliSuite {
       // install 1 version
       installScalaCli(root, binDummyScalaCliFirst, binDirPath, force = true)
 
-      val v1Install = os.proc(binDirPath / dummyScalaCliBinName).call(
+      val v1Install = stableStdoutOf(binDirPath / dummyScalaCliBinName)(
         cwd = root,
         stdin = os.Inherit
-      ).out.trim()
+      )
       expect(v1Install == firstVersion)
 
       // update to 2 version
       installScalaCli(root, binDummyScalaCliSecond, binDirPath, force = false)
 
-      val v2Update = os.proc(binDirPath / dummyScalaCliBinName).call(
+      val v2Update = stableStdoutOf(binDirPath / dummyScalaCliBinName)(
         cwd = root,
         stdin = os.Inherit
-      ).out.trim()
+      )
       expect(v2Update == secondVersion)
 
       // downgrade to 1 version with force
       installScalaCli(root, binDummyScalaCliFirst, binDirPath, force = true)
 
-      val v1Downgrade = os.proc(binDirPath / dummyScalaCliBinName).call(
+      val v1Downgrade = stableStdoutOf(binDirPath / dummyScalaCliBinName)(
         cwd = root,
         stdin = os.Inherit
-      ).out.trim()
+      )
       expect(v1Downgrade == firstVersion)
 
       uninstallScalaCli(root, binDirPath, force = true, skipCache = true)

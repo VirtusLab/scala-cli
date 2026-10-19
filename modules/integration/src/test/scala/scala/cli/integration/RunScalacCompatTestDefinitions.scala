@@ -4,6 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
@@ -45,13 +46,13 @@ trait RunScalacCompatTestDefinitions {
         "a type was inferred to be `Any`; this may indicate a programming error."
 
       val baseRes       = run(warnAny = false)
-      val baseOutput    = baseRes.out.trim()
+      val baseOutput    = TestUtil.stableStdout(baseRes)
       val baseErrOutput = baseRes.err.text()
       expect(baseOutput == "Hello")
       expect(!baseErrOutput.contains(expectedWarning))
 
       val res       = run(warnAny = true)
-      val output    = res.out.trim()
+      val output    = TestUtil.stableStdout(res)
       val errOutput = res.err.text()
       expect(output == "Hello")
       expect(errOutput.contains(expectedWarning))
@@ -85,8 +86,9 @@ trait RunScalacCompatTestDefinitions {
           ".",
           if (inlineDelambdafy) Seq("-Ydelambdafy:inline") else Nil
         )
-        val res = os.proc(cmd).call(cwd = root)
-        val cp  = res.out.trim().split(File.pathSeparator).toVector.map(os.Path(_, os.pwd))
+        val res = stableStdoutOf(cmd)(cwd = root)
+        val cp  =
+          res.split(File.pathSeparator).toVector.map(os.Path(_, os.pwd))
         cp
           .filter(os.isDir(_))
           .flatMap(os.list(_))
@@ -138,15 +140,14 @@ trait RunScalacCompatTestDefinitions {
         .call(cwd = root, mergeErrIntoOut = true)
       expect(res1.out.text().contains("scalac <options> <source files>"))
 
-      val res2 = os.proc(
+      val res2 = stableStdoutOf(
         TestUtil.cli,
         "run",
         extraOptions,
         "--scalac-option",
         "-help"
-      )
-        .call(cwd = root, mergeErrIntoOut = true)
-      expect(res1.out.text() == res2.out.text())
+      )(cwd = root, mergeErrIntoOut = true)
+      expect(TestUtil.stableStdout(res1) == res2)
     }
   }
 
@@ -206,15 +207,15 @@ trait RunScalacCompatTestDefinitions {
       ).call(cwd = root / preCompileDir)
 
       // next, run while relying on the pre-compiled class, specifying the path with -classpath
-      val runRes = os.proc(
+      val runRes = stableStdoutOf(
         TestUtil.cli,
         "run",
         mainInput,
         "-classpath",
         (os.rel / os.up / preCompileDir / preCompileOutputDir).toString,
         extraOptions
-      ).call(cwd = root / runDir)
-      expect(runRes.out.trim() == expectedOutput)
+      )(cwd = root / runDir)
+      expect(runRes == expectedOutput)
     }
   }
 
@@ -256,7 +257,7 @@ trait RunScalacCompatTestDefinitions {
         extraOptions
       ).call(cwd = root / runDir, stderr = os.Pipe)
       expect(!runRes.err.trim().contains("Warning: Flag -classpath set repeatedly"))
-      expect(runRes.out.trim() == expectedOutput)
+      expect(TestUtil.stableStdout(runRes) == expectedOutput)
     }
   }
 
@@ -277,14 +278,14 @@ trait RunScalacCompatTestDefinitions {
       ).call(cwd = root)
 
       // next, run while relying on the pre-compiled class instead of passing inputs
-      val runRes = os.proc(
+      val runRes = stableStdoutOf(
         TestUtil.cli,
         "run",
         "-classpath",
         (os.rel / compilationOutputDir).toString,
         extraOptions
-      ).call(cwd = root)
-      expect(runRes.out.trim() == expectedOutput)
+      )(cwd = root)
+      expect(runRes == expectedOutput)
     }
   }
 
@@ -384,14 +385,14 @@ trait RunScalacCompatTestDefinitions {
       ).call(cwd = root)
 
       // next, run while relying on the jar instead of passing inputs
-      val runRes = os.proc(
+      val runRes = stableStdoutOf(
         TestUtil.cli,
         "run",
         "-classpath",
         jarPath,
         extraOptions
-      ).call(cwd = root)
-      expect(runRes.out.trim() == expectedOutput)
+      )(cwd = root)
+      expect(runRes == expectedOutput)
     }
   }
 
@@ -415,14 +416,14 @@ trait RunScalacCompatTestDefinitions {
       ).call(cwd = root)
 
       // next, run while relying on the jar instead of passing inputs
-      val runRes = os.proc(
+      val runRes = stableStdoutOf(
         TestUtil.cli,
         "run",
         "-cp",
         jarParentDirectory,
         extraOptions
-      ).call(cwd = root)
-      expect(runRes.out.trim() == expectedOutput)
+      )(cwd = root)
+      expect(runRes == expectedOutput)
     }
   }
 
@@ -431,9 +432,15 @@ trait RunScalacCompatTestDefinitions {
       root =>
         val scala212VersionString = s"2.12.$scalaPatchVersion"
         val res                   =
-          os.proc(TestUtil.cli, "run", ".", "-S", scala212VersionString, TestUtil.extraOptions)
-            .call(cwd = root)
-        expect(res.out.trim() == scala212VersionString)
+          stableStdoutOf(
+            TestUtil.cli,
+            "run",
+            ".",
+            "-S",
+            scala212VersionString,
+            TestUtil.extraOptions
+          )(cwd = root)
+        expect(res == scala212VersionString)
     }
   }
 
@@ -461,7 +468,7 @@ trait RunScalacCompatTestDefinitions {
         expect(errLines.length > 100)
         expect(errLines.exists(_.startsWith("[loaded package loader scala")))
         expect(errLines.exists(_.contains(s"$mainClass.scala")))
-        expect(res.out.trim() == expectedOutput)
+        expect(TestUtil.stableStdout(res) == expectedOutput)
       }
   }
 
@@ -472,14 +479,14 @@ trait RunScalacCompatTestDefinitions {
         os.rel / "s.scala" -> """object Main extends App { println("€") }"""
       )
         .fromRoot { root =>
-          val res = os.proc(
+          val res = stableStdoutOf(
             TestUtil.cli,
             "s.scala",
             "-encoding",
             "cp1252",
             extraOptions
-          ).call(cwd = root)
-          expect(res.out.trim() == "€")
+          )(cwd = root)
+          expect(res == "€")
         }
     }
 
@@ -510,7 +517,7 @@ trait RunScalacCompatTestDefinitions {
           val filePath = root / fileName
           expect(res.err.trim().contains(s"[patched file $filePath]"))
           expect(os.read(filePath) == newSyntaxCode)
-          expect(res.out.trim() == expectedOutput)
+          expect(TestUtil.stableStdout(res) == expectedOutput)
         }
     }
 
@@ -527,7 +534,7 @@ trait RunScalacCompatTestDefinitions {
           val filePath = root / fileName
           expect(res.err.trim().contains(s"[patched file $filePath]"))
           expect(os.read(filePath) == oldSyntaxCode)
-          expect(res.out.trim() == expectedOutput)
+          expect(TestUtil.stableStdout(res) == expectedOutput)
         }
     }
   }
@@ -539,10 +546,8 @@ trait RunScalacCompatTestDefinitions {
           "println(dotty.tools.dotc.config.Properties.simpleVersionString)"
       )
         .fromRoot { root =>
-          val res =
-            os.proc(TestUtil.cli, "-with-compiler", "s.sc", extraOptions)
-              .call(cwd = root)
-          expect(res.out.trim() == actualScalaVersion)
+          val res = stableStdoutOf(TestUtil.cli, "-with-compiler", "s.sc", extraOptions)(cwd = root)
+          expect(res == actualScalaVersion)
         }
     }
 
@@ -550,10 +555,8 @@ trait RunScalacCompatTestDefinitions {
     test("ensure -with-compiler is supported for Scala 2.13") {
       TestInputs(os.rel / "s.sc" -> "println(scala.tools.nsc.Properties.versionString)")
         .fromRoot { root =>
-          val res =
-            os.proc(TestUtil.cli, "-with-compiler", "s.sc", extraOptions)
-              .call(cwd = root)
-          expect(res.out.trim() == s"version $actualScalaVersion")
+          val res = stableStdoutOf(TestUtil.cli, "-with-compiler", "s.sc", extraOptions)(cwd = root)
+          expect(res == s"version $actualScalaVersion")
         }
     }
 
@@ -600,7 +603,7 @@ trait RunScalacCompatTestDefinitions {
              |
              |""".stripMargin
       ).fromRoot { root =>
-        val r = os.proc(
+        val r = stableStdoutOf(
           TestUtil.cli,
           "run",
           ".",
@@ -608,9 +611,8 @@ trait RunScalacCompatTestDefinitions {
           "-S",
           Constants.scala3NextRcAnnounced,
           "-experimental"
-        )
-          .call(cwd = root, stderr = os.Pipe)
-        expect(r.out.trim() == macroSettings.mkString(", "))
+        )(cwd = root, stderr = os.Pipe)
+        expect(r == macroSettings.mkString(", "))
       }
     }
 
@@ -645,8 +647,8 @@ trait RunScalacCompatTestDefinitions {
              |""".stripMargin
       ).fromRoot { root =>
         os.proc(TestUtil.cli, "--power", "publish", "local", depDir, extraOptions).call(cwd = root)
-        val res = os.proc(TestUtil.cli, "run", mainDir, extraOptions).call(cwd = root)
-        expect(res.out.trim() == expectedMessage)
+        val res = stableStdoutOf(TestUtil.cli, "run", mainDir, extraOptions)(cwd = root)
+        expect(res == expectedMessage)
       }
     }
 }

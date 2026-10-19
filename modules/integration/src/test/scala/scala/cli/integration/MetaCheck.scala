@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 class MetaCheck extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
@@ -47,8 +49,8 @@ class MetaCheck extends ScalaCliSuite {
     )
     testInputs.fromRoot { root =>
       // --ttl 0s so that we are sure we use the latest supported Scala versions listing
-      val res          = os.proc(TestUtil.cli, ".", "--ttl", "0s").call(cwd = root)
-      val scalaVersion = res.out.trim()
+      val res          = stableStdoutOf(TestUtil.cli, ".", "--ttl", "0s")(cwd = root)
+      val scalaVersion = res
       expect(scalaVersion == Constants.defaultScala)
     }
   }

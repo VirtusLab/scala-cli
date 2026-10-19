@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.nio.charset.StandardCharsets
 import java.util
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 trait PackageSlothTestDefinitions extends LazyValTests:
@@ -254,8 +255,8 @@ trait PackageSlothTestDefinitions extends LazyValTests:
         ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
 
         expect(os.isFile(root / actualDest))
-        val res = os.proc(root / actualDest).call(cwd = root)
-        expect(res.out.trim() == expectedMessage)
+        val res = stableStdoutOf(root / actualDest)(cwd = root)
+        expect(res == expectedMessage)
       }
     }
   }

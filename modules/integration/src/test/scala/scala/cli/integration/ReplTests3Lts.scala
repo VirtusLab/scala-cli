@@ -13,7 +13,7 @@ class ReplTests3Lts extends ReplTestDefinitions with Test3Lts
         versionCode,
         cliOptions = Seq("-S", tag, "--with-compiler"),
         skipScalaVersionArgs = true
-      )(r => check(r.out.trim()))
+      )(r => check(TestUtil.stableStdout(r)))
 
     for {
       (ltsNightlyTag, expectedPrefix) <- List(

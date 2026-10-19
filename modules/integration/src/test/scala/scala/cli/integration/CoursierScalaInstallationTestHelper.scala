@@ -4,6 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.nio.charset.Charset
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 import scala.util.matching.Regex
 
@@ -69,10 +70,8 @@ trait CoursierScalaInstallationTestHelper {
         os.write.over(scalaScriptPath, newContent)
         scalaBinary -> scalaScriptPath
       }
-    val wrapperVersion = os.proc(launchScalaPath, "version", "--cli-version")
-      .call(cwd = root).out.trim()
-    val cliVersion = os.proc(TestUtil.cli, "version", "--cli-version")
-      .call(cwd = root).out.trim()
+    val wrapperVersion = stableStdoutOf(launchScalaPath, "version", "--cli-version")(cwd = root)
+    val cliVersion     = stableStdoutOf(TestUtil.cli, "version", "--cli-version")(cwd = root)
     expect(wrapperVersion == cliVersion)
     f(launchScalaPath)
     if (shouldCleanUp) {

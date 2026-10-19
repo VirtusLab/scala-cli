@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.cli.integration.TestUtil.ProcOps
+import scala.cli.integration.TestUtil.{ProcOps, stableStdoutOf}
 import scala.util.Properties
 
 trait RunJdkTestDefinitions { this: RunTestDefinitions =>
@@ -49,7 +49,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
         ).fromRoot { root =>
           val javaHome =
             os.Path(
-              os.proc(TestUtil.cs, "java-home", "--jvm", jvmId).call().out.trim(),
+              stableStdoutOf(TestUtil.cs, "java-home", "--jvm", jvmId)(),
               os.pwd
             )
           withLauncher(root) { launcher =>
@@ -68,9 +68,8 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
           os.rel / "hello_world.sc" -> s"println(\"$expectedMessage\")"
         ).fromRoot { root =>
           withLauncher(root) { launcher =>
-            val res = os.proc(launcher, "run", ".", extraOptions, "--jvm", jvmId)
-              .call(cwd = root)
-            expect(TestUtil.stableStdout(res) == expectedMessage)
+            val res = stableStdoutOf(launcher, "run", ".", extraOptions, "--jvm", jvmId)(cwd = root)
+            expect(res == expectedMessage)
           }
         }
       }
@@ -91,7 +90,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
           ).fromRoot { root =>
             val javaHome =
               os.Path(
-                os.proc(TestUtil.cs, "java-home", "--jvm", jvmId).call().out.trim(),
+                stableStdoutOf(TestUtil.cs, "java-home", "--jvm", jvmId)(),
                 os.pwd
               )
             withLauncher(root) { launcher =>

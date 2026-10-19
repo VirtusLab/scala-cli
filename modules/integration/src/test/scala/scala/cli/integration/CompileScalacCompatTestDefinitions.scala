@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 /** For the `run` counterpart, refer to [[RunScalacCompatTestDefinitions]] */
@@ -22,15 +23,15 @@ trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
         .call(cwd = root)
       // must be a file, not a directory named out.jar (the mistake PR #2943 made)
       expect(os.isFile(outputJar))
-      val runRes = os.proc(
+      val runRes = stableStdoutOf(
         TestUtil.cli,
         "run",
         "Main.scala",
         "-cp",
         outputJar.toString,
         extraOptions
-      ).call(cwd = root)
-      expect(runRes.out.trim() == expectedOutput)
+      )(cwd = root)
+      expect(runRes == expectedOutput)
     }
   }
 

@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 abstract class WithWarmUpScalaCliSuite extends ScalaCliSuite {
   def warmUpExtraTestOptions: Seq[String]
 
@@ -23,8 +25,7 @@ abstract class WithWarmUpScalaCliSuite extends ScalaCliSuite {
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output =
-        os.proc(TestUtil.cli, warmUpExtraTestOptions, fileName).call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, warmUpExtraTestOptions, fileName)(cwd = root)
       if (!ignoreErrors)
         expect(output == message)
     }

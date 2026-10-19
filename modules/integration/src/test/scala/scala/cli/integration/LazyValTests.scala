@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.File
 import java.util.zip.ZipFile
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
@@ -26,7 +27,7 @@ trait LazyValTests:
 
   protected def javaHome(jvm: Int): os.Path =
     os.Path(
-      os.proc(TestUtil.cs, "java-home", "--jvm", TestUtil.jvmId(jvm)).call().out.trim(),
+      stableStdoutOf(TestUtil.cs, "java-home", "--jvm", TestUtil.jvmId(jvm))(),
       os.pwd
     )
 

@@ -51,13 +51,13 @@ class ShellLauncherTests extends ScalaCliSuite {
       val res = runLauncher()
 
       // the launcher's own messages (e.g. "Downloading ...") must not leak to stdout
-      expect(res.out.trim() == appMessage)
+      expect(TestUtil.stableStdout(res) == appMessage)
       // the launcher got downloaded under COURSIER_CACHE
       expect(hasCachedLaunchers(cache))
 
       // second run, with the launcher already present in the cache
       val res1 = runLauncher()
-      expect(res1.out.trim() == appMessage)
+      expect(TestUtil.stableStdout(res1) == appMessage)
     }
   }
 }

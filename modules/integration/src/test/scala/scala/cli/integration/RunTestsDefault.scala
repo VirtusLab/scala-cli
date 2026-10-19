@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 class RunTestsDefault extends RunTestDefinitions
@@ -32,7 +33,7 @@ class RunTestsDefault extends RunTestDefinitions
           "--jvm",
           latestJvmId
         ).call(cwd = root, stderr = os.Pipe)
-        expect(r.out.trim() == expectedMessage)
+        expect(TestUtil.stableStdout(r) == expectedMessage)
         expect(!r.err.trim().contains("sun.misc.Unsafe"))
       }
     }
@@ -286,7 +287,7 @@ class RunTestsDefault extends RunTestDefinitions
         expect(r.out.trim().contains(signedLibMessage))
         expect(!r.err.trim().contains("sun.misc.Unsafe"))
 
-        val cp = os.proc(
+        val cp = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "compile",
@@ -296,8 +297,8 @@ class RunTestsDefault extends RunTestDefinitions
           "--classpath",
           preambleJar,
           "."
-        ).call(cwd = root)
-        val patchedEntry = cp.out.trim().split(java.io.File.pathSeparator).toSeq
+        )(cwd = root)
+        val patchedEntry = cp.split(java.io.File.pathSeparator).toSeq
           .map(os.Path(_, root))
           .find(p => p.last == preambleJar.last && p.toString.contains(slothCacheSegment))
         expect(patchedEntry.isDefined)
@@ -360,16 +361,15 @@ class RunTestsDefault extends RunTestDefinitions
     TestInputs(os.rel / "sample.sc" -> """println("Hello World")""").fromRoot {
       root =>
         val res =
-          os.proc(
+          stableStdoutOf(
             TestUtil.cli,
             "run",
             ".",
             "-S",
             "3.nightly",
             TestUtil.extraOptions
-          )
-            .call(cwd = root)
-        expect(res.out.trim() == "Hello World")
+          )(cwd = root)
+        expect(res == "Hello World")
     }
   }
 
@@ -412,9 +412,12 @@ class RunTestsDefault extends RunTestDefinitions
       os.rel / "resources" / "META-INF" / "MANIFEST.MF" -> userManifestResourceContent
     )
     inputs.fromRoot { root =>
-      val r = os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", "--as-jar")
-        .call(cwd = root, stderr = os.Pipe)
-      expect(r.out.trim() == message)
+      val r =
+        stableStdoutOf(TestUtil.cli, "--power", "run", extraOptions, ".", "--as-jar")(
+          cwd = root,
+          stderr = os.Pipe
+        )
+      expect(r == message)
     }
   }
 
@@ -425,9 +428,8 @@ class RunTestsDefault extends RunTestDefinitions
         |import tabby.Grid
         |@main def main = println(Grid("a", "b", "c")(1, 2, 3))
         |""".stripMargin).fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath)
-        .call(cwd = root)
-      val out = res.out.trim()
+      val res = stableStdoutOf(TestUtil.cli, "run", extraOptions, inputPath)(cwd = root)
+      val out = res
       expect(out.contains("a, b, c"))
     }
   }
@@ -500,7 +502,7 @@ class RunTestsDefault extends RunTestDefinitions
       TestUtil.retryOnCi() {
         testInputs.fromRoot { root =>
           val r =
-            os.proc(
+            stableStdoutOf(
               TestUtil.cli,
               "run",
               ".",
@@ -509,9 +511,9 @@ class RunTestsDefault extends RunTestDefinitions
               extraOptions,
               scopeOptions,
               platformOptions
-            )
-              .call(cwd = root)
-          expect(r.out.trim().linesIterator.count(_.trim() == expectedMessage) == numberOfBuilds)
+            )(cwd = root)
+          expect(r.linesIterator.count(_.trim() == expectedMessage) ==
+            numberOfBuilds)
         }
       }
     }
@@ -534,7 +536,7 @@ class RunTestsDefault extends RunTestDefinitions
           println(r.err.trim())
           expect(r.err.trim().contains(s"Defaulting to Scala $actualScalaVersion, $platformDesc"))
           expect(r.err.trim().contains(s"ignoring ${numberOfBuilds - 1} builds"))
-          expect(r.out.trim() == expectedMessage)
+          expect(TestUtil.stableStdout(r) == expectedMessage)
         }
       }
     }
@@ -553,7 +555,7 @@ class RunTestsDefault extends RunTestDefinitions
         val res =
           os.proc(TestUtil.cli, "run", ".", "-S", scalaVersion, TestUtil.extraOptions, "--runner")
             .call(cwd = root, stderr = os.Pipe)
-        expect(res.out.trim() == expectedMessage)
+        expect(TestUtil.stableStdout(res) == expectedMessage)
         expect(res.err.trim().contains(expectedWarning))
       }
     }

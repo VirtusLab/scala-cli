@@ -3,7 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 import coursier.version.Version
 
-import scala.cli.integration.TestUtil.removeAnsiColors
+import scala.cli.integration.TestUtil.{removeAnsiColors, stableStdoutOf}
 import scala.util.Properties
 
 trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
@@ -36,10 +36,7 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
     val message  = "Hello"
     TestInputs(os.rel / fileName -> simpleNativeScriptCode(message))
       .fromRoot { root =>
-        val output =
-          os.proc(TestUtil.cli, extraOptions, fileName, "--native")
-            .call(cwd = root)
-            .out.trim()
+        val output = stableStdoutOf(TestUtil.cli, extraOptions, fileName, "--native")(cwd = root)
         expect(output == message)
       }
   }
@@ -60,10 +57,7 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output =
-        os.proc(TestUtil.cli, extraOptions, fileName, "--native")
-          .call(cwd = root)
-          .out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, fileName, "--native")(cwd = root)
       expect(output == message)
     }
   }
@@ -79,11 +73,15 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
       TestInputs(os.rel / fileName -> simpleNativeScriptCode(message))
         .fromRoot { root =>
           val output =
-            os.proc(TestUtil.cli, extraOptions, fileName, "--native", "--command")
-              .call(cwd = root)
-              .out.trim()
+            stableStdoutOf(
+              TestUtil.cli,
+              extraOptions,
+              fileName,
+              "--native",
+              "--command"
+            )(cwd = root)
           val command      = output.linesIterator.toVector.filter(!_.startsWith("["))
-          val actualOutput = os.proc(command).call(cwd = root).out.trim()
+          val actualOutput = stableStdoutOf(command)(cwd = root)
           expect(actualOutput == message)
         }
     }
@@ -115,10 +113,7 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
         os.rel / projectDir / "resources" / resourceFileName -> resourceContent
       )
       inputs.fromRoot { root =>
-        val output =
-          os.proc(TestUtil.cli, extraOptions, projectDir, "-q")
-            .call(cwd = root)
-            .out.trim()
+        val output = stableStdoutOf(TestUtil.cli, extraOptions, projectDir, "-q")(cwd = root)
         println(output)
         expect(output == resourceContent)
       }
@@ -157,17 +152,11 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
               |""".stripMargin
       )
       inputs.fromRoot { root =>
-        val output =
-          os.proc(TestUtil.cli, extraOptions, projectDir, "-q")
-            .call(cwd = root)
-            .out.trim()
+        val output = stableStdoutOf(TestUtil.cli, extraOptions, projectDir, "-q")(cwd = root)
         expect(output == interopMsg)
 
         os.move(root / projectDir / interopFileName, root / projectDir / "bindings2.c")
-        val output2 =
-          os.proc(TestUtil.cli, extraOptions, projectDir, "-q")
-            .call(cwd = root)
-            .out.trim()
+        val output2 = stableStdoutOf(TestUtil.cli, extraOptions, projectDir, "-q")(cwd = root)
 
         // LLVM throws linking errors if scalanative_print is internally repeated.
         // This can happen if a file containing it will be removed/renamed in src,
@@ -199,9 +188,7 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
         )
         inputs.fromRoot { root =>
           val output =
-            os.proc(TestUtil.cli, extraOptions, fileName, "--native", "-q")
-              .call(cwd = root)
-              .out.trim()
+            stableStdoutOf(TestUtil.cli, extraOptions, fileName, "--native", "-q")(cwd = root)
           expect(output == message)
         }
       }
@@ -216,9 +203,13 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin)
       .fromRoot { root =>
         val output =
-          os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--native")
-            .call(cwd = root)
-            .out.trim()
+          stableStdoutOf(
+            TestUtil.cli,
+            extraOptions,
+            "print.sc",
+            "messages.sc",
+            "--native"
+          )(cwd = root)
         expect(output == message)
       }
   }
@@ -245,9 +236,15 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, "dir", "--native", "--main-class", "print", "-q")
-          .call(cwd = root)
-          .out.trim()
+        stableStdoutOf(
+          TestUtil.cli,
+          extraOptions,
+          "dir",
+          "--native",
+          "--main-class",
+          "print",
+          "-q"
+        )(cwd = root)
       expect(output == message)
     }
   }
@@ -260,8 +257,8 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
 
   test("help native") {
     val helpNativeOption  = "--help-native"
-    val helpNative        = os.proc(TestUtil.cli, "run", helpNativeOption).call(check = false)
-    val lines             = removeAnsiColors(helpNative.out.trim()).linesIterator.toVector
+    val helpNative        = stableStdoutOf(TestUtil.cli, "run", helpNativeOption)(check = false)
+    val lines             = removeAnsiColors(helpNative).linesIterator.toVector
     val nativeVersionHelp = lines.find(_.contains("--native-version")).getOrElse("")
     expect(nativeVersionHelp.contains(s"(${Constants.scalaNativeVersion} by default)"))
     expect(lines.exists(_.contains("Scala Native options")))
@@ -296,13 +293,17 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
         val configEnv = Map("SCALA_CLI_CONFIG" -> (configDir / "config.json").toString)
         os.proc(TestUtil.cli, "config", "interactive", "true")
           .call(cwd = root, env = configEnv)
-        val output1 = os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
-          .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main1"))
-          .out.lines().last
+        val output1 = TestUtil.dropJvmLogLines(
+          os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
+            .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main1"))
+            .out.lines()
+        ).last
         expect(output1 == "Hello from Main1")
-        val output2 = os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
-          .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main2"))
-          .out.lines().last
+        val output2 = TestUtil.dropJvmLogLines(
+          os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
+            .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main2"))
+            .out.lines()
+        ).last
         expect(output2 == "Hello from Main2")
       }
     }
@@ -361,7 +362,7 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
             ).fromRoot { root =>
               val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
                 .call(cwd = root, stderr = os.Pipe)
-              expect(result.out.trim() == expectedMessage)
+              expect(TestUtil.stableStdout(result) == expectedMessage)
               if (
                 explicitNativeVersion.isEmpty &&
                 Version(Constants.scalaNativeVersion) >
@@ -404,7 +405,7 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
           ).fromRoot { root =>
             val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
               .call(cwd = root, stderr = os.Pipe)
-            expect(result.out.trim() == root.toString)
+            expect(TestUtil.stableStdout(result) == root.toString)
             if (Constants.scalaNativeVersion != Constants.toolkiMaxScalaNative) {
               val err = result.err.trim()
               expect(
@@ -473,7 +474,7 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
           if (!expectedMultithreadingState) expect(r.exitCode == 1)
           else {
             expect(r.exitCode == 0)
-            expect(r.out.trim() == expectedOutput)
+            expect(TestUtil.stableStdout(r) == expectedOutput)
           }
           val outputMultithreadingState =
             if setExplicitly then expectedMultithreadingState.toString else "detect"

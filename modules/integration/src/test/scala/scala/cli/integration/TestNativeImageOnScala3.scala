@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 class TestNativeImageOnScala3 extends ScalaCliSuite {
@@ -34,8 +35,8 @@ class TestNativeImageOnScala3 extends ScalaCliSuite {
 
       // FIXME Check that dest is indeed a binary?
 
-      val res         = os.proc(root / dest, args).call(cwd = root)
-      val outputLines = res.out.trim().linesIterator.to(Seq)
+      val res         = stableStdoutOf(root / dest, args)(cwd = root)
+      val outputLines = res.linesIterator.to(Seq)
       expect(expectedLines == outputLines)
     }
   }

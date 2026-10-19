@@ -102,7 +102,7 @@ class HadoopTests extends ScalaCliSuite {
             "foo"
           )
             .call(cwd = root)
-          val command = res.out.lines()
+          val command = TestUtil.dropJvmLogLines(res.out.lines())
           pprint.err.log(command)
           expect(command.take(2) == Seq("hadoop", "jar"))
           expect(command.takeRight(2) == Seq("foo.WordCount", "foo"))

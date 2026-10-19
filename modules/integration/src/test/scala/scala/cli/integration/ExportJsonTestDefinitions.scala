@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   this: TestScalaVersion =>
   private def readJson(path: os.ReadablePath): String =
@@ -46,7 +48,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
         os.proc(TestUtil.cli, "export", "--power", "--json", ".", "--jvm", "temurin:11")
           .call(cwd = root)
 
-      val jsonContents = readJson(exportJsonProc.out.text())
+      val jsonContents = readJson(TestUtil.stableStdout(exportJsonProc))
 
       val expectedJsonContents =
         s"""{
@@ -102,10 +104,16 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
     )
 
     inputs.fromRoot { root =>
-      val exportJsonProc = os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--native")
-        .call(cwd = root)
+      val exportJsonProc = stableStdoutOf(
+        TestUtil.cli,
+        "--power",
+        "export",
+        "--json",
+        ".",
+        "--native"
+      )(cwd = root)
 
-      val jsonContents = readJson(exportJsonProc.out.text())
+      val jsonContents = readJson(exportJsonProc)
 
       val expectedJsonContents =
         s"""{
@@ -199,7 +207,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
     )
 
     inputs.fromRoot { root =>
-      val exportJsonProc = os.proc(
+      val exportJsonProc = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "export",
@@ -209,10 +217,9 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
         ".",
         "--js-es-version",
         "es2015"
-      )
-        .call(cwd = root)
+      )(cwd = root)
 
-      expect(exportJsonProc.out.text().isEmpty)
+      expect(exportJsonProc.isEmpty)
 
       val fileContents         = readJson(root / "json_dir" / "export.json")
       val expectedFileContents =

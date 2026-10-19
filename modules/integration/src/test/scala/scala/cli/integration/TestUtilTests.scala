@@ -56,4 +56,12 @@ class TestUtilTests extends ScalaCliSuite {
     )
     assertEquals(TestUtil.dropJvmLogLines(lines), lines)
   }
+
+  test("stable stdout drops JVM unified logging lines and keeps line separators") {
+    val output =
+      "Hello\r\n" +
+        """[3.213s][warning][os,thread] Failed to start thread "Unknown thread" - pthread_create failed (EAGAIN) for attributes: stacksize: 1024k, guardsize: 4k, detached.""" +
+        "\nworld\n"
+    assertEquals(TestUtil.stableStdout(output), "Hello\r\nworld")
+  }
 }

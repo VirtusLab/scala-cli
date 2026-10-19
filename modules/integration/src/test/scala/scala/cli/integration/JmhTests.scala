@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.nio.file.Files
 
-import scala.cli.integration.TestUtil.await
+import scala.cli.integration.TestUtil.{await, stableStdoutOf}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters.*
@@ -27,9 +27,8 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
     test(s"run ($testMessage)") {
       // TODO extract running benchmarks to a separate scope, or a separate sub-command
       simpleBenchmarkingInputs(directiveString).fromRoot { root =>
-        val res =
-          os.proc(TestUtil.cli, "--power", extraOptions, ".", jmhOptions).call(cwd = root)
-        val output = res.out.trim()
+        val res = stableStdoutOf(TestUtil.cli, "--power", extraOptions, ".", jmhOptions)(cwd = root)
+        val output = res
         expect(output.contains(expectedInBenchmarkingOutput))
         expect(output.contains(s"JMH version: ${Constants.jmhVersion}"))
       }
@@ -132,7 +131,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
           val launcher = root / launcherName
           expect(os.isFile(launcher))
           expect(Files.isExecutable(launcher.toNIO))
-          val output = TestUtil.maybeUseBash(launcher)(cwd = root).out.trim()
+          val output = TestUtil.stableStdout(TestUtil.maybeUseBash(launcher)(cwd = root))
           expect(output == expectedMessage)
         }
     }
@@ -184,9 +183,8 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
   } test(s"should use the passed jmh version ($testMessage)") {
     simpleBenchmarkingInputs(directiveString).fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "run", "--power", extraOptions, ".", jmhOptions)
-          .call(cwd = root)
-      val output = res.out.trim()
+        stableStdoutOf(TestUtil.cli, "run", "--power", extraOptions, ".", jmhOptions)(cwd = root)
+      val output = res
       expect(output.contains(expectedInBenchmarkingOutput))
       expect(output.contains(s"JMH version: $exampleOldJmhVersion"))
     }

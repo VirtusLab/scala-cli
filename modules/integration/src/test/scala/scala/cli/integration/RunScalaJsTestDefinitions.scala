@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.cli.integration.TestUtil.removeAnsiColors
+import scala.cli.integration.TestUtil.{removeAnsiColors, stableStdoutOf}
 
 trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
   def simpleJsTestOutput(extraArgs: String*): String = {
@@ -17,10 +17,11 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(
-        cwd = root,
-        mergeErrIntoOut = true
-      ).out.trim()
+      val output =
+        stableStdoutOf(TestUtil.cli, extraOptions, fileName, "--js", extraArgs)(
+          cwd = root,
+          mergeErrIntoOut = true
+        )
       expect(output.linesIterator.toSeq.last == message)
       output
     }
@@ -73,7 +74,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           check = false,
           mergeErrIntoOut = true
         )
-      val output = thrown.out.trim()
+      val output = TestUtil.stableStdout(thrown)
 
       assert(thrown.exitCode == 1)
       assert(output.contains("Node was not found on the PATH"))
@@ -97,9 +98,14 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     )
     val messageArgs = Seq("Hello", "foo")
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".", "--js", "--", messageArgs)
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(
+        TestUtil.cli,
+        extraOptions,
+        ".",
+        "--js",
+        "--",
+        messageArgs
+      )(cwd = root)
       expect(output == messageArgs.mkString(" "))
     }
   }
@@ -116,7 +122,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(
+      val output = stableStdoutOf(
         TestUtil.cli,
         extraOptions,
         fileName,
@@ -124,10 +130,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--command",
         "--scratch-dir",
         root / "stuff"
-      )
-        .call(cwd = root).out.trim()
+      )(cwd = root)
       val command      = output.linesIterator.toVector
-      val actualOutput = os.proc(command).call(cwd = root).out.trim()
+      val actualOutput = stableStdoutOf(command)(cwd = root)
       expect(actualOutput.linesIterator.toSeq.last == message)
     }
   }
@@ -152,8 +157,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js")
-        .call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, fileName, "--js")(cwd = root)
       expect(output == message)
     }
   }
@@ -170,7 +174,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, ".")(cwd = root)
       expect(output == message)
     }
   }
@@ -187,8 +191,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output =
-        os.proc(TestUtil.cli, extraOptions, ".", "--platform", "js").call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, ".", "--platform", "js")(cwd = root)
       expect(output == message)
     }
   }
@@ -206,9 +209,15 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--js").call(cwd =
+      val output = stableStdoutOf(
+        TestUtil.cli,
+        extraOptions,
+        "print.sc",
+        "messages.sc",
+        "--js"
+      )(cwd =
         root
-      ).out.trim()
+      )
       expect(output == message)
     }
   }
@@ -247,8 +256,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
 
   test("help js") {
     val helpJsOption  = "--help-js"
-    val helpJs        = os.proc(TestUtil.cli, "run", helpJsOption).call(check = false)
-    val lines         = removeAnsiColors(helpJs.out.trim()).linesIterator.toVector
+    val helpJs        = stableStdoutOf(TestUtil.cli, "run", helpJsOption)(check = false)
+    val lines         = removeAnsiColors(helpJs).linesIterator.toVector
     val jsVersionHelp = lines.find(_.contains("--js-version")).getOrElse("")
     expect(jsVersionHelp.contains(s"(${Constants.scalaJsVersion} by default)"))
     expect(lines.exists(_.contains("Scala.js options")))
@@ -270,9 +279,14 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val mainClassName = if (actualScalaVersion.startsWith("3")) "print_sc" else "print"
 
-      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--js", "--main-class", mainClassName)
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(
+        TestUtil.cli,
+        extraOptions,
+        "dir",
+        "--js",
+        "--main-class",
+        mainClassName
+      )(cwd = root)
       expect(output == message)
     }
   }
@@ -287,7 +301,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "run.sc", "--js").call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, "run.sc", "--js")(cwd = root)
       expect(output == "H")
     }
   }
@@ -305,7 +319,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, extraOptions, "run.sc", "--js")
         .call(cwd = root, stderr = os.Pipe)
-      expect(res.out.trim() == "Hello from ES2022")
+      expect(TestUtil.stableStdout(res) == "Hello from ES2022")
       expect(!res.err.text().contains("unrecognized argument"))
     }
   }
@@ -363,7 +377,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val absOutDir = root / outDir
 
-      os.proc(
+      stableStdoutOf(
         TestUtil.cli,
         "--power",
         "package",
@@ -373,8 +387,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         absOutDir.toString(),
         "-f",
         extraOptions
-      )
-        .call(cwd = root).out.trim()
+      )(cwd = root)
       val path = absOutDir / "main.wasm"
       expect(os.exists(path))
     }
@@ -389,7 +402,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(
+      val output = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
@@ -400,7 +413,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--js-runtime",
         "node",
         extraOptions
-      ).call(cwd = root).out.trim()
+      )(cwd = root)
       expect(output == "Hello from WASM!")
     }
   }
@@ -414,7 +427,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(
+      val output = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
@@ -423,7 +436,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--js-module-kind",
         "es",
         extraOptions
-      ).call(cwd = root).out.trim()
+      )(cwd = root)
       expect(output == "Hello default WASM!")
     }
   }
@@ -439,14 +452,14 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     inputs.fromRoot { root =>
       // --js-emit-wasm without --js-module-kind es must be rejected with a clear message,
       // rather than silently overriding the module kind.
-      val output = os.proc(
+      val output = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
         "Hello.scala",
         "--js-emit-wasm",
         extraOptions
-      ).call(cwd = root, check = false, mergeErrIntoOut = true).out.trim()
+      )(cwd = root, check = false, mergeErrIntoOut = true)
       expect(output.contains("Wasm output requires ES modules"))
     }
   }
@@ -463,13 +476,13 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(
+      val output = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
         "Hello.scala",
         extraOptions
-      ).call(cwd = root).out.trim()
+      )(cwd = root)
       expect(output == "Hello from WASM directive!")
     }
   }
@@ -490,7 +503,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(
+      val output = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
@@ -505,7 +518,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "foo",
         "bar",
         "baz"
-      ).call(cwd = root).out.trim()
+      )(cwd = root)
       expect(output == "foo bar baz")
     }
   }
@@ -520,7 +533,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
             |""".stripMargin
       )
       inputs.fromRoot { root =>
-        val output = os.proc(
+        val output = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "run",
@@ -531,7 +544,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           "--js-runtime",
           "deno",
           extraOptions
-        ).call(cwd = root).out.trim()
+        )(cwd = root)
         expect(output == "Hello from Deno WASM!")
       }
     }
@@ -546,7 +559,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
             |""".stripMargin
       )
       inputs.fromRoot { root =>
-        val output = os.proc(
+        val output = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "run",
@@ -557,7 +570,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           "--js-runtime",
           "bun",
           extraOptions
-        ).call(cwd = root).out.trim()
+        )(cwd = root)
         expect(output == "Hello from Bun WASM!")
       }
     }
@@ -581,7 +594,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(
+      val output = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
@@ -592,7 +605,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--js-runtime",
         runtime,
         extraOptions
-      ).call(cwd = root).out.trim()
+      )(cwd = root)
       expect(output.linesIterator.toSeq.contains("caught: zero!"))
     }
   }
@@ -627,7 +640,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(
+      val output = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
@@ -639,7 +652,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--js-runtime",
         "node",
         extraOptions
-      ).call(cwd = root).out.trim()
+      )(cwd = root)
       expect(output == "Hello, WASM!")
     }
   }
@@ -662,7 +675,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(
+      val output = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
@@ -673,7 +686,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--js-runtime",
         "node",
         extraOptions
-      ).call(cwd = root).out.trim()
+      )(cwd = root)
       val lines = output.linesIterator.toSeq
       expect(lines.contains("20"))
       expect(lines.contains("caught: zero!"))
@@ -696,7 +709,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(
+      val output = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
@@ -707,7 +720,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "--js-runtime",
         "node",
         extraOptions
-      ).call(cwd = root).out.trim()
+      )(cwd = root)
       val lines = output.linesIterator.toSeq
       expect(lines.contains("0, 1, 1, 2, 3, 5, 8, 13"))
       expect(lines.contains("10")) // 0 + 2 + 8 = 10
@@ -726,7 +739,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
             |""".stripMargin
       )
       inputs.fromRoot { root =>
-        val output = os.proc(
+        val output = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "run",
@@ -737,7 +750,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
           "--js-runtime",
           "node",
           extraOptions
-        ).call(cwd = root).out.trim()
+        )(cwd = root)
         expect(output == "Hello, Scala3!")
       }
     }
@@ -777,7 +790,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       val absOutDir = root / outDir
       val outFile   = absOutDir / "main.js"
       os.makeDir.all(absOutDir)
-      os.proc(
+      stableStdoutOf(
         TestUtil.cli,
         "--power",
         "package",
@@ -788,7 +801,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "-o",
         outFile,
         "-f"
-      ).call(cwd = root).out.trim()
+      )(cwd = root)
       expect(os.read(outFile).contains("https://cdn.skypack.dev/@stdlib/linspace"))
     }
   }
@@ -824,7 +837,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       val absOutDir = root / "outDir"
       val outFile   = absOutDir / "main.js"
       os.makeDir.all(absOutDir)
-      val result = os.proc(
+      val result = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "package",
@@ -835,7 +848,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
         "-o",
         outFile,
         "-f"
-      ).call(cwd = root, check = false, mergeErrIntoOut = true).out.trim()
+      )(cwd = root, check = false, mergeErrIntoOut = true)
       expect(result.contains(notexist))
       expect(result.contains("Invalid path to EsImportMap."))
     }
@@ -876,20 +889,22 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
       val absOutDir = root / outDir
       val outFile   = absOutDir / "main.js"
       os.makeDir.all(absOutDir)
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "package",
-        fileName,
-        "--js",
-        "--js-module-kind",
-        "ESModule",
-        "-o",
-        outFile,
-        "-f",
-        "--js-es-module-import-map",
-        importmapFile
-      ).call(cwd = root, stdout = os.Inherit).out.trim()
+      TestUtil.stableStdout(
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          fileName,
+          "--js",
+          "--js-module-kind",
+          "ESModule",
+          "-o",
+          outFile,
+          "-f",
+          "--js-es-module-import-map",
+          importmapFile
+        ).call(cwd = root, stdout = os.Inherit)
+      )
       expect(os.read(outFile).contains("https://cdn.skypack.dev/@stdlib/linspace"))
     }
   }
@@ -918,8 +933,8 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
              |}
              |""".stripMargin
       ).fromRoot { root =>
-        val result = os.proc(TestUtil.cli, "run", "toolkit.scala", extraOptions).call(cwd = root)
-        expect(result.out.trim() == msg)
+        val result = stableStdoutOf(TestUtil.cli, "run", "toolkit.scala", extraOptions)(cwd = root)
+        expect(result == msg)
       }
     }
 }

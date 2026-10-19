@@ -76,11 +76,11 @@ class ReplTestsDefault extends ReplTestDefinitions
       ) {
         val code = """println(scala.util.Properties.versionNumberString)"""
         runInRepl(code, cliOptions = Seq("-S", nightlyTag)) { r1 =>
-          val version1 = r1.out.trim()
+          val version1 = TestUtil.stableStdout(r1)
           System.err.println(s"$nightlyTag returns the following nightly: $version1")
           val nightlyPrefix = version1.split('.').take(2).mkString(".")
           runInRepl(code, cliOptions = Seq("-S", s"$nightlyPrefix.nightly")) { r2 =>
-            val version2 = r2.out.trim()
+            val version2 = TestUtil.stableStdout(r2)
             System.err.println(s"$nightlyPrefix.nightly returns the following nightly: $version2")
             expect(version1 == version2)
             val major = version1.split('.').take(1).head.toInt
