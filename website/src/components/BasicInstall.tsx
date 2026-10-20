@@ -89,7 +89,7 @@ export default function BasicInstall() {
             by running the following one-line command in your terminal:
           </p>
           <InstallCode>
-            brew install Virtuslab/scala-cli/scala-cli
+            brew install scala-cli
           </InstallCode>
         </TabItem>
 
@@ -104,9 +104,9 @@ export default function BasicInstall() {
           <InstallCode>
             steps:
             <br />
-            &nbsp;&nbsp;&nbsp;&nbsp;- uses: coursier/cache-action@v6
+            &nbsp;&nbsp;&nbsp;&nbsp;- uses: coursier/cache-action@v8
             <br />
-            &nbsp;&nbsp;&nbsp;&nbsp;- uses: VirtusLab/scala-cli-setup@main
+            &nbsp;&nbsp;&nbsp;&nbsp;- uses: VirtusLab/scala-cli-setup@1
             <br />
           </InstallCode>
         </TabItem>
