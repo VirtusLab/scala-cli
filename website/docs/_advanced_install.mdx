@@ -38,7 +38,7 @@ values={[
 {label: 'Manual', value: 'manual'},
 {label: 'Apt', value: 'apt'},
 {label: 'Deb', value: 'deb'},
-{label: 'Yum', value: 'yum'},
+{label: 'DNF / Yum', value: 'dnf'},
 {label: 'Rpm', value: 'rpm'},
 {label: 'Alpine', value: 'alpine'},
 {label: 'Nix', value: 'nix'},
@@ -84,9 +84,9 @@ sudo dpkg -i scala-cli.deb
 ```
 </TabItem>
 
-<TabItem value="yum">
+<TabItem value="dnf">
 
-Scala CLI can be installed via [yum](http://yum.baseurl.org) packager tool.
+Scala CLI can be installed via the [dnf](https://dnf.readthedocs.io) package manager.
 
 ```bash
 cat << EOF | sudo tee /etc/yum.repos.d/virtuslab.repo
@@ -97,9 +97,12 @@ enabled=1
 gpgcheck=1
 gpgkey=https://virtuslab.github.io/scala-cli-packages/KEY.gpg
 EOF
-sudo yum repo-pkgs virtuslab-repo list
-sudo yum install scala-cli
+sudo dnf list --repo=virtuslab-repo
+sudo dnf install scala-cli
 ```
+
+On older systems without `dnf` (e.g. RHEL/CentOS 7), use `yum` instead of `dnf`
+(to list the repository packages, use `sudo yum repo-pkgs virtuslab-repo list`).
 </TabItem>
 <TabItem value="rpm">
 
@@ -556,7 +559,7 @@ values={[
 {label: 'Manual', value: 'manual-u'},
 {label: 'Apt', value: 'apt-u'},
 {label: 'Deb', value: 'deb-u'},
-{label: 'Yum', value: 'yum-u'},
+{label: 'DNF / Yum', value: 'dnf-u'},
 {label: 'Rpm', value: 'rpm-u'},
 {label: 'Alpine', value: 'alpine-u'},
 ]}
@@ -597,13 +600,15 @@ If Scala CLI was installed via [dpkg](https://en.wikipedia.org/wiki/Dpkg) you ca
 sudo dpkg --remove scala-cli
 ```
 </TabItem>
-<TabItem value="yum-u">
+<TabItem value="dnf-u">
 
-If Scala CLI was installed via [yum](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html/deployment_guide/c1-yum) you can uninstall it with:
+If Scala CLI was installed via [dnf](https://dnf.readthedocs.io) you can uninstall it with:
 
 ```bash
-yum remove scala-cli
+sudo dnf remove scala-cli
 ```
+
+On older systems without `dnf` (e.g. RHEL/CentOS 7), use `yum` instead of `dnf`.
 </TabItem>
 <TabItem value="rpm-u">
 
