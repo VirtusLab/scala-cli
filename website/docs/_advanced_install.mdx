@@ -38,7 +38,7 @@ values={[
 {label: 'Manual', value: 'manual'},
 {label: 'Apt', value: 'apt'},
 {label: 'Deb', value: 'deb'},
-{label: 'Yum', value: 'yum'},
+{label: 'DNF / Yum', value: 'dnf'},
 {label: 'Rpm', value: 'rpm'},
 {label: 'Alpine', value: 'alpine'},
 {label: 'Nix', value: 'nix'},
@@ -47,9 +47,16 @@ values={[
 >
 <TabItem value="manual">
 
-Download the launcher from GitHub release assets with
+For the **x86_64** architecture, download the launcher from GitHub release assets with
 ```bash
 curl -fL https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-linux.gz | gzip -d > scala-cli
+chmod +x scala-cli
+sudo mv scala-cli /usr/local/bin/scala-cli
+```
+
+For the **ARM64** (aarch64) architecture, use:
+```bash
+curl -fL https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-aarch64-pc-linux.gz | gzip -d > scala-cli
 chmod +x scala-cli
 sudo mv scala-cli /usr/local/bin/scala-cli
 ```
@@ -64,6 +71,10 @@ scala-cli version
 
 Scala CLI can be installed via [apt](https://wiki.debian.org/Apt) packager tool.
 
+:::note
+The apt package is only available for x86_64. On ARM64 (aarch64), use the manual installation instead.
+:::
+
 ```bash
 sudo mkdir -p /etc/apt/keyrings
 curl -sS "https://virtuslab.github.io/scala-cli-packages/scala-cli-archive-keyring.gpg" | sudo tee /etc/apt/keyrings/scala-cli-archive-keyring.gpg > /dev/null
@@ -74,6 +85,10 @@ sudo apt install scala-cli
 </TabItem>
 <TabItem value="deb">
 
+:::note
+The Debian package is only available for x86_64. On ARM64 (aarch64), use the manual installation instead.
+:::
+
 The Debian package can be downloaded at [this address](https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-linux.deb).
 
 Alternatively, you can download it and install it manually with:
@@ -82,11 +97,20 @@ Alternatively, you can download it and install it manually with:
 curl -fLo scala-cli.deb https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-linux.deb
 sudo dpkg -i scala-cli.deb
 ```
+
+Scala CLI can also be installed as part of the Scala language distribution (under the `scala` command),
+which bundles Scala CLI. The Scala Debian package can be downloaded from the assets of the
+[latest Scala release](https://github.com/scala/scala3/releases/latest)
+(`scala3-<version>-x86_64-pc-linux.deb`) and installed in the same way.
 </TabItem>
 
-<TabItem value="yum">
+<TabItem value="dnf">
 
-Scala CLI can be installed via [yum](http://yum.baseurl.org) packager tool.
+Scala CLI can be installed via the [dnf](https://dnf.readthedocs.io) package manager.
+
+:::note
+The package is only available for x86_64. On ARM64 (aarch64), use the manual installation instead.
+:::
 
 ```bash
 cat << EOF | sudo tee /etc/yum.repos.d/virtuslab.repo
@@ -97,11 +121,18 @@ enabled=1
 gpgcheck=1
 gpgkey=https://virtuslab.github.io/scala-cli-packages/KEY.gpg
 EOF
-sudo yum repo-pkgs virtuslab-repo list
-sudo yum install scala-cli
+sudo dnf list --repo=virtuslab-repo
+sudo dnf install scala-cli
 ```
+
+On older systems without `dnf` (e.g. RHEL/CentOS 7), use `yum` instead of `dnf`
+(to list the repository packages, use `sudo yum repo-pkgs virtuslab-repo list`).
 </TabItem>
 <TabItem value="rpm">
+
+:::note
+The RPM package is only available for x86_64. On ARM64 (aarch64), use the manual installation instead.
+:::
 
 The RPM package can be downloaded at [this address](https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-linux.rpm).
 
@@ -110,8 +141,17 @@ Alternatively, you can download it and install it manually with:
 curl -fLo scala-cli.rpm https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-linux.rpm
 sudo rpm -i scala-cli.rpm
 ```
+
+Scala CLI can also be installed as part of the Scala language distribution (under the `scala` command),
+which bundles Scala CLI. The Scala RPM package can be downloaded from the assets of the
+[latest Scala release](https://github.com/scala/scala3/releases/latest)
+(`scala3-<version>-x86_64-pc-linux.rpm`) and installed in the same way.
 </TabItem>
 <TabItem value="alpine">
+
+:::note
+The static launcher is only available for x86_64.
+:::
 
 Download the launcher from GitHub release assets with
 
@@ -133,19 +173,29 @@ scala-cli version
 This method is provided and supported by the community, not the core team of Scala CLI
 :::
 
-Scala CLI can be installed with [Nix](https://nixos.org) with
+Scala CLI can be installed via [Nix](https://nixos.org) with:
 
 ```bash
-nix-env -iA nixpkgs.scala-cli
+nix profile install nixpkgs#scala-cli
 ```
+
+Without flakes, use `nix-env -iA nixpkgs.scala-cli` instead (`nixos.scala-cli` on NixOS).
+To try it out without installing, run `nix-shell -p scala-cli`.
 
 </TabItem>
 <TabItem value="sdkman">
 
-Scala CLI can be installed via [SDKMAN](https://sdkman.io) with
+Scala CLI (as `scala-cli`) can be installed via [SDKMAN](https://sdkman.io) with:
 
 ```bash
 sdk install scalacli
+```
+
+It can also be installed as part of the Scala language distribution (under the `scala` command),
+which bundles Scala CLI.
+
+```bash
+sdk install scala
 ```
 </TabItem>
 
@@ -175,7 +225,7 @@ to be installed. See below for how to install it.
 Download the launcher from GitHub release assets with
 ```bash
 curl -fLo scala-cli.zip https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-win32.zip
-jar -xf scala-cli.zip
+tar -xf scala-cli.zip
 ```
 
 Check that it runs fine by running its `version` command:
@@ -183,7 +233,7 @@ Check that it runs fine by running its `version` command:
 scala-cli version
 ```
 
-If you get an error about `MSVCR100.dll` being missing, you have to install
+If you get an error about a missing DLL (such as `VCRUNTIME140.dll`), you have to install
 [Visual C++ redistributable](https://support.microsoft.com/en-us/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0). A valid version is distributed with the Scala CLI launchers.
 You can download it [here](https://github.com/Virtuslab/scala-cli/releases/latest/download/vc_redist.x64.exe),
 and install it by double-clicking on it. Once the Visual C++ redistributable runtime is installed,
@@ -196,7 +246,7 @@ Note that the commands above don't put the `scala-cli` command in the `PATH`. Fo
 launcher there, and add the directory to the `PATH` with
 ```bash
 md "%USERPROFILE%/scala-cli"
-scala-cli add-path "%USERPROFILE%/scala-cli"
+scala-cli --power add-path "%USERPROFILE%/scala-cli"
 move scala-cli.exe "%USERPROFILE%/scala-cli"
 ```
 </TabItem>
@@ -206,25 +256,40 @@ Download MSI installer with Scala CLI for Windows
 
 <DownloadButton desc= 'Scala CLI for Windows' href='https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-win32.msi' width = '190px'></DownloadButton>
 
+Scala CLI can also be installed as part of the Scala language distribution (under the `scala` command),
+which bundles Scala CLI. The Scala MSI installer can be downloaded from the assets of the
+[latest Scala release](https://github.com/scala/scala3/releases/latest) (`scala3-<version>.msi`).
+
 </TabItem>
 <TabItem value="sdkman">
 
-Scala CLI can be installed via [SDKMAN](https://sdkman.io) with
+Scala CLI (as `scala-cli`) can be installed via [SDKMAN](https://sdkman.io) with:
 
 ```bash
 sdk install scalacli
 ```
+
+It can also be installed as part of the Scala language distribution (under the `scala` command),
+which bundles Scala CLI.
+
+```bash
+sdk install scala
+```
 </TabItem>
 <TabItem value="choco">
 
-To install Scala CLI via [Chocolatey](https://chocolatey.org), run the following command from the command line or from PowerShell:
+To install Scala CLI (as `scala-cli`) via [Chocolatey](https://chocolatey.org), run the following command from the command line or from PowerShell:
 
 ```bash
 choco install scala-cli
 ```
-:::note
-Third-party Chocolatey packages may not provide the latest version.
-:::
+
+It can also be installed as part of the Scala language distribution (under the `scala` command),
+which bundles Scala CLI.
+
+```bash
+choco install scala
+```
 
 </TabItem>
 <TabItem value="scoop">
@@ -268,14 +333,16 @@ For a Mac with the **arm64** architecture run the following commands:
 ```bash
 curl -fL https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-aarch64-apple-darwin.gz | gzip -d > scala-cli
 chmod +x scala-cli
-mv scala-cli /usr/local/bin/scala-cli
+sudo mkdir -p /usr/local/bin
+sudo mv scala-cli /usr/local/bin/scala-cli
 ```
 
 Otherwise, for a Mac with non-**arm64** architecture (pre-M1) run the following commands:
 ```bash
 curl -fL https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-apple-darwin.gz | gzip -d > scala-cli
 chmod +x scala-cli
-mv scala-cli /usr/local/bin/scala-cli
+sudo mkdir -p /usr/local/bin
+sudo mv scala-cli /usr/local/bin/scala-cli
 ```
 
 Check that it runs fine by running its `version` command:
@@ -293,16 +360,32 @@ Download the PKG installer with Scala CLI for MacOS
 <br/>
 <br/>
 
-Once downloaded, right-click on the downloaded file from Finder and then choose "Open".
+The installer isn't signed, so macOS blocks it when you first open it. Close the warning, then go to
+**System Settings → Privacy & Security** and click **Open Anyway**.
+On macOS 14 and older, you can instead right-click the downloaded file in Finder and choose "Open".
+
+The installer links `scala-cli` into `/usr/local/bin`. If that directory doesn't exist, create it before installing with:
+
+```bash
+sudo mkdir -p /usr/local/bin
+```
 
 </TabItem>
 <TabItem value="brew">
 
-Scala CLI can be installed via [homebrew](https://brew.sh) with
+Scala CLI (as `scala-cli`) can be installed via [homebrew](https://brew.sh) with:
 
 ```bash
-brew install Virtuslab/scala-cli/scala-cli
+brew install scala-cli
 ```
+
+It can also be installed as part of the Scala language distribution (under the `scala` command).
+`scala-cli` is then pulled as a dependency.
+
+```bash
+brew install scala
+```
+
 </TabItem>
 <TabItem value="nix">
 
@@ -313,16 +396,26 @@ This method is provided and supported by the community, not the core team of Sca
 Scala CLI can be installed via [Nix](https://nixos.org) with:
 
 ```bash
-nix-env -iA nixpkgs.scala-cli
+nix profile install nixpkgs#scala-cli
 ```
+
+Without flakes, use `nix-env -iA nixpkgs.scala-cli` instead (`nixos.scala-cli` on NixOS).
+To try it out without installing, run `nix-shell -p scala-cli`.
 
 </TabItem>
 <TabItem value="sdkman">
 
-Scala CLI can be installed via [SDKMAN](https://sdkman.io) with
+Scala CLI (as `scala-cli`) can be installed via [SDKMAN](https://sdkman.io) with:
 
 ```bash
 sdk install scalacli
+```
+
+It can also be installed as part of the Scala language distribution (under the `scala` command),
+which bundles Scala CLI.
+
+```bash
+sdk install scala
 ```
 </TabItem>
 </Tabs>
@@ -405,12 +498,13 @@ curl https://raw.githubusercontent.com/VirtusLab/scala-cli/refs/heads/main/scala
 <TabItem value="windows">
 
 Download the Scala CLI launcher in your project directory:
-```bash
-Invoke-WebRequest "https://raw.githubusercontent.com/VirtusLab/scala-cli/refs/heads/main/scala-cli.bat" -OutFile "scala.bat”
+```powershell
+Invoke-WebRequest "https://raw.githubusercontent.com/VirtusLab/scala-cli/refs/heads/main/scala-cli.bat" -OutFile "scala.bat"
 ```
 We also recommend downloading the corresponding launcher for macOS and Linux users:
-```bash
-Invoke-WebRequest "https://raw.githubusercontent.com/VirtusLab/scala-cli/refs/heads/main/scala-cli.sh" > scala
+```powershell
+Invoke-WebRequest "https://raw.githubusercontent.com/VirtusLab/scala-cli/refs/heads/main/scala-cli.sh" -OutFile "scala"
+git add scala
 git update-index --chmod=+x scala
 ```
 
@@ -493,8 +587,7 @@ scala-cli install completions --shell zsh
 Try the completions with
 
 ```
-eval "$(scala-cli install completions --env --shell fish)"
-fish
+scala-cli install completions --env --shell fish | source
 scala-cli --<TAB>
 ```
 
@@ -548,9 +641,11 @@ values={[
 {label: 'Manual', value: 'manual-u'},
 {label: 'Apt', value: 'apt-u'},
 {label: 'Deb', value: 'deb-u'},
-{label: 'Yum', value: 'yum-u'},
+{label: 'DNF / Yum', value: 'dnf-u'},
 {label: 'Rpm', value: 'rpm-u'},
 {label: 'Alpine', value: 'alpine-u'},
+{label: 'Nix', value: 'nix-u'},
+{label: 'SDKMAN', value: 'sdkman-u'},
 ]}
 >
 <TabItem value="installation-script-u">
@@ -569,7 +664,7 @@ If you have installed Scala CLI completions into your shell, `uninstall` command
 If Scala CLI was installed manually you can uninstall it with:
 
 ```bash
-rm /usr/local/bin/scala-cli
+sudo rm /usr/local/bin/scala-cli
 ```
 </TabItem>
 
@@ -589,20 +684,22 @@ If Scala CLI was installed via [dpkg](https://en.wikipedia.org/wiki/Dpkg) you ca
 sudo dpkg --remove scala-cli
 ```
 </TabItem>
-<TabItem value="yum-u">
+<TabItem value="dnf-u">
 
-If Scala CLI was installed via [yum](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html/deployment_guide/c1-yum) you can uninstall it with:
+If Scala CLI was installed via [dnf](https://dnf.readthedocs.io) you can uninstall it with:
 
 ```bash
-yum remove scala-cli
+sudo dnf remove scala-cli
 ```
+
+On older systems without `dnf` (e.g. RHEL/CentOS 7), use `yum` instead of `dnf`.
 </TabItem>
 <TabItem value="rpm-u">
 
 If Scala CLI was installed via [rpm](https://rpm.org/) you can uninstall it with:
 
-``` bash
-rpm -e scala-cli
+```bash
+sudo rpm -e scala-cli
 ```
 </TabItem>
 <TabItem value="alpine-u">
@@ -613,6 +710,26 @@ For Alpine Linux you can uninstall scala-cli with:
 rm /usr/bin/scala-cli
 ```
 
+</TabItem>
+<TabItem value="nix-u">
+
+If Scala CLI was installed via [Nix](https://nixos.org) you can uninstall it with:
+
+```bash
+nix profile remove scala-cli
+```
+
+If it was installed with `nix-env`, use `nix-env -e scala-cli` instead.
+</TabItem>
+<TabItem value="sdkman-u">
+
+If Scala CLI was installed via [SDKMAN](https://sdkman.io) you can uninstall it with:
+
+```bash
+sdk uninstall scalacli <version>
+```
+
+Run `sdk list scalacli` to see the installed versions.
 </TabItem>
 
 </Tabs>
@@ -626,7 +743,10 @@ defaultValue="manual-u"
 values={[
 {label: 'Manual', value: 'manual-u'},
 {label: 'Installer', value: 'installer-u'},
+{label: 'SDKMAN', value: 'sdkman-u'},
 {label: 'Chocolatey', value: 'choco'},
+{label: 'Scoop', value: 'scoop-u'},
+{label: 'WinGet', value: 'winget-u'},
 ]}
 >
 
@@ -635,8 +755,11 @@ values={[
 If Scala CLI was installed manually you can uninstall it with:
 
 ```bash
-rmdir "%USERPROFILE%/scala-cli"
+rmdir /s /q "%USERPROFILE%/scala-cli"
 ```
+
+Then remove the `%USERPROFILE%\scala-cli` entry from the user `Path` environment variable
+(in **Settings → System → About → Advanced system settings → Environment Variables**).
 </TabItem>
 <TabItem value="installer-u">
 
@@ -652,6 +775,34 @@ choco uninstall scala-cli
 ```
 
 </TabItem>
+<TabItem value="sdkman-u">
+
+If Scala CLI was installed via [SDKMAN](https://sdkman.io) you can uninstall it with:
+
+```bash
+sdk uninstall scalacli <version>
+```
+
+Run `sdk list scalacli` to see the installed versions.
+</TabItem>
+<TabItem value="scoop-u">
+
+To uninstall Scala CLI via [Scoop](https://scoop.sh), run the following command from the command line or from PowerShell:
+
+```bash
+scoop uninstall scala-cli
+```
+
+</TabItem>
+<TabItem value="winget-u">
+
+To uninstall Scala CLI via [WinGet](https://learn.microsoft.com/en-gb/windows/package-manager/), run the following command from the command line or from PowerShell:
+
+```bash
+winget uninstall virtuslab.scalacli
+```
+
+</TabItem>
 </Tabs>
 
 </TabItem>
@@ -663,7 +814,10 @@ defaultValue="installation-script-u"
 values={[
 {label: 'Installation script', value: 'installation-script-u' },
 {label: 'Manual', value: 'manual-u'},
+{label: 'Installer', value: 'installer-u'},
 {label: 'Brew', value: 'brew-u'},
+{label: 'Nix', value: 'nix-u'},
+{label: 'SDKMAN', value: 'sdkman-u'},
 ]}
 >
 <TabItem value="installation-script-u">
@@ -682,7 +836,7 @@ If you have installed Scala CLI completions into your shell, `uninstall` command
 If Scala CLI was installed manually you can uninstall it with:
 
 ```bash
-rm /usr/local/bin/scala-cli
+sudo rm /usr/local/bin/scala-cli
 ```
 
 </TabItem>
@@ -693,6 +847,37 @@ If Scala CLI was installed via [homebrew](https://brew.sh) you can uninstall it 
 ```bash
 brew uninstall scala-cli
 ```
+</TabItem>
+<TabItem value="installer-u">
+
+If Scala CLI was installed via the PKG installer, you can uninstall it with:
+
+```bash
+sudo rm /usr/local/bin/scala-cli
+sudo rm -rf /Applications/scala-cli-aarch64-apple-darwin.app
+```
+
+On a Mac with non-**arm64** architecture, the application is `/Applications/scala-cli-x86_64-apple-darwin.app` instead.
+</TabItem>
+<TabItem value="nix-u">
+
+If Scala CLI was installed via [Nix](https://nixos.org) you can uninstall it with:
+
+```bash
+nix profile remove scala-cli
+```
+
+If it was installed with `nix-env`, use `nix-env -e scala-cli` instead.
+</TabItem>
+<TabItem value="sdkman-u">
+
+If Scala CLI was installed via [SDKMAN](https://sdkman.io) you can uninstall it with:
+
+```bash
+sdk uninstall scalacli <version>
+```
+
+Run `sdk list scalacli` to see the installed versions.
 </TabItem>
 </Tabs>
 
