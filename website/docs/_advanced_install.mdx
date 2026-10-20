@@ -298,11 +298,19 @@ Once downloaded, right-click on the downloaded file from Finder and then choose 
 </TabItem>
 <TabItem value="brew">
 
-Scala CLI can be installed via [homebrew](https://brew.sh) with
+Scala CLI (as `scala-cli`) can be installed via [homebrew](https://brew.sh) with:
 
 ```bash
-brew install Virtuslab/scala-cli/scala-cli
+brew install scala-cli
 ```
+
+It can also be installed as part of the Scala language distribution (under the `scala` command).
+`scala-cli` is then pulled as a dependency.
+
+```bash
+brew install scala
+```
+
 </TabItem>
 <TabItem value="nix">
 
