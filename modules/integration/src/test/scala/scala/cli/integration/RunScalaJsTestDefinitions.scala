@@ -428,9 +428,9 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  // The Scala 3.3 compiler has no js.async/js.await support (linking fails with
+  // js.async/js.await support  was only introduced in Scala 3.8+ (earlier, linking fails with
   // "Referring to non-existent method scala.scalajs.js.package$.async").
-  if (!actualScalaVersion.startsWith(Constants.scala3LegacyLtsPrefix))
+  if isScala38OrNewer then
     test("Run Wasm with js.async/js.await via --js-wasm-jspi") {
       val inputs = TestInputs(
         os.rel / "Async.scala" ->
