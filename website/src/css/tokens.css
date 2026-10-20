@@ -2477,6 +2477,15 @@ a.sc-download-btn:hover svg {
   opacity: 1;
 }
 
+/* Keep spacing symmetric when a download button sits between paragraphs */
+p + a.sc-download-btn {
+  margin-top: 0;
+}
+
+a.sc-download-btn + p {
+  margin-top: var(--ifm-paragraph-margin-bottom);
+}
+
 html[data-theme='dark'] a.sc-download-btn {
   border-color: rgba(255, 213, 131, 0.4);
   color: #ffd583 !important;
