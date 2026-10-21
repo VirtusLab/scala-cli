@@ -8,15 +8,20 @@ import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Wasm options")
 @DirectiveExamples("//> using wasm")
+@DirectiveExamples("//> using wasmJspi")
 @DirectiveExamples("//> using jsRuntime node")
 @DirectiveExamples("//> using jsRuntime deno")
 @DirectiveExamples("//> using jsRuntime bun")
 @DirectiveUsage(
-  "//> using wasm|jsRuntime _value_",
+  "//> using wasm|wasmJspi|jsRuntime _value_",
   """
     |`//> using wasm` _true|false_
     |
     |`//> using wasm`
+    |
+    |`//> using wasmJspi` _true|false_
+    |
+    |`//> using wasmJspi`
     |
     |`//> using jsRuntime` _node|deno|bun_
     |""".stripMargin
@@ -25,6 +30,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 final case class Wasm(
   wasm: Option[Boolean] = None,
+  wasmJspi: Option[Boolean] = None,
   jsRuntime: Option[String] = None
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = {
@@ -47,7 +53,11 @@ final case class Wasm(
           ScalaOptions()
       BuildOptions(
         scalaOptions = scalaOptions,
-        scalaJsOptions = ScalaJsOptions(jsEmitWasm = wasmEnabled, jsRuntime = runtime)
+        scalaJsOptions = ScalaJsOptions(
+          jsEmitWasm = wasmEnabled,
+          jsWasmJspi = wasmJspi.getOrElse(false),
+          jsRuntime = runtime
+        )
       )
     }
   }

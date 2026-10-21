@@ -70,7 +70,8 @@ enough to require it, pass it yourself via the runtime's own environment variabl
 
 The same mechanism gives you any **optional** feature flags — Scala CLI never injects these either:
 
-- `--experimental-wasm-jspi` — required to use `js.async` / `js.await`.
+- `--experimental-wasm-jspi` — required to use `js.async` / `js.await` on runtimes that do not
+  enable JSPI by default (Node.js 25+ does).
 - `--experimental-wasm-imported-strings` — improves performance.
 - `--turboshaft-wasm` — improves stability on Node.js 23.x (Node.js 24+ enables it by default and
   has removed the flag).
@@ -78,6 +79,19 @@ The same mechanism gives you any **optional** feature flags — Scala CLI never 
 ```bash ignore
 NODE_OPTIONS=--experimental-wasm-jspi scala-cli run Hello.scala --js-emit-wasm --js-module-kind es
 ```
+
+## `js.async` / `js.await` (JSPI)
+
+On the Wasm backend, `js.async` / `js.await` use JavaScript Promise Integration (JSPI). Since
+Scala.js 1.22 the linker only links them when JSPI is enabled explicitly. Pass `--js-wasm-jspi`
+(or use the `//> using wasmJspi` directive) together with `--js-emit-wasm`:
+
+```bash ignore
+scala-cli run Async.scala --js-emit-wasm --js-module-kind es --js-wasm-jspi
+```
+
+Without it, linking fails with `Uses an async block without JSPI support in WebAssembly`.
+The runtime must support JSPI too (see above).
 
 ## Limitations
 

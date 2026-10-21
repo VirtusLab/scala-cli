@@ -428,6 +428,39 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
+  // js.async/js.await support  was only introduced in Scala 3.8+ (earlier, linking fails with
+  // "Referring to non-existent method scala.scalajs.js.package$.async").
+  if isScala38OrNewer then
+    test("Run Wasm with js.async/js.await via --js-wasm-jspi") {
+      val inputs = TestInputs(
+        os.rel / "Async.scala" ->
+          """import scala.scalajs.js
+            |
+            |object Async {
+            |  def main(args: Array[String]): Unit =
+            |    js.async {
+            |      val x = js.await(js.Promise.resolve[Int](21))
+            |      println(s"JSPI ${x * 2}")
+            |    }
+            |}
+            |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          "Async.scala",
+          "--js-emit-wasm",
+          "--js-module-kind",
+          "es",
+          "--js-wasm-jspi",
+          extraOptions
+        ).call(cwd = root).out.trim()
+        expect(output == "JSPI 42")
+      }
+    }
+
   test("Wasm without an ES module kind fails fast") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->

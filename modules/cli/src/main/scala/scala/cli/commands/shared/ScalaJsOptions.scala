@@ -64,6 +64,11 @@ final case class ScalaJsOptions(
   @HelpMessage("Enable Wasm output (Scala.js Wasm backend). Uses Node.js by default. To show more options for Wasm pass `--help-wasm`")
     jsEmitWasm: Option[Boolean] = None,
 
+  @Group(HelpGroup.Wasm.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Use JavaScript Promise Integration (JSPI) in Wasm output, required by js.async/js.await (Scala.js 1.22+)")
+    jsWasmJspi: Option[Boolean] = None,
+
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.experimental)
   @HelpMessage("JS runtime to run the output on: node (default), deno, bun")

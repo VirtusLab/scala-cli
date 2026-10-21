@@ -751,11 +751,17 @@ Add WebAssembly options
 
 `//> using wasm`
 
+`//> using wasmJspi` _true|false_
+
+`//> using wasmJspi`
+
 `//> using jsRuntime` _node|deno|bun_
 
 
 #### Examples
 `//> using wasm`
+
+`//> using wasmJspi`
 
 `//> using jsRuntime node`
 
