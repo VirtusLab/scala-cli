@@ -169,8 +169,46 @@ object TestUtil {
     lines.filterNot(jvmUnifiedLogLineRegex.matches)
 
   /** Trimmed stdout of the process, without lines printed by the JVM's unified logging. */
-  def stableStdout(result: os.CommandResult): String =
-    dropJvmLogLines(result.out.lines()).mkString(System.lineSeparator()).trim()
+  def stableStdout(result: os.CommandResult): String = stableStdout(result.out.text())
+
+  /** Trimmed output, without lines printed by the JVM's unified logging. Line separators of the
+    * remaining lines are kept as-is.
+    */
+  def stableStdout(output: String): String =
+    output.linesWithSeparators
+      .filterNot(line => jvmUnifiedLogLineRegex.matches(line.stripLineEnd))
+      .mkString
+      .trim()
+
+  /** Calls the command and returns its [[stableStdout]]. The second parameter list mirrors
+    * `os.proc.call`, minus `stdout`, which is always captured.
+    */
+  def stableStdoutOf(command: os.Shellable*)(
+    cwd: os.Path = null,
+    env: Map[String, String] = null,
+    stdin: os.ProcessInput = os.Pipe,
+    stderr: os.ProcessOutput = os.Inherit,
+    mergeErrIntoOut: Boolean = false,
+    timeout: Long = -1,
+    check: Boolean = true,
+    propagateEnv: Boolean = true,
+    shutdownGracePeriod: Long = 100,
+    destroyOnExit: Boolean = true
+  ): String =
+    stableStdout(
+      os.proc(command*).call(
+        cwd = cwd,
+        env = env,
+        stdin = stdin,
+        stderr = stderr,
+        mergeErrIntoOut = mergeErrIntoOut,
+        timeout = timeout,
+        check = check,
+        propagateEnv = propagateEnv,
+        shutdownGracePeriod = shutdownGracePeriod,
+        destroyOnExit = destroyOnExit
+      )
+    )
 
   def fullStableOutput(result: os.CommandResult): String = {
     val stableLines = removeAnsiColors(result.toString).trim().linesIterator.filterNot { str =>

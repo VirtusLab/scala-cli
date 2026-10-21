@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 class NativePackagerTests extends ScalaCliSuite {
@@ -61,9 +62,9 @@ class NativePackagerTests extends ScalaCliSuite {
           )
 
           val home   = sys.props("user.home")
-          val output = os.proc(s"$home/Applications/$appName.app/Contents/MacOS/$appName")
-            .call(cwd = os.root)
-            .out.trim()
+          val output = stableStdoutOf(
+            s"$home/Applications/$appName.app/Contents/MacOS/$appName"
+          )(cwd = os.root)
           expect(output == message)
         }
       }
@@ -104,9 +105,9 @@ class NativePackagerTests extends ScalaCliSuite {
             stdout = os.Inherit
           )
 
-          val output = os.proc(s"/Volumes/$appName/$appName.app/Contents/MacOS/$appName")
-            .call(cwd = os.root)
-            .out.trim()
+          val output = stableStdoutOf(
+            s"/Volumes/$appName/$appName.app/Contents/MacOS/$appName"
+          )(cwd = os.root)
           expect(output == message)
 
           os.proc("hdiutil", "detach", s"/Volumes/$appName").call(
@@ -204,7 +205,7 @@ class NativePackagerTests extends ScalaCliSuite {
             mergeErrIntoOut = true
           )
           expect(res.exitCode == 0)
-          val output = res.out.trim()
+          val output = TestUtil.stableStdout(res)
           expect(output.endsWith(message))
         }
       }
@@ -312,8 +313,7 @@ class NativePackagerTests extends ScalaCliSuite {
         s"$imageRepository:$imageTag"
 
       try {
-        val output =
-          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.trim()
+        val output = stableStdoutOf("docker", "run", ciOpt, expectedImage)(cwd = os.root)
         expect(output == message)
       }
       // clear
@@ -352,8 +352,7 @@ class NativePackagerTests extends ScalaCliSuite {
         s"$imageRepository:$imageTag"
 
       try {
-        val output =
-          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.trim()
+        val output = stableStdoutOf("docker", "run", ciOpt, expectedImage)(cwd = os.root)
         expect(output == message)
 
       }
@@ -394,8 +393,7 @@ class NativePackagerTests extends ScalaCliSuite {
         s"$imageRepository:$imageTag"
 
       try {
-        val output =
-          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.trim()
+        val output = stableStdoutOf("docker", "run", ciOpt, expectedImage)(cwd = os.root)
         expect(output == message)
 
       }

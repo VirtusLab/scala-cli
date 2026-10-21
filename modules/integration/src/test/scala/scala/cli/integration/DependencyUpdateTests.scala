@@ -3,6 +3,8 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 import coursier.version.Version
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 class DependencyUpdateTests extends ScalaCliSuite {
   test("dependency update test") {
     val fileName    = "Hello.scala"
@@ -29,7 +31,7 @@ class DependencyUpdateTests extends ScalaCliSuite {
       )
 
       // after updating dependencies app should run
-      val out = os.proc(TestUtil.cli, fileName).call(cwd = root).out.trim()
+      val out = stableStdoutOf(TestUtil.cli, fileName)(cwd = root)
       expect(out == message)
     }
   }

@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.nio.charset.{Charset, StandardCharsets}
 
 import scala.cli.integration.TestInputs.compress
+import scala.cli.integration.TestUtil.stableStdoutOf
 
 trait RunZipTestDefinitions { this: RunTestDefinitions =>
   test("Zip with multiple Scala files") {
@@ -22,9 +23,7 @@ trait RunZipTestDefinitions { this: RunTestDefinitions =>
     )
     inputs.asZip { (root, zipPath) =>
       val message = "Hello"
-      val output  = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
-        .call(cwd = root)
-        .out.trim()
+      val output  = stableStdoutOf(TestUtil.cli, extraOptions, zipPath.toString)(cwd = root)
       expect(output == message)
     }
   }
@@ -60,9 +59,7 @@ trait RunZipTestDefinitions { this: RunTestDefinitions =>
       val zipArchivePath = root / "hello.zip"
       compress(zipArchivePath, zipInputs)
 
-      val output = os.proc(TestUtil.cli, extraOptions, zipArchivePath.toString)
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, zipArchivePath.toString)(cwd = root)
 
       val expectedOutput = "1\n2"
 
@@ -89,9 +86,7 @@ trait RunZipTestDefinitions { this: RunTestDefinitions =>
     inputs.asZip { (root, zipPath) =>
       val message = "1,2"
 
-      val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, zipPath.toString)(cwd = root)
       expect(output == message)
     }
   }
@@ -113,9 +108,7 @@ trait RunZipTestDefinitions { this: RunTestDefinitions =>
     inputs.asZip { (root, zipPath) =>
       val message = "1,2"
 
-      val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(TestUtil.cli, extraOptions, zipPath.toString)(cwd = root)
       expect(output == message)
     }
   }
@@ -142,8 +135,9 @@ trait RunZipTestDefinitions { this: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.asZip { (root, zipPath) =>
-      val result = os.proc(TestUtil.cli, "--power", extraOptions, zipPath, "--md").call(cwd = root)
-      expect(result.out.trim() == expectedMessage)
+      val result =
+        stableStdoutOf(TestUtil.cli, "--power", extraOptions, zipPath, "--md")(cwd = root)
+      expect(result == expectedMessage)
     }
   }
 }

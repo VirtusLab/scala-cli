@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.cli.integration.util.BloopUtil
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -42,7 +43,8 @@ class BloopTests extends ScalaCliSuite {
       else
         output.contains("No need to restart Bloop")
 
-      val versionLine = bloop(Seq("about")).call(cwd = root).out.lines()(0)
+      val versionLine =
+        TestUtil.dropJvmLogLines(bloop(Seq("about")).call(cwd = root).out.lines()).head
       expect(versionLine == "bloop v" + Constants.bloopVersion)
     }
   }
@@ -115,10 +117,11 @@ class BloopTests extends ScalaCliSuite {
       os.proc(TestUtil.cli, "compile", ".")
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
 
-      val projRes = os.proc(TestUtil.cli, "--power", "bloop", "projects")
-        .call(cwd = root / Constants.workspaceDirName)
+      val projRes = stableStdoutOf(TestUtil.cli, "--power", "bloop", "projects")(cwd =
+        root / Constants.workspaceDirName
+      )
 
-      val projList = projRes.out.trim().linesIterator.toVector
+      val projList = projRes.linesIterator.toVector
 
       expect(projList.length == 1)
       val proj = projList.head
@@ -204,7 +207,7 @@ class BloopTests extends ScalaCliSuite {
       def isScala     = lang == "scala"
       val optionValue =
         if option == "java-home" then
-          os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", jvm).call().out.trim()).toString()
+          os.Path(stableStdoutOf(TestUtil.cs, "java-home", "--jvm", jvm)()).toString()
         else jvm.toString
       val directive =
         if useDirective then s"//> using ${option.replace("-h", "H")} $optionValue\n" else ""

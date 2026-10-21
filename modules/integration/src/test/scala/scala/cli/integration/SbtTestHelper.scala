@@ -1,15 +1,17 @@
 package scala.cli.integration
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 trait SbtTestHelper {
   private def fetchSbtLaunchJar(sbtVersion: String): os.Path =
     val res =
-      os.proc(
+      stableStdoutOf(
         TestUtil.cs,
         "fetch",
         "--intransitive",
         s"org.scala-sbt:sbt-launch:$sbtVersion"
-      ).call()
-    val rawPath = res.out.trim()
+      )()
+    val rawPath = res
     val path    = os.Path(rawPath, os.pwd)
     if os.isFile(path) then path
     else sys.error(s"Something went wrong (invalid sbt launch JAR path '$rawPath')")

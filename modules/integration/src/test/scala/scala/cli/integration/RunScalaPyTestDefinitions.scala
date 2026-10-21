@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
@@ -32,8 +33,8 @@ trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
 
     inputs.fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", maybeCliArg).call(cwd = root)
-      val output         = res.out.trim()
+        stableStdoutOf(TestUtil.cli, "--power", "run", extraOptions, ".", maybeCliArg)(cwd = root)
+      val output         = res
       val expectedOutput = "Length is 3"
       expect(output == expectedOutput)
     }
@@ -72,7 +73,7 @@ trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
       val res =
         os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", maybeCliArg)
           .call(cwd = root, stderr = os.Pipe)
-      val output = res.out.trim()
+      val output = TestUtil.stableStdout(res)
         .linesIterator
         .filter { l =>
           // filter out scala-native-cli garbage output
@@ -146,9 +147,15 @@ trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
       val errorOutput = errorRes.out.text()
       expect(errorOutput.contains("No module named 'helpers'"))
 
-      val res = os.proc(TestUtil.cli, "--power", "run", extraOptions, nativeOpt, "src")
-        .call(cwd = root)
-      val output = res.out.trim()
+      val res = stableStdoutOf(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        nativeOpt,
+        "src"
+      )(cwd = root)
+      val output = res
       if (native)
         expect(output.linesIterator.toVector.endsWith(Seq("Hello from Python")))
       else

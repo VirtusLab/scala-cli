@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 class DirectoriesTests extends ScalaCliSuite {
@@ -17,7 +18,7 @@ class DirectoriesTests extends ScalaCliSuite {
   if (Properties.isMac)
     test("running directories on Mac with no args should give valid results") {
       TestInputs.empty.fromRoot { root =>
-        val r              = os.proc(TestUtil.cli, "--power", "directories").call(cwd = root)
+        val r              = stableStdoutOf(TestUtil.cli, "--power", "directories")(cwd = root)
         val cachesPath     = os.home / "Library" / "Caches" / "ScalaCli"
         val appSupportPath = os.home / "Library" / "Application Support" / "ScalaCli"
         val expectedOutput =
@@ -27,7 +28,7 @@ class DirectoriesTests extends ScalaCliSuite {
              |BSP sockets: ${cachesPath / "bsp-sockets"}
              |Bloop daemon directory: ${cachesPath / "bloop" / "daemon"}
              |Secrets directory: ${appSupportPath / "secrets"}""".stripMargin
-        expect(r.out.trim() == expectedOutput)
+        expect(r == expectedOutput)
       }
     }
 }

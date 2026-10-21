@@ -3,6 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.Constants.munitVersion
+import scala.cli.integration.TestUtil.stableStdoutOf
 
 object ExportTestProjects {
   def jvmTest(scalaVersion: String, mainClassName: String): TestInputs = {
@@ -267,16 +268,15 @@ object ExportTestProjects {
 
   def customJarTest(scalaVersion: String): TestInputs = {
     val shapelessJar = {
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cs,
         "fetch",
         "--intransitive",
         "com.chuusai::shapeless:2.3.9",
         "--scala",
         scalaVersion
-      )
-        .call()
-      val path  = res.out.trim()
+      )()
+      val path  = res
       val path0 = os.Path(path, os.pwd)
       expect(os.isFile(path0))
       path0

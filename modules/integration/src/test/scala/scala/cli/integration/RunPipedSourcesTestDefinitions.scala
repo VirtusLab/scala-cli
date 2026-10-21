@@ -2,16 +2,16 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
   def piping(): Unit = {
     emptyInputs.fromRoot { root =>
-      val cliCmd         = (TestUtil.cli ++ extraOptions).mkString(" ")
-      val cmd            = s""" echo 'println("Hello" + " from pipe")' | $cliCmd _.sc """
-      val res            = os.proc("bash", "-c", cmd).call(cwd = root)
-      val expectedOutput = "Hello from pipe" + System.lineSeparator()
-      expect(res.out.text() == expectedOutput)
+      val cliCmd = (TestUtil.cli ++ extraOptions).mkString(" ")
+      val cmd    = s""" echo 'println("Hello" + " from pipe")' | $cliCmd _.sc """
+      val res    = stableStdoutOf("bash", "-c", cmd)(cwd = root)
+      expect(res == "Hello from pipe")
     }
   }
 
@@ -23,9 +23,7 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
       val message = "Hello"
       val input   = s"println(\"$message\")"
       emptyInputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, "-", extraOptions)
-          .call(cwd = root, stdin = input)
-          .out.trim()
+        val output = stableStdoutOf(TestUtil.cli, "-", extraOptions)(cwd = root, stdin = input)
         expect(output == message)
       }
     }
@@ -33,9 +31,10 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
       val expectedOutput = "Hello"
       val pipedInput     = s"object Test extends App { println(\"$expectedOutput\") }"
       emptyInputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, "_.scala", extraOptions)
-          .call(cwd = root, stdin = pipedInput)
-          .out.trim()
+        val output = stableStdoutOf(TestUtil.cli, "_.scala", extraOptions)(
+          cwd = root,
+          stdin = pipedInput
+        )
         expect(output == expectedOutput)
       }
     }
@@ -48,9 +47,10 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
            |}""".stripMargin
       val inputs = TestInputs(os.rel / "SomeData.scala" -> "case class SomeData(value: String)")
       inputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, ".", "_.scala", extraOptions)
-          .call(cwd = root, stdin = pipedInput)
-          .out.trim()
+        val output = stableStdoutOf(TestUtil.cli, ".", "_.scala", extraOptions)(
+          cwd = root,
+          stdin = pipedInput
+        )
         expect(output == expectedOutput)
       }
     }
@@ -64,9 +64,10 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
            |}
            |""".stripMargin
       emptyInputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, "_.java", extraOptions)
-          .call(cwd = root, stdin = pipedInput)
-          .out.trim()
+        val output = stableStdoutOf(TestUtil.cli, "_.java", extraOptions)(
+          cwd = root,
+          stdin = pipedInput
+        )
         expect(output == expectedOutput)
       }
     }
@@ -76,9 +77,13 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
         TestUtil.retryOnCi() {
           val pipedInput = """void main() { System.out.println("piped"); }"""
           emptyInputs.fromRoot { root =>
-            val res = os.proc(TestUtil.cli, "_.java", "--jvm", TestUtil.jvmId(javaVersion))
-              .call(cwd = root, stdin = pipedInput)
-            expect(TestUtil.stableStdout(res) == "piped")
+            val res = stableStdoutOf(
+              TestUtil.cli,
+              "_.java",
+              "--jvm",
+              TestUtil.jvmId(javaVersion)
+            )(cwd = root, stdin = pipedInput)
+            expect(res == "piped")
           }
         }
       }
@@ -98,7 +103,7 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
           emptyInputs.fromRoot { root =>
             val res = os.proc(TestUtil.cli, "_.java", extraOptions, jvmOptions)
               .call(cwd = root, stdin = source, stderr = os.Pipe)
-            expect(res.out.trim() == expectedOutput)
+            expect(TestUtil.stableStdout(res) == expectedOutput)
             // java-class-name used to report Java parser errors (e.g. for compact sources) to stderr
             expect(!res.err.text().contains("-- Error:"))
           }
@@ -157,9 +162,10 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
            |}
            |""".stripMargin
       emptyInputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, "_.java", extraOptions)
-          .call(cwd = root, stdin = pipedInput)
-          .out.trim()
+        val output = stableStdoutOf(TestUtil.cli, "_.java", extraOptions)(
+          cwd = root,
+          stdin = pipedInput
+        )
         expect(output == expectedOutput)
       }
     }
@@ -188,7 +194,7 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
              |""".stripMargin)
       inputs.fromRoot { root =>
         val output =
-          os.proc(
+          stableStdoutOf(
             TestUtil.cli,
             ".",
             "_.sc",
@@ -199,9 +205,7 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
             "--java-snippet",
             javaSnippet,
             extraOptions
-          )
-            .call(cwd = root, stdin = pipedInput)
-            .out.trim()
+          )(cwd = root, stdin = pipedInput)
         expect(output == expectedOutput)
       }
     }
@@ -216,15 +220,14 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
       )
       val pipedInput = """def hello: String = "Hello""""
       inputs.fromRoot { root =>
-        val res = os.proc(
+        val res = stableStdoutOf(
           TestUtil.cli,
           "run",
           extraOptions,
           ".",
           "_.sc"
-        )
-          .call(cwd = root, stdin = pipedInput)
-        expect(res.out.trim() == "Hello world")
+        )(cwd = root, stdin = pipedInput)
+        expect(res == "Hello world")
       }
     }
     test("pick piped .scala main class over in-context scripts") {
@@ -242,15 +245,14 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
           |}
           |""".stripMargin
       inputs.fromRoot { root =>
-        val res = os.proc(
+        val res = stableStdoutOf(
           TestUtil.cli,
           "run",
           extraOptions,
           ".",
           "_.scala"
-        )
-          .call(cwd = root, stdin = pipedInput)
-        expect(res.out.trim() == "Hello world")
+        )(cwd = root, stdin = pipedInput)
+        expect(res == "Hello world")
       }
     }
   }
@@ -265,9 +267,10 @@ trait RunPipedSourcesTestDefinitions { this: RunTestDefinitions =>
          |```
          |""".stripMargin
     emptyInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "_.md", extraOptions)
-        .call(cwd = root, stdin = pipedInput)
-        .out.trim()
+      val output = stableStdoutOf(TestUtil.cli, "_.md", extraOptions)(
+        cwd = root,
+        stdin = pipedInput
+      )
       expect(output == expectedOutput)
     }
   }

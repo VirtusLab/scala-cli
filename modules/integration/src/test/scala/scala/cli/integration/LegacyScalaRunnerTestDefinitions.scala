@@ -1,15 +1,21 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+
+import scala.cli.integration.TestUtil.stableStdoutOf
 trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
   test("default to the run sub-command when a script snippet is passed with -e") {
     TestInputs.empty.fromRoot { root =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
       val res       =
-        os.proc(TestUtil.cli, "-e", s"println($quotation$msg$quotation)", TestUtil.extraOptions)
-          .call(cwd = root)
-      expect(res.out.trim() == msg)
+        stableStdoutOf(
+          TestUtil.cli,
+          "-e",
+          s"println($quotation$msg$quotation)",
+          TestUtil.extraOptions
+        )(cwd = root)
+      expect(res == msg)
     }
   }
 
@@ -26,7 +32,9 @@ trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
         )
           .call(cwd = root, mergeErrIntoOut = true, check = false)
       expect(res.exitCode == 1)
-      expect(res.out.lines().endsWith(unrecognizedArgMessage(replSpecificOption)))
+      expect(TestUtil.dropJvmLogLines(
+        res.out.lines()
+      ).endsWith(unrecognizedArgMessage(replSpecificOption)))
     }
   }
 
@@ -110,7 +118,7 @@ trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
       (legacyOption, expectedMsg, _, root) =>
         val res = os.proc(TestUtil.cli, legacyOption, "s.sc", TestUtil.extraOptions)
           .call(cwd = root, stderr = os.Pipe)
-        expect(res.out.trim() == expectedMsg)
+        expect(TestUtil.stableStdout(res) == expectedMsg)
         expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))
     }
 

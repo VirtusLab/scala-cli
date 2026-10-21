@@ -4,6 +4,8 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 class PgpTests extends ScalaCliSuite {
   private val pubKeyInputs = TestInputs(
     os.rel / "key.pub" ->
@@ -44,10 +46,17 @@ class PgpTests extends ScalaCliSuite {
     pubKeyInputs.fromRoot { root =>
       val signingCliArgs = if (useSigningJvmLauncher) Seq("--force-jvm-signing-cli") else Seq.empty
       val res            =
-        os.proc(TestUtil.cli, "--power", "pgp", "key-id", signingCliArgs, "key.pub").call(cwd =
+        stableStdoutOf(
+          TestUtil.cli,
+          "--power",
+          "pgp",
+          "key-id",
+          signingCliArgs,
+          "key.pub"
+        )(cwd =
           root
         )
-      val output         = res.out.trim()
+      val output         = res
       val expectedOutput = "914d298df8fa4d20"
       expect(output == expectedOutput)
     }
@@ -63,11 +72,10 @@ class PgpTests extends ScalaCliSuite {
 
   test("pgp pull") {
     // random key that I pushed to the default ker server at some point
-    val res = os.proc(TestUtil.cli, "--power", "pgp", "pull", "0x914d298df8fa4d20")
-      .call()
-    val output        = res.out.trim()
-    val start         = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
-    val end           = "-----END PGP PUBLIC KEY BLOCK-----"
+    val res    = stableStdoutOf(TestUtil.cli, "--power", "pgp", "pull", "0x914d298df8fa4d20")()
+    val output = res
+    val start  = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
+    val end    = "-----END PGP PUBLIC KEY BLOCK-----"
     val expectedLines = Seq(
       "xsBNBGKDqDYDCACw/2akQ1h6NHmtcEKQThq7OMdExyJ4WUKWdr+iV3BFx/AZICRd",
       "t1QH/06YazNGeuLzc62Mamnr8kA0AakGJxPZ83rGXcdahBRd9Enga32pcEks6YPI",
@@ -120,7 +128,10 @@ class PgpTests extends ScalaCliSuite {
   test("pgp push with external JVM process, java version too low") {
     pubKeyInputs.fromRoot { root =>
       val java8Home =
-        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+        os.Path(
+          stableStdoutOf(TestUtil.cs, "java-home", "--jvm", "zulu:8")(),
+          os.pwd
+        )
 
       os.proc(
         TestUtil.cli,

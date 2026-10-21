@@ -1,5 +1,6 @@
 package scala.cli.integration
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 class ArgsFileTests extends ScalaCliSuite {
@@ -89,15 +90,15 @@ class ArgsFileTests extends ScalaCliSuite {
 
       val compileOutput = root / runDir / outputDir
       os.makeDir.all(compileOutput)
-      val runRes = os.proc(
+      val runRes = stableStdoutOf(
         TestUtil.cli,
         "run",
         "@args.txt",
         "--server=false",
         "@args2.txt",
         mainInput
-      ).call(cwd = root / runDir, stderr = os.Pipe)
-      assert(runRes.out.trim() == expectedOutput)
+      )(cwd = root / runDir, stderr = os.Pipe)
+      assert(runRes == expectedOutput)
       assert((compileOutput / "Main.class").toNIO.toFile().exists())
     }
   }

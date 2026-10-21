@@ -4,6 +4,8 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.nio.file.Paths
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
   test("Pure Java") {
     val testOrg     = "test-org.foo"
@@ -52,15 +54,14 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
       val baseDir  = repoRoot / testOrg.split('.').toSeq / testName / testVersion
       expect(os.isDir(baseDir))
 
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cs,
         "launch",
         s"$testOrg:$testName:$testVersion",
         "-r",
         repoRoot.toNIO.toUri.toASCIIString
-      )
-        .call(stdin = os.Inherit, cwd = root)
-      val output = res.out.trim()
+      )(stdin = os.Inherit, cwd = root)
+      val output = res
       expect(output == "Hello from foo")
     }
   }
@@ -112,7 +113,7 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
         publishArgs
       )
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cs,
         "launch",
         "--python",
@@ -122,8 +123,8 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
         "-r",
         repoRoot.toNIO.toUri.toASCIIString,
         s"$org:${name}_$sbv:$ver"
-      ).call(cwd = root)
-      val output = res.out.trim()
+      )(cwd = root)
+      val output = res
       expect(output == "Hello from Python")
     }
   }

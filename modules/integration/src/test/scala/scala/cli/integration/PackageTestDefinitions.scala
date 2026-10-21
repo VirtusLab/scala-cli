@@ -44,7 +44,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = TestUtil.maybeUseBash(launcher)(cwd = root).out.trim()
+      val output = TestUtil.stableStdout(TestUtil.maybeUseBash(launcher)(cwd = root))
       expect(output == message)
     }
   }
@@ -71,7 +71,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = TestUtil.maybeUseBash(launcher.toString)(cwd = root).out.trim()
+      val output = TestUtil.stableStdout(TestUtil.maybeUseBash(launcher.toString)(cwd = root))
       expect(output == message)
     }
   }
@@ -99,7 +99,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val outputName = if (Properties.isWin) "hello.bat" else "hello"
       val launcher   = root / outputName
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.trim()
+      val output = stableStdoutOf(launcher.toString)(cwd = root)
       expect(output == message)
     }
   }
@@ -166,7 +166,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val outputName = if (Properties.isWin) "hello.bat" else "hello"
       val launcher   = root / outputName
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.trim()
+      val output = stableStdoutOf(launcher.toString)(cwd = root)
       expect(output == message)
     }
   }
@@ -194,7 +194,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(os.isFile(launcher))
 
       val nodePath = node
-      val output   = os.proc(nodePath, launcher.toString).call(cwd = root).out.trim()
+      val output   = stableStdoutOf(nodePath, launcher.toString)(cwd = root)
       expect(output == message)
     }
   }
@@ -273,7 +273,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val launcher = root / destDir / "main.js"
       val nodePath = node
       os.write(root / "package.json", "{\n\n  \"type\": \"module\"\n\n}") // enable es module
-      val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.trim()
+      val output = stableStdoutOf(nodePath, launcher.toString)(cwd = root)
       expect(output == message)
     }
   }
@@ -318,7 +318,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val launcher = root / destDir / "main.js"
       val nodePath = node
       os.write(root / "package.json", "{\n\n  \"type\": \"module\"\n\n}") // enable es module
-      val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.trim()
+      val output = stableStdoutOf(nodePath, launcher.toString)(cwd = root)
       expect(output == message)
     }
   }
@@ -396,7 +396,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
       val runHelloWorld = root / "runHello.js"
       val nodePath      = node
-      val output        = os.proc(nodePath, runHelloWorld.toString).call(cwd = root).out.trim()
+      val output        = stableStdoutOf(nodePath, runHelloWorld.toString)(cwd = root)
       expect(output == msg)
     }
   }
@@ -455,7 +455,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.trim()
+      val output = stableStdoutOf(launcher.toString)(cwd = root)
       expect(output == message)
     }
   }
@@ -579,7 +579,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           }
         val runnableLauncherSize = os.size(runnableLauncher)
 
-        val output = TestUtil.maybeUseBash(runnableLauncher.toString)(cwd = root).out.trim()
+        val output =
+          TestUtil.stableStdout(TestUtil.maybeUseBash(runnableLauncher.toString)(cwd = root))
         val maxRunnableLauncherSize = 1024 * 1024 * 12 // should be smaller than 12MB
         expect(output == message)
         expect(runnableLauncherSize < maxRunnableLauncherSize)
@@ -622,8 +623,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val contentStart  = os.read.bytes(launcher).take(preambleStart.length)
       expect(!util.Arrays.equals(contentStart, preambleStart))
 
-      val output = os.proc("java", "-cp", launcher, "hello.Hello")
-        .call(cwd = root).out.trim()
+      val output = stableStdoutOf("java", "-cp", launcher, "hello.Hello")(cwd = root)
       expect(output == "Hello from assembly")
     }
   }
@@ -693,16 +693,16 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val classpath = os.proc(
+      val classpath = stableStdoutOf(
         TestUtil.cli,
         "compile",
         extraOptions,
         "--print-classpath",
         lib.toString
-      ).call(
+      )(
         cwd = root,
         stdin = os.Inherit
-      ).out.text().trim
+      )
 
       os.proc(
         TestUtil.cli,
@@ -789,11 +789,19 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(noMetaEntries.forall(_.startsWith("hello/")))
 
       val scalaLibCp =
-        os.proc(TestUtil.cs, "fetch", "--classpath", s"$providedModule:$actualScalaVersion")
-          .call(cwd = root).out.trim()
+        stableStdoutOf(
+          TestUtil.cs,
+          "fetch",
+          "--classpath",
+          s"$providedModule:$actualScalaVersion"
+        )(cwd = root)
       val output =
-        os.proc("java", "-cp", s"$launcher${File.pathSeparator}$scalaLibCp", "hello.Hello")
-          .call(cwd = root).out.trim()
+        stableStdoutOf(
+          "java",
+          "-cp",
+          s"$launcher${File.pathSeparator}$scalaLibCp",
+          "hello.Hello"
+        )(cwd = root)
       val expectedScalaVerInOutput =
         if (actualScalaVersion.startsWith("2.")) actualScalaVersion
         else {
@@ -839,7 +847,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val outputName = if (Properties.isWin) "Main.bat" else "Main"
       val launcher   = root / outputName
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.trim()
+      val output = stableStdoutOf(launcher.toString)(cwd = root)
       expect(output == "Hello World")
     }
   }
@@ -996,8 +1004,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
       // FIXME Check that dest is indeed a binary?
 
-      val res    = os.proc(root / actualDest).call(cwd = root)
-      val output = res.out.trim()
+      val res    = stableStdoutOf(root / actualDest)(cwd = root)
+      val output = res
       expect(output == message)
     }
   }
@@ -1043,8 +1051,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
         expect(os.isFile(root / actualDest))
 
-        val res    = os.proc(root / actualDest).call(cwd = root)
-        val output = res.out.trim()
+        val res    = stableStdoutOf(root / actualDest)(cwd = root)
+        val output = res
         expect(output == message)
 
         unaliasDriveLetter(driveLetter) // undo test condition
@@ -1064,16 +1072,15 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
     )
     inputs.fromRoot { root =>
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "package",
         extraOptions,
         ".",
         "--list-main-classes"
-      )
-        .call(cwd = root)
-      val output      = res.out.trim()
+      )(cwd = root)
+      val output      = res
       val mainClasses = output.split(" ").toSet
 
       val scriptMainClassName = if (actualScalaVersion.startsWith("3"))
@@ -1119,7 +1126,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         "1.8",
         "-f"
       ).call(cwd = root)
-      val output = os.proc(root / destFile).call(cwd = root).out.trim()
+      val output = stableStdoutOf(root / destFile)(cwd = root)
       expect(output == s"$fooProp$barProp")
     }
   }
@@ -1171,7 +1178,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         s"-Dbar=$barProp",
         "-f"
       ).call(cwd = root)
-      val output = os.proc("docker", "run", imageName).call(cwd = root).out.trim()
+      val output = stableStdoutOf("docker", "run", imageName)(cwd = root)
       expect(output == s"$fooProp$barProp")
     }
   }
@@ -1213,7 +1220,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         root / extraFileDir,
         "-f"
       ).call(cwd = root)
-      val output = os.proc("docker", "run", imageName).call(cwd = root).out.trim()
+      val output = stableStdoutOf("docker", "run", imageName)(cwd = root)
       expect(output == expectedOutput)
     }
   }
@@ -1236,8 +1243,14 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
   test("default values in help") {
     TestInputs.empty.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "--power", "package", extraOptions, "--help").call(cwd = root)
-      val lines = removeAnsiColors(res.out.trim()).linesIterator.toVector
+      val res = stableStdoutOf(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        "--help"
+      )(cwd = root)
+      val lines = removeAnsiColors(res).linesIterator.toVector
 
       val graalVmVersionHelp     = lines.find(_.contains("--graalvm-version")).getOrElse("")
       val graalVmJavaVersionHelp = lines.find(_.contains("--graalvm-java-version")).getOrElse("")
@@ -1275,8 +1288,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
 
       val launcher = root / dest
-      val res      = os.proc(launcher).call(cwd = root)
-      val output   = res.out.trim()
+      val res      = stableStdoutOf(launcher)(cwd = root)
+      val output   = res
       expect(output == "Hello from Python")
     }
   }
@@ -1321,13 +1334,14 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       )
 
       // bootstrap
-      os.proc(packageCmds).call(cwd = root).out.trim()
-      val output = TestUtil.maybeUseBash(launcher.toString)(cwd = root).out.trim()
+      stableStdoutOf(packageCmds)(cwd = root)
+      val output = TestUtil.stableStdout(TestUtil.maybeUseBash(launcher.toString)(cwd = root))
       expect(output == root.toString)
 
       // assembly
-      os.proc(packageCmds, "--assembly", "-f").call(cwd = root).out.trim()
-      val outputAssembly = TestUtil.maybeUseBash(launcher.toString)(cwd = root).out.trim()
+      stableStdoutOf(packageCmds, "--assembly", "-f")(cwd = root)
+      val outputAssembly =
+        TestUtil.stableStdout(TestUtil.maybeUseBash(launcher.toString)(cwd = root))
       expect(outputAssembly == root.toString)
     }
   }
@@ -1433,7 +1447,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         .call(cwd = root)
       expect(os.isFile(outputJarPath))
       val res =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "run",
           "--jar",
@@ -1443,8 +1457,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           "--dep",
           "org.scala-lang.modules::scala-xml:2.2.0",
           extraOptions
-        ).call(cwd = root)
-      expect(res.out.trim() == child)
+        )(cwd = root)
+      expect(res == child)
     }
   }
 
@@ -1490,12 +1504,12 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
             expect(os.isFile(outputFilePath))
             val output =
               if (packageDescription == libraryArg)
-                os.proc(TestUtil.cli, "run", outputFilePath).call(cwd = root).out.trim()
+                stableStdoutOf(TestUtil.cli, "run", outputFilePath)(cwd = root)
               else if (packageDescription == jsArg)
-                os.proc(node, outputFilePath).call(cwd = root).out.trim()
+                stableStdoutOf(node, outputFilePath)(cwd = root)
               else {
                 expect(Files.isExecutable(outputFilePath.toNIO))
-                TestUtil.maybeUseBash(outputFilePath)(cwd = root).out.trim()
+                TestUtil.stableStdout(TestUtil.maybeUseBash(outputFilePath)(cwd = root))
               }
             expect(output == message)
           }
@@ -1625,7 +1639,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       )
       val launcher = root / (if Properties.isWin then "Main.bat" else "Main")
       expect(os.isFile(launcher))
-      val output = TestUtil.maybeUseBash(launcher)(cwd = root).out.trim()
+      val output = TestUtil.stableStdout(TestUtil.maybeUseBash(launcher)(cwd = root))
       expect(output == message)
     }
   }
@@ -1651,7 +1665,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       )
       val launcher = root / (if Properties.isWin then "Main.bat" else "Main")
       expect(os.isFile(launcher))
-      val output = TestUtil.maybeUseBash(launcher)(cwd = root).out.trim()
+      val output = TestUtil.stableStdout(TestUtil.maybeUseBash(launcher)(cwd = root))
       expect(output == message)
     }
   }
@@ -1682,8 +1696,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val attrs = jarManifestMainAttributes(appJar)
       expect(attrs.get("X-Custom").contains("yes"))
       expect(attrs.get("Main-Class").contains("Main"))
-      val r = os.proc(TestUtil.cli, "run", extraOptions, appJar).call(cwd = root)
-      expect(r.out.trim() == message)
+      val r = stableStdoutOf(TestUtil.cli, "run", extraOptions, appJar)(cwd = root)
+      expect(r == message)
     }
   }
 
@@ -1714,8 +1728,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val attrs = jarManifestMainAttributes(appJar)
       expect(attrs.get("X-Custom").contains("yes"))
       expect(attrs.get("Main-Class").contains("Main"))
-      val r = os.proc(TestUtil.cli, "run", extraOptions, appJar, "-M", "Main").call(cwd = root)
-      expect(r.out.trim() == message)
+      val r = stableStdoutOf(TestUtil.cli, "run", extraOptions, appJar, "-M", "Main")(cwd = root)
+      expect(r == message)
     }
   }
 
@@ -1737,7 +1751,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       )
       val launcher = root / (if Properties.isWin then "Main.bat" else "Main")
       expect(os.isFile(launcher))
-      val output = TestUtil.maybeUseBash(launcher)(cwd = root).out.trim()
+      val output = TestUtil.stableStdout(TestUtil.maybeUseBash(launcher)(cwd = root))
       expect(output == message)
     }
   }
@@ -1761,17 +1775,11 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
             "app.jar"
           ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
           val javaHome = os.Path(
-            os.proc(
-              TestUtil.cs,
-              "java-home",
-              "--jvm",
-              TestUtil.jvmId(javaVersion)
-            ).call().out.trim(),
+            stableStdoutOf(TestUtil.cs, "java-home", "--jvm", TestUtil.jvmId(javaVersion))(),
             os.pwd
           )
-          val res = os.proc(javaHome / "bin" / "java", "-jar", root / "app.jar")
-            .call(cwd = root)
-          expect(res.out.trim() == "1")
+          val res = stableStdoutOf(javaHome / "bin" / "java", "-jar", root / "app.jar")(cwd = root)
+          expect(res == "1")
         }
       }
     }

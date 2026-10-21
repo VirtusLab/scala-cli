@@ -8,7 +8,7 @@ import com.google.gson.{Gson, JsonElement}
 import java.net.URI
 import java.nio.file.Paths
 
-import scala.cli.integration.TestUtil.await
+import scala.cli.integration.TestUtil.{await, stableStdoutOf}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.*
@@ -1918,7 +1918,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
         os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
         val java23Home =
           os.Path(
-            os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
+            stableStdoutOf(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion")(),
             os.pwd
           )
         os.proc(TestUtil.cli, "setup-ide", "check-java.sc")
@@ -1958,7 +1958,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
         os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
         val java22Home =
           os.Path(
-            os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
+            stableStdoutOf(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion")(),
             os.pwd
           )
         os.proc(TestUtil.cli, "setup-ide", "check-java.sc", "--java-home", java22Home.toString())
@@ -2254,7 +2254,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               val jvmIndex = if (TestUtil.isJvmCli) Constants.minimumLauncherJavaVersion else 8
               val javaHome =
                 os.Path(
-                  os.proc(TestUtil.cs, "java-home", "--jvm", jvmIndex).call().out.trim(),
+                  stableStdoutOf(TestUtil.cs, "java-home", "--jvm", jvmIndex)(),
                   os.pwd
                 )
               os.proc(launcher, "setup-ide", scriptName, extraOptions)
@@ -2272,13 +2272,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
                 // this launcher is not self-executable and has to be launched with `java -jar`
                 expect(bspLauncherCommand.head.endsWith("java"))
                 expect(bspLauncherCommand.drop(1) == List("-jar", TestUtil.cliPath))
-                val bspJavaVersionResult = os.proc(bspLauncherCommand.head, "-version")
-                  .call(
+                val bspJavaVersionResult =
+                  stableStdoutOf(bspLauncherCommand.head, "-version")(
                     cwd = root,
                     env = Map("JAVA_HOME" -> javaHome.toString),
                     mergeErrIntoOut = true
                   )
-                val bspJavaVersion = TestUtil.parseJavaVersion(bspJavaVersionResult.out.trim()).get
+                val bspJavaVersion =
+                  TestUtil.parseJavaVersion(bspJavaVersionResult).get
                 // the bsp launcher has to know to run itself on a supported JVM
                 expect(bspJavaVersion >= math.max(
                   Constants.minimumInternalJvmVersion,
@@ -2287,9 +2288,11 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               }
               else
                 expect(bspLauncherCommand == List(TestUtil.cliPath))
-              val r = os.proc(bspLauncherCommand, "version", "--cli-version")
-                .call(cwd = root, env = Map("JAVA_HOME" -> javaHome.toString))
-              expect(r.out.trim() == Constants.cliVersion)
+              val r = stableStdoutOf(bspLauncherCommand, "version", "--cli-version")(
+                cwd = root,
+                env = Map("JAVA_HOME" -> javaHome.toString)
+              )
+              expect(r == Constants.cliVersion)
             }
           }
       }

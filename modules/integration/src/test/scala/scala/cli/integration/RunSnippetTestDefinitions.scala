@@ -2,21 +2,22 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
   test("correctly run a script snippet") {
     emptyInputs.fromRoot { root =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
       val res       =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "run",
           "--script-snippet",
           s"println($quotation$msg$quotation)",
           extraOptions
-        )
-          .call(cwd = root)
-      expect(res.out.trim() == msg)
+        )(cwd = root)
+      expect(res == msg)
     }
   }
 
@@ -25,15 +26,14 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
       val res       =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "run",
           "--scala-snippet",
           s"object Hello extends App { println($quotation$msg$quotation) }",
           extraOptions
-        )
-          .call(cwd = root)
-      expect(res.out.trim() == msg)
+        )(cwd = root)
+      expect(res == msg)
     }
   }
 
@@ -41,15 +41,14 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
     emptyInputs.fromRoot { root =>
       val quotation = TestUtil.argQuotationMark
       val msg       = "Hello world"
-      val res       = os.proc(
+      val res       = stableStdoutOf(
         TestUtil.cli,
         "run",
         "--java-snippet",
         s"public class Main { public static void main(String[] args) { System.out.println($quotation$msg$quotation); } }",
         extraOptions
-      )
-        .call(cwd = root)
-      expect(res.out.trim() == msg)
+      )(cwd = root)
+      expect(res == msg)
     }
   }
 
@@ -59,15 +58,15 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
         emptyInputs.fromRoot { root =>
           val quotation = TestUtil.argQuotationMark
           val msg       = "snippet"
-          val res       = os.proc(
+          val res       = stableStdoutOf(
             TestUtil.cli,
             "run",
             "--java-snippet",
             s"void main() { System.out.println($quotation$msg$quotation); }",
             "--jvm",
             TestUtil.jvmId(javaVersion)
-          ).call(cwd = root)
-          expect(TestUtil.stableStdout(res) == msg)
+          )(cwd = root)
+          expect(res == msg)
         }
       }
     }
@@ -89,7 +88,7 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
           val res =
             os.proc(TestUtil.cli, "run", "--java-snippet", source, extraOptions, jvmOptions)
               .call(cwd = root, stderr = os.Pipe)
-          expect(res.out.trim() == expectedOutput)
+          expect(TestUtil.stableStdout(res) == expectedOutput)
           // java-class-name used to report Java parser errors (e.g. for compact sources) to stderr
           expect(!res.err.text().contains("-- Error:"))
         }
@@ -136,7 +135,7 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
       val res       =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "--power",
           "run",
@@ -147,9 +146,8 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
              |println($quotation$msg$quotation)
              |```""".stripMargin,
           extraOptions
-        )
-          .call(cwd = root)
-      expect(res.out.trim() == msg)
+        )(cwd = root)
+      expect(res == msg)
     }
   }
 
@@ -158,7 +156,7 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
       val res       =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "--power",
           "run",
@@ -173,9 +171,8 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
              |}
              |```""".stripMargin,
           extraOptions
-        )
-          .call(cwd = root)
-      expect(res.out.trim() == msg)
+        )(cwd = root)
+      expect(res == msg)
     }
   }
 
@@ -218,7 +215,7 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
 
       val expectedOutput = (scriptMessages ++ scalaMessages ++ javaMessages).mkString(";")
 
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cli,
         "run",
         scriptSnippetOption,
@@ -244,18 +241,20 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
         javaSnippetOption,
         java3,
         extraOptions
-      )
-        .call(cwd = root)
-      expect(res.out.trim() == expectedOutput)
+      )(cwd = root)
+      expect(res == expectedOutput)
     }
   }
   test("running a script snippet should not create the workspace dir in cwd") {
     emptyInputs.fromRoot { root =>
       val quotation = TestUtil.argQuotationMark
       val msg       = "Hello World from snippet"
-      os.proc(TestUtil.cli, "-e", s"println($quotation$msg$quotation)", extraOptions)
-        .call(cwd = root)
-        .out.trim()
+      stableStdoutOf(
+        TestUtil.cli,
+        "-e",
+        s"println($quotation$msg$quotation)",
+        extraOptions
+      )(cwd = root)
       expect(!os.exists(root / Constants.workspaceDirName))
     }
   }
@@ -267,9 +266,7 @@ trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
            |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "-e", s"println(Hello.hello)", ".", extraOptions)
-        .call(cwd = root)
-        .out.trim()
+      stableStdoutOf(TestUtil.cli, "-e", s"println(Hello.hello)", ".", extraOptions)(cwd = root)
       expect(os.exists(root / Constants.workspaceDirName))
     }
   }

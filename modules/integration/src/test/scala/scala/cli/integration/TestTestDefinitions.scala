@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.annotation.tailrec
 import scala.cli.integration.Constants.{jupiterInterfaceVersion, munitVersion}
-import scala.cli.integration.TestUtil.{ProcOps, StringOps}
+import scala.cli.integration.TestUtil.{ProcOps, StringOps, stableStdoutOf}
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 
@@ -1177,8 +1177,14 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
              |    )
              |}
              |""".stripMargin).fromRoot { root =>
-          val r = os.proc(TestUtil.cli, "test", ".", extraOptions, platformOptions).call(cwd = root)
-          val output = r.out.trim()
+          val r = stableStdoutOf(
+            TestUtil.cli,
+            "test",
+            ".",
+            extraOptions,
+            platformOptions
+          )(cwd = root)
+          val output = r
           expect(output.contains(expectedMessage))
           expect(countSubStrings(output, expectedMessage) == 1)
         }
@@ -1245,10 +1251,18 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
                |""".stripMargin
         ).fromRoot { root =>
           val r =
-            os.proc(TestUtil.cli, "test", extraOptions, ".", platformOptions, "-v", "-v").call(cwd =
+            stableStdoutOf(
+              TestUtil.cli,
+              "test",
+              extraOptions,
+              ".",
+              platformOptions,
+              "-v",
+              "-v"
+            )(cwd =
               root
             )
-          val output = r.out.trim()
+          val output = r
           expect(output.nonEmpty)
           expectedMessages.foreach { expectedMessage =>
             expect(output.contains(expectedMessage))
@@ -1298,14 +1312,8 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
                |}""".stripMargin
         ).fromRoot { root =>
           val r =
-            os.proc(
-              TestUtil.cli,
-              "test",
-              extraOptions,
-              ".",
-              platformOptions
-            ).call(cwd = root)
-          val output = r.out.trim()
+            stableStdoutOf(TestUtil.cli, "test", extraOptions, ".", platformOptions)(cwd = root)
+          val output = r
           expect(output.nonEmpty)
           expectedMessages.foreach { expectedMessage =>
             expect(output.contains(expectedMessage))
@@ -1340,7 +1348,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         val res =
           os.proc(TestUtil.cli, "test", ".", extraOptions, "--jvm", TestUtil.jvmId(javaVersion))
             .call(cwd = root, stderr = os.Pipe)
-        val out = res.out.trim()
+        val out = TestUtil.stableStdout(res)
         expect(out.contains(expectedMessage))
         val isLegacyJvm   = javaVersion < Constants.minimumRunnerJavaVersion
         val isLegacyScala = actualScalaVersion.startsWith("2")

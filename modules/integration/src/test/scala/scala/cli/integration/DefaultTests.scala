@@ -2,13 +2,15 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDefinitions {
   override def warmUpExtraTestOptions: Seq[String] = TestUtil.extraOptions
 
   test("running scala-cli with no args should default to repl") {
     TestInputs.empty.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "--repl-dry-run").call(cwd = root, mergeErrIntoOut = true)
-      expect(res.out.lines().lastOption.contains(replDryRunOutput))
+      expect(TestUtil.dropJvmLogLines(res.out.lines()).lastOption.contains(replDryRunOutput))
     }
   }
   test("running scala-cli with no args should not accept run-only options") {
@@ -20,7 +22,9 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
         check = false
       )
       expect(res.exitCode == 1)
-      expect(res.out.lines().endsWith(unrecognizedArgMessage(runSpecificOption)))
+      expect(TestUtil.dropJvmLogLines(
+        res.out.lines()
+      ).endsWith(unrecognizedArgMessage(runSpecificOption)))
     }
   }
   test("running scala-cli with args should not accept repl-only options") {
@@ -32,7 +36,9 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
         check = false
       )
       expect(res.exitCode == 1)
-      expect(res.out.lines().endsWith(unrecognizedArgMessage(replSpecificOption)))
+      expect(TestUtil.dropJvmLogLines(
+        res.out.lines()
+      ).endsWith(unrecognizedArgMessage(replSpecificOption)))
     }
   }
 
@@ -41,14 +47,13 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
       val res       =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "--execute-scala",
           s"@main def main() = println($quotation$msg$quotation)",
           TestUtil.extraOptions
-        )
-          .call(cwd = root)
-      expect(res.out.trim() == msg)
+        )(cwd = root)
+      expect(res == msg)
     }
   }
 
@@ -57,14 +62,13 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
       val res       =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "--execute-java",
           s"public class Main { public static void main(String[] args) { System.out.println($quotation$msg$quotation); } }",
           TestUtil.extraOptions
-        )
-          .call(cwd = root)
-      expect(res.out.trim() == msg)
+        )(cwd = root)
+      expect(res == msg)
     }
   }
 
@@ -73,7 +77,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
       val res       =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "--power",
           "--execute-markdown",
@@ -83,9 +87,8 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
              |println($quotation$msg$quotation)
              |```""".stripMargin,
           TestUtil.extraOptions
-        )
-          .call(cwd = root)
-      expect(res.out.trim() == msg)
+        )(cwd = root)
+      expect(res == msg)
     }
   }
 
@@ -106,14 +109,14 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
       ).call(cwd = root)
 
       // next, run while relying on the pre-compiled class instead of passing inputs
-      val runRes = os.proc(
+      val runRes = stableStdoutOf(
         TestUtil.cli,
         "--main-class",
         mainClassName,
         "-classpath",
         (os.rel / compilationOutputDir).toString
-      ).call(cwd = root)
-      expect(runRes.out.trim() == expectedOutput)
+      )(cwd = root)
+      expect(runRes == expectedOutput)
     }
   }
 
@@ -140,7 +143,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
         "-classpath",
         (os.rel / compilationOutputDir).toString
       ).call(cwd = root, mergeErrIntoOut = true)
-      expect(runRes.out.lines().lastOption.contains(replDryRunOutput))
+      expect(TestUtil.dropJvmLogLines(runRes.out.lines()).lastOption.contains(replDryRunOutput))
     }
   }
 

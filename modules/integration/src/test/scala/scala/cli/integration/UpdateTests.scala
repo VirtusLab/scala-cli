@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 class UpdateTests extends ScalaCliSuite {
@@ -71,10 +72,7 @@ class UpdateTests extends ScalaCliSuite {
       val dummyScalaCliCommand =
         Seq[os.Shellable]("/usr/bin/env", "bash", binDirPath / dummyScalaCliBinName)
 
-      val v1Install = os.proc(dummyScalaCliCommand).call(
-        cwd = root,
-        stdin = os.Inherit
-      ).out.trim()
+      val v1Install = stableStdoutOf(dummyScalaCliCommand)(cwd = root, stdin = os.Inherit)
       expect(v1Install == firstVersion)
 
       val tokenOptions =
@@ -97,10 +95,10 @@ class UpdateTests extends ScalaCliSuite {
         stdout = os.Inherit
       )
 
-      val nextVersion = os.proc(binDirPath / dummyScalaCliBinName, "version").call(
+      val nextVersion = stableStdoutOf(binDirPath / dummyScalaCliBinName, "version")(
         cwd = root,
         stdin = os.Inherit
-      ).out.trim()
+      )
 
       expect(firstVersion != nextVersion)
     }

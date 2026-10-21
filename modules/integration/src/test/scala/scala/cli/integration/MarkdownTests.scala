@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 class MarkdownTests extends ScalaCliSuite {
   test("run a simple .md file with a scala script snippet") {
     val expectedOutput = "Hello"
@@ -14,8 +16,8 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
-      expect(result.out.trim() == expectedOutput)
+      val result = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
+      expect(result == expectedOutput)
     }
   }
 
@@ -32,8 +34,8 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
-      expect(result.out.trim() == expectedOutput)
+      val result = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
+      expect(result == expectedOutput)
     }
   }
 
@@ -62,8 +64,8 @@ class MarkdownTests extends ScalaCliSuite {
            |##
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
-      expect(result.out.trim() == expectedOutput)
+      val result = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
+      expect(result == expectedOutput)
     }
   }
 
@@ -97,8 +99,8 @@ class MarkdownTests extends ScalaCliSuite {
            |##
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
-      expect(result.out.trim() == expectedOutput)
+      val result = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
+      expect(result == expectedOutput)
     }
   }
 
@@ -134,7 +136,7 @@ class MarkdownTests extends ScalaCliSuite {
     ).fromRoot { root =>
       val snippetCode = "case class SnippetMessage(value: String)"
       val result      =
-        os.proc(
+        stableStdoutOf(
           TestUtil.cli,
           "--power",
           ".",
@@ -143,9 +145,8 @@ class MarkdownTests extends ScalaCliSuite {
           "--markdown",
           "--main-class",
           "Main_md"
-        )
-          .call(cwd = root)
-      expect(result.out.trim() == expectedOutput)
+        )(cwd = root)
+      expect(result == expectedOutput)
     }
   }
   test("run a simple .md file with a using directive in a scala script snippet") {
@@ -159,8 +160,8 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
-      expect(result.out.trim() == root.toString())
+      val result = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
+      expect(result == root.toString())
     }
   }
 
@@ -177,8 +178,8 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
-      expect(result.out.trim() == root.toString())
+      val result = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
+      expect(result == root.toString())
     }
   }
 
@@ -218,12 +219,12 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result         = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      val result         = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
       val expectedOutput =
         s"""$msg1
            |"$msg2"
            |$root""".stripMargin
-      expect(result.out.trim() == expectedOutput)
+      expect(result == expectedOutput)
     }
   }
 
@@ -276,12 +277,12 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result         = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      val result         = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
       val expectedOutput =
         s"""$msg1
            |"$msg2"
            |$root""".stripMargin
-      expect(result.out.trim() == expectedOutput)
+      expect(result == expectedOutput)
     }
   }
   test("run a simple .md file with a java snippet") {
@@ -299,8 +300,8 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
-      expect(result.out.trim() == expectedOutput)
+      val result = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
+      expect(result == expectedOutput)
     }
   }
 
@@ -316,10 +317,15 @@ class MarkdownTests extends ScalaCliSuite {
               |""".stripMargin
         ).fromRoot { root =>
           val result =
-            os.proc(TestUtil.cli, "sample.md", "--jvm", TestUtil.jvmId(javaVersion)).call(cwd =
+            stableStdoutOf(
+              TestUtil.cli,
+              "sample.md",
+              "--jvm",
+              TestUtil.jvmId(javaVersion)
+            )(cwd =
               root
             )
-          expect(result.out.trim() == "md-compact")
+          expect(result == "md-compact")
         }
       }
     }
@@ -344,7 +350,7 @@ class MarkdownTests extends ScalaCliSuite {
       ).fromRoot { root =>
         val res = os.proc(TestUtil.cli, "sample.md", jvmOptions)
           .call(cwd = root, stderr = os.Pipe)
-        expect(res.out.trim() == expectedOutput)
+        expect(TestUtil.stableStdout(res) == expectedOutput)
         // java-class-name used to report Java parser errors (e.g. for compact sources) to stderr
         expect(!res.err.text().contains("-- Error:"))
       }
@@ -401,8 +407,8 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
-      expect(result.out.trim() == expectedOutput)
+      val result = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
+      expect(result == expectedOutput)
     }
   }
 
@@ -426,9 +432,9 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
-      println(result.out.trim())
-      expect(result.out.trim() == expectedOutput)
+      val result = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
+      println(result)
+      expect(result == expectedOutput)
     }
   }
 
@@ -473,8 +479,8 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
-      expect(result.out.trim() == expectedOutput)
+      val result = stableStdoutOf(TestUtil.cli, "sample.md")(cwd = root)
+      expect(result == expectedOutput)
     }
   }
 
@@ -491,8 +497,8 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, fileNameWithNumber).call(cwd = root)
-      expect(result.out.trim() == "Hello")
+      val result = stableStdoutOf(TestUtil.cli, fileNameWithNumber)(cwd = root)
+      expect(result == "Hello")
     }
   }
 }

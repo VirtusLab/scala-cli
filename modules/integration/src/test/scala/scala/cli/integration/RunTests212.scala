@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 class RunTests212 extends RunTestDefinitions with Test212 {
   test("Descriptive error message for unsupported native/script configurations") {
     val inputs        = TestInputs(os.rel / "a.sc" -> "println(1)")
@@ -30,16 +32,15 @@ class RunTests212 extends RunTestDefinitions with Test212 {
     TestInputs(os.rel / "sample.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
       root =>
         val res =
-          os.proc(
+          stableStdoutOf(
             TestUtil.cli,
             "run",
             ".",
             "-S",
             "2.12.nightly",
             TestUtil.extraOptions
-          )
-            .call(cwd = root)
-        val version = res.out.trim()
+          )(cwd = root)
+        val version = res
         expect(version.startsWith("2.12"))
     }
   }

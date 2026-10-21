@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 class CleanTests extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
@@ -19,8 +21,8 @@ class CleanTests extends ScalaCliSuite {
       val dir      = root / Constants.workspaceDirName
       val bspEntry = root / ".bsp" / "scala-cli.json"
 
-      val res = os.proc(TestUtil.cli, "run", ".").call(cwd = root)
-      expect(res.out.trim() == "Hello")
+      val res = stableStdoutOf(TestUtil.cli, "run", ".")(cwd = root)
+      expect(res == "Hello")
       expect(os.exists(dir))
       expect(os.exists(bspEntry))
 

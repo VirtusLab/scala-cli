@@ -24,7 +24,7 @@ class TestTests212 extends TestTestDefinitions with Test212 {
       val res =
         os.proc(TestUtil.cli, "test", ".", extraOptions)
           .call(cwd = root, stderr = os.Pipe)
-      val out = res.out.trim()
+      val out = TestUtil.stableStdout(res)
       expect(out.contains(expectedMessage))
       val err = res.err.trim()
       expect(err.contains(expectedWarning))

@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.File
 import java.util.Locale
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
@@ -46,16 +47,19 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
         .call(cwd = root)
 
       val java8Home =
-        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+        os.Path(
+          stableStdoutOf(TestUtil.cs, "java-home", "--jvm", "zulu:8")(),
+          os.pwd
+        )
 
       val ext = if (Properties.isWin) ".cmd" else ""
       val res =
-        os.proc(
+        stableStdoutOf(
           spark.sparkHome / "bin" / s"spark-submit$ext",
           "--master",
           defaultMaster,
           dest
-        ).call(
+        )(
           cwd = root,
           env = Map(
             "JAVA_HOME" -> java8Home.toString,
@@ -65,7 +69,7 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
 
       val expectedOutput = "Result: 55"
 
-      expect(res.out.trim() == expectedOutput)
+      expect(res == expectedOutput)
     }
 
   private def addToPath(dir: os.Path): Map[String, String] = {
@@ -90,7 +94,7 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
         if (usePath) addToPath(spark.sparkHome / "bin")
         else Map("SPARK_HOME" -> spark.sparkHome.toString)
       val scopeOptions = if (withTestScope) Seq("--test") else Nil
-      val res          = os.proc(
+      val res          = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
@@ -100,12 +104,11 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
         "8",
         ".",
         scopeOptions
-      )
-        .call(cwd = root, env = env)
+      )(cwd = root, env = env)
 
       val expectedOutput = "Result: 55"
 
-      val output = res.out.trim().linesIterator.toVector
+      val output = res.linesIterator.toVector
 
       expect(output.contains(expectedOutput))
     }

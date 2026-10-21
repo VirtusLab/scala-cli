@@ -4,6 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.nio.file.Files
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 class PackageTestsDefault extends PackageTestDefinitions with PackageSlothTestDefinitions
@@ -19,15 +20,23 @@ class PackageTestsDefault extends PackageTestDefinitions with PackageSlothTestDe
             |""".stripMargin
       )
       inputs.fromRoot { root =>
-        val runRes = os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
-          .call(cwd = root)
-        val runOutput = runRes.out.trim().linesIterator.filter(!_.startsWith("[info] ")).toVector
+        val runRes = stableStdoutOf(TestUtil.cli, "run", "--native", ".", extraOptions)(cwd = root)
+        val runOutput =
+          runRes.linesIterator.filter(!_.startsWith("[info] ")).toVector
         expect(runOutput == Seq("Hello"))
 
         val packageRes =
-          os.proc(TestUtil.cli, "--power", "package", "--native", ".", "-o", "hello", extraOptions)
-            .call(cwd = root, mergeErrIntoOut = true)
-        val packageOutput    = packageRes.out.trim()
+          stableStdoutOf(
+            TestUtil.cli,
+            "--power",
+            "package",
+            "--native",
+            ".",
+            "-o",
+            "hello",
+            extraOptions
+          )(cwd = root, mergeErrIntoOut = true)
+        val packageOutput    = packageRes
         val topPackageOutput =
           packageOutput.linesIterator.takeWhile(!_.startsWith("Wrote ")).toVector
         expect(topPackageOutput.forall(!_.startsWith("[info] ")))
@@ -76,7 +85,7 @@ class PackageTestsDefault extends PackageTestDefinitions with PackageSlothTestDe
             crossScalaVersions.foreach { version =>
               val outputFile = root / s"${mainClass}_$version$extension"
               expect(Files.isExecutable(outputFile.toNIO))
-              val output = TestUtil.maybeUseBash(outputFile)(cwd = root).out.trim()
+              val output = TestUtil.stableStdout(TestUtil.maybeUseBash(outputFile)(cwd = root))
               expect(output == message)
             }
         }

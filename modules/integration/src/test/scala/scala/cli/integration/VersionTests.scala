@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.cli.integration.VersionTests.variants
 
 class VersionTests extends ScalaCliSuite {
@@ -33,15 +34,14 @@ class VersionTests extends ScalaCliSuite {
     TestInputs.empty.fromRoot {
       root =>
         val res =
-          os.proc(
+          stableStdoutOf(
             TestUtil.cli,
             "--cli-version",
             "nightly",
             "version",
             "--cli-version"
-          )
-            .call(cwd = root)
-        expect(res.out.trim().coursierVersion >= "1.8.4".coursierVersion)
+          )(cwd = root)
+        expect(res.coursierVersion >= "1.8.4".coursierVersion)
     }
   }
 

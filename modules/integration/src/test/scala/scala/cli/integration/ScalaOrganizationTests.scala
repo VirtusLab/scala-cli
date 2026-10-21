@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.jdk.CollectionConverters.*
 
 class ScalaOrganizationTests extends ScalaCliSuite {
@@ -19,7 +20,7 @@ class ScalaOrganizationTests extends ScalaCliSuite {
           |}
           |""".stripMargin
     ).fromRoot { root =>
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
@@ -28,8 +29,8 @@ class ScalaOrganizationTests extends ScalaCliSuite {
         forkOrganization,
         "-S",
         forkVersion
-      ).call(cwd = root, stderr = os.Pipe)
-      expect(res.out.trim() == "Hello")
+      )(cwd = root, stderr = os.Pipe)
+      expect(res == "Hello")
     }
   }
 
@@ -43,8 +44,8 @@ class ScalaOrganizationTests extends ScalaCliSuite {
            |}
            |""".stripMargin
     ).fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "--power", "run", ".").call(cwd = root, stderr = os.Pipe)
-      expect(res.out.trim() == "Hello")
+      val res = stableStdoutOf(TestUtil.cli, "--power", "run", ".")(cwd = root, stderr = os.Pipe)
+      expect(res == "Hello")
     }
   }
 
@@ -304,7 +305,7 @@ class ScalaOrganizationTests extends ScalaCliSuite {
 
   /** Class path entries with separators normalised, so the checks below hold on Windows too. */
   private def classPathEntriesOf(res: os.CommandResult) =
-    res.out.trim().split(java.io.File.pathSeparator).toSeq.map(_.replace('\\', '/'))
+    TestUtil.stableStdout(res).split(java.io.File.pathSeparator).toSeq.map(_.replace('\\', '/'))
 
   private val forkInputs = TestInputs(
     os.rel / "Hello.scala" ->

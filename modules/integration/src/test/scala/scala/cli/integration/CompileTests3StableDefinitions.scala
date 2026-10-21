@@ -4,6 +4,8 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 trait CompileTests3StableDefinitions { this: CompileTestDefinitions =>
   test(s"TASTY processor does not warn about Scala $actualScalaVersion") {
     TestInputs(os.rel / "simple.sc" -> s"""println("Hello")""")
@@ -28,8 +30,11 @@ trait CompileTests3StableDefinitions { this: CompileTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val out = os.proc(TestUtil.cli, "compile", extraOptions, fileName)
-        .call(cwd = root, check = false, mergeErrIntoOut = true).out.trim()
+      val out = stableStdoutOf(TestUtil.cli, "compile", extraOptions, fileName)(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
 
       expect(out.contains("Explanation"))
     }
@@ -44,14 +49,18 @@ trait CompileTests3StableDefinitions { this: CompileTestDefinitions =>
           |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val out = os.proc(TestUtil.cli, "compile", extraOptions, ".", "--print-class-path")
-        .call(cwd = root)
-        .out.trim()
+      val out = stableStdoutOf(
+        TestUtil.cli,
+        "compile",
+        extraOptions,
+        ".",
+        "--print-class-path"
+      )(cwd = root)
       val cp = out.split(File.pathSeparator).toVector.map(os.Path(_, root))
       expect(cp.headOption.exists(os.isDir(_)))
       expect(cp.drop(1).forall(os.isFile(_)))
 
-      val asJarOut = os.proc(
+      val asJarOut = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "compile",
@@ -59,9 +68,7 @@ trait CompileTests3StableDefinitions { this: CompileTestDefinitions =>
         ".",
         "--print-class-path",
         "--as-jar"
-      )
-        .call(cwd = root)
-        .out.trim()
+      )(cwd = root)
       val asJarCp = asJarOut.split(File.pathSeparator).toVector.map(os.Path(_, root))
       expect(asJarCp.forall(os.isFile(_)))
     }

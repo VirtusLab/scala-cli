@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.cli.integration.TestUtil.removeAnsiColors
+import scala.cli.integration.TestUtil.{removeAnsiColors, stableStdoutOf}
 import scala.util.Properties
 
 abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
@@ -118,8 +118,8 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   test("default scala version in help") {
     TestInputs.empty.fromRoot { root =>
-      val res              = os.proc(TestUtil.cli, "repl", extraOptions, "--help").call(cwd = root)
-      val lines            = removeAnsiColors(res.out.trim()).linesIterator.toVector
+      val res   = stableStdoutOf(TestUtil.cli, "repl", extraOptions, "--help")(cwd = root)
+      val lines = removeAnsiColors(res).linesIterator.toVector
       val scalaVersionHelp = lines.find(_.contains("--scala-version")).getOrElse("")
       expect(scalaVersionHelp.contains(s"(${Constants.defaultScala} by default)"))
     }
@@ -144,7 +144,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     test(s"$runInReplPrefix simple") {
       val expectedMessage = "1337"
       runInRepl(s"""println($expectedMessage)""")(r =>
-        expect(r.out.trim() == expectedMessage)
+        expect(TestUtil.stableStdout(r) == expectedMessage)
       )
     }
 
@@ -197,7 +197,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
             |println(message)
             |""".stripMargin,
         initScriptFromFile = true
-      )(r => expect(r.out.trim().linesIterator.exists(_.trim == "hello from file")))
+      )(r => expect(TestUtil.stableStdout(r).linesIterator.exists(_.trim == "hello from file")))
     }
 
     test(
@@ -225,7 +225,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       runInRepl(
         codeToRunInRepl = s"""println($retrieveScalaVersionCode)""",
         cliOptions = opts
-      )(r => expect(r.out.trim() == actualScalaVersion))
+      )(r => expect(TestUtil.stableStdout(r) == actualScalaVersion))
     }
 
     test(s"$runInReplPrefix test scope") {
@@ -242,7 +242,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
                |""".stripMargin
         ),
         cliOptions = Seq("--test")
-      )(r => expect(r.out.trim() == message))
+      )(r => expect(TestUtil.stableStdout(r) == message))
     }
 
     test(s"$runInReplPrefix https://github.com/scala/scala3/issues/21229") {
@@ -283,7 +283,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           cliOptions = Seq("--python", "--power") ++ opts,
           shouldPipeStdErr = true
         ) { res =>
-          val output = res.out.trim().linesIterator.toVector.take(2).mkString("\n")
+          val output = TestUtil.stableStdout(res).linesIterator.toVector.take(2).mkString("\n")
           expect(output ==
             s"""Hello from Scala $actualScalaVersion
                |Hello from ScalaPy""".stripMargin)
@@ -313,7 +313,8 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           env = Map("PYTHONSAFEPATH" -> "foo")
         ) { errorRes =>
           // expect(errorRes.exitCode != 0) // technically should be an error, but the REPL itself doesn't return it as such.
-          val errorOutput = TestUtil.removeAnsiColors(errorRes.err.trim() + errorRes.out.trim())
+          val errorOutput =
+            TestUtil.removeAnsiColors(errorRes.err.trim() + TestUtil.stableStdout(errorRes))
           expect(errorOutput.contains("No module named 'foo'"))
         }
       }
@@ -331,7 +332,8 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
                 .trim
             Seq("--jar", shapelessJar)
           ,
-          runAfterRepl = res => expect(res.out.trim() == "Here's an HList: 2 :: true :: a :: HNil")
+          runAfterRepl =
+            res => expect(TestUtil.stableStdout(res) == "Here's an HList: 2 :: true :: a :: HNil")
         )
       }
 

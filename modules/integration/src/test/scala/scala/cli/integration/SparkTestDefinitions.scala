@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.File
 import java.util.Locale
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.util.Properties
 
 object SparkTestDefinitions {
@@ -22,7 +23,7 @@ object SparkTestDefinitions {
           s"https://archive.apache.org/dist/spark/spark-$sparkVersion/spark-$sparkVersion-bin-hadoop2.7.tgz"
       }
       val baseDir =
-        os.Path(os.proc(TestUtil.cs, "get", "--archive", url).call().out.trim(), os.pwd)
+        os.Path(stableStdoutOf(TestUtil.cs, "get", "--archive", url)(), os.pwd)
       val home = os.list(baseDir) match {
         case Seq(dir) if os.isDir(dir) => dir
         case _                         => baseDir
@@ -93,14 +94,13 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
     if (Properties.isWin) {
       val bin = hadoopHome / "bin"
       os.makeDir.all(bin)
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cs,
         "get",
         "--archive",
         "https://github.com/steveloughran/winutils/releases/download/tag_2017-08-29-hadoop-2.8.1-native/hadoop-2.8.1.zip"
-      )
-        .call(cwd = hadoopHome)
-      val dataDir     = os.Path(res.out.trim())
+      )(cwd = hadoopHome)
+      val dataDir     = os.Path(res)
       val binStuffDir = os.list(dataDir)
         .filter(os.isDir(_))
         .filter(_.last.startsWith("hadoop-"))
@@ -138,7 +138,7 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
         if (needsWinUtils) maybeHadoopHomeForWinutils(root / "hadoop-home")
         else Map.empty[String, String]
       val scopeOptions = if (withTestScope) Seq("--test") else Nil
-      val res          = os.proc(
+      val res          = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "run",
@@ -146,12 +146,11 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
         "--spark-standalone",
         ".",
         scopeOptions
-      )
-        .call(cwd = root, env = extraEnv)
+      )(cwd = root, env = extraEnv)
 
       val expectedOutput = "Result: 55"
 
-      val output = res.out.trim().linesIterator.toVector
+      val output = res.linesIterator.toVector
 
       expect(output.contains(expectedOutput))
     }
@@ -195,7 +194,7 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
       )
       inputs.fromRoot { root =>
         val extraEnv = maybeHadoopHomeForWinutils(root / "hadoop-home")
-        val res      = os.proc(
+        val res      = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "run",
@@ -206,12 +205,11 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
           "--name",
           "--submit-arg",
           jobName
-        )
-          .call(cwd = root, env = extraEnv)
+        )(cwd = root, env = extraEnv)
 
         val expectedOutput = "Result: 55"
 
-        val output = res.out.trim().linesIterator.toVector
+        val output = res.linesIterator.toVector
 
         expect(output.contains(expectedOutput))
       }

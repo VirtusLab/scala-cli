@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.stableStdoutOf
+
 class SharedRunTests extends ScalaCliSuite {
   val printScalaVersionInputs: TestInputs = TestInputs(
     os.rel / "print.sc" ->
@@ -18,33 +20,44 @@ class SharedRunTests extends ScalaCliSuite {
   )
   test("Scala version 2.12") {
     printScalaVersionInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "2.12")
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(
+        TestUtil.cli,
+        TestUtil.extraOptions,
+        ".",
+        "--scala",
+        "2.12"
+      )(cwd = root)
       expect(output.startsWith("2.12."))
     }
   }
   test("Scala version 2.13") {
     printScalaVersionInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "2.13")
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(
+        TestUtil.cli,
+        TestUtil.extraOptions,
+        ".",
+        "--scala",
+        "2.13"
+      )(cwd = root)
       expect(output.startsWith("2.13."))
     }
   }
   test("Scala version 2") {
     printScalaVersionInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "2")
-        .call(cwd = root)
-        .out.trim()
+      val output =
+        stableStdoutOf(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "2")(cwd = root)
       expect(output.startsWith("2.13."))
     }
   }
   test("Scala version 3") {
     printScalaVersionInputs3.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "3.0.2")
-        .call(cwd = root)
-        .out.trim()
+      val output = stableStdoutOf(
+        TestUtil.cli,
+        TestUtil.extraOptions,
+        ".",
+        "--scala",
+        "3.0.2"
+      )(cwd = root)
       // Scala 3.0 uses the 2.13 standard library
       expect(output.startsWith("2.13."))
     }
@@ -59,8 +72,7 @@ class SharedRunTests extends ScalaCliSuite {
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output =
-        os.proc(TestUtil.cli, TestUtil.extraOptions, ".").call(cwd = root).out.trim()
+      val output = stableStdoutOf(TestUtil.cli, TestUtil.extraOptions, ".")(cwd = root)
       expect(output == confSv)
     }
   }

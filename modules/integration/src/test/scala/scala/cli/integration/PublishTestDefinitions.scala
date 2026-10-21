@@ -6,6 +6,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.zip.ZipFile
 
+import scala.cli.integration.TestUtil.stableStdoutOf
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
@@ -146,14 +147,19 @@ abstract class PublishTestDefinitions
         val mainClassOptions =
           if (useTestScope) Seq("-M", TestCase.testScopeMainClass) else Nil
         val dep = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
-        val res = os.proc(TestUtil.cs, "launch", repoArgs, dep, mainClassOptions).call(cwd = root)
-        val output = res.out.trim()
+        val res = stableStdoutOf(TestUtil.cs, "launch", repoArgs, dep, mainClassOptions)(cwd = root)
+        val output = res
         expect(output == TestCase.expectedMessage)
 
         val sourceJarViaCsStr =
-          os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
-            .call(cwd = root)
-            .out.trim()
+          stableStdoutOf(
+            TestUtil.cs,
+            "fetch",
+            repoArgs,
+            "--sources",
+            "--intransitive",
+            dep
+          )(cwd = root)
         val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
         val zf             = new ZipFile(sourceJarViaCs.toIO)
         val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
@@ -173,7 +179,7 @@ abstract class PublishTestDefinitions
           .call(cwd = root, mergeErrIntoOut = true)
         expect(!verifyProc.out.text().contains(s"invalid signature"))
 
-        val r = os.proc(
+        val r = stableStdoutOf(
           TestUtil.cli,
           "run",
           "--dep",
@@ -181,8 +187,8 @@ abstract class PublishTestDefinitions
           "-r",
           (root / "test-repo").toNIO.toUri.toASCIIString,
           mainClassOptions
-        ).call(cwd = root)
-        expect(r.out.trim() == TestCase.expectedMessage)
+        )(cwd = root)
+        expect(r == TestCase.expectedMessage)
       }
     }
 
@@ -216,7 +222,10 @@ abstract class PublishTestDefinitions
         )
 
         val java8Home =
-          os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+          os.Path(
+            stableStdoutOf(TestUtil.cs, "java-home", "--jvm", "zulu:8")(),
+            os.pwd
+          )
 
         val extraEnv = Map(
           "JAVA_HOME" -> java8Home.toString,
@@ -270,14 +279,19 @@ abstract class PublishTestDefinitions
               (root / "test-repo").toNIO.toUri.toASCIIString
             )
           val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
-          val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
-          val output = res.out.trim()
+          val res    = stableStdoutOf(TestUtil.cs, "launch", repoArgs, dep)(cwd = root)
+          val output = res
           expect(output == "Hello")
 
           val sourceJarViaCsStr =
-            os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
-              .call(cwd = root)
-              .out.trim()
+            stableStdoutOf(
+              TestUtil.cs,
+              "fetch",
+              repoArgs,
+              "--sources",
+              "--intransitive",
+              dep
+            )(cwd = root)
           val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
           val zf             = new ZipFile(sourceJarViaCs.toIO)
           val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
@@ -399,17 +413,16 @@ abstract class PublishTestDefinitions
       os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
     )
     inputs.fromRoot { root =>
-      val res = os.proc(
+      val res = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "publish",
         extraOptions,
         ".",
         "--list-main-classes"
-      )
-        .call(cwd = root)
-      val output   = res.out.trim()
-      val resLocal = os.proc(
+      )(cwd = root)
+      val output   = res
+      val resLocal = stableStdoutOf(
         TestUtil.cli,
         "--power",
         "publish",
@@ -417,9 +430,8 @@ abstract class PublishTestDefinitions
         extraOptions,
         ".",
         "--list-main-classes"
-      )
-        .call(cwd = root)
-      val outputLocal = resLocal.out.trim()
+      )(cwd = root)
+      val outputLocal = resLocal
       expect(output == outputLocal)
       val mainClasses = output.linesIterator.toSeq.last.split(" ").toSet
 
@@ -488,14 +500,19 @@ abstract class PublishTestDefinitions
       val repoArgs =
         Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
       val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
-      val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
-      val output = res.out.trim()
+      val res    = stableStdoutOf(TestUtil.cs, "launch", repoArgs, dep)(cwd = root)
+      val output = res
       expect(output == "Hello")
 
       val sourceJarViaCsStr =
-        os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
-          .call(cwd = root)
-          .out.trim()
+        stableStdoutOf(
+          TestUtil.cs,
+          "fetch",
+          repoArgs,
+          "--sources",
+          "--intransitive",
+          dep
+        )(cwd = root)
       val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
       val zf             = new ZipFile(sourceJarViaCs.toIO)
       val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
@@ -590,26 +607,30 @@ abstract class PublishTestDefinitions
             (root / "test-repo").toNIO.toUri.toASCIIString
           )
         val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
-        val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
-        val output = res.out.trim()
+        val res    = stableStdoutOf(TestUtil.cs, "launch", repoArgs, dep)(cwd = root)
+        val output = res
         expect(output == "Hello")
 
         val sourceJarViaCsStr =
-          os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
-            .call(cwd = root)
-            .out.trim()
+          stableStdoutOf(
+            TestUtil.cs,
+            "fetch",
+            repoArgs,
+            "--sources",
+            "--intransitive",
+            dep
+          )(cwd = root)
         val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
         val zf             = new ZipFile(sourceJarViaCs.toIO)
         val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
         expect(entries == expectedSourceEntries())
 
-        val publicKey = os.proc(
+        val publicKey = stableStdoutOf(
           TestUtil.cli,
           "--power",
           "config",
           "pgp.public-key"
-        ).call(cwd = root, env = extraEnv)
-          .out.trim()
+        )(cwd = root, env = extraEnv)
           .stripPrefix("value:")
 
         os.write(os.Path("key.pub", root), publicKey)
