@@ -1891,11 +1891,14 @@ object ci extends Module {
     gitClone(repo, branch, targetDir)
     setupGithubRepo(packagesDir)
 
-    // copy deb package to repository
-    os.copy(
-      os.Path("artifacts", BuildCtx.workspaceRoot) / "scala-cli-x86_64-pc-linux.deb",
-      debianDir / s"scala-cli_$version.deb"
-    )
+    // copy deb packages to repository
+    // (the x86_64 file name is kept as-is for continuity with older releases)
+    Seq(
+      "scala-cli-x86_64-pc-linux.deb"  -> s"scala-cli_$version.deb",
+      "scala-cli-aarch64-pc-linux.deb" -> s"scala-cli_${version}_arm64.deb"
+    ).foreach { (artifactName, repoName) =>
+      os.copy(os.Path("artifacts", BuildCtx.workspaceRoot) / artifactName, debianDir / repoName)
+    }
 
     val packagesPath = debianDir / "Packages"
     os.proc("dpkg-scanpackages", "--multiversion", ".").call(cwd = debianDir, stdout = packagesPath)
