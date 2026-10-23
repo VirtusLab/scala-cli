@@ -556,6 +556,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def scala3NextRcVersion = "${Scala.scala3NextRc}"
          |  def scala3NextPrefix = "${Scala.scala3NextPrefix}"
          |  def scala3LtsPrefix = "${Scala.scala3LtsPrefix}"
+         |  def scala3Lts = "${Scala.scala3Lts}"
          |  def scala3LegacyLtsPrefix = "${Scala.scala3LegacyLtsPrefix}"
          |  def scala3LegacyLts       = "${Scala.scala3LegacyLts}"
          |  def scala3LtsPrefixes = Seq(${Scala.scala3LtsPrefixes

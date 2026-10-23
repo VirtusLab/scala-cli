@@ -280,6 +280,22 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
+  for {
+    (tag, expectedVersion) <- List(
+      "lts"                         -> scala3Lts,
+      "3.lts"                       -> scala3Lts,
+      s"$scala3LtsPrefix.lts"       -> scala3Lts,
+      s"$scala3LegacyLtsPrefix.lts" -> scala3LegacyLts
+    ).distinct
+  }
+    test(s"-S $tag points to the LTS version pinned in the build ($expectedVersion)") {
+      val options = BuildOptions(
+        scalaOptions = ScalaOptions(scalaVersion = Some(MaybeScalaVersion(tag)))
+      )
+      val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
+      expect(scalaParams.scalaVersion == expectedVersion)
+    }
+
   test("-S 2.12.nightly option works".flaky) {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
