@@ -50,6 +50,18 @@ object ScalaVersionUtil {
 
   object VersionedLts:
     def unapply(sv: String): Option[String] = versionedLtsTag("")(sv)
+
+  /** Matches stable LTS tags (`lts`, `3.lts`, `3.3.lts`, …), extracting to the LTS version pinned
+    * in the build for the given series.
+    */
+  object PinnedLts:
+    def unapply(sv: String): Option[String] =
+      if scala3Lts.contains(sv.toLowerCase) then Some(Constants.scala3Lts)
+      else
+        VersionedLts.unapply(sv).collect {
+          case prefix if prefix == Constants.scala3LtsPrefix       => Constants.scala3Lts
+          case prefix if prefix == Constants.scala3LegacyLtsPrefix => Constants.scala3LegacyLts
+        }
   object VersionedLtsRc:
     def unapply(sv: String): Option[String] = versionedLtsTag(".rc")(sv)
   object VersionedLtsNightly:

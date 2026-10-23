@@ -365,6 +365,9 @@ final case class BuildOptions(
       scalaOptions.scalaVersion -> scalaOptions.defaultScalaVersion match {
         case (Some(MaybeScalaVersion(None)), _) =>
           None
+        // LTS tags point to the LTS versions pinned in the build
+        case (Some(MaybeScalaVersion(Some(ScalaVersionUtil.PinnedLts(ltsVersion)))), _) =>
+          Some(ltsVersion)
         // Do not validate Scala version in offline mode
         case (Some(MaybeScalaVersion(Some(svInput))), _) if internal.offline.getOrElse(false) =>
           Some(svInput)
@@ -386,14 +389,6 @@ final case class BuildOptions(
         case (Some(MaybeScalaVersion(Some(svInput))), _) =>
           val validated =
             svInput match {
-              case sv if ScalaVersionUtil.scala3Lts.contains(sv.toLowerCase) =>
-                ScalaVersionUtil.validateStable(
-                  Constants.scala3LtsPrefix,
-                  cache,
-                  repositories
-                )
-              case ScalaVersionUtil.VersionedLts(ltsPrefix) =>
-                ScalaVersionUtil.validateStable(ltsPrefix, cache, repositories)
               case sv if ScalaVersionUtil.scala3LatestRc.contains(sv.toLowerCase) =>
                 ScalaVersionUtil.validateRc("3", cache, repositories)
               case sv if ScalaVersionUtil.scala3LtsLatestRc.contains(sv.toLowerCase) =>
