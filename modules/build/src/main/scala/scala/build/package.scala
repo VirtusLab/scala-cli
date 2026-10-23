@@ -3,6 +3,7 @@ package scala.build
 import scala.annotation.tailrec
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.util.Random
+import scala.util.control.NonFatal
 
 def retry[T](
   maxAttempts: Int = 3,
@@ -15,7 +16,7 @@ def retry[T](
   def helper(count: Int): T =
     try run
     catch {
-      case t: Throwable =>
+      case NonFatal(t) =>
         if count >= maxAttempts then throw t
         else
           logger.debugStackTrace(t)

@@ -2,6 +2,7 @@ package sclicheck
 
 import scala.annotation.tailrec
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.util.control.NonFatal
 
 object TestUtil {
   val isCI: Boolean = System.getenv("CI") != null
@@ -34,7 +35,7 @@ object TestUtil {
     def helper(count: Int): T =
       try run
       catch {
-        case t: Throwable =>
+        case NonFatal(t) =>
           if (count >= maxAttempts) {
             System.err.println(s"$maxAttempts attempts failed, caught $t. Giving up.")
             throw new Exception(t)

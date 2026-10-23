@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.Locale
 
+import scala.annotation.nowarn
 import scala.build.EitherCps.{either, value}
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
@@ -118,6 +119,7 @@ object ScalaCli {
       .takeWhile(_.isDigit)
       .toInt
 
+  @nowarn("msg=Catching Throwable") // top-level handler, intentionally catches fatal errors too
   def main(args: Array[String]): Unit =
     try main0(args)
     catch {

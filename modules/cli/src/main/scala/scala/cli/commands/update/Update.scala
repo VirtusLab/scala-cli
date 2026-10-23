@@ -55,7 +55,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     }
     catch {
       case e: JsonReaderException => Left(CheckScalaCliVersionError(s"Error reading $url", e))
-      case e: Throwable           => Left(CheckScalaCliVersionError(
+      case NonFatal(e)            => Left(CheckScalaCliVersionError(
           s"Failed to check for the newest Scala CLI version upstream: ${e.getMessage}",
           e
         ))

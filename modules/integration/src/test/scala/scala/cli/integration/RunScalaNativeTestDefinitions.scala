@@ -41,11 +41,12 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
       }
   }
 
-  test("simple script native".tag(ScalaCliSuite.sanity)) {
-    TestUtil.retryOnCi() {
-      simpleNativeTests()
+  if !isScala3101OrNewer then
+    test("simple script native".tag(ScalaCliSuite.sanity)) {
+      TestUtil.retryOnCi() {
+        simpleNativeTests()
+      }
     }
-  }
 
   def scalaNativeLtoTests(): Unit = {
     val fileName = "hello.sc"
@@ -62,112 +63,116 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  test("scala native with lto optimisation") {
-    TestUtil.retryOnCi()(scalaNativeLtoTests())
-  }
+  if !isScala3101OrNewer then
+    test("scala native with lto optimisation") {
+      TestUtil.retryOnCi()(scalaNativeLtoTests())
+    }
 
-  test("simple script native command") {
-    TestUtil.retryOnCi() {
-      val fileName = "simple.sc"
-      val message  = "Hello"
-      TestInputs(os.rel / fileName -> simpleNativeScriptCode(message))
-        .fromRoot { root =>
-          val output =
-            stableStdoutOf(
-              TestUtil.cli,
-              extraOptions,
-              fileName,
-              "--native",
-              "--command"
-            )(cwd = root)
-          val command      = output.linesIterator.toVector.filter(!_.startsWith("["))
-          val actualOutput = stableStdoutOf(command)(cwd = root)
-          expect(actualOutput == message)
+  if !isScala3101OrNewer then
+    test("simple script native command") {
+      TestUtil.retryOnCi() {
+        val fileName = "simple.sc"
+        val message  = "Hello"
+        TestInputs(os.rel / fileName -> simpleNativeScriptCode(message))
+          .fromRoot { root =>
+            val output =
+              stableStdoutOf(
+                TestUtil.cli,
+                extraOptions,
+                fileName,
+                "--native",
+                "--command"
+              )(cwd = root)
+            val command      = output.linesIterator.toVector.filter(!_.startsWith("["))
+            val actualOutput = stableStdoutOf(command)(cwd = root)
+            expect(actualOutput == message)
+          }
+      }
+    }
+
+  if !isScala3101OrNewer then
+    test("Resource embedding in Scala Native") {
+      TestUtil.retryOnCi() {
+        val projectDir       = "nativeres"
+        val resourceContent  = "resource contents"
+        val resourceFileName = "embeddedfile.txt"
+        val inputs           = TestInputs(
+          os.rel / projectDir / "main.scala" ->
+            s"""|//> using platform scala-native
+                |//> using resourceDir resources
+                |
+                |import java.nio.charset.StandardCharsets
+                |import java.io.{BufferedReader, InputStreamReader}
+                |
+                |object Main {
+                |  def main(args: Array[String]): Unit = {
+                |    val inputStream = getClass().getResourceAsStream("/$resourceFileName")
+                |    val nativeResourceText = new BufferedReader(
+                |      new InputStreamReader(inputStream, StandardCharsets.UTF_8)
+                |    ).readLine()
+                |    println(nativeResourceText)
+                |  }
+                |}
+                |""".stripMargin,
+          os.rel / projectDir / "resources" / resourceFileName -> resourceContent
+        )
+        inputs.fromRoot { root =>
+          val output = stableStdoutOf(TestUtil.cli, extraOptions, projectDir, "-q")(cwd = root)
+          println(output)
+          expect(output == resourceContent)
         }
-    }
-  }
-
-  test("Resource embedding in Scala Native") {
-    TestUtil.retryOnCi() {
-      val projectDir       = "nativeres"
-      val resourceContent  = "resource contents"
-      val resourceFileName = "embeddedfile.txt"
-      val inputs           = TestInputs(
-        os.rel / projectDir / "main.scala" ->
-          s"""|//> using platform scala-native
-              |//> using resourceDir resources
-              |
-              |import java.nio.charset.StandardCharsets
-              |import java.io.{BufferedReader, InputStreamReader}
-              |
-              |object Main {
-              |  def main(args: Array[String]): Unit = {
-              |    val inputStream = getClass().getResourceAsStream("/$resourceFileName")
-              |    val nativeResourceText = new BufferedReader(
-              |      new InputStreamReader(inputStream, StandardCharsets.UTF_8)
-              |    ).readLine()
-              |    println(nativeResourceText)
-              |  }
-              |}
-              |""".stripMargin,
-        os.rel / projectDir / "resources" / resourceFileName -> resourceContent
-      )
-      inputs.fromRoot { root =>
-        val output = stableStdoutOf(TestUtil.cli, extraOptions, projectDir, "-q")(cwd = root)
-        println(output)
-        expect(output == resourceContent)
       }
     }
-  }
 
-  test("Scala Native C Files are correctly handled as a regular Input") {
-    TestUtil.retryOnCi() {
-      val projectDir      = "native-interop"
-      val interopFileName = "bindings.c"
-      val interopMsg      = "Hello C!"
-      val inputs          = TestInputs(
-        os.rel / projectDir / "main.scala" ->
-          s"""|//> using platform scala-native
-              |
-              |import scala.scalanative.unsafe._
-              |
-              |@extern
-              |object Bindings {
-              |  @name("scalanative_print")
-              |  def print(): Unit = extern
-              |}
-              |
-              |object Main {
-              |  def main(args: Array[String]): Unit = {
-              |    Bindings.print()
-              |  }
-              |}
-              |""".stripMargin,
-        os.rel / projectDir / interopFileName ->
-          s"""|#include <stdio.h>
-              |
-              |void scalanative_print() {
-              |    printf("$interopMsg\\n");
-              |}
-              |""".stripMargin
-      )
-      inputs.fromRoot { root =>
-        val output = stableStdoutOf(TestUtil.cli, extraOptions, projectDir, "-q")(cwd = root)
-        expect(output == interopMsg)
+  if !isScala3101OrNewer then
+    test("Scala Native C Files are correctly handled as a regular Input") {
+      TestUtil.retryOnCi() {
+        val projectDir      = "native-interop"
+        val interopFileName = "bindings.c"
+        val interopMsg      = "Hello C!"
+        val inputs          = TestInputs(
+          os.rel / projectDir / "main.scala" ->
+            s"""|//> using platform scala-native
+                |
+                |import scala.scalanative.unsafe._
+                |
+                |@extern
+                |object Bindings {
+                |  @name("scalanative_print")
+                |  def print(): Unit = extern
+                |}
+                |
+                |object Main {
+                |  def main(args: Array[String]): Unit = {
+                |    Bindings.print()
+                |  }
+                |}
+                |""".stripMargin,
+          os.rel / projectDir / interopFileName ->
+            s"""|#include <stdio.h>
+                |
+                |void scalanative_print() {
+                |    printf("$interopMsg\\n");
+                |}
+                |""".stripMargin
+        )
+        inputs.fromRoot { root =>
+          val output = stableStdoutOf(TestUtil.cli, extraOptions, projectDir, "-q")(cwd = root)
+          expect(output == interopMsg)
 
-        os.move(root / projectDir / interopFileName, root / projectDir / "bindings2.c")
-        val output2 = stableStdoutOf(TestUtil.cli, extraOptions, projectDir, "-q")(cwd = root)
+          os.move(root / projectDir / interopFileName, root / projectDir / "bindings2.c")
+          val output2 = stableStdoutOf(TestUtil.cli, extraOptions, projectDir, "-q")(cwd = root)
 
-        // LLVM throws linking errors if scalanative_print is internally repeated.
-        // This can happen if a file containing it will be removed/renamed in src,
-        // but somehow those changes will not be reflected in the output directory,
-        // causing symbols inside linked files to be doubled.
-        // Because of that, the removed file should not be passed to linker,
-        // otherwise this test will fail.
-        expect(output2 == interopMsg)
+          // LLVM throws linking errors if scalanative_print is internally repeated.
+          // This can happen if a file containing it will be removed/renamed in src,
+          // but somehow those changes will not be reflected in the output directory,
+          // causing symbols inside linked files to be doubled.
+          // Because of that, the removed file should not be passed to linker,
+          // otherwise this test will fail.
+          expect(output2 == interopMsg)
+        }
       }
     }
-  }
 
   if (actualScalaVersion.startsWith("3.2"))
     test("Scala 3 in Scala Native") {
@@ -214,9 +219,10 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
       }
   }
 
-  test("Multiple scripts native") {
-    TestUtil.retryOnCi()(multipleScriptsNative())
-  }
+  if !isScala3101OrNewer then
+    test("Multiple scripts native") {
+      TestUtil.retryOnCi()(multipleScriptsNative())
+    }
 
   def directoryNative(): Unit = {
     val message = "Hello"
@@ -265,51 +271,58 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
     expect(!lines.exists(_.contains("Scala.js options")))
   }
 
-  test("Take into account interactive main class when caching binaries") {
-    TestUtil.retryOnCi() {
-      val inputs = TestInputs(
-        os.rel / "Main1.scala" ->
-          """package foo
-            |
-            |object Main1 {
-            |  def main(args: Array[String]): Unit =
-            |    println("Hello from Main1")
-            |}
-            |""".stripMargin,
-        os.rel / "Main2.scala" ->
-          """package foo
-            |
-            |object Main2 {
-            |  def main(args: Array[String]): Unit =
-            |    println("Hello from Main2")
-            |}
-            |""".stripMargin
-      )
-      inputs.fromRoot { root =>
-        val configDir = root / "config"
-        os.makeDir.all(configDir)
-        if (!Properties.isWin)
-          os.perms.set(configDir, "rwx------")
-        val configEnv = Map("SCALA_CLI_CONFIG" -> (configDir / "config.json").toString)
-        os.proc(TestUtil.cli, "config", "interactive", "true")
-          .call(cwd = root, env = configEnv)
-        val output1 = TestUtil.dropJvmLogLines(
-          os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
-            .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main1"))
-            .out.lines()
-        ).last
-        expect(output1 == "Hello from Main1")
-        val output2 = TestUtil.dropJvmLogLines(
-          os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
-            .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main2"))
-            .out.lines()
-        ).last
-        expect(output2 == "Hello from Main2")
+  if !isScala3101OrNewer then
+    test("Take into account interactive main class when caching binaries") {
+      TestUtil.retryOnCi() {
+        val inputs = TestInputs(
+          os.rel / "Main1.scala" ->
+            """package foo
+              |
+              |object Main1 {
+              |  def main(args: Array[String]): Unit =
+              |    println("Hello from Main1")
+              |}
+              |""".stripMargin,
+          os.rel / "Main2.scala" ->
+            """package foo
+              |
+              |object Main2 {
+              |  def main(args: Array[String]): Unit =
+              |    println("Hello from Main2")
+              |}
+              |""".stripMargin
+        )
+        inputs.fromRoot { root =>
+          val configDir = root / "config"
+          os.makeDir.all(configDir)
+          if (!Properties.isWin)
+            os.perms.set(configDir, "rwx------")
+          val configEnv = Map("SCALA_CLI_CONFIG" -> (configDir / "config.json").toString)
+          os.proc(TestUtil.cli, "config", "interactive", "true")
+            .call(cwd = root, env = configEnv)
+          val output1 = TestUtil.dropJvmLogLines(
+            os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
+              .call(
+                cwd = root,
+                env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main1")
+              )
+              .out.lines()
+          ).last
+          expect(output1 == "Hello from Main1")
+          val output2 = TestUtil.dropJvmLogLines(
+            os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
+              .call(
+                cwd = root,
+                env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main2")
+              )
+              .out.lines()
+          ).last
+          expect(output2 == "Hello from Main2")
+        }
       }
     }
-  }
 
-  if (!actualScalaVersion.startsWith("2.12"))
+  if !actualScalaVersion.startsWith("2.12") && !isScala3101OrNewer then
     for {
       useDirectives <- Seq(true, false)
       titleStr = if (useDirectives) "with directives" else "with command line args"
@@ -442,44 +455,45 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
       case (false, true) => "with command line option"
     }
   }
-    test(
-      s"Scala Native multithreading set to $expectedMultithreadingState $testDescriptionString"
-    ) {
-      TestUtil.retryOnCi() {
-        val fileName       = "multithreading.sc"
-        val expectedOutput = "42"
-        val threadSleep    = "100"
-        val threadAwait    = "2.seconds"
-        val inputs         = TestInputs(
-          os.rel / fileName ->
-            s"""$directive
-               |import scala.concurrent._
-               |import scala.concurrent.duration._
-               |import ExecutionContext.Implicits.global
-               |val promise = Promise[Int]()
-               |val thread = new Thread(new Runnable {
-               |    def run(): Unit = {
-               |      Thread.sleep($threadSleep)
-               |      promise.success($expectedOutput)
-               |    }
-               |  })
-               |thread.start()
-               |val result = Await.result(promise.future, $threadAwait)
-               |println(result)
-               |""".stripMargin
-        )
-        inputs.fromRoot { root =>
-          val r = os.proc(TestUtil.cli, extraOptions, fileName, "--native", cliOptions)
-            .call(cwd = root, stderr = os.Pipe, check = expectedMultithreadingState)
-          if (!expectedMultithreadingState) expect(r.exitCode == 1)
-          else {
-            expect(r.exitCode == 0)
-            expect(TestUtil.stableStdout(r) == expectedOutput)
+    if !expectedMultithreadingState || !isScala3101OrNewer then
+      test(
+        s"Scala Native multithreading set to $expectedMultithreadingState $testDescriptionString"
+      ) {
+        TestUtil.retryOnCi() {
+          val fileName       = "multithreading.sc"
+          val expectedOutput = "42"
+          val threadSleep    = "100"
+          val threadAwait    = "2.seconds"
+          val inputs         = TestInputs(
+            os.rel / fileName ->
+              s"""$directive
+                 |import scala.concurrent._
+                 |import scala.concurrent.duration._
+                 |import ExecutionContext.Implicits.global
+                 |val promise = Promise[Int]()
+                 |val thread = new Thread(new Runnable {
+                 |    def run(): Unit = {
+                 |      Thread.sleep($threadSleep)
+                 |      promise.success($expectedOutput)
+                 |    }
+                 |  })
+                 |thread.start()
+                 |val result = Await.result(promise.future, $threadAwait)
+                 |println(result)
+                 |""".stripMargin
+          )
+          inputs.fromRoot { root =>
+            val r = os.proc(TestUtil.cli, extraOptions, fileName, "--native", cliOptions)
+              .call(cwd = root, stderr = os.Pipe, check = expectedMultithreadingState)
+            if (!expectedMultithreadingState) expect(r.exitCode == 1)
+            else {
+              expect(r.exitCode == 0)
+              expect(TestUtil.stableStdout(r) == expectedOutput)
+            }
+            val outputMultithreadingState =
+              if setExplicitly then expectedMultithreadingState.toString else "detect"
+            expect(r.err.trim().contains(s"multithreadingEnabled=$outputMultithreadingState"))
           }
-          val outputMultithreadingState =
-            if setExplicitly then expectedMultithreadingState.toString else "detect"
-          expect(r.err.trim().contains(s"multithreadingEnabled=$outputMultithreadingState"))
         }
       }
-    }
 }
