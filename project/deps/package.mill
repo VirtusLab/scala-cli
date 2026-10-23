@@ -20,8 +20,8 @@ object Scala {
   def scala3LtsRc           = s"$scala3LtsPrefix.0-RC6"
   def scala3LegacyLtsPrefix = "3.3"                  // old LTS
   def scala3LtsPrefixes     = Seq(scala3LegacyLtsPrefix, scala3LtsPrefix).distinct
-  def scala3LegacyLts       = s"$scala3LegacyLtsPrefix.8"
-  def scala3LegacyLtsRc     = s"$scala3LegacyLtsPrefix.9-RC1"
+  def scala3LegacyLts       = s"$scala3LegacyLtsPrefix.9"
+  def scala3LegacyLtsRc     = s"$scala3LegacyLtsPrefix.9-RC2"
   def runnerScala3          = scala3LegacyLts
   def scala3NextPrefix      = "3.10"
   def scala3Next            = s"$scala3NextPrefix.0" // newest version of Scala
