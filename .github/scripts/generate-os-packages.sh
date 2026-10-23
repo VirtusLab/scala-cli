@@ -49,6 +49,10 @@ shortVersion() {
 }
 
 generate_deb() {
+  local arch=$1    # architecture used in release asset names, e.g. x86_64, aarch64
+  local debArch=$2 # Debian architecture, e.g. amd64, arm64
+  local deb="$ARTIFACTS_DIR/scala-cli-$arch-pc-linux.deb"
+
   packager \
     --deb \
     --version "$(version)" \
@@ -58,20 +62,39 @@ generate_deb() {
     --maintainer "scala-cli@virtuslab.com" \
     --launcher-app "scala-cli" \
     --priority "optional" \
-    --section "devel"
-  mv "$ARTIFACTS_DIR/scala-cli.deb" "$ARTIFACTS_DIR/scala-cli-x86_64-pc-linux.deb"
+    --section "devel" \
+    --deb-architecture "$debArch"
+  mv "$ARTIFACTS_DIR/scala-cli.deb" "$deb"
+
+  local actualDebArch
+  actualDebArch="$(dpkg-deb -f "$deb" Architecture)"
+  if [[ "$actualDebArch" != "$debArch" ]]; then
+    echo "Expected $deb to have architecture $debArch, got $actualDebArch" 1>&2
+    exit 1
+  fi
 }
 
 generate_rpm() {
+  local arch=$1 # used both in release asset names and as the RPM architecture, e.g. x86_64, aarch64
+  local rpm="$ARTIFACTS_DIR/scala-cli-$arch-pc-linux.rpm"
+
   packager \
     --rpm \
     --version "$(shortVersion)" \
     --source-app-path "$(launcher)" \
-    --output "$ARTIFACTS_DIR/scala-cli-x86_64-pc-linux.rpm" \
+    --output "$rpm" \
     --description "Scala CLI" \
     --maintainer "scala-cli@virtuslab.com" \
     --license "ASL 2.0" \
-    --launcher-app "scala-cli"
+    --launcher-app "scala-cli" \
+    --rpm-architecture "$arch"
+
+  local actualRpmArch
+  actualRpmArch="$(rpm -qp --queryformat '%{ARCH}' "$rpm")"
+  if [[ "$actualRpmArch" != "$arch" ]]; then
+    echo "Expected $rpm to have architecture $arch, got $actualRpmArch" 1>&2
+    exit 1
+  fi
 }
 
 generate_pkg() {
@@ -149,8 +172,11 @@ generate_sdk() {
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   if [ "$ARCHITECTURE" == "x86_64" ]; then
-    generate_deb
-    generate_rpm
+    generate_deb "x86_64" "amd64"
+    generate_rpm "x86_64"
+  elif [ "$ARCHITECTURE" == "aarch64" ]; then
+    generate_deb "aarch64" "arm64"
+    generate_rpm "aarch64"
   fi
   generate_sdk
 elif [[ "$OSTYPE" == "darwin"* ]]; then

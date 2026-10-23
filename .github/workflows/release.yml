@@ -209,7 +209,7 @@ jobs:
         with:
           name: linux-launchers
           path: artifacts/
-      - name: Download MacOS ARM64 (AArch 64) launchers
+      - name: Download Linux ARM64 (AArch64) launchers
         uses: actions/download-artifact@v8
         with:
           name: linux-aarch64-launchers
@@ -252,7 +252,7 @@ jobs:
         with:
           name: linux-launchers
           path: artifacts/
-      - name: Download MacOS ARM64 (AArch64) launchers
+      - name: Download Linux ARM64 (AArch64) launchers
         uses: actions/download-artifact@v8
         with:
           name: linux-aarch64-launchers
