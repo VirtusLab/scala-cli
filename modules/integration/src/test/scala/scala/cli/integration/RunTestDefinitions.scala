@@ -2821,6 +2821,7 @@ abstract class RunTestDefinitions
       "JS"     -> Seq("--js"),
       "Native" -> Seq("--native")
     )
+    if !platformOpts.contains("--native") || !isScala3101OrNewer
   )
     test(s"run a main method from the test scope ($platformDescription)") {
       val expectedMessage = "Hello from the test scope"
