@@ -11,6 +11,7 @@ import java.io.{InputStream, OutputStream}
 import java.util.UUID
 import java.util.concurrent.{CompletableFuture, Executor}
 
+import scala.annotation.nowarn
 import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.compiler.BloopCompiler
@@ -28,6 +29,7 @@ import scala.compiletime.uninitialized
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.jdk.CollectionConverters.*
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 /** The implementation for [[Bsp]] command.
@@ -522,7 +524,7 @@ final class BspImpl(
     val initiateFirstBuild: Runnable = { () =>
       try build(currentBloopSession, actualLocalClient, notifyChanges = false, initialBspOptions)
       catch {
-        case t: Throwable =>
+        case NonFatal(t) =>
           logger.debug(s"Caught $t during initial BSP build, ignoring it")
       }
     }
@@ -693,6 +695,7 @@ object BspImpl {
     new ResponseError(errorCode, message, new Object())
 
   // from https://github.com/com-lihaoyi/Ammonite/blob/7eb58c58ec8c252dc5bd1591b041fcae01cccf90/amm/interp/src/main/scala/ammonite/interp/script/AmmoniteBuildServer.scala#L550-L565
+  @nowarn("msg=Catching Throwable") // the promise must always be completed
   private def naiveJavaFutureToScalaFuture[T](
     f: java.util.concurrent.Future[T]
   ): Future[T] = {

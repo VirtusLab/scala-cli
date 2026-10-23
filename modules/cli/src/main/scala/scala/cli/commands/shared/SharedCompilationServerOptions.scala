@@ -214,7 +214,7 @@ final case class SharedCompilationServerOptions(
             bloopJson.javaOptions
           }
           catch {
-            case e: Throwable =>
+            case NonFatal(e) =>
               logger.message(s"Error parsing global bloop config in '$filePath':")
               Util.printException(e)
               List.empty

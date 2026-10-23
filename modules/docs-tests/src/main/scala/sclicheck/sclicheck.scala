@@ -8,6 +8,7 @@ import java.security.SecureRandom
 import scala.annotation.tailrec
 import scala.io.StdIn.readLine
 import scala.util.Random
+import scala.util.control.NonFatal
 import scala.util.matching.Regex
 
 val SnippetBlock = """ *(`{2}`+)[^ ]+ title=([\w\d.\-/_]+) *""".r
@@ -362,7 +363,7 @@ def checkFile(file: os.Path, options: Options): Unit =
         printResult(success = true, start)
         if options.step then pause()
       catch
-        case e: Throwable =>
+        case NonFatal(e) =>
           printResult(success = false, start)
           if options.stopAtFailure then pause()
           throw e
@@ -371,7 +372,7 @@ def checkFile(file: os.Path, options: Options): Unit =
     if options.dest.isEmpty then
       try os.remove.all(out)
       catch
-        case ex: Throwable => ex.printStackTrace()
+        case NonFatal(ex) => ex.printStackTrace()
 
   // remove empty space at beginning of all files
   for (dest <- options.dest)
