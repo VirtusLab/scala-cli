@@ -108,10 +108,6 @@ which bundles Scala CLI. The Scala Debian package can be downloaded from the ass
 
 Scala CLI can be installed via the [dnf](https://dnf.readthedocs.io) package manager.
 
-:::note
-The package is only available for x86_64. On ARM64 (aarch64), use the manual installation instead.
-:::
-
 ```bash
 cat << EOF | sudo tee /etc/yum.repos.d/virtuslab.repo
 [virtuslab-repo]
@@ -130,15 +126,20 @@ On older systems without `dnf` (e.g. RHEL/CentOS 7), use `yum` instead of `dnf`
 </TabItem>
 <TabItem value="rpm">
 
-:::note
-The RPM package is only available for x86_64. On ARM64 (aarch64), use the manual installation instead.
-:::
+The RPM package can be downloaded for [x86_64](https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-linux.rpm)
+and [ARM64 (aarch64)](https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-aarch64-pc-linux.rpm).
 
-The RPM package can be downloaded at [this address](https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-linux.rpm).
+Alternatively, you can download it and install it manually. For the **x86_64** architecture, use:
 
-Alternatively, you can download it and install it manually with:
 ```bash
 curl -fLo scala-cli.rpm https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-linux.rpm
+sudo rpm -i scala-cli.rpm
+```
+
+For the **ARM64** (aarch64) architecture, use:
+
+```bash
+curl -fLo scala-cli.rpm https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-aarch64-pc-linux.rpm
 sudo rpm -i scala-cli.rpm
 ```
 

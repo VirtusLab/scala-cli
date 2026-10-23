@@ -337,7 +337,7 @@ jobs:
         if: env.SHOULD_RUN == 'true'
         run: |
           sudo apt-get update -q -y
-          sudo apt-get install -q -y build-essential libz-dev zlib1g-dev python3-pip
+          sudo apt-get install -q -y build-essential libz-dev zlib1g-dev python3-pip rpm
       - name: Generate native launcher
         if: env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-native-image.sh
