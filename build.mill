@@ -118,8 +118,8 @@ object `specification-level` extends Cross[SpecificationLevel](Scala.allScala3)
     with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 after 3.3 EOL
 object `build-macros` extends Cross[BuildMacros](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
-object config extends Cross[Config](Scala.allScala3)
-    with CrossScalaDefaultToLegacyLts // TODO Bump to 3.9 in Scala CLI 1.19
+object config extends Cross[Config](Scala.currentScala3)
+    with CrossScalaDefaultToLts
 object options extends Cross[Options](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object directives extends Cross[Directives](Scala.scala3MainVersions)
@@ -701,8 +701,7 @@ trait Directives extends ScalaCliCrossSbtModule
 trait Config extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
-    with LocatedInModules
-    with FutureLazyVals {
+    with LocatedInModules {
   override def crossScalaVersion: String                     = crossValue
   override def moduleDeps: Seq[SonatypeCentralPublishModule] =
     Seq(`specification-level`(crossScalaVersion))
@@ -2061,7 +2060,10 @@ object ci extends Module {
       "scala-cli-x86_64-pc-linux.rpm"  -> s"scala-cli_$version.rpm",
       "scala-cli-aarch64-pc-linux.rpm" -> s"scala-cli_${version}_aarch64.rpm"
     ).foreach { (artifactName, repoName) =>
-      os.copy(os.Path("artifacts", BuildCtx.workspaceRoot) / artifactName, centOsDir / "Packages" / repoName)
+      os.copy(
+        os.Path("artifacts", BuildCtx.workspaceRoot) / artifactName,
+        centOsDir / "Packages" / repoName
+      )
     }
 
     val cmd = Seq[os.Shellable](
