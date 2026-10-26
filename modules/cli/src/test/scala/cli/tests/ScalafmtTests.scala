@@ -7,6 +7,7 @@ import scala.build.Ops.*
 import scala.build.internal.Constants
 import scala.build.tests.{TestInputs, TestLogger}
 import scala.cli.commands.fmt.{FmtOptions, FmtUtil}
+import scala.util.control.NonFatal
 
 class ScalafmtTests extends TestUtil.ScalaCliSuite {
   import ScalafmtTests.*
@@ -64,7 +65,7 @@ class ScalafmtTests extends TestUtil.ScalaCliSuite {
     }
     catch {
       case e: JsonReaderException => throw new Exception(s"Error reading $url", e)
-      case e: Throwable           => throw new Exception(
+      case NonFatal(e)            => throw new Exception(
           s"""Failed to check for the ScalaFmt $defaultScalafmtVersion native launcher assets: ${e.getMessage}
              |
              |$errorMsg

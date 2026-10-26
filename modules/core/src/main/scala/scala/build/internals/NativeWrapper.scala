@@ -4,6 +4,7 @@ import scala.annotation.tailrec
 import scala.build.Logger
 import scala.io.Source
 import scala.util.Using
+import scala.util.control.NonFatal
 
 /*
  * Invoke `native-image.exe` inside a vcvars-initialized cmd.exe session.
@@ -152,7 +153,7 @@ object MsvcEnvironment {
           }
           .toMap
     catch
-      case _: Throwable => Map.empty
+      case NonFatal(_) => Map.empty
 
   // Reduce duplicate drive aliases to no more than one;
   // @return Some(single-alias) or None.

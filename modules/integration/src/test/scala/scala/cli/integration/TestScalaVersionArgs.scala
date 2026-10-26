@@ -33,6 +33,13 @@ trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
   def isScala310OrNewer: Boolean =
     actualScalaVersion.coursierVersion >= "3.10.0-RC1".coursierVersion
 
+  /** Of note, the published scalalib_native0.5_3:3.10.1-RC1+0.5.12 artifact contains stub NIR
+    * files, which makes Scala Native linking fail. TODO: re-enable the Scala Native tests gated
+    * with this once a fixed artifact is published
+    */
+  def isScala3101OrNewer: Boolean =
+    actualScalaVersion.coursierVersion >= "3.10.1-RC1".coursierVersion
+
   /** Scaladoc only passes its own compiler context (and thus `-scalajs`) to the TASTy inspector
     * since Scala 3.6.3, which is what makes reading Scala.js TASTy work.
     */

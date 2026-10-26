@@ -493,9 +493,10 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from tests"))
     }
 
-  test("successful test native") {
-    TestUtil.retryOnCi()(successfulNativeTest())
-  }
+  if !isScala3101OrNewer then
+    test("successful test native") {
+      TestUtil.retryOnCi()(successfulNativeTest())
+    }
 
   test("failing test") {
     failingTestInputs.fromRoot { root =>
@@ -523,9 +524,10 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(output.contains("Hello from tests"))
     }
 
-  test("failing test native") {
-    TestUtil.retryOnCi()(failingNativeTest())
-  }
+  if !isScala3101OrNewer then
+    test("failing test native") {
+      TestUtil.retryOnCi()(failingNativeTest())
+    }
 
   test("failing test return code") {
     failingTestInputs.fromRoot { root =>
@@ -594,15 +596,17 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       }
     }
 
-  test("utest native") {
-    TestUtil.retryOnCi()(utestNative())
-  }
+  if !isScala3101OrNewer then
+    test("utest native") {
+      TestUtil.retryOnCi()(utestNative())
+    }
 
   for {
     (platformArgs, platformName) <- Seq(
       (Seq("--native"), "Scala Native"),
       (Seq("--js"), "Scala.js")
     )
+    if !platformArgs.contains("--native") || !isScala3101OrNewer
   } test(s"utest on $platformName with JVM-only dep syntax produces an informative error") {
     TestUtil.retryOnCi() {
       TestInputs(
@@ -1155,6 +1159,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       Seq("--native"),
       Seq("--js")
     )
+    if !platformOptions.contains("--native") || !isScala3101OrNewer
     platformDescription = platformOptions.headOption.map(o => s" ($o)").getOrElse(" (JVM)")
   } {
     test(s"zio-test$platformDescription") {
