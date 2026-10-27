@@ -17,11 +17,11 @@ CI=true ./mill -i integration.test.jvm 'scala.cli.integration.RunTestsDefault.*'
 
 This disables test parallelism, so the run mirrors how the tests behave on CI. It is slower, but the extra time is an acceptable trade-off for reproducible results.
 
-**Structure**: `*TestDefinitions.scala` (abstract, holds test logic) → `*TestsDefault`, `*Tests213`, etc. (concrete, Scala version trait). Traits: `TestDefault`, `Test212`, `Test213`, `Test3Lts`, `Test3NextRc`.
+**Structure**: `*TestDefinitions.scala` (abstract, holds test logic) → `*TestsDefault`, `*Tests213`, etc. (concrete, Scala version trait). Traits: `TestDefault`, `Test212`, `Test213`, `Test39Lts`, `Test33Lts`, `Test3NextRc`.
 
 **Adding a test**:
 1. Open the right `*TestDefinitions` (e.g. `RunTestDefinitions` for `run`).
 2. Add `test("description") { … }` using `TestInputs(os.rel / "Main.scala" -> "…").fromRoot { root => … }` and `os.proc(TestUtil.cli, "run", …).call(cwd = root)`.
 3. Assert on stdout/stderr.
 
-**Helpers**: `TestInputs(...).fromRoot`, `TestUtil.cli`. Test groups (CI): `SCALA_CLI_IT_GROUP=1..5`; see `modules/integration/` for group mapping.
+**Helpers**: `TestInputs(...).fromRoot`, `TestUtil.cli`. Test groups (CI): `SCALA_CLI_IT_GROUP=1..6`; see `modules/integration/` for group mapping.

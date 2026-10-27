@@ -97,7 +97,7 @@ def cs: T[String] = Task(persistent = true) {
 
     urlOpt.map { url =>
       val cache        = coursier.cache.FileCache()
-      val archiveCache = coursier.cache.ArchiveCache().withCache(cache)
+      val archiveCache = coursier.cache.ArchiveCache().copy(cache = cache)
       val task         = cache.logger.using(archiveCache.get(coursier.util.Artifact(url)))
       val maybeFile    =
         try task.unsafeRun()(using cache.ec)

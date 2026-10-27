@@ -89,7 +89,8 @@ object ScalaCliSuite {
     case object First  extends TestGroup(1) // Scala 3 Next / default
     case object Second extends TestGroup(2) // Scala 2.13
     case object Third  extends TestGroup(3) // Scala 2.12
-    case object Fourth extends TestGroup(4) // Scala 3.3 LTS
+    case object Fourth extends TestGroup(4) // Scala 3.9 LTS (current)
     case object Fifth  extends TestGroup(5) // Scala 3 Next RC
+    case object Sixth  extends TestGroup(6) // Scala 3.3 LTS (legacy)
   }
 }

@@ -2,8 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-class CompileTests3Lts extends CompileTestDefinitions with CompileTests3StableDefinitions
-    with Test3Lts {
+class CompileTests33Lts extends CompileTestDefinitions with CompileTests3StableDefinitions
+    with Test33Lts {
   test("compile --print-class-path reflects --sloth toggle in the same workspace") {
     TestInputs(
       os.rel / "Main.scala" ->

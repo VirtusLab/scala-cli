@@ -6,8 +6,10 @@ trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
   override def group: ScalaCliSuite.TestGroup =
     if (actualScalaVersion.startsWith("2.12.")) ScalaCliSuite.TestGroup.Third
     else if (actualScalaVersion.startsWith("2.13.")) ScalaCliSuite.TestGroup.Second
-    else if (actualScalaVersion.startsWith(Constants.scala3LegacyLtsPrefix))
+    else if (actualScalaVersion.startsWith(Constants.scala3LtsPrefix))
       ScalaCliSuite.TestGroup.Fourth
+    else if (actualScalaVersion.startsWith(Constants.scala3LegacyLtsPrefix))
+      ScalaCliSuite.TestGroup.Sixth
     else if (actualScalaVersion.startsWith(Constants.scala3NextRc))
       ScalaCliSuite.TestGroup.Fifth
     else ScalaCliSuite.TestGroup.First
@@ -19,10 +21,12 @@ trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
 
   lazy val actualScalaVersion: String = scalaVersionOpt.getOrElse(Constants.defaultScala)
 
-  def isScala38OrNewer: Boolean =
+  def isScala38OrNewer: Boolean = isScala38OrNewer(actualScalaVersion)
+
+  def isScala38OrNewer(scalaVersion: String): Boolean =
     Constants.scala38Versions
       .map(_.coursierVersion)
-      .exists(_ <= actualScalaVersion.coursierVersion)
+      .exists(_ <= scalaVersion.coursierVersion)
 
   def isScala39OrNewer: Boolean =
     Constants.scala39Versions
@@ -48,8 +52,10 @@ trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
 
   def hasLatestRunnerModule: Boolean = actualScalaVersion.coursierVersion > "3.3.0".coursierVersion
 
-  def retrieveScalaVersionCode: String =
-    if actualScalaVersion.startsWith("2.") || isScala38OrNewer then
+  def retrieveScalaVersionCode: String = retrieveScalaVersionCode(actualScalaVersion)
+
+  def retrieveScalaVersionCode(scalaVersion: String): String =
+    if scalaVersion.startsWith("2.") || isScala38OrNewer(scalaVersion) then
       "scala.util.Properties.versionNumberString"
     else "dotty.tools.dotc.config.Properties.simpleVersionString"
 }
@@ -63,7 +69,10 @@ trait Test213 extends TestScalaVersion { this: TestScalaVersionArgs =>
 trait Test212 extends TestScalaVersion { this: TestScalaVersionArgs =>
   override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala212)
 }
-trait Test3Lts extends TestScalaVersion { this: TestScalaVersionArgs =>
+trait Test39Lts extends TestScalaVersion { this: TestScalaVersionArgs =>
+  override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala3Lts)
+}
+trait Test33Lts extends TestScalaVersion { this: TestScalaVersionArgs =>
   override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala3LegacyLts)
 }
 trait Test3NextRc extends TestScalaVersion { this: TestScalaVersionArgs =>
