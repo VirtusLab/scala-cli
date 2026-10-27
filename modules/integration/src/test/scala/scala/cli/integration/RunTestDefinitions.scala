@@ -42,7 +42,7 @@ abstract class RunTestDefinitions
     check: Boolean = true,
     mergeErrIntoOut: Boolean = false
   ): String =
-    os.proc(
+    TestUtil.stableStdoutOf(
       TestUtil.cli,
       "run",
       "-e",
@@ -51,10 +51,7 @@ abstract class RunTestDefinitions
       scalaVersionIndex,
       "--with-compiler",
       TestUtil.extraOptions
-    )
-      .call(cwd = root, check = check, mergeErrIntoOut = mergeErrIntoOut)
-      .out
-      .trim()
+    )(cwd = root, check = check, mergeErrIntoOut = mergeErrIntoOut)
 
   test("print command".tag(ScalaCliSuite.sanity)) {
     val fileName = "simple.sc"
