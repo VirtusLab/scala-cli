@@ -143,6 +143,11 @@ final case class PackagerOptions(
   @HelpMessage("Extra directories to be added to the docker image")
   @Tag(tags.restricted)
   dockerExtraDirectories: List[String] = Nil,
+  @Group(HelpGroup.Docker.toString)
+  @HelpMessage("Ports to be exposed by the docker image, can be passed multiple times")
+  @ValueDescription("8080|9000-9010|53/udp")
+  @Tag(tags.restricted)
+  dockerExposedPorts: List[String] = Nil,
 
   @Group(HelpGroup.NativeImage.toString)
   @HelpMessage(s"GraalVM Java major version to use to build GraalVM native images (${Constants.defaultGraalVMJavaVersion} by default)")

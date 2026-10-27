@@ -226,6 +226,21 @@ The following command generate a `hello-docker` image using base image `openjdk:
 scala-cli --power package --docker HelloDocker.scala --docker-from openjdk:11 --docker-image-repository hello-docker
 ```
 
+### Exposing ports
+
+`--docker-exposed-ports` lets you declare the ports exposed by the docker image. It can be passed multiple times,
+and accepts single ports (`8080`), port ranges (`9000-9010`) and an optional protocol (`53/udp`, `tcp` by default).
+
+```bash ignore
+scala-cli --power package --docker HelloDocker.scala --docker-image-repository hello-docker --docker-exposed-ports 8080 --docker-exposed-ports 53/udp
+```
+
+The same can be achieved with the `packaging.dockerExposedPorts` using directive:
+
+```scala compile power
+//> using packaging.dockerExposedPorts 8080 53/udp
+```
+
 ## Scala.js
 
 Packaging Scala.js applications results in a `.js` file, which can be run with `node`:

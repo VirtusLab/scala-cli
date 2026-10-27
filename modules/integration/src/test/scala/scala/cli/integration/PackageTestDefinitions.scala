@@ -1225,6 +1225,47 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
   }
 
+  def dockerWithExposedPortsTest(): Unit = {
+    val fileName  = "Hello.scala"
+    val imageName = "exposedports"
+    val inputs    = TestInputs(
+      os.rel / fileName ->
+        """//> using packaging.dockerExposedPorts 8080 9000-9001
+          |
+          |object Hello extends App {
+          |  println("hello")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        fileName,
+        "--docker",
+        "--docker-image-repository",
+        imageName,
+        "--docker-exposed-ports",
+        "53/udp",
+        "-f"
+      ).call(cwd = root)
+      val exposedPorts = os.proc(
+        "docker",
+        "image",
+        "inspect",
+        "--format",
+        "{{range $port, $_ := .Config.ExposedPorts}}{{$port}} {{end}}",
+        imageName
+      ).call(cwd = root)
+        .out.trim()
+        .split("\\s+")
+        .filter(_.nonEmpty)
+        .toSet
+      expect(exposedPorts == Set("8080/tcp", "9000/tcp", "9001/tcp", "53/udp"))
+    }
+  }
+
   if (Properties.isLinux) {
     // TODO: restore this test when `registry-1.docker.io` is stable again
     test("pass java options to docker".flaky) {
@@ -1237,6 +1278,13 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     test("pass extra directory to docker".flaky) {
       TestUtil.retryOnCi() {
         dockerWithExtraDirsTest()
+      }
+    }
+
+    // TODO: restore this test when `registry-1.docker.io` is stable again
+    test("expose ports in docker image".flaky) {
+      TestUtil.retryOnCi() {
+        dockerWithExposedPortsTest()
       }
     }
   }

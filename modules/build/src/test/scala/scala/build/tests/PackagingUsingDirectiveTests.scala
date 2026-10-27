@@ -125,4 +125,51 @@ class PackagingUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("docker exposed ports") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using packaging.dockerExposedPorts 8080 9000-9010 53/udp
+          |
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      val dockerOpt = maybeBuild.options.notForBloopOptions.packageOptions.dockerOptions
+      expect(dockerOpt.exposedPorts == Seq("8080", "9000-9010", "53/udp"))
+    }
+  }
+
+  test("docker exposed port (singular alias)") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using packaging.dockerExposedPort 8080
+          |
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      val dockerOpt = maybeBuild.options.notForBloopOptions.packageOptions.dockerOptions
+      expect(dockerOpt.exposedPorts == Seq("8080"))
+    }
+  }
+
+  test("invalid docker exposed port") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using packaging.dockerExposedPorts 8080 http
+          |
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      maybeBuild match
+        case Left(e) =>
+          expect(e.message.contains("docker-exposed-port"))
+          expect(e.message.contains("\"http\""))
+          expect(e.positions.nonEmpty)
+        case Right(_) =>
+          fail("Expected build to fail with an invalid docker exposed port")
+    }
+  }
+
 }
