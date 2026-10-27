@@ -220,7 +220,10 @@ final case class PackageOptions(
             imageTag = packager.dockerImageTag,
             cmd = packager.dockerCmd,
             isDockerEnabled = Some(docker),
-            extraDirectories = packager.dockerExtraDirectories.map(os.Path(_, os.pwd))
+            extraDirectories = packager.dockerExtraDirectories.map(os.Path(_, os.pwd)),
+            exposedPorts = value(DockerOptions.validateExposedPorts(
+              packager.dockerExposedPorts.map(Positioned.commandLine)
+            ))
           ),
           nativeImageOptions = {
             val graalVmVersion     = packager.graalvmVersion.map(_.trim).filter(_.nonEmpty)

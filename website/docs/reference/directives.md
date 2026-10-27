@@ -309,6 +309,9 @@ Set parameters for packaging
 `//> using packaging.dockerExtraDirectories` _directories_
 `//> using packaging.dockerExtraDirectory` _directory_
 
+`//> using packaging.dockerExposedPorts` _ports_
+`//> using packaging.dockerExposedPort` _port_
+
 
 
 #### Examples
@@ -341,6 +344,10 @@ Set parameters for packaging
 `//> using packaging.dockerExtraDirectories path/to/directory1 path/to/directory2`
 
 `//> using packaging.dockerExtraDirectory path/to/directory`
+
+`//> using packaging.dockerExposedPorts 8080 9000-9010 53/udp`
+
+`//> using packaging.dockerExposedPort 8080`
 
 ### Platform
 

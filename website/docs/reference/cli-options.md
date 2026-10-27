@@ -998,6 +998,10 @@ Allows to override the executable used to run the application in docker, otherwi
 
 Extra directories to be added to the docker image
 
+### `--docker-exposed-ports`
+
+Ports to be exposed by the docker image, can be passed multiple times
+
 ### `--graalvm-java-version`
 
 GraalVM Java major version to use to build GraalVM native images (17 by default)

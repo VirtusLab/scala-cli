@@ -12,7 +12,7 @@ import scala.build.options.{BuildOptions, InternalOptions, PackageType}
 import scala.build.tests.util.BloopServer
 import scala.build.tests.{TestInputs, TestLogger}
 import scala.build.{BuildThreads, Directories, LocalRepo}
-import scala.cli.commands.package0.Package
+import scala.cli.commands.package0.{Package, PackageOptions}
 import scala.cli.packaging.Library
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
@@ -159,5 +159,30 @@ class PackageTests extends TestUtil.ScalaCliSuite {
     expect(Package.jsEntryModule(files.reverse, None) == Some(aJs))
     expect(Package.jsEntryModule(Seq(loaderJs), None) == Some(loaderJs))
     expect(Package.jsEntryModule(Nil, None).isEmpty)
+  }
+
+  private def packageBuildOptions(args: String*) =
+    PackageOptions.parser.parse(args) match
+      case Right((options, Nil)) => options.finalBuildOptions(TestLogger())
+      case other                 => fail(s"Unexpected parsing result: $other")
+
+  test("--docker-exposed-ports is passed to docker options") {
+    val dockerOptions = packageBuildOptions(
+      "--docker-exposed-ports",
+      "8080",
+      "--docker-exposed-ports",
+      "9000-9010",
+      "--docker-exposed-ports",
+      "53/udp"
+    ).orThrow.notForBloopOptions.packageOptions.dockerOptions
+    expect(dockerOptions.exposedPorts == Seq("8080", "9000-9010", "53/udp"))
+  }
+
+  test("invalid --docker-exposed-ports is reported") {
+    packageBuildOptions("--docker-exposed-ports", "8080", "--docker-exposed-ports", "http") match
+      case Left(e) =>
+        expect(e.message.contains("docker-exposed-port"))
+        expect(e.message.contains("\"http\""))
+      case Right(_) => fail("Expected an invalid docker exposed port to be reported")
   }
 }

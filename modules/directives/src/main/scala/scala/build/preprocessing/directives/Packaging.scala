@@ -37,6 +37,8 @@ import scala.util.Try
   "//> using packaging.dockerExtraDirectories path/to/directory1 path/to/directory2"
 )
 @DirectiveExamples("//> using packaging.dockerExtraDirectory path/to/directory")
+@DirectiveExamples("//> using packaging.dockerExposedPorts 8080 9000-9010 53/udp")
+@DirectiveExamples("//> using packaging.dockerExposedPort 8080")
 @DirectiveUsage(
   """using packaging.packageType [package type]
     |using packaging.output [destination path]
@@ -51,6 +53,7 @@ import scala.util.Try
     |using packaging.dockerImageRepository [image repository]
     |using packaging.dockerCmd [docker command]
     |using packaging.dockerExtraDirectories [directories]
+    |using packaging.dockerExposedPorts [ports]
     |""".stripMargin,
   """`//> using packaging.packageType` _package-type_
     |
@@ -79,6 +82,9 @@ import scala.util.Try
     |`//> using packaging.dockerExtraDirectories` _directories_
     |`//> using packaging.dockerExtraDirectory` _directory_
     |
+    |`//> using packaging.dockerExposedPorts` _ports_
+    |`//> using packaging.dockerExposedPort` _port_
+    |
     |""".stripMargin
 )
 @DirectiveDescription("Set parameters for packaging")
@@ -98,7 +104,9 @@ final case class Packaging(
   dockerCmd: Option[String] = None,
   @DirectiveName("dockerExtraDirectory")
   dockerExtraDirectories: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
-    DirectiveValueParser.WithScopePath.empty(Nil)
+    DirectiveValueParser.WithScopePath.empty(Nil),
+  @DirectiveName("dockerExposedPort")
+  dockerExposedPorts: List[Positioned[String]] = Nil
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = either {
     val maybePackageTypeOpt = packageType
@@ -168,6 +176,7 @@ final case class Packaging(
         .sequence
         .left.map(CompositeBuildException(_))
     }
+    val exposedPorts = value(DockerOptions.validateExposedPorts(dockerExposedPorts))
 
     BuildOptions(
       internal = InternalOptions(
@@ -184,7 +193,8 @@ final case class Packaging(
             imageRepository = dockerImageRepository,
             imageTag = dockerImageTag,
             cmd = dockerCmd,
-            extraDirectories = extraDirectories
+            extraDirectories = extraDirectories,
+            exposedPorts = exposedPorts
           ),
           nativeImageOptions = NativeImageOptions(
             graalvmVersion = graalvmVersion,
