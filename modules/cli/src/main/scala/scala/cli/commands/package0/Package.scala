@@ -827,7 +827,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       tag = Some(tag),
       exec = exec,
       dockerExecutable = None,
-      extraDirectories = packageOptions.dockerOptions.extraDirectories.map(_.toNIO)
+      extraDirectories = packageOptions.dockerOptions.extraDirectories.map(_.toNIO),
+      exposedPorts = Nil
     )
 
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
