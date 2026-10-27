@@ -26,7 +26,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
       )
 
   private def withEscapedBackslashes(s: os.Path): String =
-    s.toString.replaceAll("\\\\", "\\\\\\\\")
+    s.toNIO.toString.replaceAll("\\\\", "\\\\\\\\")
 
   test("export json") {
     val inputs = TestInputs(

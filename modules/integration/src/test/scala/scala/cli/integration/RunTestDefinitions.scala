@@ -42,7 +42,7 @@ abstract class RunTestDefinitions
     check: Boolean = true,
     mergeErrIntoOut: Boolean = false
   ): String =
-    os.proc(
+    TestUtil.stableStdoutOf(
       TestUtil.cli,
       "run",
       "-e",
@@ -51,10 +51,7 @@ abstract class RunTestDefinitions
       scalaVersionIndex,
       "--with-compiler",
       TestUtil.extraOptions
-    )
-      .call(cwd = root, check = check, mergeErrIntoOut = mergeErrIntoOut)
-      .out
-      .trim()
+    )(cwd = root, check = check, mergeErrIntoOut = mergeErrIntoOut)
 
   test("print command".tag(ScalaCliSuite.sanity)) {
     val fileName = "simple.sc"
@@ -859,7 +856,7 @@ abstract class RunTestDefinitions
     )
     inputs.fromRoot { root =>
       val p = stableStdoutOf(TestUtil.cli, "Hello.scala")(cwd = root)
-      expect(p == root.toString)
+      expect(os.Path(p) == root)
     }
   }
 
@@ -1664,7 +1661,7 @@ abstract class RunTestDefinitions
       val output =
         stableStdoutOf(TestUtil.cli, ".", "--toolkit", Constants.toolkitVersion)(cwd = root)
 
-      expect(output == root.toString())
+      expect(os.Path(output) == root)
     }
   }
 
@@ -1689,7 +1686,7 @@ abstract class RunTestDefinitions
           s"typelevel:${Constants.typelevelToolkitVersion}"
         )(cwd = root)
 
-      expect(output == root.toString())
+      expect(os.Path(output) == root)
     }
   }
 
@@ -1837,7 +1834,7 @@ abstract class RunTestDefinitions
       expect(res1.exitCode == 1)
       // running `validMainFile` should succeed, since it only depends on main scope deps
       val res2 = stableStdoutOf(TestUtil.cli, "run", projectFile, validMainFile)(cwd = root)
-      expect(res2 == root.toString())
+      expect(os.Path(res2) == root)
       // test scope should have access to both main and test deps
       os.proc(TestUtil.cli, "test", projectFile, testFile)
         .call(cwd = root, stderr = os.Pipe)
@@ -2582,7 +2579,7 @@ abstract class RunTestDefinitions
       }
       else {
         expect(result.exitCode == 0)
-        expect(TestUtil.stableStdout(result) == root.toString)
+        expect(os.Path(TestUtil.stableStdout(result)) == root)
       }
     }
   }

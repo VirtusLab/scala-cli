@@ -293,11 +293,11 @@ abstract class CompileTestDefinitions
         )(cwd =
           root
         )
-      val classPath = output.split(File.pathSeparator).map(_.trim).filter(_.nonEmpty)
+      val classPath =
+        output.split(File.pathSeparator).map(_.trim).filter(_.nonEmpty).map(os.Path(_))
       val isDefinedTestPathInClassPath = // expected test class path - root / Constants.workspaceDirName / project_(hash) / classes / test
         classPath.exists(p =>
-          p.startsWith((root / Constants.workspaceDirName).toString()) &&
-          p.endsWith(Seq("classes", "test").mkString(File.separator))
+          p.startsWith(root / Constants.workspaceDirName) && p.endsWith(os.rel / "classes" / "test")
         )
       expect(isDefinedTestPathInClassPath)
       checkIfCompileOutputIsCopied("Tests", tempOutput)

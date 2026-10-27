@@ -477,17 +477,23 @@ object CrossSources {
     workspaceDir: os.Path,
     exclude: Seq[Positioned[String]]
   ): Either[BuildException, Seq[E]] = either {
+    // os.Path#toString always uses '/' as the separator (also on Windows),
+    // so patterns need to use it too in order to match the source paths
+    def normalizeSeparators(pattern: String): String =
+      if File.separatorChar == '/' then pattern
+      else pattern.replace(File.separatorChar, '/')
+
     val excludePatterns = exclude.map(_.value).flatMap { p =>
       val maybeRelPath = Try(os.RelPath(p)).toOption
       maybeRelPath match {
         case Some(relPath) if os.isDir(workspaceDir / relPath) =>
           // exclude relative directory paths, add * to exclude all files in the directory
-          Seq(p, s"${workspaceDir / relPath}${File.separator}*")
+          Seq(p, s"${workspaceDir / relPath}/*")
         case Some(relPath) =>
           Seq(p, (workspaceDir / relPath).toString) // exclude relative paths
         case None => Seq(p)
       }
-    }
+    }.map(normalizeSeparators)
 
     def isSourceIncluded(path: String, excludePatterns: Seq[String]): Boolean =
       excludePatterns

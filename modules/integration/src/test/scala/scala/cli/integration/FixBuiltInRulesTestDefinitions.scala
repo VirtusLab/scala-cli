@@ -709,7 +709,7 @@ trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
             cwd = root,
             stderr = os.Pipe
           )
-          expect(runResult == root.toString)
+          expect(os.Path(runResult) == root)
         }
       }
   }

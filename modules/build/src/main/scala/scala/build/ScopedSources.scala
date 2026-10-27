@@ -127,11 +127,11 @@ final case class ScopedSources(
     either {
       def getScopedBuildInfo(scope: Scope): ScopedBuildInfo =
         val combinedOptions = combinedBuildOptions(scope, baseOptions)
-        val sourcePaths     = paths.flatMap(_.valueFor(scope).toSeq).map(_._1.toString)
+        val sourcePaths     = paths.flatMap(_.valueFor(scope).toSeq).map(_._1.toNIO.toString)
         val inMemoryPaths   =
           (inMemory.flatMap(_.valueFor(scope).toSeq).flatMap(_.originalPath.toOption) ++
             unwrappedScripts.flatMap(_.valueFor(scope).toSeq).flatMap(_.originalPath.toOption))
-            .map(_._2.toString)
+            .map(_._2.toNIO.toString)
 
         ScopedBuildInfo(combinedOptions, sourcePaths ++ inMemoryPaths)
 

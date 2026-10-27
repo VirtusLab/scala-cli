@@ -17,7 +17,8 @@ trait LazyValTests:
 
   protected val slothNoOpWarnPrefix: String                = "Sloth patching is not applicable to"
   protected val slothSignatureStrippedWarnFragment: String = "signature files were removed"
-  protected val slothCacheSegment: String = s"${File.separator}sloth${File.separator}"
+  // Scala CLI prints paths with os.Path#toString, which uses '/' as the separator on all platforms
+  protected val slothCacheSegment: String = "/sloth/"
   protected val slothOptions: Seq[String] =
     Seq("--sloth", "--suppress-experimental-feature-warning")
   protected val slothAgentOptions: Seq[String] =
@@ -110,9 +111,8 @@ trait LazyValTests:
     root: os.Path,
     scope: String = "main"
   ): os.Path =
-    val suffix = Seq("classes", scope).mkString(File.separator)
-    val found  = classpathEntries(classpath).find { p =>
-      p.startsWith(root / Constants.workspaceDirName) && p.toString.endsWith(suffix)
+    val found = classpathEntries(classpath).find { p =>
+      p.startsWith(root / Constants.workspaceDirName) && p.endsWith(os.rel / "classes" / scope)
     }
     expect(found.isDefined)
     found.get

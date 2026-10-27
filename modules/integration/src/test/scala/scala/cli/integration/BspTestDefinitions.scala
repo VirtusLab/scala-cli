@@ -23,6 +23,10 @@ abstract class BspTestDefinitions extends ScalaCliSuite
   this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
+  // setup-ide writes the launcher path to the BSP connection details with os.Path#toString,
+  // which uses '/' as the separator on all platforms
+  private lazy val bspCliPath: String = os.Path(TestUtil.cliPath).toString
+
   test("setup-ide") {
     val inputs = TestInputs(
       os.rel / "simple.sc" ->
@@ -34,7 +38,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
       os.proc(TestUtil.cli, "setup-ide", ".", extraOptions).call(cwd = root, stdout = os.Inherit)
       val details = readBspConfig(root)
       expect(details.argv.length >= 2)
-      expect(details.argv.dropWhile(_ != TestUtil.cliPath).drop(1).head == "bsp")
+      expect(details.argv.dropWhile(_ != bspCliPath).drop(1).head == "bsp")
     }
   }
 
@@ -55,7 +59,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
         val expectedIdeInputsFile  = root / Constants.workspaceDirName / "ide-inputs.json"
         val expectedIdeEnvsFile    = root / Constants.workspaceDirName / "ide-envs.json"
         val expectedArgv           = Seq(
-          TestUtil.cliPath,
+          bspCliPath,
           "--power",
           "bsp",
           "--json-options",
@@ -70,7 +74,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
           expect(details.argv.head.endsWith("java"))
           expect(details.argv.drop(1).head == "-jar")
         }
-        expect(details.argv.dropWhile(_ != TestUtil.cliPath) == expectedArgv)
+        expect(details.argv.dropWhile(_ != bspCliPath) == expectedArgv)
         expect(os.isFile(expectedIdeOptionsFile))
         expect(os.isFile(expectedIdeInputsFile))
         expect(os.isFile(expectedIdeEnvsFile))
@@ -104,7 +108,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
       val details      = readBspConfig(root / "directory")
       val expectedArgv = List(
-        TestUtil.cliPath,
+        bspCliPath,
         "--power",
         "bsp",
         "--json-options",
@@ -115,7 +119,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
         (root / "directory" / Constants.workspaceDirName / "ide-envs.json").toString,
         (root / "directory" / "simple.sc").toString
       )
-      expect(details.argv.dropWhile(_ != TestUtil.cliPath) == expectedArgv)
+      expect(details.argv.dropWhile(_ != bspCliPath) == expectedArgv)
     }
   }
 
@@ -2212,7 +2216,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             expect(expectedIdeLauncherFile.toNIO.toFile.exists())
             expect(os.read(expectedIdeLauncherFile).contains(cliVersion))
             val bspConfig = readBspConfig(root)
-            expect(bspConfig.argv.head == TestUtil.cliPath)
+            expect(bspConfig.argv.head == bspCliPath)
             expect(bspConfig.argv.containsSlice(cliVersionArgs))
             expect(bspConfig.argv.indexOfSlice(cliVersionArgs) < bspConfig.argv.indexOf("bsp"))
           }
@@ -2264,14 +2268,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               expect(expectedIdeLauncherFile.toNIO.toFile.exists())
               val bspConfig          = readBspConfig(root, connectionJsonFileName)
               val bspLauncherCommand = {
-                val launcherPrefix = bspConfig.argv.takeWhile(_ != TestUtil.cliPath)
+                val launcherPrefix = bspConfig.argv.takeWhile(_ != bspCliPath)
                 launcherPrefix :+ bspConfig.argv.drop(launcherPrefix.length).head
               }
-              expect(bspLauncherCommand.last == TestUtil.cliPath)
+              expect(bspLauncherCommand.last == bspCliPath)
               if (TestUtil.isJvmBootstrappedCli) {
                 // this launcher is not self-executable and has to be launched with `java -jar`
                 expect(bspLauncherCommand.head.endsWith("java"))
-                expect(bspLauncherCommand.drop(1) == List("-jar", TestUtil.cliPath))
+                expect(bspLauncherCommand.drop(1) == List("-jar", bspCliPath))
                 val bspJavaVersionResult =
                   stableStdoutOf(bspLauncherCommand.head, "-version")(
                     cwd = root,
@@ -2287,7 +2291,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
                 ))
               }
               else
-                expect(bspLauncherCommand == List(TestUtil.cliPath))
+                expect(bspLauncherCommand == List(bspCliPath))
               val r = stableStdoutOf(bspLauncherCommand, "version", "--cli-version")(
                 cwd = root,
                 env = Map("JAVA_HOME" -> javaHome.toString)
@@ -2308,9 +2312,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite
       if (TestUtil.isJvmBootstrappedCli) {
         expect(bspConfig.argv.head.endsWith("java"))
         expect(bspConfig.argv.drop(1).head == "-jar")
-        expect(bspConfig.argv.dropWhile(_ != TestUtil.cliPath).head == TestUtil.cliPath)
+        expect(bspConfig.argv.dropWhile(_ != bspCliPath).head == bspCliPath)
       }
-      else expect(bspConfig.argv.head == TestUtil.cliPath)
+      else expect(bspConfig.argv.head == bspCliPath)
       expect(bspConfig.argv.containsSlice(javaProps))
       expect(bspConfig.argv.indexOfSlice(javaProps) < bspConfig.argv.indexOf("bsp"))
     }
