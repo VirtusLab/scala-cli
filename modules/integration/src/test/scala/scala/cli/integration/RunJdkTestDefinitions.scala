@@ -55,7 +55,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
           withLauncher(root) { launcher =>
             val res = os.proc(launcher, "run", ".", extraOptions)
               .call(cwd = root, env = Map("JAVA_HOME" -> javaHome.toString))
-            expect(res.out.trim().contains(javaHome.toString))
+            expect(res.out.trim().contains(javaHome.toNIO.toString))
           }
         }
       }
@@ -97,7 +97,7 @@ trait RunJdkTestDefinitions { this: RunTestDefinitions =>
               val res =
                 os.proc(launcher, "run", ".", extraOptions, "--java-home", javaHome.toString)
                   .call(cwd = root)
-              expect(res.out.trim().contains(javaHome.toString))
+              expect(res.out.trim().contains(javaHome.toNIO.toString))
             }
           }
         }

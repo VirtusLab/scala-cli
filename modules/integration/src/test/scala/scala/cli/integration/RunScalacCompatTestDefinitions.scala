@@ -515,7 +515,7 @@ trait RunScalacCompatTestDefinitions {
             "-source:3.2-migration"
           ).call(cwd = root, stderr = os.Pipe)
           val filePath = root / fileName
-          expect(res.err.trim().contains(s"[patched file $filePath]"))
+          expect(res.err.trim().contains(s"[patched file ${filePath.toNIO}]"))
           expect(os.read(filePath) == newSyntaxCode)
           expect(TestUtil.stableStdout(res) == expectedOutput)
         }
@@ -532,7 +532,7 @@ trait RunScalacCompatTestDefinitions {
             "-source:3.2-migration"
           ).call(cwd = root, stderr = os.Pipe)
           val filePath = root / fileName
-          expect(res.err.trim().contains(s"[patched file $filePath]"))
+          expect(res.err.trim().contains(s"[patched file ${filePath.toNIO}]"))
           expect(os.read(filePath) == oldSyntaxCode)
           expect(TestUtil.stableStdout(res) == expectedOutput)
         }

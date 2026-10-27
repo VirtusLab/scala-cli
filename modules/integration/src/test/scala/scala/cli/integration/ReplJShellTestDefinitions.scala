@@ -29,6 +29,10 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
   protected def jshellOutput(res: os.CommandResult): String =
     TestUtil.removeAnsiColors(res.out.text())
 
+  /** Parses the path printed after `PWD-MARKER:` (its separators depend on the os-lib version). */
+  private def pwdMarkerPath(res: os.CommandResult): Option[os.Path] =
+    jshellOutput(res).linesIterator.collectFirst { case s"PWD-MARKER:$path" => os.Path(path.trim) }
+
   protected def runInJShell(
     initScript: String,
     testInputs: TestInputs = TestInputs.empty,
@@ -360,7 +364,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
         initScript = osPwdInitScript,
         testInputs = inputsWithDirective
       ) { (res, root) =>
-        expect(jshellOutput(res).contains(s"PWD-MARKER:${root.toString}"))
+        expect(pwdMarkerPath(res).contains(root))
       }
     }
 
@@ -370,7 +374,7 @@ trait ReplJShellTestDefinitions { this: ReplTestDefinitions =>
         testInputs = inputs,
         cliOptions = Seq("--toolkit", "default")
       ) { (res, root) =>
-        expect(jshellOutput(res).contains(s"PWD-MARKER:${root.toString}"))
+        expect(pwdMarkerPath(res).contains(root))
       }
     }
   }

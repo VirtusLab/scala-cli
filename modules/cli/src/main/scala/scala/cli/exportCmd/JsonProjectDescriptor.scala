@@ -17,8 +17,8 @@ final case class JsonProjectDescriptor(
     sourcesTest: Sources
   ): Either[BuildException, JsonProject] = {
     def getScopedBuildInfo(options: BuildOptions, sources: Sources) =
-      val sourcePaths   = sources.paths.map(_._1.toString)
-      val inMemoryPaths = sources.inMemory.flatMap(_.originalPath.toSeq.map(_._2.toString))
+      val sourcePaths   = sources.paths.map(_._1.toNIO.toString)
+      val inMemoryPaths = sources.inMemory.flatMap(_.originalPath.toSeq.map(_._2.toNIO.toString))
 
       ScopedBuildInfo(options, sourcePaths ++ inMemoryPaths)
 

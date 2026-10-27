@@ -418,7 +418,7 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
           ).fromRoot { root =>
             val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
               .call(cwd = root, stderr = os.Pipe)
-            expect(TestUtil.stableStdout(result) == root.toString)
+            expect(os.Path(TestUtil.stableStdout(result)) == root)
             if (Constants.scalaNativeVersion != Constants.toolkiMaxScalaNative) {
               val err = result.err.trim()
               expect(

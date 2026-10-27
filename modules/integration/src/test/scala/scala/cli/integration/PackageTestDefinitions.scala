@@ -1336,13 +1336,13 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       // bootstrap
       stableStdoutOf(packageCmds)(cwd = root)
       val output = TestUtil.stableStdout(TestUtil.maybeUseBash(launcher.toString)(cwd = root))
-      expect(output == root.toString)
+      expect(os.Path(output) == root)
 
       // assembly
       stableStdoutOf(packageCmds, "--assembly", "-f")(cwd = root)
       val outputAssembly =
         TestUtil.stableStdout(TestUtil.maybeUseBash(launcher.toString)(cwd = root))
-      expect(outputAssembly == root.toString)
+      expect(os.Path(outputAssembly) == root)
     }
   }
 

@@ -460,7 +460,7 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
             .spawn(cwd = root, stderr = os.Pipe)
         ) { (proc, timeout, ec) =>
           val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
-          expect(output1 == root.toString)
+          expect(os.Path(output1) == root)
           proc.printStderrUntilRerun(timeout)(using ec)
           os.write.over(root / inputPath, code(includeDirective = false))
           TestUtil.readLine(proc.stderr, ec, timeout)
@@ -469,7 +469,7 @@ trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
           proc.printStderrUntilRerun(timeout)(using ec)
           os.write.over(root / inputPath, code(includeDirective = true))
           val output3 = TestUtil.readLine(proc.stdout, ec, timeout)
-          expect(output3 == root.toString)
+          expect(os.Path(output3) == root)
         }
       }
     }
