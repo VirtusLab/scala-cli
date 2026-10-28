@@ -10,7 +10,7 @@ object `package` extends MillBuildRootModule {
     Deps.millScalafix,
     Deps.scalafixInterfaces,
     Deps.sonatypeCentralClientRequests,
-    Deps.coursierLauncher,
+    Deps.coursierLauncherForMill,
     Deps.jgit
   )
   override def moduleDeps: Seq[JavaModule] =
