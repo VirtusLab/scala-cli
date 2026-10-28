@@ -164,7 +164,7 @@ object Deps {
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative05
     def scalaPackager                     = "0.3.2"
-    def signingCli                        = "0.4.0"
+    def signingCli                        = "0.5.0"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.12.3"
     def javaClassName                     = "0.2.0"
@@ -210,8 +210,7 @@ object Deps {
     mvn"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
       .exclude(("ai.kien", "python-native-libs_2.13"))
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-  // coursier/publish (also pulled by scala-cli-signing) depends on the Scala 2.13 coursier
-  // artifacts, while we use the Scala 3 ones
+  // coursier/publish depends on the Scala 2.13 coursier artifacts, while we use the Scala 3 ones
   private def coursierScala213Exclusions = Seq(
     "io.get-coursier"                       -> "cache-util",
     "io.get-coursier"                       -> "coursier-cache_2.13",
@@ -310,10 +309,7 @@ object Deps {
       .exclude(("com.github.alexarchambault", "case-app_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
-      .exclude(("io.get-coursier.publish", "publish_2.13"))
       .exclude(("com.lihaoyi", "os-lib_3"))
-      .exclude(("com.lihaoyi", "os-lib_2.13"))
-      .exclude(coursierScala213Exclusions*)
   def slf4jNop                      = mvn"org.slf4j:slf4j-nop:2.0.20"
   def sonatypeCentralClientRequests =
     mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
