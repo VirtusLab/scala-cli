@@ -1,13 +1,13 @@
 package scala.cli.commands.publish
 
 import coursier.core.{Configuration, MinimizedExclusions, ModuleName, Organization, Type}
-import coursier.publish.Pom
 
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 import java.time.{LocalDateTime, ZoneOffset}
 
 import scala.collection.mutable
+import scala.publish.Pom
 import scala.xml.{Elem, NodeSeq}
 
 object Ivy {

@@ -1,10 +1,6 @@
 package scala.cli.commands.publish
 
 import coursier.cache.{ArchiveCache, FileCache}
-import coursier.publish.checksum.logger.ChecksumLogger
-import coursier.publish.checksum.{ChecksumType, Checksums}
-import coursier.publish.fileset.FileSet
-import coursier.publish.signing.{GpgSigner, Signer}
 
 import java.net.URI
 import java.time.Instant
@@ -21,6 +17,10 @@ import scala.cli.errors.MissingPublishOptionError
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.concurrent.ExecutionContextExecutorService
+import scala.publish.checksum.logger.ChecksumLogger
+import scala.publish.checksum.{ChecksumType, Checksums}
+import scala.publish.fileset.FileSet
+import scala.publish.signing.{GpgSigner, Signer}
 
 object PublishUtils {
 

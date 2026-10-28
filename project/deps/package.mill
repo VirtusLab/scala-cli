@@ -148,7 +148,6 @@ object Deps {
     def coursierDefault                   = "2.1.26"
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
-    def coursierPublish                   = "0.4.4"
     def dockerJava                        = "3.7.1"
     def jmh                               = "1.37"
     def munit                             = "1.3.6"
@@ -164,7 +163,8 @@ object Deps {
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative05
     def scalaPackager                     = "0.3.2"
-    def signingCli                        = "0.4.0"
+    def scalaPublish                      = "1.0.0"
+    def signingCli                        = "0.5.0"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.12.3"
     def javaClassName                     = "0.2.0"
@@ -199,20 +199,17 @@ object Deps {
   def bsp4j            = mvn"ch.epfl.scala:bsp4j:2.1.1"
   def caseApp          = mvn"com.github.alexarchambault::case-app:2.1.1"
   def collectionCompat = mvn"org.scala-lang.modules::scala-collection-compat:2.14.0"
-  // Force using of 2.13 - is there a better way?
-  def coursier             = mvn"io.get-coursier:coursier_2.13:${Versions.coursier}"
-  def coursierArchiveCache = mvn"io.get-coursier:coursier-archive-cache_2.13:${Versions.coursier}"
+  def coursier             = mvn"io.get-coursier::coursier:${Versions.coursier}"
+  def coursierArchiveCache = mvn"io.get-coursier::coursier-archive-cache:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "*"))
   def coursierCli = mvn"io.get-coursier::coursier-cli:${Versions.coursierCli}"
-  def coursierJvm = mvn"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
-    .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-    .exclude("io.get-coursier" -> "dependency_2.13")
-  def coursierLauncher = mvn"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
-    .exclude(("ai.kien", "python-native-libs_2.13"))
-    .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-  def coursierPublish = mvn"io.get-coursier.publish::publish:${Versions.coursierPublish}"
-    .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-    .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
+  def coursierJvm      = mvn"io.get-coursier::coursier-jvm:${Versions.coursier}"
+  def coursierLauncher = mvn"io.get-coursier::coursier-launcher:${Versions.coursier}"
+  // Mill itself ships the Scala 2.13 coursier artifacts, so the meta-build needs to use those
+  def coursierLauncherForMill =
+    mvn"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
+      .exclude(("ai.kien", "python-native-libs_2.13"))
+      .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def dependency                                     = mvn"io.get-coursier::dependency:0.3.3"
   def directivesParser(v: String = Scala.scala3Next) =
     mvn"org.scala-lang::scala3-directives-parser:$v"
@@ -275,6 +272,7 @@ object Deps {
     .exclude("org.scala-js" -> "scalajs-js-envs_2.13")
   def scalaPackager             = mvn"org.virtuslab::scala-packager:${Versions.scalaPackager}"
   def scalaPackagerCli          = mvn"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
+  def scalaPublish              = mvn"org.scala-lang::scala-publish:${Versions.scalaPublish}"
   def scalaPy                   = mvn"dev.scalapy::scalapy-core::0.5.3"
   def scalaReflect(sv: String)  = mvn"org.scala-lang:scala-reflect:$sv"
   def semanticDbJavac           = mvn"com.sourcegraph:semanticdb-javac:${Versions.javaSemanticdb}"
@@ -299,11 +297,7 @@ object Deps {
       .exclude(("com.github.alexarchambault", "case-app_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
-      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-      .exclude(("io.get-coursier.publish", "publish_2.13"))
-      .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
       .exclude(("com.lihaoyi", "os-lib_3"))
-      .exclude(("com.lihaoyi", "os-lib_2.13"))
   def slf4jNop                      = mvn"org.slf4j:slf4j-nop:2.0.20"
   def sonatypeCentralClientRequests =
     mvn"com.lumidion::sonatype-central-client-requests:0.6.0"

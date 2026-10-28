@@ -388,7 +388,7 @@ Version of SBT to be used for the export (2.0.10 by default)
 
 ### `--mill-version`
 
-Version of Mill to be used for the export (1.3.0 by default)
+Version of Mill to be used for the export (1.3.1 by default)
 
 ### `--mvn-version`
 
@@ -2295,7 +2295,7 @@ Available in commands:
 ### `--signing-cli-version`
 
 [Internal]
-scala-cli-signing version when running externally (0.4.0 by default)
+scala-cli-signing version when running externally (0.5.0 by default)
 
 ### `--signing-cli-java-arg`
 

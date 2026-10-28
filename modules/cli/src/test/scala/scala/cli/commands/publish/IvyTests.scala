@@ -1,9 +1,10 @@
 package scala.cli.commands.publish
 
 import coursier.core.{ModuleName, Organization, Type}
-import coursier.publish.Pom
 
 import java.time.LocalDateTime
+
+import scala.publish.Pom
 
 class IvyTests extends munit.FunSuite {
 

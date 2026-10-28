@@ -1,15 +1,14 @@
 package scala.cli.commands.publish
 
-import coursier.publish.Content
-import coursier.publish.checksum.ChecksumType
-import coursier.publish.checksum.logger.ChecksumLogger
-import coursier.publish.fileset.{FileSet, Path}
-
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.concurrent.Executors
 
 import scala.concurrent.ExecutionContext
+import scala.publish.Content
+import scala.publish.checksum.ChecksumType
+import scala.publish.checksum.logger.ChecksumLogger
+import scala.publish.fileset.{FileSet, Path}
 
 class PublishChecksumTests extends munit.FunSuite {
 

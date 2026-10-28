@@ -427,12 +427,8 @@ trait Core extends ScalaCliCrossSbtModule
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
       .exclude(("com.google.collections", "google-collections"))
-      // Coursier is not cross-compiled and pulls jsoniter-scala-macros in 2.13
-      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros"))
       // Let's favor our config module rather than the one coursier pulls
-      .exclude((organization, "config_2.13"))
-      .exclude((organization, "config_3"))
-      .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13")),
+      .exclude((organization, "config_3")),
     Deps.dependency,
     Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
     Deps.jgit,
@@ -731,10 +727,7 @@ trait Options extends ScalaCliCrossSbtModule
     Deps.signingCliShared
   )
   override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(
-    Deps.jsoniterMacros,
-    // coursier's Scala 2 string interpolator macros reference scala-reflect, which it only
-    // declares as provided; Scala 3.10+ needs it on the compile class path to unpickle them
-    Deps.scalaReflect(Scala.scala213)
+    Deps.jsoniterMacros
   )
 
   override def repositoriesTask: Task[Seq[Repository]] =
@@ -977,7 +970,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
     Deps.caseApp,
     Deps.coursierLauncher,
-    Deps.coursierPublish.exclude((organization, "config_2.13")).exclude((organization, "config_3")),
+    Deps.scalaPublish.exclude((organization, "config_2.13")).exclude((organization, "config_3")),
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore,
@@ -1063,8 +1056,7 @@ trait CliIntegration extends SbtModule
   trait IntegrationScalaTests extends super.ScalaCliTests with ScalaCliScalafixModule {
     override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
       Deps.bsp4j,
-      Deps.coursier
-        .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
+      Deps.coursier,
       Deps.dockerJavaCore,
       Deps.dockerJavaTransport,
       Deps.bcpkixJdk18on,

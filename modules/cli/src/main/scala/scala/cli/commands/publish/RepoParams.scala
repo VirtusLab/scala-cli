@@ -2,9 +2,6 @@ package scala.cli.commands.publish
 
 import coursier.core.Authentication
 import coursier.maven.MavenRepository
-import coursier.publish.sonatype.SonatypeApi
-import coursier.publish.util.EmaRetryParams
-import coursier.publish.{Hooks, PublishRepository}
 
 import java.net.URI
 import java.util.concurrent.ScheduledExecutorService
@@ -14,6 +11,9 @@ import scala.build.errors.BuildException
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.{Logger, RepositoryUtils}
 import scala.cli.commands.util.ScalaCliSttpBackend
+import scala.publish.sonatype.SonatypeApi
+import scala.publish.util.EmaRetryParams
+import scala.publish.{Hooks, PublishRepository}
 
 final case class RepoParams(
   repo: PublishRepository,

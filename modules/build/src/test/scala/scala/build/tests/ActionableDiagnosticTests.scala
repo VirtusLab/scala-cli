@@ -3,7 +3,6 @@ package scala.build.tests
 import com.eed3si9n.expecty.Expecty.expect
 import com.sun.net.httpserver.HttpServer
 import coursier.cache.FileCache
-import coursier.util.Task
 import coursier.version.Version
 
 import java.net.InetSocketAddress
@@ -72,7 +71,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
     val dir = os.temp.dir(prefix = "scala-cli-actionable-diagnostic-coursier-")
     opts.copy(internal =
       opts.internal.copy(
-        cache = Some(FileCache[Task]().withLocation(dir.toString))
+        cache = Some(FileCache().withLocation(dir.toString))
       )
     )
 
