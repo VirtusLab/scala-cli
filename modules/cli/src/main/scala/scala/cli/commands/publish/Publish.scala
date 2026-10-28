@@ -3,14 +3,6 @@ package scala.cli.commands.publish
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
 import coursier.core.{Authentication, Configuration, ModuleName, Organization}
-import coursier.publish.checksum.ChecksumType
-import coursier.publish.checksum.logger.InteractiveChecksumLogger
-import coursier.publish.fileset.{FileSet, Path}
-import coursier.publish.signing.logger.InteractiveSignerLogger
-import coursier.publish.signing.{NopSigner, Signer}
-import coursier.publish.upload.logger.InteractiveUploadLogger
-import coursier.publish.upload.{DummyUpload, FileUpload, HttpURLConnectionUpload, Upload}
-import coursier.publish.{Content, Hooks, Pom}
 
 import java.io.{File, OutputStreamWriter}
 import java.net.URI
@@ -72,6 +64,14 @@ import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.concurrent.duration.DurationInt
+import scala.publish.checksum.ChecksumType
+import scala.publish.checksum.logger.InteractiveChecksumLogger
+import scala.publish.fileset.{FileSet, Path}
+import scala.publish.signing.logger.InteractiveSignerLogger
+import scala.publish.signing.{NopSigner, Signer}
+import scala.publish.upload.logger.InteractiveUploadLogger
+import scala.publish.upload.{DummyUpload, FileUpload, HttpURLConnectionUpload, Upload}
+import scala.publish.{Content, Hooks, Pom}
 import scala.util.control.NonFatal
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 import scala.xml.{Elem, Node, PrettyPrinter, XML}

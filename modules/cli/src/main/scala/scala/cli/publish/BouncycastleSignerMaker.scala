@@ -1,6 +1,5 @@
 package scala.cli.publish
 
-import coursier.publish.signing.Signer
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 import java.security.Security
@@ -9,6 +8,7 @@ import java.util.function.Supplier
 import scala.build.Logger
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.BouncycastleSigner
+import scala.publish.signing.Signer
 
 /** Used for choosing the right BouncyCastleSigner when Scala CLI is run on JVM. <br>
   *

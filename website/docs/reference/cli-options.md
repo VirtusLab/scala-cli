@@ -2295,7 +2295,7 @@ Available in commands:
 ### `--signing-cli-version`
 
 [Internal]
-scala-cli-signing version when running externally (0.4.0 by default)
+scala-cli-signing version when running externally (0.5.0 by default)
 
 ### `--signing-cli-java-arg`
 

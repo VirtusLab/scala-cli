@@ -1,10 +1,9 @@
 package scala.cli.publish
 
-import coursier.publish.Content
-import coursier.publish.signing.Signer
-
 import scala.build.Logger
 import scala.cli.signing.shared.PasswordOption
+import scala.publish.Content
+import scala.publish.signing.Signer
 import scala.util.Properties
 
 final case class BouncycastleExternalSigner(

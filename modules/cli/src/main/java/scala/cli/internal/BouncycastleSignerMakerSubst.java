@@ -2,7 +2,7 @@ package scala.cli.internal;
 
 import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
-import coursier.publish.signing.Signer;
+import scala.publish.signing.Signer;
 
 import java.nio.file.Path;
 import java.util.function.Supplier;
