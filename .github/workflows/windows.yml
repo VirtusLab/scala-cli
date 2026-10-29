@@ -48,7 +48,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: Get latest coursier launcher
       if: env.SHOULD_RUN == 'true'
       run: .github/scripts/get-latest-cs.sh
@@ -106,7 +106,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - uses: actions/setup-node@v7
       if: env.SHOULD_RUN == 'true'
       with:
@@ -171,7 +171,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         if: env.SHOULD_RUN == 'true'
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - uses: actions/setup-node@v7
         if: env.SHOULD_RUN == 'true'
         with:
@@ -236,7 +236,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         if: env.SHOULD_RUN == 'true'
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - uses: actions/setup-node@v7
         if: env.SHOULD_RUN == 'true'
         with:
@@ -295,7 +295,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - run: ./mill -i ci.copyVcRedist
       if: env.SHOULD_RUN == 'true'
     - uses: actions/upload-artifact@v7

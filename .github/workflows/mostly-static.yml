@@ -43,7 +43,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: Generate native launcher
       if: env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-native-image.sh mostly-static
@@ -81,7 +81,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - uses: actions/download-artifact@v8
       if: env.SHOULD_RUN == 'true'
       with:
@@ -145,7 +145,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         if: env.SHOULD_RUN == 'true'
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - uses: actions/download-artifact@v8
         if: env.SHOULD_RUN == 'true'
         with:

@@ -537,7 +537,7 @@ trait HasTests extends SbtModule {
   trait ScalaCliTests extends ScalaCliModule with super.SbtTests with TestModule.Munit {
     // Mill itself runs on a newer JDK (required to compile against svm),
     // while tests (and the JVM launchers they spawn) should keep running on the default JVM
-    override def jvmVersion: T[String]                 = Java.defaultJava.toString
+    override def jvmVersion: T[String]                 = s"temurin:${Java.defaultJava}"
     // test modules forward javaHome to their outer module by default, so it is resolved explicitly here
     override def javaHome: T[Option[PathRef]] = Task {
       val path = mill.util.Jvm.resolveJavaHome(

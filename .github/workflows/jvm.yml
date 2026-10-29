@@ -43,7 +43,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher --directory artifacts/
       if: runner.os == 'Linux' && env.SHOULD_RUN == 'true'
@@ -97,7 +97,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         if: env.SHOULD_RUN == 'true'
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -137,7 +137,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - uses: actions/setup-node@v7
       with:
         node-version: 24
@@ -181,7 +181,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - uses: actions/setup-node@v7
       with:
         node-version: 24
@@ -225,7 +225,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - uses: actions/setup-node@v7
       with:
         node-version: 24
@@ -269,7 +269,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         if: env.SHOULD_RUN == 'true'
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -313,7 +313,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         if: env.SHOULD_RUN == 'true'
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - uses: actions/setup-node@v7
         with:
           node-version: 24

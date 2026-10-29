@@ -70,10 +70,10 @@ function to_bash_syntax {
 if [[ $IS_WINDOWS ]]; then
   # needed for coursier version < 2.1.8, harmless otherwise
   IFS=$'\n'
-  eval "$(to_bash_syntax `"$cs" java --env --jvm zulu:25` || to_bash_syntax `"$cs" java --env --jvm temurin:25`)"
+  eval "$(to_bash_syntax `"$cs" java --env --jvm temurin:25`)"
   unset IFS
 else
-  eval "$("$cs" java --env --jvm temurin:25 || "$cs" java --env --jvm zulu:25)"
+  eval "$("$cs" java --env --jvm temurin:25)"
 fi
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"

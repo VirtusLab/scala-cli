@@ -17,7 +17,7 @@ jobs:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: GPG setup
       run: .github/scripts/gpg-setup.sh
       env:
@@ -63,7 +63,7 @@ jobs:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - run: ./mill -i ci.setShouldPublish
     - name: Download Linux x64 launchers
       uses: actions/download-artifact@v8
@@ -144,7 +144,7 @@ jobs:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
         with:
           ssh-private-key: ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
@@ -167,7 +167,7 @@ jobs:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - name: Download MacOS x86 launchers
         uses: actions/download-artifact@v8
         with:
@@ -203,7 +203,7 @@ jobs:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - name: Download Linux x86 launchers
         uses: actions/download-artifact@v8
         with:
@@ -246,7 +246,7 @@ jobs:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - name: Download Linux x86 launchers
         uses: actions/download-artifact@v8
         with:
@@ -287,7 +287,7 @@ jobs:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - name: Download Linux x86 launchers
         uses: actions/download-artifact@v8
         with:
@@ -349,7 +349,7 @@ jobs:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - run: .github/scripts/publish-sdkman.sh
         shell: bash
         env:
@@ -373,7 +373,7 @@ jobs:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
         with:
           ssh-private-key: ${{ secrets.SCALA_CLI_SETUP_KEY }}
@@ -396,7 +396,7 @@ jobs:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - name: Download MacOS x86 launchers
         uses: actions/download-artifact@v8
         with:
@@ -433,7 +433,7 @@ jobs:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: Download Windows launchers
       uses: actions/download-artifact@v8
       with:
