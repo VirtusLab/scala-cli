@@ -68,8 +68,11 @@ object Build {
     private lazy val mainClassCandidatesInProject: Seq[MainClass.MainClassCandidate] =
       MainClass.find(output, logger)
         .filterNot(c => scriptWrapperUserCodeClasses.contains(c.className))
+    // main classes of the project take precedence; not searching `-cp` spares walking its
+    // directories, which can be large (`-cp .`)
     private lazy val mainClassCandidatesOnExtraClasspath: Seq[MainClass.MainClassCandidate] =
-      options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger))
+      if mainClassesFoundInProject.nonEmpty then Nil
+      else options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger))
     private lazy val mainClassesFoundInUserExtraDependencies: Seq[String] =
       artifacts.jarsForUserExtraDependencies.flatMap(MainClass.findInDependency).sorted
 

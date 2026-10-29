@@ -557,15 +557,17 @@ final case class SharedOptions(
         .map(os.Path(_, os.pwd))
         .flatMap {
           case cp if os.isDir(cp) =>
+            // only direct children, like `java -cp 'dir/*'`: a recursive walk is slow on large trees
+            // and picks up unrelated jars (build outputs, local repositories)
             val jarsInTheDirectory =
-              os.walk(cp)
+              os.list(cp)
                 .filter(p => os.isFile(p) && p.last.endsWith(".jar"))
             List(cp) ++ jarsInTheDirectory // .jar paths have to be passed directly, unlike .class
           case cp => List(cp)
         }
   }
 
-  def extraJarsAndClassPath: List[os.Path] =
+  lazy val extraJarsAndClassPath: List[os.Path] =
     (extraJars ++ scalacOptions.getScalacOption("-classpath") ++ scalacOptions.getScalacOption(
       "-cp"
     ))

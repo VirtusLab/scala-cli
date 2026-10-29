@@ -509,6 +509,29 @@ class MainClassTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("main classes on -cp are only looked up without a project main class") {
+    TestInputs(
+      os.rel / "Other.scala" -> "object Other { def main(args: Array[String]): Unit = () }"
+    ).withBuild(defaultOptions, buildThreads, None, buildTests = false) { (_, _, maybeOther) =>
+      val otherOutput        = maybeOther.orThrow.successfulOpt.get.output
+      val withExtraClassPath = defaultOptions.copy(
+        classPathOptions = defaultOptions.classPathOptions.copy(extraClassPath = Seq(otherOutput))
+      )
+      TestInputs(
+        os.rel / "Main.scala" -> "object Main { def main(args: Array[String]): Unit = () }"
+      ).withBuild(withExtraClassPath, buildThreads, None, buildTests = false) {
+        (_, _, maybeBuild) =>
+          expect(maybeBuild.orThrow.successfulOpt.get.foundMainClasses() == Seq("Main"))
+      }
+      TestInputs(
+        os.rel / "Lib.scala" -> "object Lib"
+      ).withBuild(withExtraClassPath, buildThreads, None, buildTests = false) {
+        (_, _, maybeBuild) =>
+          expect(maybeBuild.orThrow.successfulOpt.get.foundMainClasses() == Seq("Other"))
+      }
+    }
+  }
+
   test("ordinary static main(String[]) gains no extra candidates") {
     TestInputs(
       os.rel / "Main.scala" ->

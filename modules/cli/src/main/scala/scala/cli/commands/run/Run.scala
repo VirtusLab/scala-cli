@@ -161,7 +161,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       showCommand: Boolean,
       scratchDirOpt: Option[os.Path]
     ): Either[BuildException, Seq[(Process, CompletableFuture[?])]] = either {
-      val potentialMainClasses = builds.flatMap(_.foundMainClasses()).distinct
+      lazy val potentialMainClasses = builds.flatMap(_.foundMainClasses()).distinct
       if options.sharedRun.mainClass.mainClassLs.contains(true) then
         value {
           options.sharedRun.mainClass
@@ -381,7 +381,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     logger: Logger,
     allowExecve: Boolean,
     jvmRunner: Boolean,
-    potentialMainClasses: Seq[String],
+    potentialMainClasses: => Seq[String],
     runMode: RunMode,
     showCommand: Boolean,
     scratchDirOpt: Option[os.Path],
