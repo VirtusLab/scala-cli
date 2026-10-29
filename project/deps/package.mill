@@ -195,14 +195,14 @@ object Deps {
   // Force using of 2.13 - is there a better way?
   def bloopConfig = mvn"ch.epfl.scala:bloop-config_2.13:2.3.3"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-  def bloopRifle       = mvn"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
-  def bsp4j            = mvn"ch.epfl.scala:bsp4j:2.1.1"
-  def caseApp          = mvn"com.github.alexarchambault::case-app:2.1.1"
-  def collectionCompat = mvn"org.scala-lang.modules::scala-collection-compat:2.14.0"
+  def bloopRifle           = mvn"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
+  def bsp4j                = mvn"ch.epfl.scala:bsp4j:2.1.1"
+  def caseApp              = mvn"com.github.alexarchambault::case-app:2.1.1"
+  def collectionCompat     = mvn"org.scala-lang.modules::scala-collection-compat:2.14.0"
   def coursier             = mvn"io.get-coursier::coursier:${Versions.coursier}"
   def coursierArchiveCache = mvn"io.get-coursier::coursier-archive-cache:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "*"))
-  def coursierCli = mvn"io.get-coursier::coursier-cli:${Versions.coursierCli}"
+  def coursierCli      = mvn"io.get-coursier::coursier-cli:${Versions.coursierCli}"
   def coursierJvm      = mvn"io.get-coursier::coursier-jvm:${Versions.coursier}"
   def coursierLauncher = mvn"io.get-coursier::coursier-launcher:${Versions.coursier}"
   // Mill itself ships the Scala 2.13 coursier artifacts, so the meta-build needs to use those
@@ -250,7 +250,7 @@ object Deps {
   def munitDiff          = mvn"org.scalameta::munit-diff:${Versions.munit}"
   def nativeTestRunner   = mvn"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools        = mvn"org.scala-native::tools:${Versions.scalaNative}"
-  def osLib              = mvn"com.lihaoyi::os-lib:0.11.9"
+  def osLib              = mvn"com.lihaoyi::os-lib:0.11.10"
   def pprint             = mvn"com.lihaoyi::pprint:0.9.6"
   def pythonInterface    = mvn"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs   = mvn"ai.kien::python-native-libs:0.2.5"
