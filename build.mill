@@ -586,6 +586,7 @@ trait Core extends ScalaCliCrossSbtModule
          |
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
          |  def defaultGraalVMVersion = "${deps.graalVmCommunityVersion}"
+         |  def defaultGraalVMMacosX64Version = "${deps.graalVmCommunityMacosX64Version}"
          |
          |  def scalaCliSigningOrganization = "${Deps.signingCli.dep.module.organization.value}"
          |  def scalaCliSigningName = "${Deps.signingCli.dep.module.name.value}"
@@ -912,6 +913,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.versionConstraint.asString}"
          |  def defaultGraalVMJavaVersion = "${deps.graalVmJavaVersion}"
          |  def defaultGraalVMVersion = "${deps.graalVmCommunityVersion}"
+         |  def defaultGraalVMMacosX64Version = "${deps.graalVmCommunityMacosX64Version}"
          |  def scalaPyVersion = "${Deps.scalaPy.dep.versionConstraint.asString}"
          |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
          |  def defaultMillVersion = "${BuildInfo.millVersion}"
@@ -1146,6 +1148,7 @@ trait CliIntegration extends SbtModule
            |  def semanticDbJavacPluginVersion = "${Deps.semanticDbJavac.dep.versionConstraint.asString}"
            |  def defaultGraalVMJavaVersion    = "${deps.graalVmJavaVersion}"
            |  def defaultGraalVMVersion        = "${deps.graalVmCommunityVersion}"
+           |  def defaultGraalVMMacosX64Version = "${deps.graalVmCommunityMacosX64Version}"
            |  def runnerScala30LegacyVersion   = "${Cli.runnerScala30LegacyVersion}"
            |  def runnerScala2LegacyVersion    = "${Cli.runnerScala2LegacyVersion}"
            |  def runnerJava8LegacyVersion     = "${Cli.runnerJava8LegacyVersion}"

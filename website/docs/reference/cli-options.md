@@ -1008,7 +1008,7 @@ GraalVM Java major version to use to build GraalVM native images (25 by default)
 
 ### `--graalvm-version`
 
-GraalVM version to use to build GraalVM native images (25.0.1 by default)
+GraalVM version to use to build GraalVM native images (25.0.2 by default, 25.0.1 on macOS x64)
 
 ### `--graalvm-jvm-id`
 
