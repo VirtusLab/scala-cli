@@ -873,10 +873,8 @@ trait ScalaCliScalafixModule extends ScalafixModule {
 trait ScalaCliCrossSbtModule extends CrossSbtModule with ScalaCliModule
 
 trait ScalaCliModule extends ScalaModule {
-  override def javacOptions: T[Seq[String]] = super.javacOptions() ++ Seq(
-    "--release",
-    "16"
-  )
+  override def javacOptions: T[Seq[String]] =
+    super.javacOptions() ++ Seq("--release", Java.defaultJava.toString)
   override def scalacOptions: T[Seq[String]] = Task {
     val sv           = scalaVersion()
     val isScala213   = sv.startsWith("2.13.")
