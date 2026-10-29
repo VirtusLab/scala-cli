@@ -323,9 +323,11 @@ object Deps {
   def scalafixInterfaces = mvn"ch.epfl.scala:scalafix-interfaces:${Versions.scalafix}"
 }
 
-def graalVmJavaVersion      = Java.defaultJava
-def graalVmCommunityVersion = s"$graalVmJavaVersion.0.9"
-def graalSvmVersion         = "23.0.2"
+// 25.0.1 is the newest GraalVM CE for JDK 25 available on all supported platforms (none for macOS x64 past it).
+// svm 24.0+ is published as Java 21 bytecode, so compiling against it requires Mill to run on JDK 21+.
+def graalVmJavaVersion      = 25
+def graalVmCommunityVersion = s"$graalVmJavaVersion.0.1"
+def graalSvmVersion         = "25.0.5.0.3"
 def graalVmJvmId            = s"graalvm-community:$graalVmCommunityVersion"
 
 def csDockerVersion = Deps.Versions.coursierCli

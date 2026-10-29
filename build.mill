@@ -1,4 +1,4 @@
-//| mill-jvm-version: system|17
+//| mill-jvm-version: system|25
 package build
 
 import build.ci.publishVersion
@@ -17,6 +17,7 @@ import settings.{
   ScalaCliCrossSbtModule,
   ScalaCliScalafixModule,
   isCI,
+  javaOutputVersionOptions,
   jvmPropertiesFileName,
   localRepoResourcePath,
   platformExecutableJarExtension,
@@ -81,7 +82,11 @@ trait FutureLazyVals extends CrossScalaModule {
   }
 
   override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++ lazyValOptions
+    val parentOptions     = super.scalacOptions()
+    val javaOutputOptions =
+      if parentOptions.exists(_.startsWith("-java-output-version")) then Nil
+      else javaOutputVersionOptions(crossScalaVersion)
+    parentOptions ++ lazyValOptions ++ javaOutputOptions
   }
 }
 
@@ -140,6 +145,8 @@ object `tasty-lib` extends Cross[TastyLib](Scala.scala3MainVersions)
 object `scala-cli-bsp` extends JavaModule
     with ScalaCliPublishModule
     with LocatedInModules {
+  override def javacOptions: T[Seq[String]] =
+    super.javacOptions() ++ Seq("--release", Java.defaultJava.toString)
   override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
     Deps.bsp4j
   )
@@ -953,7 +960,8 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   override def resources: T[Seq[PathRef]] = super.resources() ++ Seq(defaultFilesResources())
 
   override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion) ++ Seq("-deprecation")
+    super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion) ++ Seq("-deprecation") ++
+      javaOutputVersionOptions(crossScalaVersion)
   }
   override def javacOptions: T[Seq[String]] = Task {
     super.javacOptions() ++ Seq("--release", "16")

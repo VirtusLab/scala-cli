@@ -1004,11 +1004,11 @@ Ports to be exposed by the docker image, can be passed multiple times
 
 ### `--graalvm-java-version`
 
-GraalVM Java major version to use to build GraalVM native images (17 by default)
+GraalVM Java major version to use to build GraalVM native images (25 by default)
 
 ### `--graalvm-version`
 
-GraalVM version to use to build GraalVM native images (17.0.9 by default)
+GraalVM version to use to build GraalVM native images (25.0.1 by default)
 
 ### `--graalvm-jvm-id`
 
