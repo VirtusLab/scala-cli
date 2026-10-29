@@ -1,6 +1,6 @@
 package scala.cli.integration.util
 
-import coursier.core.Version
+import coursier.version.Version
 
 import scala.cli.integration.TestUtil
 import scala.util.Properties

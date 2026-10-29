@@ -1,9 +1,10 @@
 package scala.build.options
 import coursier.cache.{ArchiveCache, FileCache}
-import coursier.core.{Repository, Version}
+import coursier.core.Repository
 import coursier.jvm.JavaHome
 import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
+import coursier.version.Version
 import dependency.*
 
 import java.io.File

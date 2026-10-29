@@ -2,7 +2,7 @@ package scala.build.internal
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import coursier.core.Version
+import coursier.version.Version
 
 final case class StableScalaVersion(
   scalaCliVersion: String,
