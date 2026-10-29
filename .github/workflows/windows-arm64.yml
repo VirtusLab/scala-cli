@@ -1,0 +1,224 @@
+name: Windows ARM64 Launchers
+on:
+  workflow_call:
+    inputs:
+      code:
+        type: string
+        required: true
+      ci:
+        type: string
+        required: true
+      mill_wrapper:
+        type: string
+        required: true
+      test_all:
+        type: string
+        required: true
+      test_native:
+        type: string
+        required: true
+      test_skip:
+        type: string
+        required: true
+
+jobs:
+  generate-jvm-launcher:
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping Windows ARM64 launcher generation -- changes do not affect compiled code or CI."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - name: Build JVM launcher
+      if: env.SHOULD_RUN == 'true'
+      run: |
+        ./mill -i copyJvmBootstrappedLauncher --directory jvm-launcher/
+        ./mill -i writeShortPackageVersionTo --dest jvm-launcher/version
+        cp .github/scripts/choco/logo.ico jvm-launcher/
+    - uses: actions/upload-artifact@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        name: windows-arm64-jvm-launcher
+        path: jvm-launcher/
+        if-no-files-found: error
+        retention-days: 1
+
+  generate-windows-arm64-launcher:
+    needs: [generate-jvm-launcher]
+    timeout-minutes: 30
+    runs-on: "windows-11-arm"
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping Windows ARM64 launcher generation -- changes do not affect compiled code or CI."
+    - uses: actions/setup-java@v6
+      if: env.SHOULD_RUN == 'true'
+      with:
+        distribution: temurin
+        java-version: 21
+    - uses: actions/download-artifact@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        name: windows-arm64-jvm-launcher
+        path: jvm-launcher/
+    - name: Generate app image
+      if: env.SHOULD_RUN == 'true'
+      shell: bash
+      run: |
+        mkdir -p jpackage-input artifacts
+        cp jvm-launcher/scala-cli.jar jpackage-input/
+        "$JAVA_HOME/bin/jpackage" \
+          --type app-image \
+          --name scala-cli \
+          --app-version "$(cat jvm-launcher/version)" \
+          --dest jpackage-output \
+          --input jpackage-input \
+          --main-jar scala-cli.jar \
+          --main-class scala.cli.ScalaCli \
+          --icon jvm-launcher/logo.ico \
+          --jlink-options "--strip-debug --no-man-pages --no-header-files" \
+          --win-console
+    - name: Test app image
+      if: env.SHOULD_RUN == 'true'
+      shell: bash
+      run: |
+        ./jpackage-output/scala-cli/scala-cli.exe version
+        echo 'println("Hello from Windows ARM64")' > hello.sc
+        # TODO: drop --server=false once Scala CLI uses a Bloop release including scalacenter/bloop#3107,
+        # older ones fail to load their x64-only JNI library on an ARM64 JVM
+        env -u JAVA_HOME ./jpackage-output/scala-cli/scala-cli.exe run hello.sc --server=false | grep "Hello from Windows ARM64"
+    - name: Archive app image
+      if: env.SHOULD_RUN == 'true'
+      shell: pwsh
+      run: Compress-Archive -Path jpackage-output/scala-cli -DestinationPath artifacts/scala-cli-aarch64-pc-win32-jvm.zip
+    - uses: actions/upload-artifact@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        name: windows-arm64-launchers
+        path: artifacts/
+        if-no-files-found: error
+        retention-days: 2
+
+  generate-windows-arm64-msi:
+    needs: [generate-windows-arm64-launcher]
+    timeout-minutes: 30
+    runs-on: "windows-2025"
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping Windows ARM64 MSI generation -- changes do not affect compiled code or CI."
+    - uses: actions/checkout@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        ignoreJob: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      if: env.SHOULD_RUN == 'true'
+      with:
+        jvm: "temurin:17"
+    - uses: actions/download-artifact@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        name: windows-arm64-launchers
+        path: windows-arm64-launchers/
+    - name: Extract app image
+      if: env.SHOULD_RUN == 'true'
+      shell: pwsh
+      run: Expand-Archive -Path windows-arm64-launchers/scala-cli-aarch64-pc-win32-jvm.zip -DestinationPath app-image
+    - name: Generate MSI
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i ci.generateWindowsArm64Msi --appImage app-image/scala-cli --dest artifacts/scala-cli-aarch64-pc-win32.msi
+    - uses: actions/upload-artifact@v7
+      if: env.SHOULD_RUN == 'true'
+      with:
+        name: windows-arm64-msi
+        path: artifacts/
+        if-no-files-found: error
+        retention-days: 2
+
+  test-windows-arm64-msi:
+    needs: [generate-windows-arm64-msi]
+    timeout-minutes: 15
+    runs-on: "windows-11-arm"
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' }}
+    steps:
+    - name: Log skip reason
+      if: env.SHOULD_RUN != 'true'
+      run: echo "Skipping Windows ARM64 MSI tests -- changes do not affect compiled code or CI."
+    - uses: actions/download-artifact@v8
+      if: env.SHOULD_RUN == 'true'
+      with:
+        name: windows-arm64-msi
+        path: windows-arm64-msi/
+    - name: Install MSI
+      if: env.SHOULD_RUN == 'true'
+      shell: pwsh
+      run: |
+        $process = Start-Process msiexec.exe -ArgumentList '/i', 'windows-arm64-msi\scala-cli-aarch64-pc-win32.msi', '/qn', '/l*v', 'install.log' -Wait -PassThru
+        if ($process.ExitCode -ne 0) {
+          Get-Content install.log
+          exit $process.ExitCode
+        }
+    - name: Test installed launcher
+      if: env.SHOULD_RUN == 'true'
+      shell: pwsh
+      run: |
+        $installDir = 'C:\Program Files\Scala CLI'
+        & "$installDir\scala-cli.exe" version
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        Remove-Item Env:JAVA_HOME -ErrorAction SilentlyContinue
+        Set-Content hello.sc 'println("Hello from Windows ARM64")'
+        # TODO: drop --server=false once Scala CLI uses a Bloop release including scalacenter/bloop#3107
+        $output = & "$installDir\scala-cli.exe" run hello.sc --server=false
+        if ($LASTEXITCODE -ne 0 -or -not ($output -match 'Hello from Windows ARM64')) {
+          Write-Host "Unexpected output: $output"
+          exit 1
+        }
+        $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+        if (-not (($machinePath -split ';' | ForEach-Object { $_.TrimEnd('\') }) -contains $installDir)) {
+          Write-Host "$installDir not found in the system PATH: $machinePath"
+          exit 1
+        }
+    - name: Uninstall MSI
+      if: env.SHOULD_RUN == 'true'
+      shell: pwsh
+      run: |
+        $process = Start-Process msiexec.exe -ArgumentList '/x', 'windows-arm64-msi\scala-cli-aarch64-pc-win32.msi', '/qn', '/l*v', 'uninstall.log' -Wait -PassThru
+        if ($process.ExitCode -ne 0) {
+          Get-Content uninstall.log
+          exit $process.ExitCode
+        }
+        $installDir = 'C:\Program Files\Scala CLI'
+        if (Test-Path $installDir) {
+          Write-Host "$installDir still exists after uninstalling"
+          exit 1
+        }
+        $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+        if (($machinePath -split ';' | ForEach-Object { $_.TrimEnd('\') }) -contains $installDir) {
+          Write-Host "$installDir still in the system PATH after uninstalling: $machinePath"
+          exit 1
+        }
