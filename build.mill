@@ -1522,12 +1522,11 @@ def writePackageVersionTo(dest: String): Command[Unit] = Task.Command {
   os.write.over(destPath, version)
 }
 
-def shortPackageVersion(rawVersion: String): String =
-  rawVersion.takeWhile(c => c != '-' && c != '+')
-
 def writeShortPackageVersionTo(dest: String): Command[Unit] = Task.Command {
-  val destPath = os.Path(dest, BuildCtx.workspaceRoot)
-  os.write.over(destPath, shortPackageVersion(cli(Scala.defaultInternal).publishVersion()))
+  val destPath   = os.Path(dest, BuildCtx.workspaceRoot)
+  val rawVersion = cli(Scala.defaultInternal).publishVersion()
+  val version    = rawVersion.takeWhile(c => c != '-' && c != '+')
+  os.write.over(destPath, version)
 }
 
 def importedLauncher(directory: String = "artifacts", workspace: os.Path): Array[Byte] = {
@@ -2212,100 +2211,6 @@ object ci extends Module {
            |""".stripMargin
       val dest0 = os.Path(dest, BuildCtx.workspaceRoot)
       os.write.over(dest0, content.getBytes(Charset.defaultCharset()), createFolders = true)
-    }
-
-  def generateWindowsArm64Msi(
-    appImage: String = "app-image/scala-cli",
-    dest: String = "artifacts/scala-cli-aarch64-pc-win32.msi"
-  ): Command[Unit] =
-    Task.Command {
-      val appImageDir = os.Path(appImage, BuildCtx.workspaceRoot)
-      if (!os.isFile(appImageDir / "scala-cli.exe"))
-        sys.error(s"$appImageDir/scala-cli.exe not found, expected a jpackage app image")
-      val wixBin = Option(System.getenv("WIX"))
-        .map(wix => os.Path(wix) / "bin")
-        .getOrElse(sys.error("WIX not set, WiX Toolset 3 is required"))
-      val version = shortPackageVersion(cli(Scala.defaultInternal).publishVersion())
-
-      def escapeXml(s: String): String =
-        s.replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;").replace(">", "&gt;")
-      def escapeRtf(s: String): String =
-        s.replace("\\", "\\\\").replace("{", "\\{").replace("}", "\\}")
-
-      val entries = os.walk(appImageDir).sorted
-      val ids     = entries.zipWithIndex.map((path, idx) => path -> s"e$idx").toMap
-      val files   = entries.filter(os.isFile(_))
-
-      def directoryContent(dir: os.Path): String =
-        os.list(dir).sorted
-          .map { path =>
-            val id = ids(path)
-            if (os.isDir(path))
-              s"""<Directory Id="$id" Name="${escapeXml(path.last)}">${directoryContent(path)}</Directory>"""
-            else
-              s"""<Component Id="$id" Guid="*"><File Id="$id" Source="${escapeXml(
-                  path.toString
-                )}" KeyPath="yes"/></Component>"""
-          }
-          .mkString(System.lineSeparator())
-
-      val license = os.read.lines(BuildCtx.workspaceRoot / "LICENSE")
-        .map(escapeRtf)
-        .mkString("\\par" + System.lineSeparator())
-      val licensePath = Task.dest / "license.rtf"
-      os.write.over(licensePath, s"{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Consolas;}}\\f0\\fs16 $license\\par}")
-
-      val icon = BuildCtx.workspaceRoot / ".github" / "scripts" / "choco" / "logo.ico"
-
-      val exitDialog =
-        "To run Scala CLI, open a Command window, and type scala-cli + Enter. If scala-cli cannot be " +
-          "found, ensure that the Command window was opened after Scala CLI was installed."
-      val wxs =
-        s"""<?xml version="1.0"?>
-           |<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-           |  <Product Id="*" UpgradeCode="C74FC9A1-9381-40A6-882F-9044C603ABD9"
-           |           Name="Scala CLI" Version="$version" Manufacturer="scala-cli@virtuslab.com" Language="1033">
-           |    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" Comments="Windows Installer Package"/>
-           |    <MediaTemplate EmbedCab="yes"/>
-           |    <Directory Id="TARGETDIR" Name="SourceDir">
-           |      <Directory Id="ProgramFiles64Folder">
-           |        <Directory Id="INSTALLDIR" Name="Scala CLI">
-           |${directoryContent(appImageDir)}
-           |        </Directory>
-           |      </Directory>
-           |    </Directory>
-           |    <DirectoryRef Id="TARGETDIR">
-           |      <Component Id="SetEnvironment" Guid="C2FA60B9-7DA9-4C8A-B21E-91AC71D748DD">
-           |        <CreateFolder/>
-           |        <Environment Id="SetPath" Action="set" Name="PATH" Part="last" Permanent="no" System="yes" Value="[INSTALLDIR]"/>
-           |      </Component>
-           |    </DirectoryRef>
-           |    <MajorUpgrade Schedule="afterInstallInitialize"
-           |                  DowngradeErrorMessage="A later version of Scala CLI is already installed. Installer will now exit."
-           |                  AllowDowngrades="no" AllowSameVersionUpgrades="yes"/>
-           |    <Feature Id="Complete" Title="Scala CLI" Level="1" ConfigurableDirectory="INSTALLDIR">
-           |${files.map(path => s"""<ComponentRef Id="${ids(path)}"/>""").mkString(System.lineSeparator())}
-           |      <ComponentRef Id="SetEnvironment"/>
-           |    </Feature>
-           |    <WixVariable Id="WixUILicenseRtf" Value="${escapeXml(licensePath.toString)}"/>
-           |    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR"/>
-           |    <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="${escapeXml(exitDialog)}"/>
-           |    <Icon Id="logo.ico" SourceFile="${escapeXml(icon.toString)}"/>
-           |    <Property Id="ARPPRODUCTICON" Value="logo.ico"/>
-           |    <UIRef Id="WixUI_InstallDir"/>
-           |  </Product>
-           |</Wix>
-           |""".stripMargin
-      val wxsPath = Task.dest / "scala-cli.wxs"
-      os.write.over(wxsPath, wxs)
-
-      val wixObj = Task.dest / "scala-cli.wixobj"
-      val dest0  = os.Path(dest, BuildCtx.workspaceRoot)
-      os.makeDir.all(dest0 / os.up)
-      os.proc(wixBin / "candle.exe", "-arch", "arm64", "-ext", "WixUIExtension", "-out", wixObj, wxsPath)
-        .call(cwd = Task.dest, stdout = os.Inherit)
-      os.proc(wixBin / "light.exe", "-ext", "WixUIExtension", "-sval", "-spdb", "-out", dest0, wixObj)
-        .call(cwd = Task.dest, stdout = os.Inherit)
     }
   def setShouldPublish(): Command[Unit] = publish.setShouldPublish()
   def shouldPublish(): Command[Unit]    = Task.Command {

@@ -128,17 +128,11 @@ jobs:
       run: echo "Skipping Windows ARM64 MSI generation -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: coursier/cache-action@v8
+    - uses: actions/download-artifact@v8
       if: env.SHOULD_RUN == 'true'
       with:
-        ignoreJob: true
-    - uses: VirtusLab/scala-cli-setup@v1
-      if: env.SHOULD_RUN == 'true'
-      with:
-        jvm: "temurin:17"
+        name: windows-arm64-jvm-launcher
+        path: jvm-launcher/
     - uses: actions/download-artifact@v8
       if: env.SHOULD_RUN == 'true'
       with:
@@ -150,7 +144,16 @@ jobs:
       run: Expand-Archive -Path windows-arm64-launchers/scala-cli-aarch64-pc-win32-jvm.zip -DestinationPath app-image
     - name: Generate MSI
       if: env.SHOULD_RUN == 'true'
-      run: ./mill -i ci.generateWindowsArm64Msi --appImage app-image/scala-cli --dest artifacts/scala-cli-aarch64-pc-win32.msi
+      shell: pwsh
+      run: |
+        $PSNativeCommandUseErrorActionPreference = $true
+        $wixBin = Join-Path $env:WIX bin
+        $license = (Get-Content LICENSE | ForEach-Object { $_ -replace '([\\{}])', '\$1' }) -join "\par`r`n"
+        Set-Content license.rtf "{\rtf1\ansi\deff0{\fonttbl{\f0 Consolas;}}\f0\fs16 $license\par}"
+        & "$wixBin\heat.exe" dir app-image\scala-cli -ag -srd -sfrag -sreg -scom -cg AppFiles -dr INSTALLDIR -var var.AppImage -out app-files.wxs
+        & "$wixBin\candle.exe" -arch arm64 -ext WixUIExtension "-dVersion=$(Get-Content jvm-launcher\version)" -dAppImage=app-image\scala-cli -dLicenseRtf=license.rtf .github\scripts\scala-cli-aarch64-pc-win32.wxs app-files.wxs
+        New-Item -ItemType Directory -Force artifacts | Out-Null
+        & "$wixBin\light.exe" -ext WixUIExtension -sval -spdb -out artifacts\scala-cli-aarch64-pc-win32.msi scala-cli-aarch64-pc-win32.wixobj app-files.wixobj
     - uses: actions/upload-artifact@v7
       if: env.SHOULD_RUN == 'true'
       with:
