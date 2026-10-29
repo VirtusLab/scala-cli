@@ -325,7 +325,7 @@ object Deps {
 
 def graalVmJavaVersion      = Java.defaultJava
 def graalVmCommunityVersion = s"$graalVmJavaVersion.0.9"
-def graalSvmVersion         = "22.3.1"
+def graalSvmVersion         = "23.0.2"
 def graalVmJvmId            = s"graalvm-community:$graalVmCommunityVersion"
 
 def csDockerVersion = Deps.Versions.coursierCli
