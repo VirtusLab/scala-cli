@@ -311,11 +311,11 @@ trait CliLaunchers extends SbtModule { self =>
         imageName = s"ubuntu:$ubuntuVersion",
         prepareCommand =
           """apt-get update -q -y &&\
-              |apt-get install -q -y build-essential libz-dev locales
-              |locale-gen en_US.UTF-8
-              |export LANG=en_US.UTF-8
-              |export LANGUAGE=en_US:en
-              |export LC_ALL=en_US.UTF-8""".stripMargin,
+            |apt-get install -q -y build-essential libz-dev locales
+            |locale-gen en_US.UTF-8
+            |export LANG=en_US.UTF-8
+            |export LANGUAGE=en_US:en
+            |export LC_ALL=en_US.UTF-8""".stripMargin,
         csUrl =
           s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz",
         extraNativeImageArgs = Nil
@@ -537,7 +537,7 @@ trait HasTests extends SbtModule {
   trait ScalaCliTests extends ScalaCliModule with super.SbtTests with TestModule.Munit {
     // Mill itself runs on a newer JDK (required to compile against svm),
     // while tests (and the JVM launchers they spawn) should keep running on the default JVM
-    override def jvmVersion: T[String]                 = s"temurin:${Java.defaultJava}"
+    override def jvmVersion: T[String] = s"temurin:${Java.defaultJava}"
     // test modules forward javaHome to their outer module by default, so it is resolved explicitly here
     override def javaHome: T[Option[PathRef]] = Task {
       val path = mill.util.Jvm.resolveJavaHome(
@@ -557,7 +557,7 @@ trait HasTests extends SbtModule {
       if parentOptions.exists(_.startsWith("-java-output-version")) then parentOptions
       else parentOptions ++ javaOutputVersionOptions(scalaVersion())
     }
-    override def testParallelism: T[Boolean] = !isCI
+    override def testParallelism: T[Boolean]           = !isCI
     override def testForkGrouping: T[Seq[Seq[String]]] =
       if isCI then discoveredTestClasses().grouped(1).toSeq else super.testForkGrouping()
     override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
