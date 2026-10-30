@@ -23,11 +23,14 @@ import scala.util.Properties
 
 object ScalaCli {
 
-  if (Properties.isWin && isGraalvmNativeImage)
+  if Properties.isWin && isGraalvmNativeImage then
     // have to be initialized before running (new Argv0).get because Argv0SubstWindows uses csjniutils library
     // The DLL loaded by LoadWindowsLibrary is statically linke/d in
     // the Scala CLI native image, no need to manually load it.
     coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
+    // On JDK 22+, Windows directories are looked up via the Foreign Function & Memory API by default,
+    // whose calls aren't registered in the native image. Use JNI (linked in the image) instead.
+    System.setProperty("coursier.windows.disable-ffm", "true")
 
   private val defaultProgName = "scala-cli"
   var progName: String        = {
