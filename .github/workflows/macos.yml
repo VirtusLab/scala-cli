@@ -20,6 +20,12 @@ on:
       test_skip:
         type: string
         required: true
+      test_legacy_lts:
+        type: string
+        required: true
+      test_lts_all_platforms:
+        type: string
+        required: true
 
 jobs:
   generate-macos-launcher:
@@ -166,6 +172,106 @@ jobs:
           name: test-results-macos-tests-rc
           path: test-report.xml
 
+  native-macos-tests-lts:
+    needs: [generate-macos-launcher]
+    timeout-minutes: 45
+    runs-on: "macOS-15-intel"
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' && inputs.test_lts_all_platforms == 'true' }}
+    steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native macOS integration tests (Scala 3.9 LTS, sanity) -- changes do not affect compiled code or CI, or [test_lts_all_platforms] was not requested."
+      - uses: actions/checkout@v7
+        if: env.SHOULD_RUN == 'true'
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
+        with:
+          jvm: "temurin:17"
+      - name: Ensure it's not running on aarch64
+        if: env.SHOULD_RUN == 'true'
+        run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
+      - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          name: macos-launchers
+          path: artifacts/
+      - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
+        run: ./mill -i nativeIntegrationTests
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_IT_GROUP: 4
+          SCALA_CLI_IT_SANITY: true
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+      - name: Convert Mill test reports to JUnit XML format
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-junit-reports.sc macos-tests-lts 'Scala CLI MacOS Tests (Scala 3.9 LTS, sanity)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        with:
+          name: test-results-macos-tests-lts
+          path: test-report.xml
+
+  native-macos-tests-legacy-lts:
+    needs: [generate-macos-launcher]
+    timeout-minutes: 45
+    runs-on: "macOS-15-intel"
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' && inputs.test_legacy_lts == 'true' }}
+    steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native macOS integration tests (Scala 3.3 LTS, sanity) -- changes do not affect compiled code or CI, or [test_legacy_lts] was not requested."
+      - uses: actions/checkout@v7
+        if: env.SHOULD_RUN == 'true'
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
+        with:
+          jvm: "temurin:17"
+      - name: Ensure it's not running on aarch64
+        if: env.SHOULD_RUN == 'true'
+        run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
+      - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          name: macos-launchers
+          path: artifacts/
+      - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
+        run: ./mill -i nativeIntegrationTests
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_IT_GROUP: 6
+          SCALA_CLI_IT_SANITY: true
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+      - name: Convert Mill test reports to JUnit XML format
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-junit-reports.sc macos-tests-legacy-lts 'Scala CLI MacOS Tests (Scala 3.3 LTS, sanity)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        with:
+          name: test-results-macos-tests-legacy-lts
+          path: test-report.xml
+
   generate-macos-arm64-launcher:
     timeout-minutes: 120
     runs-on: "macOS-15"
@@ -308,4 +414,104 @@ jobs:
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-macos-arm64-tests-rc
+          path: test-report.xml
+
+  native-macos-arm64-tests-lts:
+    needs: [generate-macos-arm64-launcher]
+    timeout-minutes: 45
+    runs-on: "macOS-15"
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' && inputs.test_lts_all_platforms == 'true' }}
+    steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native macOS ARM64 integration tests (Scala 3.9 LTS, sanity) -- changes do not affect compiled code or CI, or [test_lts_all_platforms] was not requested."
+      - uses: actions/checkout@v7
+        if: env.SHOULD_RUN == 'true'
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
+        with:
+          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+      - name: Ensure it's running on aarch64
+        if: env.SHOULD_RUN == 'true'
+        run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
+      - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          name: macos-arm64-launchers
+          path: artifacts/
+      - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
+        run: ./mill -i nativeIntegrationTests
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_IT_GROUP: 4
+          SCALA_CLI_IT_SANITY: true
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+      - name: Convert Mill test reports to JUnit XML format
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-lts 'Scala CLI MacOS ARM64 Tests (Scala 3.9 LTS, sanity)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        with:
+          name: test-results-macos-arm64-tests-lts
+          path: test-report.xml
+
+  native-macos-arm64-tests-legacy-lts:
+    needs: [generate-macos-arm64-launcher]
+    timeout-minutes: 45
+    runs-on: "macOS-15"
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' && inputs.test_legacy_lts == 'true' }}
+    steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native macOS ARM64 integration tests (Scala 3.3 LTS, sanity) -- changes do not affect compiled code or CI, or [test_legacy_lts] was not requested."
+      - uses: actions/checkout@v7
+        if: env.SHOULD_RUN == 'true'
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
+        with:
+          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+      - name: Ensure it's running on aarch64
+        if: env.SHOULD_RUN == 'true'
+        run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
+      - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          name: macos-arm64-launchers
+          path: artifacts/
+      - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
+        run: ./mill -i nativeIntegrationTests
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_IT_GROUP: 6
+          SCALA_CLI_IT_SANITY: true
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+      - name: Convert Mill test reports to JUnit XML format
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-legacy-lts 'Scala CLI MacOS ARM64 Tests (Scala 3.3 LTS, sanity)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        with:
+          name: test-results-macos-arm64-tests-legacy-lts
           path: test-report.xml

@@ -256,7 +256,7 @@ jobs:
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
-        run: echo "Skipping JVM integration tests (Scala 3 LTS) -- changes do not affect compiled code or CI."
+        run: echo "Skipping JVM integration tests (Scala 3.9 LTS) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
@@ -284,12 +284,56 @@ jobs:
           SCALA_CLI_IT_GROUP: 4
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run: .github/scripts/generate-junit-reports.sc jvm-tests-lts 'Scala CLI JVM Tests (Scala 3 LTS)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc jvm-tests-lts 'Scala CLI JVM Tests (Scala 3.9 LTS)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-jvm-tests-lts
+          path: test-report.xml
+
+  jvm-tests-legacy-lts:
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_integration == 'true') && inputs.test_skip != 'true' }}
+    steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping JVM integration tests (Scala 3.3 LTS) -- changes do not affect compiled code or CI."
+      - uses: actions/checkout@v7
+        if: env.SHOULD_RUN == 'true'
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
+        with:
+          jvm: "temurin:17"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - uses: oven-sh/setup-bun@v2
+      - name: JVM integration tests
+        if: env.SHOULD_RUN == 'true'
+        run: ./mill -i integration.test.jvm
+        env:
+          SCALA_CLI_IT_GROUP: 6
+      - name: Convert Mill test reports to JUnit XML format
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-junit-reports.sc jvm-tests-legacy-lts 'Scala CLI JVM Tests (Scala 3.3 LTS)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        with:
+          name: test-results-jvm-tests-legacy-lts
           path: test-report.xml
 
   jvm-tests-rc:

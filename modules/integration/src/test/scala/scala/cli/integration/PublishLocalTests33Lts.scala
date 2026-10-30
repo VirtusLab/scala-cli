@@ -1,0 +1,3 @@
+package scala.cli.integration
+
+class PublishLocalTests33Lts extends PublishLocalTestDefinitions with Test33Lts

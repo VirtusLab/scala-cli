@@ -20,6 +20,12 @@ on:
       test_skip:
         type: string
         required: true
+      test_legacy_lts:
+        type: string
+        required: true
+      test_lts_all_platforms:
+        type: string
+        required: true
 
 jobs:
   generate-static-launcher:
@@ -173,4 +179,108 @@ jobs:
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         with:
           name: test-results-native-static-tests-rc
+          path: test-report.xml
+
+  native-static-tests-lts:
+    needs: [generate-static-launcher]
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' && inputs.test_lts_all_platforms == 'true' }}
+    steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native static integration tests (Scala 3.9 LTS) -- changes do not affect compiled code or CI, or [test_lts_all_platforms] was not requested."
+      - uses: actions/checkout@v7
+        if: env.SHOULD_RUN == 'true'
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
+        with:
+          jvm: "temurin:17"
+      - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          name: static-launchers
+          path: artifacts/
+      - name: Build docker image
+        if: env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-docker-image.sh
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
+        run: ./mill -i integration.test.nativeStatic
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_IT_GROUP: 4
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+      - name: Convert Mill test reports to JUnit XML format
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-junit-reports.sc native-static-tests-lts 'Scala CLI Native Static Tests (Scala 3.9 LTS)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        with:
+          name: test-results-native-static-tests-lts
+          path: test-report.xml
+
+  native-static-tests-legacy-lts:
+    needs: [generate-static-launcher]
+    timeout-minutes: 150
+    runs-on: ubuntu-24.04
+    env:
+      SHOULD_RUN: ${{ (inputs.code == 'true' || inputs.ci == 'true' || inputs.mill_wrapper == 'true' || inputs.test_all == 'true' || inputs.test_native == 'true') && inputs.test_skip != 'true' && inputs.test_legacy_lts == 'true' }}
+    steps:
+      - name: Log skip reason
+        if: env.SHOULD_RUN != 'true'
+        run: echo "Skipping native static integration tests (Scala 3.3 LTS) -- changes do not affect compiled code or CI, or [test_legacy_lts] was not requested."
+      - uses: actions/checkout@v7
+        if: env.SHOULD_RUN == 'true'
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          ignoreJob: true
+      - uses: VirtusLab/scala-cli-setup@v1
+        if: env.SHOULD_RUN == 'true'
+        with:
+          jvm: "temurin:17"
+      - uses: actions/download-artifact@v8
+        if: env.SHOULD_RUN == 'true'
+        with:
+          name: static-launchers
+          path: artifacts/
+      - name: Build docker image
+        if: env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-docker-image.sh
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Native integration tests
+        if: env.SHOULD_RUN == 'true'
+        run: ./mill -i integration.test.nativeStatic
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_IT_GROUP: 6
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+      - name: Convert Mill test reports to JUnit XML format
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        run: .github/scripts/generate-junit-reports.sc native-static-tests-legacy-lts 'Scala CLI Native Static Tests (Scala 3.3 LTS)' test-report.xml out/
+      - name: Upload test report
+        uses: actions/upload-artifact@v7
+        if: (success() || failure()) && env.SHOULD_RUN == 'true'
+        with:
+          name: test-results-native-static-tests-legacy-lts
           path: test-report.xml

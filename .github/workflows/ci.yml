@@ -39,6 +39,8 @@ jobs:
       test_all: ${{ needs.changes.outputs.test_all }}
       test_native: ${{ needs.changes.outputs.test_native }}
       test_skip: ${{ needs.changes.outputs.test_skip }}
+      test_legacy_lts: ${{ needs.changes.outputs.test_legacy_lts }}
+      test_lts_all_platforms: ${{ needs.changes.outputs.test_lts_all_platforms }}
 
   macos:
     needs: [changes]
@@ -51,6 +53,8 @@ jobs:
       test_all: ${{ needs.changes.outputs.test_all }}
       test_native: ${{ needs.changes.outputs.test_native }}
       test_skip: ${{ needs.changes.outputs.test_skip }}
+      test_legacy_lts: ${{ needs.changes.outputs.test_legacy_lts }}
+      test_lts_all_platforms: ${{ needs.changes.outputs.test_lts_all_platforms }}
 
   windows:
     needs: [changes]
@@ -63,6 +67,7 @@ jobs:
       test_all: ${{ needs.changes.outputs.test_all }}
       test_native: ${{ needs.changes.outputs.test_native }}
       test_skip: ${{ needs.changes.outputs.test_skip }}
+      test_legacy_lts: ${{ needs.changes.outputs.test_legacy_lts }}
 
   static:
     needs: [changes]
@@ -75,6 +80,8 @@ jobs:
       test_all: ${{ needs.changes.outputs.test_all }}
       test_native: ${{ needs.changes.outputs.test_native }}
       test_skip: ${{ needs.changes.outputs.test_skip }}
+      test_legacy_lts: ${{ needs.changes.outputs.test_legacy_lts }}
+      test_lts_all_platforms: ${{ needs.changes.outputs.test_lts_all_platforms }}
 
   mostly-static:
     needs: [changes]
@@ -87,6 +94,8 @@ jobs:
       test_all: ${{ needs.changes.outputs.test_all }}
       test_native: ${{ needs.changes.outputs.test_native }}
       test_skip: ${{ needs.changes.outputs.test_skip }}
+      test_legacy_lts: ${{ needs.changes.outputs.test_legacy_lts }}
+      test_lts_all_platforms: ${{ needs.changes.outputs.test_lts_all_platforms }}
 
   misc:
     needs: [changes]

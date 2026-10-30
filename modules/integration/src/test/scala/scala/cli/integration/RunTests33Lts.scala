@@ -6,7 +6,7 @@ import scala.cli.integration.TestUtil.ProcOps
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 
-class RunTests3Lts extends RunTestDefinitions with RunLtsTagTestDefinitions with Test3Lts {
+class RunTests33Lts extends RunTestDefinitions with Test33Lts {
   if (!Properties.isMac || !TestUtil.isCI)
     test(s"--sloth works correctly under --watch mode") {
       val expectedMessage1 = "Hello from lazy val"

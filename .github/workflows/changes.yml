@@ -41,6 +41,12 @@ on:
       test_skip:
         description: 'test_skip change/override flag'
         value: ${{ jobs.changes.outputs.test_skip }}
+      test_legacy_lts:
+        description: 'test_legacy_lts override flag (PRs only)'
+        value: ${{ jobs.changes.outputs.test_legacy_lts }}
+      test_lts_all_platforms:
+        description: 'test_lts_all_platforms override flag (PRs only)'
+        value: ${{ jobs.changes.outputs.test_lts_all_platforms }}
 
 jobs:
   changes:
@@ -60,6 +66,8 @@ jobs:
       test_docs: ${{ steps.overrides.outputs.test_docs }}
       test_format: ${{ steps.overrides.outputs.test_format }}
       test_skip: ${{ steps.overrides.outputs.test_skip }}
+      test_legacy_lts: ${{ steps.overrides.outputs.test_legacy_lts }}
+      test_lts_all_platforms: ${{ steps.overrides.outputs.test_lts_all_platforms }}
     steps:
     - uses: actions/checkout@v7
       with:

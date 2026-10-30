@@ -144,8 +144,10 @@ trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
           check = false
         )
       expect(errorRes.exitCode != 0)
-      val errorOutput = errorRes.out.text()
-      expect(errorOutput.contains("No module named 'helpers'"))
+      // Scala Native 0.4 (required by ScalaPy) aborts on any thrown exception on Linux aarch64,
+      // so the Python error never gets printed there
+      if !(native && Properties.isLinux && TestUtil.isAarch64) then
+        expect(errorRes.out.text().contains("No module named 'helpers'"))
 
       val res = stableStdoutOf(
         TestUtil.cli,
