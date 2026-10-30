@@ -373,6 +373,45 @@ class RunTestsDefault extends RunTestDefinitions
     }
   }
 
+  test("run a Java main class from the class path offline without fetching a Scala compiler") {
+    val inputs = TestInputs(
+      os.rel / "Hello.java" ->
+        """public class Hello {
+          |  public static void main(String[] args) {
+          |    System.out.println("Hello from Java");
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val jarPath = root / "hello.jar"
+      os.proc(TestUtil.cli, "--power", "package", "Hello.java", "--library", "-o", jarPath)
+        .call(cwd = root)
+      val emptyCache = root / "empty-cache"
+      os.makeDir(emptyCache)
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "--server=false",
+        "--offline",
+        "--java",
+        "-cp",
+        jarPath,
+        "--main-class",
+        "Hello"
+      ).call(
+        cwd = root,
+        env = Map("COURSIER_CACHE" -> emptyCache.toString),
+        stderr = os.Pipe,
+        check = false
+      )
+      expect(res.exitCode == 0)
+      expect(res.out.trim() == "Hello from Java")
+      expect(!res.err.text().contains("scala3-compiler"))
+    }
+  }
+
   test("as jar") {
     val inputs = TestInputs(
       os.rel / "CheckCp.scala" ->
