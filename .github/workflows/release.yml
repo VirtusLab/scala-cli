@@ -95,6 +95,18 @@ jobs:
       with:
         name: windows-launchers
         path: artifacts/
+    - name: Download Windows ARM64 launchers
+      uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: windows-arm64-launchers
+        path: artifacts/
+    - name: Download Windows ARM64 MSI
+      uses: actions/download-artifact@v8
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: windows-arm64-msi
+        path: artifacts/
     - name: Download mostly static launchers
       uses: actions/download-artifact@v8
       if: env.SHOULD_PUBLISH == 'true'
