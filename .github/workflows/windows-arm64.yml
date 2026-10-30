@@ -101,9 +101,7 @@ jobs:
       run: |
         ./jpackage-output/scala-cli/scala-cli.exe version
         echo 'println("Hello from Windows ARM64")' > hello.sc
-        # TODO: drop --server=false once Scala CLI uses a Bloop release including scalacenter/bloop#3107,
-        # older ones fail to load their x64-only JNI library on an ARM64 JVM
-        env -u JAVA_HOME ./jpackage-output/scala-cli/scala-cli.exe run hello.sc --server=false | grep "Hello from Windows ARM64"
+        env -u JAVA_HOME ./jpackage-output/scala-cli/scala-cli.exe run hello.sc | grep "Hello from Windows ARM64"
     - name: Archive app image
       if: env.SHOULD_RUN == 'true'
       shell: pwsh
@@ -195,8 +193,7 @@ jobs:
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         Remove-Item Env:JAVA_HOME -ErrorAction SilentlyContinue
         Set-Content hello.sc 'println("Hello from Windows ARM64")'
-        # TODO: drop --server=false once Scala CLI uses a Bloop release including scalacenter/bloop#3107
-        $output = & "$installDir\scala-cli.exe" run hello.sc --server=false
+        $output = & "$installDir\scala-cli.exe" run hello.sc
         if ($LASTEXITCODE -ne 0 -or -not ($output -match 'Hello from Windows ARM64')) {
           Write-Host "Unexpected output: $output"
           exit 1
@@ -210,6 +207,8 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       shell: pwsh
       run: |
+        # Bloop, started by the previous step, runs on the installed runtime and would keep its files in use
+        & 'C:\Program Files\Scala CLI\scala-cli.exe' --power bloop exit
         $process = Start-Process msiexec.exe -ArgumentList '/x', 'windows-arm64-msi\scala-cli-aarch64-pc-win32.msi', '/qn', '/l*v', 'uninstall.log' -Wait -PassThru
         if ($process.ExitCode -ne 0) {
           Get-Content uninstall.log
