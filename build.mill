@@ -422,7 +422,7 @@ trait Core extends ScalaCliCrossSbtModule
     Task.Anon(super.repositoriesTask() ++ deps.customRepositories)
 
   override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
-    Deps.bloopRifle.exclude(("org.scala-lang.modules", "scala-collection-compat_2.13")),
+    Deps.bloopRifle,
     Deps.collectionCompat,
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
