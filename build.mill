@@ -991,6 +991,28 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   )
   override def mainClass: T[Option[String]] = Some("scala.cli.ScalaCli")
 
+  // Scaladoc reads the `@data` annotations (from data-class) off the TASTy of the Scala 3 coursier artifacts,
+  // and fails if the `dataclass.data` class it finds on the class path doesn't match them (if there's none,
+  // it simply ignores them). case-app bundles an older, incompatible copy of `dataclass.data`, so we strip it
+  // from the case-app JAR passed to scaladoc.
+  private def scalaDocClassPath: T[Seq[PathRef]] = Task {
+    compileClasspath().filter(_.path.ext != "pom").map { ref =>
+      if ref.path.last.startsWith("case-app_") then {
+        val unzipped = Task.dest / "unzipped" / ref.path.baseName
+        os.unzip(ref.path, unzipped, excludePatterns = Seq("dataclass/.*".r))
+        PathRef(mill.util.Jvm.createJar(Task.dest / ref.path.last, Seq(unzipped)))
+      }
+      else ref
+    }
+  }
+  // overrides the -classpath passed by Mill before scaladoc options
+  override def scalaDocOptions: T[Seq[String]] = Task {
+    super.scalaDocOptions() ++ Seq(
+      "-classpath",
+      scalaDocClassPath().map(_.path).mkString(File.pathSeparator)
+    )
+  }
+
   private def scala3GraalProcessorClassPath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath {
       val bind = bindDependency()
