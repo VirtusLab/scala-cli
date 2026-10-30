@@ -1193,8 +1193,12 @@ object Build {
   ): Either[BuildException, (os.Path, Option[ScalaParameters], Artifacts, Project, Boolean)] =
     either {
 
+      // No Scala sources, and either Java sources or the Scala library explicitly disabled
+      // (e.g. `--java`): there's nothing for scalac to compile, so don't fetch a Scala compiler
+      val isPureJava = !sources.hasScala &&
+        (sources.hasJava || options.scalaOptions.addScalaLibrary.contains(false))
       val options0 =
-        if sources.hasJava && !sources.hasScala
+        if isPureJava
         then
           options.copy(
             scalaOptions = options.scalaOptions.copy(
