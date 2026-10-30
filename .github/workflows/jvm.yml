@@ -63,6 +63,9 @@ jobs:
     - name: Build macros negative compilation tests
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i build-macros[_].test.testNegativeCompilation
+    - name: Generate Scaladoc
+      if: env.SHOULD_RUN == 'true'
+      run: ./mill -i '{__[],_}.docJar'
     - name: Unit tests
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i unitTests
