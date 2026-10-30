@@ -509,7 +509,7 @@ class MainClassTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
-  test("main classes on -cp are only looked up without a project main class") {
+  test("main classes on -cp are only looked up without a project main class, or for listing") {
     TestInputs(
       os.rel / "Other.scala" -> "object Other { def main(args: Array[String]): Unit = () }"
     ).withBuild(defaultOptions, buildThreads, None, buildTests = false) { (_, _, maybeOther) =>
@@ -521,7 +521,10 @@ class MainClassTests extends TestUtil.ScalaCliBuildSuite {
         os.rel / "Main.scala" -> "object Main { def main(args: Array[String]): Unit = () }"
       ).withBuild(withExtraClassPath, buildThreads, None, buildTests = false) {
         (_, _, maybeBuild) =>
-          expect(maybeBuild.orThrow.successfulOpt.get.foundMainClasses() == Seq("Main"))
+          val build = maybeBuild.orThrow.successfulOpt.get
+          expect(build.foundMainClasses() == Seq("Main"))
+          expect(build.foundMainClasses(forListing = true) == Seq("Main", "Other"))
+          expect(build.mainClassKind("Other").contains(MainMethodKind.StaticWithArgs))
       }
       TestInputs(
         os.rel / "Lib.scala" -> "object Lib"

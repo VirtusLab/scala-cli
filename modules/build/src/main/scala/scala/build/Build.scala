@@ -68,11 +68,13 @@ object Build {
     private lazy val mainClassCandidatesInProject: Seq[MainClass.MainClassCandidate] =
       MainClass.find(output, logger)
         .filterNot(c => scriptWrapperUserCodeClasses.contains(c.className))
+    private lazy val mainClassCandidatesOnExtraClasspath: Seq[MainClass.MainClassCandidate] =
+      options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger))
     // main classes of the project take precedence; not searching `-cp` spares walking its
     // directories, which can be large (`-cp .`)
-    private lazy val mainClassCandidatesOnExtraClasspath: Seq[MainClass.MainClassCandidate] =
-      if mainClassesFoundInProject.nonEmpty then Nil
-      else options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger))
+    private lazy val retainedMainClassCandidatesOnExtraClasspath
+      : Seq[MainClass.MainClassCandidate] =
+      if mainClassesFoundInProject.nonEmpty then Nil else mainClassCandidatesOnExtraClasspath
     private lazy val mainClassesFoundInUserExtraDependencies: Seq[String] =
       artifacts.jarsForUserExtraDependencies.flatMap(MainClass.findInDependency).sorted
 
@@ -101,7 +103,7 @@ object Build {
       (isJvmPlatform && kind.isSupportedByJvm(jvmVersion, hasEnablePreview))
 
     private lazy val allMainClassCandidates: Seq[MainClass.MainClassCandidate] =
-      mainClassCandidatesInProject ++ mainClassCandidatesOnExtraClasspath
+      mainClassCandidatesInProject ++ retainedMainClassCandidatesOnExtraClasspath
 
     private def supportedMainClassNames(candidates: Seq[MainClass.MainClassCandidate])
       : Seq[String] =
@@ -112,19 +114,27 @@ object Build {
     private lazy val mainClassesFoundInProject: Seq[String] =
       supportedMainClassNames(mainClassCandidatesInProject)
     private lazy val mainClassesFoundOnExtraClasspath: Seq[String] =
-      supportedMainClassNames(mainClassCandidatesOnExtraClasspath)
+      supportedMainClassNames(retainedMainClassCandidatesOnExtraClasspath)
 
-    def foundMainClasses(): Seq[String] = {
-      val found = mainClassesFoundInProject ++ mainClassesFoundOnExtraClasspath
+    /** @param forListing
+      *   for `--list-main-classes`, which also lists `-cp` main classes next to the project's
+      */
+    def foundMainClasses(forListing: Boolean = false): Seq[String] = {
+      val onExtraClasspath =
+        if forListing then supportedMainClassNames(mainClassCandidatesOnExtraClasspath)
+        else mainClassesFoundOnExtraClasspath
+      val found = mainClassesFoundInProject ++ onExtraClasspath
       if inputs.isEmpty && found.isEmpty then mainClassesFoundInUserExtraDependencies else found
     }
 
     def mainClassKind(className: String): Option[MainClass.MainMethodKind] =
-      allMainClassCandidates.find(_.className == className).map(_.kind).orElse {
-        if mainClassesFoundInUserExtraDependencies.contains(className) then
-          Some(MainClass.MainMethodKind.StaticWithArgs)
-        else None
-      }
+      mainClassCandidatesInProject.find(_.className == className)
+        .orElse(mainClassCandidatesOnExtraClasspath.find(_.className == className))
+        .map(_.kind).orElse {
+          if mainClassesFoundInUserExtraDependencies.contains(className) then
+            Some(MainClass.MainMethodKind.StaticWithArgs)
+          else None
+        }
 
     /** Explains why detected main methods cannot be launched by the target runtime (wrong platform
       * for JEP 512 shapes, or JVM older than JEP 512).
