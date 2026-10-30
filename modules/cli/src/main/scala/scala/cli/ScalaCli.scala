@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.Locale
 
-import scala.annotation.nowarn
 import scala.build.EitherCps.{either, value}
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
@@ -119,11 +118,11 @@ object ScalaCli {
       .takeWhile(_.isDigit)
       .toInt
 
-  @nowarn("msg=Catching Throwable") // top-level handler, intentionally catches fatal errors too
   def main(args: Array[String]): Unit =
     try main0(args)
     catch {
-      case e: Throwable if !isCI && !printStackTraces =>
+      // top-level handler, intentionally catches fatal errors too
+      case e if !isCI && !printStackTraces =>
         val workspace = CurrentParams.workspaceOpt.filter(os.isDir).getOrElse(os.pwd)
         val dir       = workspace / Constants.workspaceDirName / "stacktraces"
         os.makeDir.all(dir)

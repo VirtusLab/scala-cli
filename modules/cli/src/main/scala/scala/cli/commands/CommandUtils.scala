@@ -11,7 +11,7 @@ import scala.util.Try
 object CommandUtils {
 
   def isOutOfDateVersion(newVersion: String, oldVersion: String): Boolean = {
-    import coursier.core.Version
+    import coursier.version.Version
 
     Version(newVersion) > Version(oldVersion)
   }
