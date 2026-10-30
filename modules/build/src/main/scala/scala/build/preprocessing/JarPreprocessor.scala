@@ -25,14 +25,13 @@ case object JarPreprocessor extends Preprocessor {
               extraClassPath = Seq(jar.path)
             )
           )
-          Seq(PreprocessedSource.OnDisk(
-            path = jar.path,
+          // a JAR only contributes to the class path, it must not be passed to the compiler as a source
+          Seq(PreprocessedSource.NoSourceCode(
             options = Some(buildOptions),
             optionsWithTargetRequirements = List.empty,
             requirements = Some(BuildRequirements()),
             scopedRequirements = Nil,
-            mainClassOpt = None,
-            directivesPositions = None
+            path = jar.path
           ))
         })
       case _ =>
