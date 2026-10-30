@@ -70,16 +70,11 @@ function to_bash_syntax {
 if [[ $IS_WINDOWS ]]; then
   # needed for coursier version < 2.1.8, harmless otherwise
   IFS=$'\n'
-  # temurin:17 (build 17+35) doesn't support utf8 filenames, although some later 17 versions do
-  eval "$(to_bash_syntax `"$cs" java --env --jvm zulu:17` || to_bash_syntax `"$cs" java --env --jvm openjdk:1.17.0`)"
+  eval "$(to_bash_syntax `"$cs" java --env --jvm temurin:25`)"
   unset IFS
 else
-  eval "$("$cs" java --env --jvm temurin:17 || "$cs" java --env --jvm openjdk:1.17.0)"
+  eval "$("$cs" java --env --jvm temurin:25)"
 fi
-
-# temporary, until we pass JPMS options to native-image,
-# see https://www.graalvm.org/release-notes/22_2/#native-image
-export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 

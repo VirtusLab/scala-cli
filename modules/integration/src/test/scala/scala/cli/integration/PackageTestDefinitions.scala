@@ -1303,7 +1303,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val graalVmVersionHelp     = lines.find(_.contains("--graalvm-version")).getOrElse("")
       val graalVmJavaVersionHelp = lines.find(_.contains("--graalvm-java-version")).getOrElse("")
 
-      expect(graalVmVersionHelp.contains(s"(${Constants.defaultGraalVMVersion} by default)"))
+      expect(graalVmVersionHelp.contains(
+        s"(${Constants.defaultGraalVMVersion} by default, ${Constants.defaultGraalVMMacosX64Version} on macOS x64)"
+      ))
       expect(
         graalVmJavaVersionHelp.contains(s"(${Constants.defaultGraalVMJavaVersion} by default)")
       )

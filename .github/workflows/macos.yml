@@ -49,7 +49,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: Ensure it's not running on aarch64
       if: env.SHOULD_RUN == 'true'
       run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
@@ -94,7 +94,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: Ensure it's not running on aarch64
       if: env.SHOULD_RUN == 'true'
       run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
@@ -144,7 +144,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         if: env.SHOULD_RUN == 'true'
         with:
-          jvm: "temurin:17"
+          jvm: "temurin:25"
       - name: Ensure it's not running on aarch64
         if: env.SHOULD_RUN == 'true'
         run: scala-cli -e 'assert(System.getProperty("os.arch") != "aarch64")'
@@ -293,7 +293,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         if: env.SHOULD_RUN == 'true'
         with:
-          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+          jvm: "temurin:25"
       - name: Ensure it's running on aarch64
         if: env.SHOULD_RUN == 'true'
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
@@ -338,7 +338,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         if: env.SHOULD_RUN == 'true'
         with:
-          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+          jvm: "temurin:25"
       - name: Ensure it's running on aarch64
         if: env.SHOULD_RUN == 'true'
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
@@ -388,7 +388,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@v1
         if: env.SHOULD_RUN == 'true'
         with:
-          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+          jvm: "temurin:25"
       - name: Ensure it's running on aarch64
         if: env.SHOULD_RUN == 'true'
         run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'

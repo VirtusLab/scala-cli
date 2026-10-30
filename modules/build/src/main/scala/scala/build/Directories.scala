@@ -1,10 +1,7 @@
 package scala.build
 
+import coursier.paths.CoursierPaths
 import coursier.paths.shaded.dirs.ProjectDirectories
-import coursier.paths.shaded.dirs.impl.Windows
-import coursier.paths.shaded.dirs.jni.WindowsJni
-
-import java.util.function.Supplier
 
 import scala.build.errors.ConfigDbException
 import scala.build.internals.EnvVar
@@ -85,12 +82,9 @@ object Directories {
       dir / "cache"
   }
 
-  def default(): Directories = {
-    val windows: Supplier[Windows] =
-      if coursier.paths.Util.useJni() then WindowsJni.getJdkAwareSupplier
-      else Windows.getDefaultSupplier
-    OsLocations(ProjectDirectories.from(null, null, "ScalaCli", windows))
-  }
+  // like for coursier's own directories, this honours the coursier.windows.disable-ffm property
+  def default(): Directories =
+    OsLocations(CoursierPaths.directoriesInstance("ScalaCli"))
 
   def under(dir: os.Path): Directories =
     SubDir(dir)

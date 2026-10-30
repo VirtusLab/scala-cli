@@ -58,7 +58,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: Install fish
       if: env.SHOULD_RUN == 'true'
       run: |
@@ -91,7 +91,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "zulu:17"
+        jvm: "temurin:25"
     - uses: actions/setup-node@v7
       if: env.SHOULD_RUN == 'true'
       with:
@@ -142,7 +142,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: Check Scala / Scala.js versions in doc
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i ci.checkScalaVersions
@@ -201,7 +201,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: Check that reference doc is up-to-date
       if: env.SHOULD_RUN == 'true'
       run: |
@@ -233,7 +233,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: Java Version
       if: env.SHOULD_RUN == 'true'
       run: java -version
@@ -271,7 +271,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
-        jvm: "temurin:17"
+        jvm: "temurin:25"
     - name: Try to export to SBT
       if: env.SHOULD_RUN == 'true'
       run: scala-cli --power export --sbt .

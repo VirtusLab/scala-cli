@@ -4,6 +4,8 @@ import build.project.deps
 import deps.{
   Deps,
   Docker,
+  Java,
+  Scala,
   alpineVersion,
   alpineLibsodiumVersion,
   buildCsVersion,
@@ -302,25 +304,18 @@ trait CliLaunchers extends SbtModule { self =>
     override def launcherKind = "default"
   }
 
-  private def maybePassNativeImageJpmsOption =
-    Option(System.getenv("USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM"))
-      .fold("") { value =>
-        "export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=" + value + System.lineSeparator()
-      }
-
   object `linux-docker-image` extends CliNativeImage {
     override def launcherKind: String = `base-image`.launcherKind
     override def nativeImageDockerParams: T[Option[NativeImage.DockerParams]] = Some(
       NativeImage.DockerParams(
         imageName = s"ubuntu:$ubuntuVersion",
         prepareCommand =
-          maybePassNativeImageJpmsOption +
-            """apt-get update -q -y &&\
-              |apt-get install -q -y build-essential libz-dev locales
-              |locale-gen en_US.UTF-8
-              |export LANG=en_US.UTF-8
-              |export LANGUAGE=en_US:en
-              |export LC_ALL=en_US.UTF-8""".stripMargin,
+          """apt-get update -q -y &&\
+            |apt-get install -q -y build-essential libz-dev locales
+            |locale-gen en_US.UTF-8
+            |export LANG=en_US.UTF-8
+            |export LANGUAGE=en_US:en
+            |export LC_ALL=en_US.UTF-8""".stripMargin,
         csUrl =
           s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz",
         extraNativeImageArgs = Nil
@@ -330,8 +325,7 @@ trait CliLaunchers extends SbtModule { self =>
 
   private def setupLocaleAndOptions(params: NativeImage.DockerParams): NativeImage.DockerParams =
     params.copy(
-      prepareCommand = maybePassNativeImageJpmsOption +
-        params.prepareCommand +
+      prepareCommand = params.prepareCommand +
         """
           |set -v
           |apt-get update
@@ -541,6 +535,28 @@ trait HasTests extends SbtModule {
     super.scalacOptions() ++ extraOptions
   }
   trait ScalaCliTests extends ScalaCliModule with super.SbtTests with TestModule.Munit {
+    // Mill itself runs on a newer JDK (required to compile against svm),
+    // while tests (and the JVM launchers they spawn) should keep running on the default JVM
+    override def jvmVersion: T[String] = s"temurin:${Java.defaultJava}"
+    // test modules forward javaHome to their outer module by default, so it is resolved explicitly here
+    override def javaHome: T[Option[PathRef]] = Task {
+      val path = mill.util.Jvm.resolveJavaHome(
+        id = jvmVersion(),
+        ctx = Some(Task.ctx()),
+        jvmIndexVersion = jvmIndexVersion()
+      ).get
+      Some(PathRef(path, quick = true))
+    }
+    override def javacOptions: T[Seq[String]] = Task {
+      val parentOptions = super.javacOptions()
+      if parentOptions.contains("--release") then parentOptions
+      else parentOptions ++ Seq("--release", Java.defaultJava.toString)
+    }
+    override def scalacOptions: T[Seq[String]] = Task {
+      val parentOptions = super.scalacOptions()
+      if parentOptions.exists(_.startsWith("-java-output-version")) then parentOptions
+      else parentOptions ++ javaOutputVersionOptions(scalaVersion())
+    }
     override def testParallelism: T[Boolean]           = !isCI
     override def testForkGrouping: T[Seq[Seq[String]]] =
       if isCI then discoveredTestClasses().grouped(1).toSeq else super.testForkGrouping()
@@ -549,7 +565,10 @@ trait HasTests extends SbtModule {
       Deps.munit
     )
     override def forkArgs: T[Seq[String]]        = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
-    override def forkEnv: T[Map[String, String]] = super.forkEnv() ++ Seq(
+    override def forkEnv: T[Map[String, String]] = super.forkEnv() ++ javaHome().map(home =>
+      // keep the JVM picked by default by the Scala CLI launchers under test (and Bloop) in sync
+      "JAVA_HOME" -> home.path.toString
+    ) ++ Seq(
       // bloop rifle hard-codes a 30s timeout for `bloop about`, which no CLI option can raise;
       // loaded CI machines regularly exceed it, so extend all bloop rifle timeouts for tests
       "SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"
@@ -854,19 +873,27 @@ trait ScalaCliScalafixModule extends ScalafixModule {
 trait ScalaCliCrossSbtModule extends CrossSbtModule with ScalaCliModule
 
 trait ScalaCliModule extends ScalaModule {
-  override def javacOptions: T[Seq[String]] = super.javacOptions() ++ Seq(
-    "--release",
-    "16"
-  )
+  override def javacOptions: T[Seq[String]] =
+    super.javacOptions() ++ Seq("--release", Java.defaultJava.toString)
   override def scalacOptions: T[Seq[String]] = Task {
     val sv           = scalaVersion()
     val isScala213   = sv.startsWith("2.13.")
     val extraOptions =
       if (isScala213) Seq("-Xsource:3", "-Ytasty-reader")
       else Nil
-    super.scalacOptions() ++ Seq("-feature", "-deprecation") ++ extraOptions
+    super.scalacOptions() ++ Seq("-feature", "-deprecation") ++ extraOptions ++
+      javaOutputVersionOptions(sv)
   }
 }
+
+/** Mill runs on a newer JDK than the one the CLI targets, so both the emitted bytecode and the JDK
+  * API available at compile time are pinned explicitly. Legacy LTS cross-builds handle this on
+  * their own (see `FutureLazyVals`).
+  */
+def javaOutputVersionOptions(scalaVersion: String): Seq[String] =
+  if scalaVersion.startsWith("3.") && !scalaVersion.startsWith(s"${Scala.scala3LegacyLtsPrefix}.")
+  then Seq(s"-java-output-version:${Java.defaultJava}")
+  else Nil
 
 def workspaceDirName      = ".scala-build"
 def projectFileName       = "project.scala"

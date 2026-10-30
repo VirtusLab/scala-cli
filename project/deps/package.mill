@@ -4,6 +4,10 @@ import mill.*
 import mill.api.BuildInfo
 import scalalib.*
 
+import java.util.Locale
+
+import scala.util.Properties
+
 object Cli {
   def runnerScala30LegacyVersion =
     "1.7.1" // last runner version to support pre-LTS Scala 3 versions
@@ -323,10 +327,19 @@ object Deps {
   def scalafixInterfaces = mvn"ch.epfl.scala:scalafix-interfaces:${Versions.scalafix}"
 }
 
-def graalVmJavaVersion      = Java.defaultJava
-def graalVmCommunityVersion = s"$graalVmJavaVersion.0.9"
-def graalSvmVersion         = "22.3.1"
-def graalVmJvmId            = s"graalvm-community:$graalVmCommunityVersion"
+// svm 24.0+ is published as Java 21 bytecode, so compiling against it requires Mill to run on JDK 21+.
+def graalVmJavaVersion      = 25
+def graalVmCommunityVersion = s"$graalVmJavaVersion.0.2"
+// there are no GraalVM CE builds for macOS x64 past 25.0.1
+def graalVmCommunityMacosX64Version = s"$graalVmJavaVersion.0.1"
+def graalSvmVersion                 = "25.0.5.0.3"
+def graalVmJvmId                    = {
+  val version =
+    val isArm = sys.props.getOrElse("os.arch", "").toLowerCase(Locale.ROOT) == "aarch64"
+    if Properties.isMac && !isArm then graalVmCommunityMacosX64Version
+    else graalVmCommunityVersion
+  s"graalvm-community:$version"
+}
 
 def csDockerVersion = Deps.Versions.coursierCli
 

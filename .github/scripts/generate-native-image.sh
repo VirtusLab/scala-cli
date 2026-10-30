@@ -3,10 +3,6 @@ set -e
 
 COMMAND="cli[].base-image.writeDefaultNativeImageScript"
 
-# temporary, until we pass JPMS options to native-image,
-# see https://www.graalvm.org/release-notes/22_2/#native-image
-export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
-
 # Using 'mill -i' so that the Mill process doesn't outlive this invocation
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
   ./mill.bat -i ci.copyJvm --dest jvm
