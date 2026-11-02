@@ -1527,7 +1527,6 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
            Seq(jsArg)            -> ".js"
          )
          else Nil)
-      if !packageOpts.contains("--native") || !isScala3101OrNewer
       packageDescription = packageOpts.headOption.getOrElse("bootstrap")
     } {
       test(s"package with main method in test scope ($packageDescription)") {
