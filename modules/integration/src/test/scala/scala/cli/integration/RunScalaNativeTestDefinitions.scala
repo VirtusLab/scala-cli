@@ -470,8 +470,15 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
                |""".stripMargin
         )
         inputs.fromRoot { root =>
+          // A multithreaded Scala Native binary could hang on exit, like the Cats Effect one above.
+          // A timeout makes such hangs fail the attempt (and get retried) instead.
           val r = os.proc(TestUtil.cli, extraOptions, fileName, "--native", cliOptions)
-            .call(cwd = root, stderr = os.Pipe, check = expectedMultithreadingState)
+            .call(
+              cwd = root,
+              stderr = os.Pipe,
+              check = expectedMultithreadingState,
+              timeout = 5.minutes.toMillis
+            )
           if (!expectedMultithreadingState) expect(r.exitCode == 1)
           else {
             expect(r.exitCode == 0)
