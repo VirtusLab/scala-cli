@@ -53,7 +53,9 @@ class CompromisedCaTests extends TestUtil.ScalaCliSuite:
   private enum TlsResult:
     // the TLS handshake succeeded, so the certificate chain was accepted
     case Trusted(status: String)
-    // "PKIX path building failed": no trust anchor for the chain
+    // either no trust anchor for the chain ("PKIX path building failed", e.g. the CAs got removed
+    // from the trust store), or a certificate of the chain is explicitly distrusted by the JDK
+    // ("Untrusted certificate", what the patched JDKs do)
     case Untrusted
     case Error(message: String)
 
@@ -81,6 +83,7 @@ class CompromisedCaTests extends TestUtil.ScalaCliSuite:
     """import java.io.IOException;
       |import java.net.URI;
       |import java.security.cert.CertPathBuilderException;
+      |import java.security.cert.CertPathValidatorException;
       |import javax.net.ssl.HttpsURLConnection;
       |
       |public class CheckTls {
@@ -98,11 +101,17 @@ class CompromisedCaTests extends TestUtil.ScalaCliSuite:
       |    } catch (IOException e) {
       |      // the certificate path exception is wrapped, so walk the causes
       |      for (Throwable t = e; t != null; t = t.getCause())
-      |        if (t instanceof CertPathBuilderException) return "UNTRUSTED\t" + url;
+      |        if (t instanceof CertPathBuilderException || isDistrusted(t)) return "UNTRUSTED\t" + url;
       |      return "ERROR\t" + url + "\t" + String.valueOf(e).replace('\t', ' ').replace('\n', ' ');
       |    } finally {
       |      if (conn != null) conn.disconnect();
       |    }
+      |  }
+      |
+      |  // other validation failures (expired certificates etc.) say nothing about the CAs
+      |  static boolean isDistrusted(Throwable t) {
+      |    return t instanceof CertPathValidatorException
+      |      && String.valueOf(t.getMessage()).startsWith("Untrusted certificate");
       |  }
       |}
       |""".stripMargin
