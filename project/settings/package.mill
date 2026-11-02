@@ -569,6 +569,8 @@ trait HasTests extends SbtModule {
       // keep the JVM picked by default by the Scala CLI launchers under test (and Bloop) in sync
       "JAVA_HOME" -> home.path.toString
     ) ++ Seq(
+      // JAVA_HOME gets overridden above, so pass the JDK set up on the host (i.e. on the CI) separately
+      "SCALA_CLI_TESTS_HOST_JAVA_HOME" -> Task.env.getOrElse("JAVA_HOME", sys.props("java.home")),
       // bloop rifle hard-codes a 30s timeout for `bloop about`, which no CLI option can raise;
       // loaded CI machines regularly exceed it, so extend all bloop rifle timeouts for tests
       "SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"
