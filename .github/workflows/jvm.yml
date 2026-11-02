@@ -36,7 +36,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: coursier/cache-action@v8
+    - uses: coursier/cache-action@v9
       if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
@@ -93,7 +93,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
@@ -133,7 +133,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: coursier/cache-action@v8
+    - uses: coursier/cache-action@v9
       if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
@@ -177,7 +177,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: coursier/cache-action@v8
+    - uses: coursier/cache-action@v9
       if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
@@ -221,7 +221,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: coursier/cache-action@v8
+    - uses: coursier/cache-action@v9
       if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
@@ -265,7 +265,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
@@ -309,7 +309,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true
@@ -353,7 +353,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         if: env.SHOULD_RUN == 'true'
         with:
           ignoreJob: true

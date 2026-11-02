@@ -12,7 +12,7 @@ jobs:
         fetch-depth: 0
         submodules: true
         ssh-key: ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
-    - uses: coursier/cache-action@v8
+    - uses: coursier/cache-action@v9
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
@@ -58,7 +58,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: coursier/cache-action@v8
+    - uses: coursier/cache-action@v9
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
@@ -151,7 +151,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
@@ -174,7 +174,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
@@ -210,7 +210,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
@@ -253,7 +253,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
@@ -294,7 +294,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
@@ -356,7 +356,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
@@ -380,7 +380,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
@@ -403,7 +403,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         with:
           ignoreJob: true
       - uses: VirtusLab/scala-cli-setup@v1
@@ -440,7 +440,7 @@ jobs:
       uses: ./.github/actions/windows-reg-import
       with:
         reg-file: .github/ci/windows/custom.reg
-    - uses: coursier/cache-action@v8
+    - uses: coursier/cache-action@v9
       with:
         ignoreJob: true
     - uses: VirtusLab/scala-cli-setup@v1
