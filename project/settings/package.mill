@@ -23,13 +23,45 @@ import upickle.default.*
 
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.security.KeyStore
+import java.security.cert.X509Certificate
 import java.util.Locale
 import scala.annotation.unused
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.util.{Tasks, VcsVersion}
 import mill.api.{BuildCtx, Task}
 
 def isCI = System.getenv("CI") != null
+
+/** Writes a copy of the `source` trust store to `dest`, without the compromised eMudhra CAs
+  * (CVE-2026-91403), mirroring
+  * https://github.com/eed3si9n/emudhra-emsign-check/blob/main/bin/distrust-emudhra.sh
+  *
+  * See https://www.scala-lang.org/blog/jdk-certificate-vulnerability.html
+  *
+  * @return
+  *   the subjects of the removed certificates
+  */
+def writeTrustStoreWithoutCompromisedCas(source: os.Path, dest: os.Path): Seq[String] =
+  val password = "changeit".toCharArray
+  val store    = KeyStore.getInstance(source.toIO, password)
+  def subject(alias: String): String =
+    store.getCertificate(alias) match
+      case cert: X509Certificate => cert.getSubjectX500Principal.getName
+      case _                     => ""
+  val subjects = store.aliases().asScala.toSeq.map(alias => alias -> subject(alias))
+  // the AAA root is shared with legitimate Sectigo chains, which can still be validated via USERTrust
+  val hasUserTrust = subjects.exists(_._2.contains("CN=USERTrust RSA Certification Authority"))
+  val toRemove     = subjects.filter: (_, subject) =>
+    subject.contains("emSign") || subject.contains("CN=AAA Certificate Services")
+  if toRemove.exists(_._2.contains("CN=AAA Certificate Services")) && !hasUserTrust then
+    sys.error(s"No USERTrust root in $source, can't remove the AAA Certificate Services root safely")
+  for (alias, _) <- toRemove do store.deleteEntry(alias)
+  val out = os.write.over.outputStream(dest, createFolders = true)
+  try store.store(out, password)
+  finally out.close()
+  toRemove.map(_._2)
 
 def fromPath(name: String): String =
   if (Properties.isWin) {
@@ -171,6 +203,10 @@ trait CliLaunchers extends SbtModule { self =>
       val cLibPath   =
         if (usesDocker) s"/data/$staticLibDirName"
         else staticLibDir().path.toString
+      // native images embed the trust store used at build time
+      val trustStorePath =
+        if usesDocker then s"/data/$trustStoreDirName/$trustStoreFileName"
+        else (trustStoreDir().path / trustStoreFileName).toString
       super.nativeImageOptions() ++ Seq(
         "--no-fallback",
         "-march=compatibility",
@@ -178,7 +214,9 @@ trait CliLaunchers extends SbtModule { self =>
         s"-H:IncludeResources=$launcherTypeResourcePath",
         s"-H:IncludeResources=$defaultFilesResourcePath/.*",
         "-H:-ParseRuntimeOptions",
-        s"-H:CLibraryPath=$cLibPath"
+        s"-H:CLibraryPath=$cLibPath",
+        s"-J-Djavax.net.ssl.trustStore=$trustStorePath",
+        "-J-Djavax.net.ssl.trustStorePassword=changeit"
       ) ++
         (if (Properties.isLinux && isArmArchitecture) // https://stackoverflow.com/a/61325264
            Seq("-Djdk.lang.Process.launchMechanism=vfork", "-H:PageSize=65536")
@@ -197,6 +235,20 @@ trait CliLaunchers extends SbtModule { self =>
     override def nativeImageMainClass: T[String] = self.nativeImageMainClass()
 
     private def staticLibDirName = "native-libs"
+
+    private def trustStoreDirName  = "trust-store"
+    private def trustStoreFileName = "cacerts"
+    // the GraalVM versions in use still trust the compromised eMudhra CAs (CVE-2026-91403),
+    // so a trust store without them is passed to native-image
+    def trustStoreDir: T[PathRef] = Task:
+      BuildCtx.withFilesystemCheckerDisabled:
+        val dir     = nativeImageDockerWorkingDir() / trustStoreDirName
+        val source  = nativeImageGraalvmHome().path / "lib" / "security" / "cacerts"
+        val removed = writeTrustStoreWithoutCompromisedCas(source, dir / trustStoreFileName)
+        System.err.println(
+          s"Removed from the native image trust store:${removed.map("\n  " + _).mkString}"
+        )
+        PathRef(dir)
 
     private def copyCsjniutilTo(cs: String, destDir: os.Path, workspace: os.Path): Unit = {
       val jniUtilsVersion = Deps.jniUtils.dep.versionConstraint.asString
