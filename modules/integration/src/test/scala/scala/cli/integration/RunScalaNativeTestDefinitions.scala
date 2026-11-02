@@ -4,6 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import coursier.version.Version
 
 import scala.cli.integration.TestUtil.{removeAnsiColors, stableStdoutOf}
+import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 
 trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
@@ -361,7 +362,7 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
                    |""".stripMargin
             ).fromRoot { root =>
               val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
-                .call(cwd = root, stderr = os.Pipe)
+                .call(cwd = root, stderr = os.Pipe, timeout = 5.minutes.toMillis)
               expect(TestUtil.stableStdout(result) == expectedMessage)
               if (
                 explicitNativeVersion.isEmpty &&
