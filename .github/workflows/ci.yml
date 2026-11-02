@@ -69,6 +69,17 @@ jobs:
       test_skip: ${{ needs.changes.outputs.test_skip }}
       test_legacy_lts: ${{ needs.changes.outputs.test_legacy_lts }}
 
+  windows-arm64:
+    needs: [changes]
+    uses: ./.github/workflows/windows-arm64.yml
+    with:
+      code: ${{ needs.changes.outputs.code }}
+      ci: ${{ needs.changes.outputs.ci }}
+      mill_wrapper: ${{ needs.changes.outputs.mill_wrapper }}
+      test_all: ${{ needs.changes.outputs.test_all }}
+      test_native: ${{ needs.changes.outputs.test_native }}
+      test_skip: ${{ needs.changes.outputs.test_skip }}
+
   static:
     needs: [changes]
     uses: ./.github/workflows/static.yml
@@ -115,7 +126,7 @@ jobs:
       test_skip: ${{ needs.changes.outputs.test_skip }}
 
   release:
-    needs: [changes, jvm, linux, macos, windows, static, mostly-static, misc]
+    needs: [changes, jvm, linux, macos, windows, windows-arm64, static, mostly-static, misc]
     if: github.event_name == 'push'
     uses: ./.github/workflows/release.yml
     secrets: inherit

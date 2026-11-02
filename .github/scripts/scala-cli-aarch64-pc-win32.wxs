@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" UpgradeCode="C74FC9A1-9381-40A6-882F-9044C603ABD9"
+           Name="Scala CLI" Version="$(var.Version)" Manufacturer="scala-cli@virtuslab.com" Language="1033">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" Comments="Windows Installer Package"/>
+    <MediaTemplate EmbedCab="yes"/>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLDIR" Name="Scala CLI"/>
+      </Directory>
+    </Directory>
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id="SetEnvironment" Guid="C2FA60B9-7DA9-4C8A-B21E-91AC71D748DD">
+        <CreateFolder/>
+        <Environment Id="SetPath" Action="set" Name="PATH" Part="last" Permanent="no" System="yes" Value="[INSTALLDIR]"/>
+      </Component>
+    </DirectoryRef>
+    <MajorUpgrade Schedule="afterInstallInitialize"
+                  DowngradeErrorMessage="A later version of Scala CLI is already installed. Installer will now exit."
+                  AllowDowngrades="no" AllowSameVersionUpgrades="yes"/>
+    <Feature Id="Complete" Title="Scala CLI" Level="1" ConfigurableDirectory="INSTALLDIR">
+      <ComponentGroupRef Id="AppFiles"/>
+      <ComponentRef Id="SetEnvironment"/>
+    </Feature>
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.LicenseRtf)"/>
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR"/>
+    <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="To run Scala CLI, open a Command window, and type scala-cli + Enter. If scala-cli cannot be found, ensure that the Command window was opened after Scala CLI was installed."/>
+    <Icon Id="logo.ico" SourceFile="$(sys.SOURCEFILEDIR)choco\logo.ico"/>
+    <Property Id="ARPPRODUCTICON" Value="logo.ico"/>
+    <UIRef Id="WixUI_InstallDir"/>
+  </Product>
+</Wix>
