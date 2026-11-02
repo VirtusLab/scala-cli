@@ -68,11 +68,12 @@ jobs:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
       run: echo "Skipping Windows ARM64 launcher generation -- changes do not affect compiled code or CI."
+    # the app image bundles this JDK's runtime (and its trust store)
     - uses: actions/setup-java@v6
       if: env.SHOULD_RUN == 'true'
       with:
-        distribution: temurin
-        java-version: 21
+        distribution: zulu
+        java-version: 25
     - uses: actions/download-artifact@v8
       if: env.SHOULD_RUN == 'true'
       with:
@@ -94,6 +95,8 @@ jobs:
           --main-class scala.cli.ScalaCli \
           --icon jvm-launcher/logo.ico \
           --jlink-options "--strip-debug --no-man-pages --no-header-files" \
+          --java-options "--enable-native-access=ALL-UNNAMED" \
+          --java-options "--sun-misc-unsafe-memory-access=allow" \
           --win-console
     - name: Test app image
       if: env.SHOULD_RUN == 'true'
@@ -102,6 +105,30 @@ jobs:
         ./jpackage-output/scala-cli/scala-cli.exe version
         echo 'println("Hello from Windows ARM64")' > hello.sc
         env -u JAVA_HOME ./jpackage-output/scala-cli/scala-cli.exe run hello.sc | grep "Hello from Windows ARM64"
+    - name: Check the app image doesn't trust the compromised eMudhra CAs (CVE-2026-91403)
+      if: env.SHOULD_RUN == 'true'
+      shell: bash
+      run: |
+        # a dependency that doesn't exist, so that coursier tries to download it from every repository
+        repos=(https://repo1.maven.org/maven2/)
+        for validation in dv ov ev; do for aaa in "" -aaa; do for generation in g3b g3c; do
+          repos+=("https://$validation-$generation$aaa-emudhra.we-have-a-problem.com/")
+        done; done; done
+        repo_options=()
+        for repo in "${repos[@]}"; do repo_options+=(-r "$repo"); done
+        echo 'object Main' > Main.scala
+        output=$(env -u JAVA_HOME COURSIER_CACHE="$PWD/cve-check-cache" \
+          ./jpackage-output/scala-cli/scala-cli.exe compile Main.scala --server=false \
+          --dep "com.example::nonexistent:0.0.0-$(date +%s)" "${repo_options[@]}" 2>&1 || true)
+        echo "$output"
+        # the legitimate repository must be reachable, it just doesn't have the dependency
+        grep -q "not found: https://repo1.maven.org/maven2/" <<< "$output"
+        for repo in "${repos[@]:1}"; do
+          if ! grep -F "$repo" <<< "$output" | grep "download error:" | grep -E "PKIX path building failed|Untrusted certificate" > /dev/null; then
+            echo "Compromised CAs are trusted, or an unexpected error was encountered for $repo"
+            exit 1
+          fi
+        done
     - name: Archive app image
       if: env.SHOULD_RUN == 'true'
       shell: pwsh
