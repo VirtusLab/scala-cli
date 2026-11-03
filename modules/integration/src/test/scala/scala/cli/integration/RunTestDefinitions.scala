@@ -1615,6 +1615,42 @@ abstract class RunTestDefinitions
     }
   }
 
+  test("run jar file alongside sources with --server=false") {
+    val inputs = TestInputs(
+      os.rel / "lib" / "Messages.scala" ->
+        """package messages
+          |object Messages { def hello = "Hello from a jar" }
+          |""".stripMargin,
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = println(messages.Messages.hello)
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val libJarPath = root / "target" / "lib.jar"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        "lib",
+        "--library",
+        "-o",
+        libJarPath,
+        extraOptions
+      ).call(cwd = root)
+      val output = os.proc(
+        TestUtil.cli,
+        "run",
+        "--server=false",
+        "Main.scala",
+        libJarPath,
+        extraOptions
+      ).call(cwd = root).out.trim()
+      expect(output == "Hello from a jar")
+    }
+  }
+
   if (actualScalaVersion.startsWith("3"))
     test("should throw exception for code compiled by scala 3.1.3") {
       val exceptionMsg = "Throw exception in Scala"
