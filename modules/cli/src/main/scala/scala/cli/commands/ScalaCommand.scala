@@ -1,6 +1,5 @@
 package scala.cli.commands
 
-import caseapp.core.Scala3Helpers.*
 import caseapp.core.app.Command
 import caseapp.core.complete.{Completer, CompletionItem}
 import caseapp.core.help.{Help, HelpFormat}
@@ -332,7 +331,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
 
   override lazy val finalHelp: Help[?] =
     def withName[A](h: Help[A]): Help[A] =
-      if name == h.progName then h else h.withProgName(name)
+      if name == h.progName then h else h.copy(progName = name)
     if hasFullHelp then withName(help.withFullHelp)
     else if hasHelp then withName(help.withHelp)
     else withName(help)

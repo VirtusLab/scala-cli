@@ -201,7 +201,7 @@ object Deps {
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def bloopRifle           = mvn"ch.epfl.scala::bloop-rifle:${Versions.bloop}"
   def bsp4j                = mvn"ch.epfl.scala:bsp4j:2.1.1"
-  def caseApp              = mvn"com.github.alexarchambault::case-app:2.1.1"
+  def caseApp              = mvn"com.github.alexarchambault::case-app:2.2.0"
   def collectionCompat     = mvn"org.scala-lang.modules::scala-collection-compat:2.14.0"
   def coursier             = mvn"io.get-coursier::coursier:${Versions.coursier}"
   def coursierArchiveCache = mvn"io.get-coursier::coursier-archive-cache:${Versions.coursier}"

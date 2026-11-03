@@ -1,7 +1,6 @@
 package scala.cli.commands.shared
 
 import caseapp.*
-import caseapp.core.Scala3Helpers.*
 import caseapp.core.help.{Help, HelpFormat}
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
@@ -64,7 +63,7 @@ case class HelpGroupOptions(
     val newHiddenGroups = (oldHiddenGroups ++ oldSortedGroups).filterNot(_ == group)
     println(
       help.help(
-        helpFormat.withHiddenGroupsWhenShowHidden(Some(newHiddenGroups)),
+        helpFormat.copy(hiddenGroupsWhenShowHidden = Some(newHiddenGroups)),
         showHidden = true
       )
     )

@@ -587,7 +587,7 @@ class SipScalaTests extends ScalaCliSuite
         .call(cwd = root, check = false, stderr = os.Pipe)
       expect(r.exitCode == 1)
       expect(r.err.trim().contains(launcherOpt))
-      expect(r.err.trim().contains("already specified"))
+      expect(r.err.trim().contains("specified more than once"))
     }
   }
 
