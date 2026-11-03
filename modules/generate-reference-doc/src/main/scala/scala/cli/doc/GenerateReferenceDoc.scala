@@ -2,7 +2,6 @@ package scala.cli.doc
 
 import caseapp.*
 import caseapp.core.Arg
-import caseapp.core.Scala3Helpers.*
 import caseapp.core.util.Formatter
 import munit.diff.Diff
 
@@ -172,7 +171,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
     for (origin <- allReferencedOrigins.toVector.sortBy(identity)) {
       val originArgs            = argsByOrigin.getOrElse(origin, Nil)
-      val distinctArgs          = originArgs.map(_.withOrigin(None)).distinct
+      val distinctArgs          = originArgs.map(_.copy(origin = None)).distinct
       val originCommands        = commandOriginsMap.getOrElse(origin, Nil)
       val onlyForHiddenCommands = originCommands.nonEmpty && originCommands.forall(_.hidden)
       // Empty option groups should not be treated as internal if they're referenced by commands
