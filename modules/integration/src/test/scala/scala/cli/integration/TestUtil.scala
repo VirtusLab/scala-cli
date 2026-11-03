@@ -242,7 +242,9 @@ object TestUtil {
       try run
       catch {
         case t: Throwable =>
-          if (count >= maxAttempts) {
+          // a timed out test has already been reported as failed, retrying it would only leak work
+          if (ScalaCliSuite.currentTestTimedOut) throw t
+          else if (count >= maxAttempts) {
             System.err.println(s"$maxAttempts attempts failed, caught $t. Giving up.")
             throw new Exception(t)
           }
