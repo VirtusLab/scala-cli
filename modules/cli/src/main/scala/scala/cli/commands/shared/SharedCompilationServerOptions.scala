@@ -6,8 +6,8 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.cache.FileCache
-import coursier.core.Version as Ver
 import coursier.util.Task
+import coursier.version.Version as Ver
 
 import java.nio.file.{
   AtomicMoveNotSupportedException, FileAlreadyExistsException, Files, Path, Paths

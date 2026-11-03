@@ -282,7 +282,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       value {
         mainClassOptions
           .maybePrintMainClasses(
-            builds.flatMap(_.foundMainClasses()).distinct,
+            builds.flatMap(_.foundMainClasses(forListing = true)).distinct,
             shouldExit = allowTerminate,
             unsupportedMainMethodsNote =
               builds.flatMap(_.unsupportedMainMethodsNote).headOption

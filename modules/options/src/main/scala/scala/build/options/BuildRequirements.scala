@@ -1,5 +1,7 @@
 package scala.build.options
 
+import coursier.version.Version
+
 final case class BuildRequirements(
   scalaVersion: Seq[BuildRequirements.VersionRequirement] = Nil,
   platform: Seq[BuildRequirements.PlatformRequirement] = Nil,
@@ -42,7 +44,7 @@ object BuildRequirements {
       version.versionOpt.exists(_.startsWith(requiredVersion + "-"))
     def strictlyValid(version: MaybeScalaVersion): Boolean =
       version.versionOpt.exists { version =>
-        val cmp = coursier.core.Version(requiredVersion).compare(coursier.core.Version(version))
+        val cmp = Version(requiredVersion).compare(Version(version))
         cmp == 0
       }
     def valid(version: MaybeScalaVersion): Boolean =
@@ -53,7 +55,7 @@ object BuildRequirements {
       extends VersionRequirement {
     def valid(version: MaybeScalaVersion): Boolean =
       version.versionOpt.exists { version =>
-        val cmp = coursier.core.Version(version).compare(coursier.core.Version(maxVersion))
+        val cmp = Version(version).compare(Version(maxVersion))
         cmp < 0 || (orEqual && cmp == 0)
       }
     def failedMessage: String =
@@ -64,7 +66,7 @@ object BuildRequirements {
       extends VersionRequirement {
     def valid(version: MaybeScalaVersion): Boolean =
       version.versionOpt.exists { version =>
-        val cmp = coursier.core.Version(minVersion).compare(coursier.core.Version(version))
+        val cmp = Version(minVersion).compare(Version(version))
         cmp < 0 || (orEqual && cmp == 0)
       }
     def failedMessage: String =

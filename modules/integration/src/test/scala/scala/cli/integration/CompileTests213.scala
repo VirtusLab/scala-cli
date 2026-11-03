@@ -50,17 +50,17 @@ class CompileTests213 extends CompileTestDefinitions with Test213 {
         mergeErrIntoOut = true
       )
       val separator           = if (Properties.isWin) "\\" else "/"
-      val graalVmVersion      = Constants.defaultGraalVMJavaVersion
+      val jvmVersion          = Constants.defaultJvmVersion
       val legacyRunnerVersion = Constants.runnerScala2LegacyVersion
       val legacyLtsPrefix     = Constants.scala3LegacyLtsPrefix
 
       val expectedOutput =
-        s"""|Compiling project (Scala $actualScalaVersion, JVM ($graalVmVersion))
-            |Compiled project (Scala $actualScalaVersion, JVM ($graalVmVersion))
+        s"""|Compiling project (Scala $actualScalaVersion, JVM ($jvmVersion))
+            |Compiled project (Scala $actualScalaVersion, JVM ($jvmVersion))
             |[warn] Scala $actualScalaVersion is no longer supported by the test-runner module.
             |[warn] Defaulting to a legacy test-runner module version: $legacyRunnerVersion.
             |[warn] To use the latest test-runner, upgrade Scala to at least $legacyLtsPrefix.
-            |Compiling project (test, Scala $actualScalaVersion, JVM ($graalVmVersion))
+            |Compiling project (test, Scala $actualScalaVersion, JVM ($jvmVersion))
             |[info] .${separator}Test.test.scala:6:5
             |[info] scala.Predef.ArrowAssoc[Int](1).->[String]("test")
             |[info] scala.Predef.ArrowAssoc[Int](1).->[String]("test")
@@ -74,7 +74,7 @@ class CompileTests213 extends CompileTestDefinitions with Test213 {
             |[error] example error message
             |[error]     Scala2Example.macroMethod(1 -> "test")
             |[error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            |Error compiling project (test, Scala $actualScalaVersion, JVM ($graalVmVersion))
+            |Error compiling project (test, Scala $actualScalaVersion, JVM ($jvmVersion))
             |Compilation failed
             |""".stripMargin
 

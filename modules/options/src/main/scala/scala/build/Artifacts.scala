@@ -1,10 +1,10 @@
 package scala.build
 
 import coursier.cache.FileCache
-import coursier.core.{Classifier, Module, ModuleName, Organization, Repository, Version}
+import coursier.core.{Classifier, Module, ModuleName, Organization, Repository}
 import coursier.error.ResolutionError
 import coursier.util.Task
-import coursier.version.VersionConstraint
+import coursier.version.{Version, VersionConstraint}
 import coursier.{
   Dependency as CsDependency,
   Fetch,
@@ -645,7 +645,7 @@ object Artifacts {
   }
 
   def scalaPyOrganization(version: String): String = {
-    def sortAfterPlus(v: String) = coursier.core.Version(v.replace("+", "-"))
+    def sortAfterPlus(v: String) = Version(v.replace("+", "-"))
     if (sortAfterPlus(version).compareTo(sortAfterPlus("0.5.2+9-623f0807")) < 0)
       "me.shadaj"
     else

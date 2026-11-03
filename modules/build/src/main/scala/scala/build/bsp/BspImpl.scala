@@ -11,7 +11,6 @@ import java.io.{InputStream, OutputStream}
 import java.util.UUID
 import java.util.concurrent.{CompletableFuture, Executor}
 
-import scala.annotation.nowarn
 import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.compiler.BloopCompiler
@@ -695,7 +694,6 @@ object BspImpl {
     new ResponseError(errorCode, message, new Object())
 
   // from https://github.com/com-lihaoyi/Ammonite/blob/7eb58c58ec8c252dc5bd1591b041fcae01cccf90/amm/interp/src/main/scala/ammonite/interp/script/AmmoniteBuildServer.scala#L550-L565
-  @nowarn("msg=Catching Throwable") // the promise must always be completed
   private def naiveJavaFutureToScalaFuture[T](
     f: java.util.concurrent.Future[T]
   ): Future[T] = {
@@ -706,7 +704,7 @@ object BspImpl {
       override def run(): Unit =
         p.complete {
           try Success(f.get())
-          catch { case t: Throwable => Failure(t) }
+          catch { case t => Failure(t) } // catch everything: the promise must always be completed
         }
     }
     t.start()

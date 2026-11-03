@@ -19,7 +19,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   protected val dryRunPrefix: String    = "Dry run:"
   protected val runInReplPrefix: String = "Running in Scala REPL:"
 
-  def runInRepl(
+  def runInRepl[T](
     codeToRunInRepl: String,
     testInputs: TestInputs = TestInputs.empty,
     cliOptions: Seq[String] = Seq.empty,
@@ -29,9 +29,9 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     env: Map[String, String] = Map.empty,
     initScriptFromFile: Boolean = false
   )(
-    runAfterRepl: os.CommandResult => Unit,
+    runAfterRepl: os.CommandResult => T,
     runBeforeReplAndGetExtraCliOpts: () => Seq[os.Shellable] = () => Seq.empty
-  ): Unit = {
+  ): T =
     testInputs.fromRoot { root =>
       val potentiallyExtraCliOpts = runBeforeReplAndGetExtraCliOpts()
       val initScriptArgs          =
@@ -60,7 +60,6 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           )
       )
     }
-  }
 
   def dryRun(
     testInputs: TestInputs = TestInputs.empty,

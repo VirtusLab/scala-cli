@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.Locale
 
-import scala.annotation.nowarn
 import scala.build.EitherCps.{either, value}
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
@@ -23,11 +22,14 @@ import scala.util.Properties
 
 object ScalaCli {
 
-  if (Properties.isWin && isGraalvmNativeImage)
+  if Properties.isWin && isGraalvmNativeImage then
     // have to be initialized before running (new Argv0).get because Argv0SubstWindows uses csjniutils library
     // The DLL loaded by LoadWindowsLibrary is statically linke/d in
     // the Scala CLI native image, no need to manually load it.
     coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
+    // On JDK 22+, Windows directories are looked up via the Foreign Function & Memory API by default,
+    // whose calls aren't registered in the native image. Use JNI (linked in the image) instead.
+    System.setProperty("coursier.windows.disable-ffm", "true")
 
   private val defaultProgName = "scala-cli"
   var progName: String        = {
@@ -119,11 +121,11 @@ object ScalaCli {
       .takeWhile(_.isDigit)
       .toInt
 
-  @nowarn("msg=Catching Throwable") // top-level handler, intentionally catches fatal errors too
   def main(args: Array[String]): Unit =
     try main0(args)
     catch {
-      case e: Throwable if !isCI && !printStackTraces =>
+      // top-level handler, intentionally catches fatal errors too
+      case e if !isCI && !printStackTraces =>
         val workspace = CurrentParams.workspaceOpt.filter(os.isDir).getOrElse(os.pwd)
         val dir       = workspace / Constants.workspaceDirName / "stacktraces"
         os.makeDir.all(dir)

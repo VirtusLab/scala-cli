@@ -20,7 +20,7 @@ trait DocSlothTestDefinitions extends LazyValTests:
   private def runDoc(
     root: os.Path,
     extraArgs: Seq[String],
-    dest: os.RelPath = os.rel / "doc-out"
+    dest: os.RelPath
   ): os.CommandResult =
     os.proc(
       TestUtil.cli,

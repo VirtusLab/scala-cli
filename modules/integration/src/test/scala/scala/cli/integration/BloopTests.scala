@@ -239,7 +239,7 @@ class BloopTests extends ScalaCliSuite {
     }
 
   {
-    val bloopSnapshotVersion = "2.0.6-51-38c118d4-SNAPSHOT"
+    val bloopSnapshotVersion = "2.1.3-8-4504dd98-SNAPSHOT"
     test(s"compilation works with a Bloop snapshot version: $bloopSnapshotVersion".flaky) {
       val input = "script.sc"
       TestInputs(os.rel / input -> """println("Hello")""").fromRoot { root =>

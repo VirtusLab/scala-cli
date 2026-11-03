@@ -4,6 +4,10 @@ import mill.*
 import mill.api.BuildInfo
 import scalalib.*
 
+import java.util.Locale
+
+import scala.util.Properties
+
 object Cli {
   def runnerScala30LegacyVersion =
     "1.7.1" // last runner version to support pre-LTS Scala 3 versions
@@ -26,7 +30,7 @@ object Scala {
   def scala3NextPrefix      = "3.10"
   def scala3Next            = s"$scala3NextPrefix.0" // newest version of Scala
   def scala3NextAnnounced = s"$scala3NextPrefix.0" // newest version of Scala that's been announced
-  def scala3NextRc        = "3.10.1-RC1"           // the latest RC version of Scala Next
+  def scala3NextRc        = "3.10.1-RC2"           // the latest RC version of Scala Next
   def scala3NextRcAnnounced = "3.10.0-RC3" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
@@ -151,7 +155,7 @@ object Deps {
     def dockerJava                        = "3.7.1"
     def jmh                               = "1.37"
     def munit                             = "1.3.6"
-    def jsoniterScala                     = "2.42.1"
+    def jsoniterScala                     = "2.42.2"
     def jsoup                             = "1.23.2"
     def scalaMeta                         = "4.17.4"
     def scalafmt                          = "3.11.5"
@@ -168,7 +172,7 @@ object Deps {
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.12.3"
     def javaClassName                     = "0.2.0"
-    def bloop                             = "2.1.2"
+    def bloop                             = "2.1.3"
     def bouncycastle                      = "1.86"
     def sbt1Version                       = "1.12.5"
     def sbt2Version                       = "2.0.10"
@@ -195,9 +199,9 @@ object Deps {
   // Force using of 2.13 - is there a better way?
   def bloopConfig = mvn"ch.epfl.scala:bloop-config_2.13:2.3.3"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-  def bloopRifle           = mvn"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
+  def bloopRifle           = mvn"ch.epfl.scala::bloop-rifle:${Versions.bloop}"
   def bsp4j                = mvn"ch.epfl.scala:bsp4j:2.1.1"
-  def caseApp              = mvn"com.github.alexarchambault::case-app:2.1.1"
+  def caseApp              = mvn"com.github.alexarchambault::case-app:2.2.0"
   def collectionCompat     = mvn"org.scala-lang.modules::scala-collection-compat:2.14.0"
   def coursier             = mvn"io.get-coursier::coursier:${Versions.coursier}"
   def coursierArchiveCache = mvn"io.get-coursier::coursier-archive-cache:${Versions.coursier}"
@@ -323,10 +327,19 @@ object Deps {
   def scalafixInterfaces = mvn"ch.epfl.scala:scalafix-interfaces:${Versions.scalafix}"
 }
 
-def graalVmJavaVersion      = Java.defaultJava
-def graalVmCommunityVersion = s"$graalVmJavaVersion.0.9"
-def graalSvmVersion         = "22.3.1"
-def graalVmJvmId            = s"graalvm-community:$graalVmCommunityVersion"
+// svm 24.0+ is published as Java 21 bytecode, so compiling against it requires Mill to run on JDK 21+.
+def graalVmJavaVersion      = 25
+def graalVmCommunityVersion = s"$graalVmJavaVersion.0.2"
+// there are no GraalVM CE builds for macOS x64 past 25.0.1
+def graalVmCommunityMacosX64Version = s"$graalVmJavaVersion.0.1"
+def graalSvmVersion                 = "25.0.5.0.3"
+def graalVmJvmId                    = {
+  val version =
+    val isArm = sys.props.getOrElse("os.arch", "").toLowerCase(Locale.ROOT) == "aarch64"
+    if Properties.isMac && !isArm then graalVmCommunityMacosX64Version
+    else graalVmCommunityVersion
+  s"graalvm-community:$version"
+}
 
 def csDockerVersion = Deps.Versions.coursierCli
 

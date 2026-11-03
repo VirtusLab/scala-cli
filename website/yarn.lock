@@ -4255,10 +4255,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@svta/cml-utils@npm:1.6.2":
-  version: 1.6.2
-  resolution: "@svta/cml-utils@npm:1.6.2"
-  checksum: 10c0/682ee79affeb5b8e5f38a78a72ce78f758685ee971979b1a555b4d206c98c22919ad3d28e41737aada5be38fc3d7d4a060fc3f77bf5f7af051e56a013d642996
+"@svta/cml-utils@npm:1.7.0":
+  version: 1.7.0
+  resolution: "@svta/cml-utils@npm:1.7.0"
+  checksum: 10c0/e58c99782e3480f4e1f3d5cf06886f5b37801ba9b6c32ac223e38b34be550fdb78fc83e660a27fbd4ddaf8fcc978ac8797b2b59f14767ca44b057de54d7f6b7e
   languageName: node
   linkType: hard
 
@@ -4716,12 +4716,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^26.6.5":
-  version: 26.6.5
-  resolution: "@types/node@npm:26.6.5"
+"@types/node@npm:^26.6.6":
+  version: 26.6.6
+  resolution: "@types/node@npm:26.6.6"
   dependencies:
     undici-types: "npm:~8.9.0"
-  checksum: 10c0/4f791f69466ace7842c09e7bef96cb1ddbb65cf3db916ef7e84f0e2b2a17220b6b816dc7539d01520cadfb17ed7169b8214910900493e0a83be8bc7d124ec20a
+  checksum: 10c0/5cb63f644f6e85a257a9cd2403cbcbe196760e2a35fd3ec9fb8b5cff663e14cc832b198cc17b53f870a2e30900ed45a1fb3f53e6589aba26b8e8c484aa672053
   languageName: node
   linkType: hard
 
@@ -7686,12 +7686,12 @@ __metadata:
   linkType: hard
 
 "follow-redirects@npm:^1.0.0":
-  version: 1.16.1
-  resolution: "follow-redirects@npm:1.16.1"
+  version: 1.16.2
+  resolution: "follow-redirects@npm:1.16.2"
   peerDependenciesMeta:
     debug:
       optional: true
-  checksum: 10c0/544e24ccb93b7afb5dd5a2199bd556e167b84de2af7c13b2ced08494239677359d7883bae56ae43a9ca98ac5451e75cf4834a5fadd6fa79053b9248fac5447a4
+  checksum: 10c0/ff38c8ceb904e505021057f58d395ea5f2e7c34257032960a76b21df1726395ce753f5678b6ee3b15210a557277c00b2607c67b682ee4dec1f33cb5147e08e90
   languageName: node
   linkType: hard
 
@@ -8929,15 +8929,15 @@ __metadata:
   linkType: hard
 
 "joi@npm:^17.9.2":
-  version: 17.13.8
-  resolution: "joi@npm:17.13.8"
+  version: 17.13.9
+  resolution: "joi@npm:17.13.9"
   dependencies:
     "@hapi/hoek": "npm:^9.3.0"
     "@hapi/topo": "npm:^5.1.0"
     "@sideway/address": "npm:^4.1.5"
     "@sideway/formula": "npm:^3.0.1"
     "@sideway/pinpoint": "npm:^2.0.0"
-  checksum: 10c0/7fe2b38d26dfcbcf1836892384ba2f42f83058795f32dcb3733de4c3b97cac923a8b9053738f10701663872a994f77af351c71e1428117a20bbfc1f94768f648
+  checksum: 10c0/7a52549e8e9d99853d6166b647d102e58197720869aa5339f9b9c1704e471a70918645944a8aa6a9998955dc0a521ffd1580fdb3e9e502b1e2bb88793dd0e50c
   languageName: node
   linkType: hard
 
@@ -9326,16 +9326,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^1.61.0":
-  version: 1.61.0
-  resolution: "lucide-react@npm:1.61.0"
+"lucide-react@npm:^1.65.0":
+  version: 1.65.0
+  resolution: "lucide-react@npm:1.65.0"
   peerDependencies:
     "@types/react": "*"
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10c0/85576d32aef43d5dccf5a1fac06b67c2ccbb70eb33b996123f49aab108111fffa6bdd517c7d406db67a14432c45924279c2ec7212a166864d3355ce68b361494
+  checksum: 10c0/42842c2c287c0e8722fd4ceaa8ea3e7a2ea1db916f99e92917df2f96f8131bbb468b662c42796173ffb18451f2f8eba67482f62fd7b2f139ec34c5354b36beda
   languageName: node
   linkType: hard
 
@@ -11823,14 +11823,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.5.31":
-  version: 8.5.31
-  resolution: "postcss@npm:8.5.31"
+"postcss@npm:^8.5.32":
+  version: 8.5.32
+  resolution: "postcss@npm:8.5.32"
   dependencies:
     nanoid: "npm:^3.3.20"
     picocolors: "npm:^1.1.1"
     source-map-js: "npm:^1.2.2"
-  checksum: 10c0/52f94c6655f86f568a803ce9c8eb3c749e109cc711d26644c4cde953b30c1b947a2f25af3b9453de68584ac655572f46ed8e830b8ab2f21dd226b3f640992e00
+  checksum: 10c0/5fa6cad84e277c2ced965dc7e8e7c0b8d7e5b76a6835591b57a43fde46e671d0c8428d365e9141c080abaae5441d495ed77ffd7472c5bd41d6c2154bd03c01d7
   languageName: node
   linkType: hard
 
@@ -12665,9 +12665,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:^1.106.1":
-  version: 1.106.1
-  resolution: "sass@npm:1.106.1"
+"sass@npm:^1.107.0":
+  version: 1.107.0
+  resolution: "sass@npm:1.107.0"
   dependencies:
     "@parcel/watcher": "npm:^2.4.1"
     chokidar: "npm:^5.0.0"
@@ -12678,7 +12678,7 @@ __metadata:
       optional: true
   bin:
     sass: sass.js
-  checksum: 10c0/4f1043e2d5b3b7e9cf563050040ed3d91ef1bf8eb9dd180ecfd7ec403bfbd52ac2f557d7e7b398573021f9240a134a080d11af21b802724c05cad386b768df4c
+  checksum: 10c0/5e2a8da603a7cbe4edd904f38db12136e3aba3b673e8acffa98d5b4d1d95d47c83b9f40ecc92686466f0e17e34cfb9c948313e69781392081729d93073f9bbe0
   languageName: node
   linkType: hard
 
@@ -14336,7 +14336,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "website@workspace:."
   dependencies:
-    "@algolia/client-search": "npm:^5.60.0"
+    "@algolia/client-search": "npm:^5.61.0"
     "@docusaurus/core": "npm:^3.10.2"
     "@docusaurus/plugin-content-docs": "npm:^3.10.2"
     "@docusaurus/preset-classic": "npm:^3.10.2"
@@ -14349,20 +14349,20 @@ __metadata:
     "@mdx-js/react": "npm:^3.1.1"
     "@svta/cml-cta": "npm:1.0.10"
     "@svta/cml-structured-field-values": "npm:1.1.7"
-    "@svta/cml-utils": "npm:1.6.2"
+    "@svta/cml-utils": "npm:1.7.0"
     "@tailwindcss/postcss": "npm:^4.3.3"
-    "@types/node": "npm:^26.6.5"
+    "@types/node": "npm:^26.6.6"
     "@types/react": "npm:^19.3.0"
     "@types/react-dom": "npm:^19.3.0"
     clsx: "npm:^2.1.1"
     docusaurus-plugin-sass: "npm:^0.2.7"
-    lucide-react: "npm:^1.61.0"
-    postcss: "npm:^8.5.31"
+    lucide-react: "npm:^1.65.0"
+    postcss: "npm:^8.5.32"
     react: "npm:^19.3.1"
     react-dom: "npm:^19.3.1"
     react-loadable: "npm:^5.5.0"
     react-player: "npm:^3.4.0"
-    sass: "npm:^1.106.1"
+    sass: "npm:^1.107.0"
     search-insights: "npm:^2.17.3"
     tailwind-merge: "npm:^3.7.0"
     tailwindcss: "npm:^4.3.3"

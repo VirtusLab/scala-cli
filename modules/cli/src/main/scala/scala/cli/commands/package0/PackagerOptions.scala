@@ -156,7 +156,7 @@ final case class PackagerOptions(
   @Tag(tags.inShortHelp)
     graalvmJavaVersion: Option[Int] = None,
   @Group(HelpGroup.NativeImage.toString)
-  @HelpMessage(s"GraalVM version to use to build GraalVM native images (${Constants.defaultGraalVMVersion} by default)")
+  @HelpMessage(s"GraalVM version to use to build GraalVM native images (${Constants.defaultGraalVMVersion} by default, ${Constants.defaultGraalVMMacosX64Version} on macOS x64)")
   @ValueDescription("version")
   @Tag(tags.inShortHelp)
     graalvmVersion: Option[String] = None,

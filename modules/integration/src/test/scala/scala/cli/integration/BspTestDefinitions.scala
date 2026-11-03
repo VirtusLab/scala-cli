@@ -2340,7 +2340,11 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               .asScala
               .await
           expect(compileResp.getStatusCode == b.StatusCode.OK)
-          expect(os.read(root / stderrFile).contains("Scheduling compilation"))
+          // Bloop flushes the output of its nailgun session periodically (every 100ms),
+          // so its debug logs may land in stderr a moment after the compile response
+          TestUtil.retry(maxAttempts = 20, waitDuration = 250.millis) {
+            expect(os.read(root / stderrFile).contains("Scheduling compilation"))
+          }
         }
     }
   }
@@ -2375,7 +2379,11 @@ abstract class BspTestDefinitions extends ScalaCliSuite
                 .asScala
                 .await
             expect(compileResp.getStatusCode == b.StatusCode.OK)
-            expect(os.read(root / stderrFile).contains("Scheduling compilation"))
+            // Bloop flushes the output of its nailgun session periodically (every 100ms),
+            // so its debug logs may land in stderr a moment after the compile response
+            TestUtil.retry(maxAttempts = 20, waitDuration = 250.millis) {
+              expect(os.read(root / stderrFile).contains("Scheduling compilation"))
+            }
           }
       }
     }

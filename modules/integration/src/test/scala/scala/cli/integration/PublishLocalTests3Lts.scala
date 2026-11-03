@@ -1,3 +1,0 @@
-package scala.cli.integration
-
-class PublishLocalTests3Lts extends PublishLocalTestDefinitions with Test3Lts

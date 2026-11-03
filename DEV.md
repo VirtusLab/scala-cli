@@ -308,7 +308,8 @@ Just add it to your PATH to get the already-released-scala-cli experience.
 ## CI change detection
 
 On pull requests, the CI workflow detects which files changed and skips jobs that are not relevant.
-Pushes to `main`, `v*` tags, and manual dispatches always run everything.
+Pushes to `main`, `v*` tags, and manual dispatches run everything, except for the opt-in jobs
+listed below (`[test_legacy_lts]`, `[test_lts_all_platforms]`), which only ever run on pull requests.
 
 ### Override keywords
 
@@ -322,6 +323,8 @@ these keywords anywhere in the PR body (description):
 | `[test_integration]` | Force JVM integration tests |
 | `[test_docs]` | Force documentation tests |
 | `[test_format]` | Force format and scalafix checks |
+| `[test_legacy_lts]` | Run Scala 3.3 (legacy) LTS native integration tests on all platforms (the JVM ones always run). PRs only; also enabled by `[test_all]` |
+| `[test_lts_all_platforms]` | Run Scala 3.9 LTS native integration tests on platforms other than Linux and Windows. PRs only; also enabled by `[test_all]` |
 
 For example, if your PR only touches documentation, but you want to verify native
 launchers still build, add `[test_native]` to the PR description.

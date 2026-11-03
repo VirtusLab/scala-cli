@@ -847,7 +847,7 @@ abstract class CompileTestDefinitions
         mergeErrIntoOut = true
       )
 
-      val jvmVersion     = Constants.defaultGraalVMJavaVersion
+      val jvmVersion     = Constants.defaultJvmVersion
       val expectedOutput =
         s"""|Compiling project (Scala $actualScalaVersion, JVM ($jvmVersion))
             |Compiled project (Scala $actualScalaVersion, JVM ($jvmVersion))""".stripMargin
