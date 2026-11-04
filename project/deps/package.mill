@@ -244,7 +244,7 @@ object Deps {
   def jsoniterMacros =
     mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
   def jsoup              = mvn"org.jsoup:jsoup:${Versions.jsoup}"
-  def libsodiumjni       = mvn"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
+  def libsodiumjni       = mvn"org.virtuslab.scala-cli:libsodiumjni:0.0.5"
   def metaconfigTypesafe =
     mvn"org.scalameta::metaconfig-typesafe-config:0.18.8"
       .exclude(("org.scala-lang", "scala-compiler"))
