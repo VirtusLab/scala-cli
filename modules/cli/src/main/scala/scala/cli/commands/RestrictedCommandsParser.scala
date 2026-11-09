@@ -47,8 +47,6 @@ object RestrictedCommandsParser {
       ): Either[(Error, Arg, List[String]), Option[(D, Arg, List[String])]] =
         (parser.step(args, index, d, nameFormatter), args) match {
           case (Right(Some(_, arg: Arg, _)), passedOption :: _) if !arg.isSupported =>
-            // the option is recognized, it's just not available outside power mode,
-            // so don't report it as an unrecognized argument
             Left((
               Error.Other(arg.powerOptionUsedInSip(passedOption)),
               arg,
