@@ -8,6 +8,8 @@ import com.google.gson.Gson
 import dependency.parser.DependencyParser
 
 import java.io.IOException
+import java.util.jar.{JarOutputStream, Manifest as JarManifest}
+import java.util.zip.ZipEntry
 
 import scala.build.Ops.*
 import scala.build.errors.{
@@ -22,7 +24,7 @@ import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Positioned}
 import scala.jdk.CollectionConverters.*
 import scala.meta.internal.semanticdb.TextDocuments
-import scala.util.Properties
+import scala.util.{Properties, Using}
 
 abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   private def hasDiagnostics = server
@@ -1044,6 +1046,43 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
             case _ => fail("Build failed")
           }
       }
+    }
+  }
+
+  test("jar input is put on the class path rather than compiled as a source") {
+    TestInputs(
+      os.rel / "Lib.scala" ->
+        """package lib
+          |object Lib { def message = "Hello from a jar" }
+          |""".stripMargin
+    ).withBuild(defaultScala3Options, buildThreads, bloopConfigOpt, buildTests = false) {
+      (libRoot, _, maybeLibBuild) =>
+        val libBuild = maybeLibBuild.orThrow.successfulOpt.get
+        val jarPath  = libRoot / "lib.jar"
+        Using.resource(new JarOutputStream(os.write.outputStream(jarPath), new JarManifest)) {
+          jos =>
+            for classFile <- os.walk(libBuild.output).filter(os.isFile(_)) do {
+              jos.putNextEntry(new ZipEntry(classFile.relativeTo(libBuild.output).toString))
+              jos.write(os.read.bytes(classFile))
+              jos.closeEntry()
+            }
+        }
+        TestInputs(
+          files = Seq(
+            os.rel / "Main.scala" ->
+              """object Main {
+                |  def main(args: Array[String]): Unit = println(lib.Lib.message)
+                |}
+                |""".stripMargin
+          ),
+          inputArgs = Seq("Main.scala", jarPath.toString)
+        ).withBuild(defaultScala3Options, buildThreads, bloopConfigOpt, buildTests = false) {
+          (_, _, maybeBuild) =>
+            val build = maybeBuild.orThrow.successfulOpt.get
+            expect(!build.sources.paths.exists(_._1 == jarPath))
+            expect(build.fullClassPath.contains(jarPath))
+            build.assertGeneratedEquals("Main.class", "Main$.class", "Main.tasty")
+        }
     }
   }
 }
