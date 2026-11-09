@@ -1,9 +1,9 @@
 package scala.cli.integration
 
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{TimeUnit, TimeoutException}
 
-import scala.concurrent.Future
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.{Future, Promise}
 import scala.util.Properties
 
 abstract class ScalaCliSuite extends munit.FunSuite {
@@ -58,6 +58,40 @@ abstract class ScalaCliSuite extends munit.FunSuite {
 
   override def munitTimeout: Duration = new FiniteDuration(300, TimeUnit.SECONDS)
 
+  // munit runs synchronous test bodies on the runner thread, so `munitTimeout` only gets reported
+  // once the body returns: a hung body blocks the whole suite until the CI job is cancelled.
+  // Running the body on its own thread lets us fail the test (and interrupt the body) on time.
+  override def munitTestTransforms: List[TestTransform] =
+    bodyTimeoutTransform :: super.munitTestTransforms
+
+  private def bodyTimeoutTransform: TestTransform = new TestTransform(
+    "bodyTimeout",
+    test =>
+      test.withBody { () =>
+        munitTimeout match
+          case timeout: FiniteDuration => runBodyWithTimeout(test, timeout)
+          case _                       => test.body()
+      }
+  )
+
+  private def runBodyWithTimeout(test: Test, timeout: FiniteDuration): Future[Any] =
+    val result     = Promise[Any]()
+    val bodyThread = new ScalaCliSuite.TestBodyThread(
+      s"test-body: ${test.name}",
+      () =>
+        result.completeWith(
+          try test.body()
+          catch case t: Throwable => Future.failed(t)
+        )
+    )
+    bodyThread.start()
+    bodyThread.join(timeout.toMillis)
+    if bodyThread.isAlive then
+      bodyThread.timedOut = true
+      bodyThread.interrupt()
+      Future.failed(new TimeoutException(s"test timed out after $timeout, interrupted it"))
+    else result.future
+
   override def munitFixtures: List[Fixture[Unit]] = List(testStartEndLogger)
   def group: ScalaCliSuite.TestGroup              = ScalaCliSuite.TestGroup.Third
 
@@ -83,6 +117,18 @@ abstract class ScalaCliSuite extends munit.FunSuite {
 
 object ScalaCliSuite {
   val sanity: munit.Tag = new munit.Tag("sanity")
+
+  private final class TestBodyThread(name: String, body: () => Unit) extends Thread(name) {
+    setDaemon(true)
+    @volatile var timedOut: Boolean = false
+    override def run(): Unit        = body()
+  }
+
+  /** Whether the current thread runs the body of a test which has already timed out. */
+  def currentTestTimedOut: Boolean =
+    Thread.currentThread() match
+      case t: TestBodyThread => t.timedOut
+      case _                 => false
 
   sealed abstract class TestGroup(val idx: Int) extends Product with Serializable
   object TestGroup {
