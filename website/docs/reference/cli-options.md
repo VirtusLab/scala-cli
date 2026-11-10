@@ -1587,7 +1587,7 @@ Run scalafix rule(s) explicitly, overriding the configuration file default.
 
 ### `--scalafix-version`
 
-Pass scalafix version (0.14.9 by default).
+Pass scalafix version (0.14.10 by default).
 
 ## Scope options
 

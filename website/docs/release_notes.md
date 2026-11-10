@@ -70,7 +70,7 @@ The `fix` sub-command received a number of improvements in this release.
 #### Deprecated comma separators get removed from using directives
 A new built-in rule removes the deprecated comma separators from using directives (it can be turned off with
 `--enable-comma-separators-removal=false`).
-
+https://github.com/VirtusLab/scala-cli/pull/4599
 #### Directive aliases are retained
 `fix` used to rewrite the directives it moved to `project.scala` with their canonical names
 (i.e. `//> using dep` would become `//> using dependency`). The aliases are now retained.
