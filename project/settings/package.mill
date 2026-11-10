@@ -269,11 +269,12 @@ trait CliLaunchers extends SbtModule { self =>
         case Some("x86_64" | "amd64") =>
           if (Properties.isWin) ("x86_64-pc-win32", "lib")
           else if (Properties.isLinux) ("x86_64-pc-linux", "a")
-          else if (Properties.isMac && isArmArchitecture) ("aarch64-apple-darwin", "a")
           else if (Properties.isMac) ("x86_64-apple-darwin", "a")
           else sys.error(s"Unsupported OS for x86_64 platform: ${sys.props("os.name")}")
         case Some("aarch64") =>
-          if (Properties.isLinux) ("aarch64-pc-linux", "a")
+          if (Properties.isWin) ("aarch64-pc-win32", "lib")
+          else if (Properties.isLinux) ("aarch64-pc-linux", "a")
+          else if (Properties.isMac) ("aarch64-apple-darwin", "a")
           else sys.error(s"Unsupported OS for aarch64 platform: ${sys.props("os.name")}")
         case Some(arch) =>
           sys.error(s"Unsupported architecture: $arch")
@@ -301,9 +302,10 @@ trait CliLaunchers extends SbtModule { self =>
         "--archive",
         s"https://download.libsodium.org/libsodium/releases/libsodium-$libsodiumVersion-stable-msvc.zip"
       ).call()
-      val dir = os.Path(dirRes.out.trim(), workspace)
+      val dir      = os.Path(dirRes.out.trim(), workspace)
+      val msvcArch = if (isArmArchitecture) "ARM64" else "x64"
       os.copy.over(
-        dir / "libsodium" / "x64" / "Release" / "v143" / "static" / "libsodium.lib",
+        dir / "libsodium" / msvcArch / "Release" / "v143" / "static" / "libsodium.lib",
         destDir / "sodium.lib"
       )
     }

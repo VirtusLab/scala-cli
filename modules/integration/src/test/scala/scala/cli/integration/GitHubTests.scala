@@ -63,14 +63,8 @@ class GitHubTests extends ScalaCliSuite {
 
   }
 
-  // currently having issues loading libsodium from the static launcher
-  // that launcher is mainly meant to be used on CIs or from docker, missing
-  // that feature shouldn't be a big deal there
-  if !TestUtil.isNativeStaticCli && !Properties.isMac && !TestUtil.isAarch64 then
-    // TODO fix this for static launchers: https://github.com/VirtusLab/scala-cli/issues/4068
-    // TODO fix this for MacOS: https://github.com/VirtusLab/scala-cli/issues/4067
-    // TODO fix this for Linux arm64: https://github.com/VirtusLab/scala-cli/issues/4069
-    test("create secret")(TestUtil.retryOnCi()(createSecret()))
+  // tagged as sanity so that it runs on the macOS CI jobs too
+  test("create secret".tag(ScalaCliSuite.sanity))(TestUtil.retryOnCi()(createSecret()))
 
 }
 
@@ -95,57 +89,26 @@ object GitHubTests {
   implicit val encryptedSecretCodec: JsonValueCodec[EncryptedSecret] =
     JsonCodecMaker.make
 
-  private def condaLibsodiumVersion = Constants.condaLibsodiumVersion
-
-  // Warning: somehow also in settings.sc in the build, and in FetchExternalBinary
-  lazy val condaPlatform: String = {
-    val mambaOs =
-      if (Properties.isWin) "win"
-      else if (Properties.isMac) "osx"
-      else if (Properties.isLinux) "linux"
-      else sys.error(s"Unsupported mamba OS: ${sys.props("os.name")}")
-    val arch      = sys.props("os.arch").toLowerCase(Locale.ROOT)
-    val mambaArch = arch match {
-      case "x86_64" | "amd64"  => "64"
-      case "arm64" | "aarch64" => "arm64"
-      case "ppc64le"           => "ppc64le"
-      case _                   =>
-        sys.error(s"Unsupported mamba architecture: $arch")
+  // Keep in sync with LibSodiumJni.libsodiumArchive in the cli module (not a dependency of
+  // the integration tests): since libsodiumjni 1.0.0, libsodium is statically linked in its
+  // Linux and macOS native libraries, while on Windows, libsodiumjni.dll needs libsodium.dll,
+  // which we take from the official libsodium MSVC archive.
+  private def libsodiumDllPathOpt: Option[os.Path] =
+    Option.when(Properties.isWin) {
+      val msvcArch = sys.props("os.arch").toLowerCase(Locale.ROOT) match {
+        case "aarch64" | "arm64" => "ARM64"
+        case _                   => "x64"
+      }
+      val url =
+        s"https://download.libsodium.org/libsodium/releases/libsodium-${Constants.libsodiumVersion}-stable-msvc.zip"
+      val archiveCache = ArchiveCache()
+      val dir          = archiveCache.get(Artifact(url)).unsafeRun()(using archiveCache.cache.ec)
+        .fold(e => throw new Exception(e), os.Path(_, os.pwd))
+      dir / "libsodium" / msvcArch / "Release" / "v143" / "dynamic" / "libsodium.dll"
     }
-    s"$mambaOs-$mambaArch"
-  }
-
-  private def archiveUrlAndPath() = {
-    val suffix = condaPlatform match {
-      case "linux-64"      => "-h36c2ea0_1"
-      case "linux-aarch64" => "-hb9de7d4_1"
-      case "osx-64"        => "-hbcb3906_1"
-      case "osx-arm64"     => "-h27ca646_1"
-      case "win-64"        => "-h62dcd97_1"
-      case other           => sys.error(s"Unrecognized conda platform $other")
-    }
-    val relPath = condaPlatform match {
-      case "linux-64"      => os.rel / "lib" / "libsodium.so"
-      case "linux-aarch64" => os.rel / "lib" / "libsodium.so"
-      case "osx-64"        => os.rel / "lib" / "libsodium.dylib"
-      case "osx-arm64"     => os.rel / "lib" / "libsodium.dylib"
-      case "win-64"        => os.rel / "Library" / "bin" / "libsodium.dll"
-      case other           => sys.error(s"Unrecognized conda platform $other")
-    }
-    (
-      s"https://anaconda.org/conda-forge/libsodium/$condaLibsodiumVersion/download/$condaPlatform/libsodium-$condaLibsodiumVersion$suffix.tar.bz2",
-      relPath
-    )
-  }
 
   private def initSodium(): Unit = {
-    val (url, relPath) = archiveUrlAndPath()
-    val archiveCache   = ArchiveCache()
-    val dir            = archiveCache.get(Artifact(url)).unsafeRun()(using archiveCache.cache.ec)
-      .fold(e => throw new Exception(e), os.Path(_, os.pwd))
-    val lib = dir / relPath
-    System.load(lib.toString)
-
+    libsodiumDllPathOpt.foreach(lib => System.load(lib.toString))
     LoadLibrary.initializeFromResources()
     Sodium.init()
   }

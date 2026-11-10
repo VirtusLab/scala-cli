@@ -74,6 +74,22 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
     readFromString(publicKeyRespBody)(using GitHubApi.publicKeyCodec)
   }
 
+  /** Encrypts a secret with the repository public key. */
+  def encryptSecret(
+    secretBytes: Array[Byte],
+    pubKey: GitHubApi.PublicKey,
+    repoOrg: String,
+    repoName: String,
+    seal: (Array[Byte], Array[Byte]) => Array[Byte] = libsodiumjni.Sodium.seal
+  ): Either[GitHubApiError, Array[Byte]] =
+    try Right(seal(secretBytes, pubKey.decodedKey))
+    catch {
+      case e @ (_: IllegalArgumentException | _: libsodiumjni.SodiumException) =>
+        Left(new GitHubApiError(
+          s"Invalid GitHub public key ${pubKey.key_id} for repository $repoOrg/$repoName: ${e.getMessage}"
+        ))
+    }
+
   def createOrUpdate(
     repoOrg: String,
     repoName: String,
@@ -89,7 +105,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 
     val secretBytes = secretValue.value.getBytes(StandardCharsets.UTF_8)
 
-    val encryptedValue = libsodiumjni.Sodium.seal(secretBytes, pubKey.decodedKey)
+    val encryptedValue = value(encryptSecret(secretBytes, pubKey, repoOrg, repoName))
 
     val content = GitHubApi.EncryptedSecret(
       encrypted_value = Base64.getEncoder().encodeToString(encryptedValue),
@@ -160,7 +176,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
     val cache        = options.coursier.coursierCache(logger)
     val archiveCache = ArchiveCache().copy(cache = cache)
 
-    LibSodiumJni.init(cache, archiveCache, logger)
+    LibSodiumJni.init(cache, archiveCache, logger).orExit(logger)
 
     for ((name, secretValue) <- secrets) {
 

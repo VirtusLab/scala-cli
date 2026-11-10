@@ -244,7 +244,7 @@ object Deps {
   def jsoniterMacros =
     mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
   def jsoup              = mvn"org.jsoup:jsoup:${Versions.jsoup}"
-  def libsodiumjni       = mvn"org.virtuslab.scala-cli:libsodiumjni:0.0.5"
+  def libsodiumjni       = mvn"org.virtuslab.scala-cli:libsodiumjni:1.0.0"
   def metaconfigTypesafe =
     mvn"org.scalameta::metaconfig-typesafe-config:0.18.8"
       .exclude(("org.scala-lang", "scala-compiler"))
@@ -346,9 +346,11 @@ def csDockerVersion = Deps.Versions.coursierCli
 def buildCsVersion = Deps.Versions.coursierCli
 
 // Native library used to encrypt GitHub secrets
-def libsodiumVersion       = "1.0.21"
+// libsodium MSVC build: statically linked in the Windows native launcher, and loaded at runtime
+// by the Windows JVM launchers (should match the libsodium version libsodiumjni is built against)
+def libsodiumVersion = "1.0.22"
+// static libsodium from Alpine, linked in the Linux static launcher
 def alpineLibsodiumVersion = "1.0.20"
-def condaLibsodiumVersion  = "1.0.18" // used in integration tests
 // Using the libsodium static library from this Alpine version (in the static launcher)
 def alpineVersion = "3.23"
 def ubuntuVersion = "24.04"

@@ -208,6 +208,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
         }
 
         LibSodiumJni.init(coursierCache, ArchiveCache().copy(cache = coursierCache), logger)
+          .orExit(logger)
 
         lazy val pubKey = SecretCreate.publicKey(
           ghRepoOrg,
