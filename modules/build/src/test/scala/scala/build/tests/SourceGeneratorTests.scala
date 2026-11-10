@@ -8,7 +8,7 @@ import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo}
 
-class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
+class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite with BloopServer.Suite {
 
   val buildThreads = BuildThreads.create()
 

@@ -10,7 +10,7 @@ import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo}
 
-class InputsTests extends TestUtil.ScalaCliBuildSuite {
+class InputsTests extends TestUtil.ScalaCliBuildSuite with BloopServer.Suite {
   val buildThreads: BuildThreads               = BuildThreads.create()
   val extraRepoTmpDir: os.Path                 = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories: Directories                 = Directories.under(extraRepoTmpDir)

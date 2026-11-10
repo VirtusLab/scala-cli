@@ -21,7 +21,7 @@ import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Positioned, RepositoryUtils}
 import scala.concurrent.duration.DurationInt
 
-class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
+class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite with BloopServer.Suite {
   override def munitFlakyOK: Boolean = TestUtil.isCI
   val extraRepoTmpDir: os.Path       = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories: Directories       = Directories.under(extraRepoTmpDir)

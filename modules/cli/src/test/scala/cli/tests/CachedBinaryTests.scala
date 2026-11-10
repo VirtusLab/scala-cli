@@ -13,7 +13,7 @@ import scala.build.{Build, BuildThreads, Directories, LocalRepo}
 import scala.cli.internal.CachedBinary
 import scala.util.{Properties, Random}
 
-class CachedBinaryTests extends TestUtil.ScalaCliSuite {
+class CachedBinaryTests extends TestUtil.ScalaCliSuite with BloopServer.Suite {
   val buildThreads: BuildThreads    = BuildThreads.create()
   def bloopConfig: BloopRifleConfig = BloopServer.bloopConfig
 
