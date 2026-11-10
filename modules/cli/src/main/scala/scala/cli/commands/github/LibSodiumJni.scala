@@ -4,7 +4,6 @@ import coursier.cache.{ArchiveCache, Cache, CacheLogger}
 import coursier.core.Type
 import coursier.util.Task
 
-import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
@@ -22,72 +21,66 @@ object LibSodiumJni {
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
 
-  private def launcherKindOpt = {
-    val path   = CliConstants.launcherTypeResourcePath
-    val resUrl = Thread.currentThread.getContextClassLoader.getResource(path)
-    if (resUrl == null) None
-    else {
-      var is: InputStream = null
-      try {
-        is = resUrl.openStream()
-        Some(new String(resUrl.openStream().readAllBytes(), StandardCharsets.UTF_8))
-      }
-      finally
-        if (is != null)
-          is.close()
-    }
-  }
-
-  private def condaLibsodiumVersion  = Constants.condaLibsodiumVersion
-  private def alpineLibsodiumVersion = Constants.alpineLibsodiumVersion
-  private def libsodiumjniVersion    = Constants.libsodiumjniVersion
-  private def alpineVersion          = Constants.alpineVersion
-
-  private def archiveUrlAndPath() =
-    if (Properties.isLinux && launcherKindOpt.contains("static"))
-      // Should actually be unused, as we statically link libsodium from the static launcher
-      // Keeping it just-in-case. This could be useful from a musl-based JVM.
-      (
-        s"https://dl-cdn.alpinelinux.org/alpine/v$alpineVersion/main/x86_64/libsodium-$alpineLibsodiumVersion-r1.apk",
-        os.rel / "usr" / "lib" / "libsodium.so.23.3.0" // FIXME Could this change?
-      )
-    else {
-      val condaPlatform = FetchExternalBinary.condaPlatform
-      // FIXME These suffixes seem to be hashes, and seem to change at every version…
-      // We'd need a way to find them automatically.
-      val suffix = condaPlatform match {
-        case "linux-64"      => "-h36c2ea0_1"
-        case "linux-aarch64" => "-hb9de7d4_1"
-        case "osx-64"        => "-hbcb3906_1"
-        case "osx-arm64"     => "-h27ca646_1"
-        case "win-64"        => "-h62dcd97_1"
-        case other           => sys.error(s"Unrecognized conda platform $other")
-      }
-      val relPath = condaPlatform match {
-        case "linux-64"      => os.rel / "lib" / "libsodium.so"
-        case "linux-aarch64" => os.rel / "lib" / "libsodium.so"
-        case "osx-64"        => os.rel / "lib" / "libsodium.dylib"
-        case "osx-arm64"     => os.rel / "lib" / "libsodium.dylib"
-        case "win-64"        => os.rel / "Library" / "bin" / "libsodium.dll"
-        case other           => sys.error(s"Unrecognized conda platform $other")
-      }
-      (
-        s"https://anaconda.org/conda-forge/libsodium/$condaLibsodiumVersion/download/$condaPlatform/libsodium-$condaLibsodiumVersion$suffix.tar.bz2",
-        relPath
-      )
+  private def launcherKindOpt: Option[String] =
+    Option(
+      Thread.currentThread.getContextClassLoader.getResource(CliConstants.launcherTypeResourcePath)
+    ).map { resUrl =>
+      val is = resUrl.openStream()
+      try new String(is.readAllBytes(), StandardCharsets.UTF_8)
+      finally is.close()
     }
 
-  private def jniLibArtifact(cache: Cache[Task]) = {
+  private def libsodiumVersion    = Constants.libsodiumVersion
+  private def libsodiumjniVersion = Constants.libsodiumjniVersion
+
+  final case class LibSodiumArchive(url: String, pathInArchive: os.RelPath)
+
+  /** Where to get the libsodium shared library that the libsodiumjni native library needs, if any.
+    *
+    * Since libsodiumjni 1.0.0, libsodium is linked statically into `libsodiumjni.so` (Linux) and
+    * `libsodiumjni.dylib` (macOS), so nothing needs to be downloaded there. On Windows,
+    * `libsodiumjni.dll` still links dynamically against `libsodium.dll`, which must be loaded
+    * first. We take it from the official libsodium MSVC archive, the very build libsodiumjni is
+    * linked against (rather than from conda-forge, which has no Windows ARM64 package in a format
+    * coursier can extract).
+    *
+    * @param platformSuffix
+    *   the libsodiumjni artifact classifier, as computed by [[FetchExternalBinary.platformSuffix]]
+    * @return
+    *   `Right(None)` if no libsodium needs to be loaded, `Left(error)` on unsupported platforms
+    */
+  def libsodiumArchive(
+    platformSuffix: String,
+    libsodiumVersion: String
+  ): Either[String, Option[LibSodiumArchive]] =
+    platformSuffix match {
+      case "x86_64-pc-linux" | "aarch64-pc-linux" | "x86_64-apple-darwin" |
+          "aarch64-apple-darwin" =>
+        Right(None)
+      case "x86_64-pc-win32" | "aarch64-pc-win32" =>
+        val msvcArch = if platformSuffix.startsWith("aarch64-") then "ARM64" else "x64"
+        Right(Some(LibSodiumArchive(
+          s"https://download.libsodium.org/libsodium/releases/libsodium-$libsodiumVersion-stable-msvc.zip",
+          os.rel / "libsodium" / msvcArch / "Release" / "v143" / "dynamic" / "libsodium.dll"
+        )))
+      case other => Left(s"libsodium isn't supported on platform $other")
+    }
+
+  /** Extension of the libsodiumjni shared library artifact for a given platform. */
+  def jniLibExtension(platformSuffix: String): Either[String, String] =
+    platformSuffix match {
+      case s"$_-pc-linux"     => Right("so")
+      case s"$_-apple-darwin" => Right("dylib")
+      case s"$_-pc-win32"     => Right("dll")
+      case other              => Left(s"libsodiumjni isn't supported on platform $other")
+    }
+
+  private def jniLibArtifact(cache: Cache[Task], classifier: String) = {
 
     import dependency._
     import scala.build.internal.Util.DependencyOps
 
-    val classifier = FetchExternalBinary.platformSuffix(supportsMusl = false)
-    val ext        =
-      if (Properties.isLinux) "so"
-      else if (Properties.isMac) "dylib"
-      else if (Properties.isWin) "dll"
-      else sys.error(s"Unrecognized operating system: ${sys.props("os.name")}")
+    val ext = jniLibExtension(classifier).fold(sys.error, identity)
 
     val dep =
       dep"org.virtuslab.scala-cli:libsodiumjni:$libsodiumjniVersion,intransitive,classifier=$classifier,ext=$ext,type=$ext"
@@ -119,37 +112,41 @@ object LibSodiumJni {
       Properties.isLinux && launcherKindOpt.contains("static")
 
     if (!allStaticallyLinked) {
-      val (archiveUrl, pathInArchive) = archiveUrlAndPath()
-      val sodiumLibOpt                = value {
-        FetchExternalBinary.fetchLauncher(
-          archiveUrl,
-          changing = false,
-          archiveCache,
-          logger,
-          "",
-          launcherPathOpt = Some(pathInArchive),
-          makeExecutable = false
-        )
+      val classifier = FetchExternalBinary.platformSuffix(supportsMusl = false)
+      val archiveOpt = libsodiumArchive(classifier, libsodiumVersion).fold(sys.error, identity)
+
+      archiveOpt match {
+        case None          => // libsodium is statically linked in libsodiumjni on this platform
+        case Some(archive) =>
+          val sodiumLibOpt = value {
+            FetchExternalBinary.fetchLauncher(
+              archive.url,
+              changing = false,
+              archiveCache,
+              logger,
+              "",
+              launcherPathOpt = Some(archive.pathInArchive),
+              makeExecutable = false
+            )
+          }
+          sodiumLibOpt match {
+            case Some(sodiumLib) =>
+              System.load(sodiumLib.toString)
+            case None =>
+              val allow = EnvVar.ScalaCli.allowSodiumJni.valueOpt
+                .map(_.toLowerCase(Locale.ROOT))
+                .forall {
+                  case "false" | "0" => false
+                  case _             => true
+                }
+              if (allow)
+                System.loadLibrary("sodium")
+              else
+                value(Left(new LibSodiumNotFound(archive.url)))
+          }
       }
 
-      val f = jniLibArtifact(cache)
-
-      sodiumLibOpt match {
-        case Some(sodiumLib) =>
-          System.load(sodiumLib.toString)
-        case None =>
-          val allow = EnvVar.ScalaCli.allowSodiumJni.valueOpt
-            .map(_.toLowerCase(Locale.ROOT))
-            .forall {
-              case "false" | "0" => false
-              case _             => true
-            }
-          if (allow)
-            System.loadLibrary("sodium")
-          else
-            value(Left(new LibSodiumNotFound(archiveUrl)))
-      }
-
+      val f = jniLibArtifact(cache, classifier)
       libsodiumjni.internal.LoadLibrary.initialize(f.toString)
     }
 
