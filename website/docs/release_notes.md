@@ -8,6 +8,243 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.19.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.19.0)
+
+### Default Scala version is 3.10.1
+Scala 3.10.1 is the new default Scala version, and the version Scala CLI itself is built with. The previous default was 3.9.0.
+
+The legacy Scala 3.3 LTS line moves to 3.3.9. Tags such as `3.3.lts` stay pinned to the LTS versions configured in the Scala CLI build, so a tag cannot drift ahead of that configuration.
+
+```bash
+scala-cli -e 'println(scala.util.Properties.versionNumberString)'
+# 3.10.1
+```
+
+```bash
+scala-cli -e 'println(dotty.tools.dotc.config.Properties.simpleVersionString)' -S 3.3.lts --with-compiler
+# 3.3.9
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4623](https://github.com/VirtusLab/scala-cli/pull/4623), [#4574](https://github.com/VirtusLab/scala-cli/pull/4574) and [#4576](https://github.com/VirtusLab/scala-cli/pull/4576)
+
+### Built with JDK 25, GraalVM 25 for native images
+Scala CLI is now built with JDK 25. The class files it publishes still target older Java versions, so a newer build JDK does not leak into the bytecode or the JDK API the code is allowed to call.
+
+| Code | Compiler flag | Bytecode |
+| --- | --- | --- |
+| Java sources in the main modules | `--release 17` (was `--release 16`) | 17 |
+| Scala sources, other than the Scala 3.3 LTS modules | `-java-output-version:17` | 17 |
+| `runner`, `test-runner` | `-java-output-version:11`, on Scala 3.3 LTS | 11 |
+| `java-test-runner` | `--release 8` | 8 |
+| `specification-level` | `-java-output-version:17`, on Scala 3.3 LTS | 17 |
+
+`runner`, `test-runner` and `specification-level` stay on Scala 3.3 LTS with `-Yfuture-lazy-vals`. The JVM launcher still requires Java 17 or newer. Projects you compile with Scala CLI can still target older JVMs, for example with `--jvm 11` or `--jvm 8`.
+
+Native images of Scala CLI are built with GraalVM Community 25.0.2. macOS x64 uses GraalVM 25.0.1, the newest Community build published for that platform.
+
+`package --native-image` defaults to that same GraalVM. Pass `--graalvm-version` or `--graalvm-java-version` to pick another one.
+
+```bash
+scala-cli --power package --help
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4593](https://github.com/VirtusLab/scala-cli/pull/4593)
+
+### `fmt` formats `.mill` files
+`scala-cli fmt` formats Mill build files (`.mill`), alongside Scala sources and `build.sbt`. Pass a file or a directory.
+
+```text title=mill-fmt/.scalafmt.conf
+version = "3.11.5"
+runner.dialect = scala3
+```
+
+```scala title=mill-fmt/build.mill
+package build
+import mill.*, scalalib.*
+object foo    extends   ScalaModule:
+  def scalaVersion    =       "3.3.6"
+```
+
+```bash
+scala-cli fmt mill-fmt
+cat mill-fmt/build.mill
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4554](https://github.com/VirtusLab/scala-cli/pull/4554)
+
+### The `config` module is now built with Scala 3.9 LTS
+As noted before, the `config` module was bumped to Scala 3.9.0 LTS. It used to be kept at 3.3 LTS for compatibility.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4579](https://github.com/VirtusLab/scala-cli/pull/4579)
+
+### ⚡ Exposing ports when packaging a Docker image
+`--docker-exposed-ports` and `//> using packaging.dockerExposedPorts` declare the ports a Docker image exposes. A value can be a single port (`8080`), a range (`9000-9010`) or a port with a protocol (`53/udp`; `tcp` is used when the protocol is omitted).
+
+```scala compile power title=HelloDocker.scala
+//> using packaging.dockerExposedPorts 8080 9000-9010 53/udp
+
+object Hello:
+  def main(args: Array[String]): Unit =
+    println("Hello")
+```
+
+```bash ignore
+scala-cli --power package --docker HelloDocker.scala --docker-image-repository hello-docker --docker-exposed-ports 8080 --docker-exposed-ports 53/udp
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4586](https://github.com/VirtusLab/scala-cli/pull/4586)
+
+### ⚡JSPI for Scala.js on Wasm
+On the Wasm backend, `js.async` and `js.await` use JavaScript Promise Integration. Since Scala.js 1.22 the linker includes them only when JSPI is enabled. Turn it on with `--js-wasm-jspi` or `//> using wasmJspi`, together with Wasm output and ES modules. The runtime has to support JSPI as well. Node.js 25 and later enable it by default.
+
+```scala compile power title=Async.scala
+//> using wasm
+//> using jsModuleKind es
+//> using wasmJspi
+import scala.scalajs.js
+
+object Async:
+  def main(args: Array[String]): Unit =
+    js.async {
+      val x = js.await(js.Promise.resolve[Int](21))
+      println(s"JSPI ${x * 2}")
+    }
+```
+
+```bash
+scala-cli --power run Async.scala
+# JSPI 42
+```
+
+<!-- Expected:
+JSPI 42
+-->
+
+When the Scala.js linker emits several files, the entry module is now chosen deterministically, and a multi-file linked output directory is removed recursively before the next link.
+
+Added by [@sideeffffect](https://github.com/sideeffffect) in [#4550](https://github.com/VirtusLab/scala-cli/pull/4550), [#4548](https://github.com/VirtusLab/scala-cli/pull/4548) and [#4549](https://github.com/VirtusLab/scala-cli/pull/4549)
+
+### ⚡ Publishing on macOS, Linux ARM64 and Windows ARM64
+`publish setup` and `github secret create` are now supported on MacOS (both Intel and ARM64), Linux ARM64 and Windows ARM64 platforms.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4622](https://github.com/VirtusLab/scala-cli/pull/4622)
+
+### Linux ARM64 `.deb` and `.rpm` packages
+Linux ARM64 already had a native launcher. This release also publishes ARM64 Debian and RPM packages next to the existing x86_64 ones:
+
+- [`scala-cli-aarch64-pc-linux.deb`](https://github.com/VirtusLab/scala-cli/releases/download/v1.19.0/scala-cli-aarch64-pc-linux.deb)
+- [`scala-cli-aarch64-pc-linux.rpm`](https://github.com/VirtusLab/scala-cli/releases/download/v1.19.0/scala-cli-aarch64-pc-linux.rpm)
+
+They are uploaded to the [scala-cli-packages](https://github.com/VirtusLab/scala-cli-packages) apt and rpm repositories, together with other Linux artifacts.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#4572](https://github.com/VirtusLab/scala-cli/pull/4572)
+
+### Windows ARM64 launcher and MSI
+A Windows ARM64 build is now published:
+
+- [`scala-cli-aarch64-pc-win32-jvm.zip`](https://github.com/VirtusLab/scala-cli/releases/download/v1.19.0/scala-cli-aarch64-pc-win32-jvm.zip), a `jpackage` app image that bundles its own JVM
+- [`scala-cli-aarch64-pc-win32.msi`](https://github.com/VirtusLab/scala-cli/releases/download/v1.19.0/scala-cli-aarch64-pc-win32.msi), an installer built with WiX 3, which adds the install directory to the system `PATH`
+
+The x86_64 Windows launcher already runs on Windows 11 ARM through emulation. Windows 10 ARM does not provide that emulation, so it needs this build. The app image is larger than the x86_64 native launcher, because it ships a JVM.
+
+Added by [@warcholjakub](https://github.com/warcholjakub) in [#4595](https://github.com/VirtusLab/scala-cli/pull/4595)
+
+### Features
+* Add --js-wasm-jspi and //> using wasmJspi to enable JSPI on Wasm by [@sideeffffect](https://github.com/sideeffffect) in [#4550](https://github.com/VirtusLab/scala-cli/pull/4550)
+* Add arm64 `.deb` and `.rpm` artifacts by [@Gedochao](https://github.com/Gedochao) in [#4572](https://github.com/VirtusLab/scala-cli/pull/4572)
+* Allow exposing ports when packaging through docker by [@Gedochao](https://github.com/Gedochao) in [#4586](https://github.com/VirtusLab/scala-cli/pull/4586)
+* Build and publish a Windows ARM64 launcher and `.msi` package by [@warcholjakub](https://github.com/warcholjakub) in [#4595](https://github.com/VirtusLab/scala-cli/pull/4595)
+* Bump `libsodiumjni` to 1.0.0 (was 0.0.5) & add support for publishing on arm64 runners by [@Gedochao](https://github.com/Gedochao) in [#4622](https://github.com/VirtusLab/scala-cli/pull/4622)
+
+### Fixes
+* Pick the Scala.js entry module deterministically when the linker emits multiple files by [@sideeffffect](https://github.com/sideeffffect) in [#4548](https://github.com/VirtusLab/scala-cli/pull/4548)
+* Remove the multi-file Scala.js linked output directory recursively by [@sideeffffect](https://github.com/sideeffffect) in [#4549](https://github.com/VirtusLab/scala-cli/pull/4549)
+* Prefer classic main methods over JEP 512 ones when inferring the main class by [@Gedochao](https://github.com/Gedochao) in [#4562](https://github.com/VirtusLab/scala-cli/pull/4562)
+* fix: re-pin `lts` tags to the Scala 3 LTS versions configured in the build by [@Gedochao](https://github.com/Gedochao) in [#4576](https://github.com/VirtusLab/scala-cli/pull/4576)
+* Fix `cli` `scaladoc` generation by [@Gedochao](https://github.com/Gedochao) in [#4599](https://github.com/VirtusLab/scala-cli/pull/4599)
+* Don't walk directories on the class path by [@lrytz](https://github.com/lrytz) in [#4594](https://github.com/VirtusLab/scala-cli/pull/4594)
+* Don't compile .jar inputs as sources with --server=false by [@sideeffffect](https://github.com/sideeffffect) in [#4596](https://github.com/VirtusLab/scala-cli/pull/4596)
+* Don't fetch a Scala compiler for --java runs with nothing to compile by [@sideeffffect](https://github.com/sideeffffect) in [#4597](https://github.com/VirtusLab/scala-cli/pull/4597)
+* Don't report power-mode-only options as unrecognized arguments by [@sideeffffect](https://github.com/sideeffffect) in [#4598](https://github.com/VirtusLab/scala-cli/pull/4598)
+
+### Security
+* Mitigate CVE-2026-91403: distrust compromised eMudhra CAs in JDKs and native launchers by [@Gedochao](https://github.com/Gedochao) in [#4575](https://github.com/VirtusLab/scala-cli/pull/4575)
+
+### Compatibility
+* refactor: migrate off deprecated `coursier` API in tests by [@Gedochao](https://github.com/Gedochao) in [#4561](https://github.com/VirtusLab/scala-cli/pull/4561)
+* `config`: bump Scala to 3.9.0 LTS (was 3.3.9 LTS) by [@Gedochao](https://github.com/Gedochao) in [#4579](https://github.com/VirtusLab/scala-cli/pull/4579)
+* Migrate from `coursier/publish` to `scala/scala-publish` by [@Gedochao](https://github.com/Gedochao) in [#4588](https://github.com/VirtusLab/scala-cli/pull/4588)
+* GraalVM 25.0.2, `svm` 25.0.5.0.3 & JDK 25 (with `-release 17`) by [@Gedochao](https://github.com/Gedochao) in [#4593](https://github.com/VirtusLab/scala-cli/pull/4593)
+* Bump `libsodiumjni` to 1.0.0 (was 0.0.5) & add support for publishing on arm64 runners by [@Gedochao](https://github.com/Gedochao) in [#4622](https://github.com/VirtusLab/scala-cli/pull/4622)
+
+### Documentation
+* docs: update installation methods by [@Gedochao](https://github.com/Gedochao) in [#4567](https://github.com/VirtusLab/scala-cli/pull/4567)
+* Back port of documentation changes to main by @github-actions[bot] in [#4568](https://github.com/VirtusLab/scala-cli/pull/4568)
+
+### Build and internal changes
+* Pin `vedantmgoyal9/winget-releaser` to a pre-bug commit sha by [@Gedochao](https://github.com/Gedochao) in [#4540](https://github.com/VirtusLab/scala-cli/pull/4540)
+* Migrate from `vedantmgoyal9/winget-releaser` to running `komac` here by [@Gedochao](https://github.com/Gedochao) in [#4542](https://github.com/VirtusLab/scala-cli/pull/4542)
+* Make `mill-native-image` and `mill-native-image-upload` source dependencies via a git submodule by [@Gedochao](https://github.com/Gedochao) in [#4543](https://github.com/VirtusLab/scala-cli/pull/4543)
+* fix: filter out JVM log lines in integration test assertions by [@Gedochao](https://github.com/Gedochao) in [#4563](https://github.com/VirtusLab/scala-cli/pull/4563)
+* Link `agentskills` for Claude Code, `.gitignore` the rest of config in `.claude` by [@Gedochao](https://github.com/Gedochao) in [#4577](https://github.com/VirtusLab/scala-cli/pull/4577)
+* Split LTS integration suites into 3.9 LTS and (legacy) 3.3 LTS by [@Gedochao](https://github.com/Gedochao) in [#4587](https://github.com/VirtusLab/scala-cli/pull/4587)
+* Don't fail CI when nightlies are not fetchable, only when they're wrong by [@Gedochao](https://github.com/Gedochao) in [#4603](https://github.com/VirtusLab/scala-cli/pull/4603)
+* fix: time out hung native-binary tests and make munit's per-test timeout actually fire by [@Gedochao](https://github.com/Gedochao) in [#4608](https://github.com/VirtusLab/scala-cli/pull/4608)
+
+### Updates
+* Bump Scala 3 Next to 3.10.0 by [@Gedochao](https://github.com/Gedochao) in [#4536](https://github.com/VirtusLab/scala-cli/pull/4536)
+* Bump shell-quote from 1.10.0 to 1.12.0 in /website by @dependabot[bot] in [#4541](https://github.com/VirtusLab/scala-cli/pull/4541)
+* Bump the npm-dependencies group in /website with 3 updates by @dependabot[bot] in [#4551](https://github.com/VirtusLab/scala-cli/pull/4551)
+* Update asm to 9.11 by @scala-steward in [#4546](https://github.com/VirtusLab/scala-cli/pull/4546)
+* Update sbt to 2.0.10 by @scala-steward in [#4553](https://github.com/VirtusLab/scala-cli/pull/4553)
+* Update jsoniter-scala-core, ... to 2.41.5 by @scala-steward in [#4552](https://github.com/VirtusLab/scala-cli/pull/4552)
+* Support formatting `.mill` inputs with `fmt` by [@Gedochao](https://github.com/Gedochao) in [#4554](https://github.com/VirtusLab/scala-cli/pull/4554)
+* Bump `scala-js-cli` to 1.22.0.3 (was 1.22.0.1) by [@Gedochao](https://github.com/Gedochao) in [#4556](https://github.com/VirtusLab/scala-cli/pull/4556)
+* Update asm to 9.11.1 by @scala-steward in [#4559](https://github.com/VirtusLab/scala-cli/pull/4559)
+* Update jsoniter-scala-core, ... to 2.41.6 by @scala-steward in [#4558](https://github.com/VirtusLab/scala-cli/pull/4558)
+* Bump Mill to 1.3.0 (was 1.1.9) by [@Gedochao](https://github.com/Gedochao) in [#4560](https://github.com/VirtusLab/scala-cli/pull/4560)
+* Bump the npm-dependencies group in /website with 6 updates by @dependabot[bot] in [#4564](https://github.com/VirtusLab/scala-cli/pull/4564)
+* Bump follow-redirects from 1.16.0 to 1.16.1 in /website by @dependabot[bot] in [#4569](https://github.com/VirtusLab/scala-cli/pull/4569)
+* Bump launch-editor from 2.14.1 to 2.14.2 in /website by @dependabot[bot] in [#4571](https://github.com/VirtusLab/scala-cli/pull/4571)
+* Update jsoniter-scala-core, ... to 2.41.7 by @scala-steward in [#4570](https://github.com/VirtusLab/scala-cli/pull/4570)
+* Bump legacy Scala 3.3 LTS to 3.3.9 by [@Gedochao](https://github.com/Gedochao) in [#4574](https://github.com/VirtusLab/scala-cli/pull/4574)
+* Update jsoniter-scala-core, ... to 2.42.0 by @scala-steward in [#4578](https://github.com/VirtusLab/scala-cli/pull/4578)
+* Bump Scala Next RC to 3.10.1-RC1 by [@Gedochao](https://github.com/Gedochao) in [#4573](https://github.com/VirtusLab/scala-cli/pull/4573)
+* Bump the npm-dependencies group in /website with 7 updates by @dependabot[bot] in [#4580](https://github.com/VirtusLab/scala-cli/pull/4580)
+* Bump undici from 7.30.0 to 7.30.1 in /website by @dependabot[bot] in [#4584](https://github.com/VirtusLab/scala-cli/pull/4584)
+* Bump fast-uri from 3.1.8 to 3.1.9 in /website by @dependabot[bot] in [#4583](https://github.com/VirtusLab/scala-cli/pull/4583)
+* Bump postcss-selector-parser from 6.1.4 to 6.1.5 in /website by @dependabot[bot] in [#4582](https://github.com/VirtusLab/scala-cli/pull/4582)
+* Bump body-parser from 1.20.6 to 1.20.9 in /website by @dependabot[bot] in [#4585](https://github.com/VirtusLab/scala-cli/pull/4585)
+* Update os-lib to 0.11.9 by @scala-steward in [#4581](https://github.com/VirtusLab/scala-cli/pull/4581)
+* Update os-lib to 0.11.10 by @scala-steward in [#4591](https://github.com/VirtusLab/scala-cli/pull/4591)
+* Update jsoniter-scala-core, ... to 2.42.1 by @scala-steward in [#4590](https://github.com/VirtusLab/scala-cli/pull/4590)
+* Update Bloop to 2.1.3 by @scala-steward in [#4589](https://github.com/VirtusLab/scala-cli/pull/4589)
+* GraalVM 25.0.2, `svm` 25.0.5.0.3 & JDK 25 (with `-release 17`) by [@Gedochao](https://github.com/Gedochao) in [#4593](https://github.com/VirtusLab/scala-cli/pull/4593)
+* Update jsoniter-scala-core, ... to 2.42.2 by @scala-steward in [#4601](https://github.com/VirtusLab/scala-cli/pull/4601)
+* Update Scala 3 Next RC to 3.10.1-RC2 by @scala-steward in [#4602](https://github.com/VirtusLab/scala-cli/pull/4602)
+* Bump joi from 17.13.8 to 17.13.9 in /website by @dependabot[bot] in [#4605](https://github.com/VirtusLab/scala-cli/pull/4605)
+* Bump follow-redirects from 1.16.1 to 1.16.2 in /website by @dependabot[bot] in [#4604](https://github.com/VirtusLab/scala-cli/pull/4604)
+* Bump the npm-dependencies group in /website with 6 updates by @dependabot[bot] in [#4610](https://github.com/VirtusLab/scala-cli/pull/4610)
+* Bump coursier/cache-action from 8 to 9 in the github-actions group by @dependabot[bot] in [#4609](https://github.com/VirtusLab/scala-cli/pull/4609)
+* Bump case-app to 2.2.0 by [@Gedochao](https://github.com/Gedochao) in [#4611](https://github.com/VirtusLab/scala-cli/pull/4611)
+* Update libsodiumjni to 0.0.5 by @scala-steward in [#4614](https://github.com/VirtusLab/scala-cli/pull/4614)
+* Update guava to 33.8.0-jre by @scala-steward in [#4612](https://github.com/VirtusLab/scala-cli/pull/4612)
+* Update org.eclipse.jgit to 7.8.1.202611041320-r by @scala-steward in [#4616](https://github.com/VirtusLab/scala-cli/pull/4616)
+* Update jsoniter-scala-core, ... to 2.42.3 by @scala-steward in [#4617](https://github.com/VirtusLab/scala-cli/pull/4617)
+* Update dependency to 0.3.4 by @scala-steward in [#4615](https://github.com/VirtusLab/scala-cli/pull/4615)
+* Update windows-jni-utils to 0.5.0 by @scala-steward in [#4618](https://github.com/VirtusLab/scala-cli/pull/4618)
+* Update jsoup to 1.24.1 by @scala-steward in [#4613](https://github.com/VirtusLab/scala-cli/pull/4613)
+* Update jsoniter-scala-core, ... to 2.43.0 by @scala-steward in [#4621](https://github.com/VirtusLab/scala-cli/pull/4621)
+* Bump the npm-dependencies group in /website with 5 updates by @dependabot[bot] in [#4619](https://github.com/VirtusLab/scala-cli/pull/4619)
+* Update scalafix-interfaces to 0.14.10 by @scala-steward in [#4620](https://github.com/VirtusLab/scala-cli/pull/4620)
+* Bump `libsodiumjni` to 1.0.0 (was 0.0.5) & add support for publishing on arm64 runners by [@Gedochao](https://github.com/Gedochao) in [#4622](https://github.com/VirtusLab/scala-cli/pull/4622)
+* Bump Scala Next to 3.10.1 by [@Gedochao](https://github.com/Gedochao) in [#4623](https://github.com/VirtusLab/scala-cli/pull/4623)
+
+### New Contributors
+* [@sideeffffect](https://github.com/sideeffffect) made their first contribution in [#4548](https://github.com/VirtusLab/scala-cli/pull/4548)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.18.0...v1.19.0
+
 ## [v1.18.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.18.0)
 
 ### Scala CLI is now built with Scala 3 Next, with some modules at 3.9 LTS or 3.3 LTS with `-Yfuture-lazy-vals`
