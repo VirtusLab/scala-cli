@@ -48,7 +48,7 @@ object RestrictedCommandsParser {
         (parser.step(args, index, d, nameFormatter), args) match {
           case (Right(Some(_, arg: Arg, _)), passedOption :: _) if !arg.isSupported =>
             Left((
-              Error.UnrecognizedArgument(arg.powerOptionUsedInSip(passedOption)),
+              Error.Other(arg.powerOptionUsedInSip(passedOption)),
               arg,
               Nil
             ))

@@ -253,9 +253,8 @@ class SipScalaTests extends ScalaCliSuite
       isPowerMode -> areWarningsSuppressed match {
         case (false, _) =>
           expect(res.exitCode == 1)
-          expect(
-            errOutput.contains("Unrecognized argument: The `--markdown` option is experimental.")
-          )
+          expect(errOutput.contains("The `--markdown` option is experimental."))
+          expect(!errOutput.contains("Unrecognized argument"))
         case (true, false) =>
           expect(res.exitCode == 0)
           expect(errOutput.containsExperimentalWarningOf("`--markdown` option"))
