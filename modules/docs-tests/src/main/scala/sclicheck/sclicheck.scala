@@ -12,7 +12,8 @@ import scala.util.control.NonFatal
 import scala.util.matching.Regex
 
 val SnippetBlock = """ *(`{2}`+)[^ ]+ title=([\w\d.\-/_]+) *""".r
-val CompileBlock = """ *(`{2}`+) *(\w+) +(compile|fail) *(?:title=([\w\d.\-/_]+))? *(power)? *""".r
+val CompileBlock =
+  """ *(`{2}`+) *(\w+) +(compile|fail) *(power)? *(?:title=([\w\d.\-/_]+))? *(power)? *""".r
 def compileBlockEnds(backticks: String) = s""" *$backticks *""".r
 val BashCommand                         = """ *```bash *(fail|run-fail)? *(clean)? *""".r
 val CheckBlock                          = """ *\<\!-- Expected(-regex)?: *""".r
@@ -45,7 +46,7 @@ enum Commands:
       cmd.mkString(prefix, " ", "")
     case Write(name, _, _) =>
       name
-    case Compile(_, _, _, _, _) =>
+    case Compile(_, _, _, _, _, _) =>
       "compile snippet"
   }
 
@@ -56,7 +57,8 @@ enum Commands:
     lines: Seq[String],
     context: Context,
     shouldFail: Boolean,
-    power: Boolean
+    power: Boolean,
+    inWorkspace: Boolean
   )
   case Run(scriptLines: Seq[String], shouldFail: Boolean, shouldClean: Boolean, context: Context)
   case Check(patterns: Seq[String], regex: Boolean, context: Context)
@@ -96,12 +98,14 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
     case SnippetBlock(backticks, name) :: tail =>
       parseMultiline(tail, Commands.Write(name, _, context), compileBlockEnds(backticks))
 
-    case CompileBlock(backticks, name, status, fileName, power) :: tail =>
+    case CompileBlock(backticks, name, status, powerBefore, fileName, powerAfter) :: tail =>
       val fileSuffix = if name == "markdown" then ".md" else s".$name"
-      val file       = Option(fileName).getOrElse("snippet_" + Random.nextInt(1000) + fileSuffix)
+      val explicit   = Option(fileName)
+      val file       = explicit.getOrElse("snippet_" + Random.nextInt(1000) + fileSuffix)
+      val power      = powerBefore == "power" || powerAfter == "power"
       parseMultiline(
         tail,
-        Commands.Compile(file, _, context, status == "fail", power == "power"),
+        Commands.Compile(file, _, context, status == "fail", power, explicit.isDefined),
         compileBlockEnds(backticks)
       )
 
@@ -305,8 +309,8 @@ def checkFile(file: os.Path, options: Options): Unit =
       case Commands.Write(name, code, c) =>
         writeFile(out / os.RelPath(name), code, c)
 
-      case Commands.Compile(name, code, c, shouldFail, power) =>
-        val dest = out / ".snippets" / name
+      case Commands.Compile(name, code, c, shouldFail, power, inWorkspace) =>
+        val dest = if inWorkspace then out / os.RelPath(name) else out / ".snippets" / name
         writeFile(dest, code, c)
         val powerArg = if power then Seq("--power") else Nil
         val exitCode = run(os.proc(options.scalaCliCommand, powerArg, "compile", dest))
