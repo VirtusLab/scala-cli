@@ -37,13 +37,6 @@ object LibSodiumJni {
 
   /** Where to get the libsodium shared library that the libsodiumjni native library needs, if any.
     *
-    * Since libsodiumjni 1.0.0, libsodium is linked statically into `libsodiumjni.so` (Linux) and
-    * `libsodiumjni.dylib` (macOS), so nothing needs to be downloaded there. On Windows,
-    * `libsodiumjni.dll` still links dynamically against `libsodium.dll`, which must be loaded
-    * first. We take it from the official libsodium MSVC archive, the very build libsodiumjni is
-    * linked against (rather than from conda-forge, which has no Windows ARM64 package in a format
-    * coursier can extract).
-    *
     * @param platformSuffix
     *   the libsodiumjni artifact classifier, as computed by [[FetchExternalBinary.platformSuffix]]
     * @return
