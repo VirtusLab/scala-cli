@@ -3149,3 +3149,8 @@ abstract class RunTestDefinitions
       }
     }
 }
+
+// Workaround for https://github.com/scala/scala3/issues/27256 (fixed in Scala 3.10.2):
+// TASTy readers (e.g. Scaladoc) can crash when an abstract class is the last tree in a file.
+// TODO: remove this companion object once we're on Scala 3.10.2 or newer.
+object RunTestDefinitions
