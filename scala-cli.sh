@@ -7,7 +7,7 @@
 
 set -eu
 
-SCALA_CLI_VERSION="1.18.0"
+SCALA_CLI_VERSION="1.19.0"
 
 GH_ORG="VirtusLab"
 GH_NAME="scala-cli"
