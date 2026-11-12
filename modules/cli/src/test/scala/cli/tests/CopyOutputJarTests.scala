@@ -16,7 +16,7 @@ import scala.cli.commands.util.BuildCommandHelpers.copyOutput
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
-class CopyOutputJarTests extends TestUtil.ScalaCliSuite {
+class CopyOutputJarTests extends TestUtil.ScalaCliSuite with BloopServer.Suite {
   val buildThreads: BuildThreads    = BuildThreads.create()
   def bloopConfig: BloopRifleConfig = BloopServer.bloopConfig
 

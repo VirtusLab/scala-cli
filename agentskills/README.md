@@ -11,6 +11,7 @@ Each subdirectory contains a `SKILL.md` with frontmatter and instructions. See [
 | [adding-directives](./adding-directives/SKILL.md) | New `//> using` directives |
 | [deprecating-features](./deprecating-features/SKILL.md) | Deprecations / removals |
 | [integration-tests](./integration-tests/SKILL.md) | CLI integration tests |
+| [unit-tests](./unit-tests/SKILL.md) | munit unit tests, Bloop suites |
 | [website-design-tokens](./website-design-tokens/SKILL.md) | Website colors, type, Infima tokens |
 | [website-docs-chrome](./website-docs-chrome/SKILL.md) | Docs sidebar, breadcrumbs, admonitions |
 | [website-home-layout](./website-home-layout/SKILL.md) | Home/install bands, grids, chrome |

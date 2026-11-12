@@ -23,7 +23,7 @@ import scala.build.preprocessing.directives.Toolkit
 import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
 
-class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
+class DirectiveTests extends TestUtil.ScalaCliBuildSuite with BloopServer.Suite {
   val buildThreads: BuildThreads               = BuildThreads.create()
   def bloopConfigOpt: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
   val extraRepoTmpDir: os.Path                 = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")

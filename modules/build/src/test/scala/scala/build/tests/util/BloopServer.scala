@@ -1,10 +1,13 @@
 package scala.build.tests.util
 
-import bloop.rifle.BloopRifleConfig
+import bloop.rifle.{BloopRifle, BloopRifleConfig}
 import coursier.cache.FileCache
 
 import scala.build.internals.EnvVar
-import scala.build.{Bloop, Logger}
+import scala.build.tests.TestLogger
+import scala.build.{Bloop, BuildThreads, Logger, retry}
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 
 object BloopServer {
@@ -39,4 +42,43 @@ object BloopServer {
     )
   }
 
+  /** Makes sure the shared Bloop server is running, spawning it if necessary (once per JVM).
+    *
+    * Spawning Bloop can get stuck on a busy CI runner (i.e. when several test JVMs try to spawn it
+    * at the same time). bloop-rifle only gives up on a stuck spawn after `startCheckTimeout + 30s`,
+    * which is longer than munit's per-test timeout, so a stuck spawn in the first test of a suite
+    * fails that test before the build gets the chance to retry. Doing it here instead (from a suite
+    * fixture, to which munit doesn't apply its per-test timeout) allows to retry it safely.
+    */
+  private lazy val ensureRunning: Unit = {
+    val logger  = TestLogger()
+    val threads = BuildThreads.createBloopThreads()
+    try
+      retry()(logger) {
+        if !BloopRifle.check(bloopConfig, logger.bloopRifleLogger) then
+          logger.message("Bloop server not running, spawning it before running the tests…")
+          val spawned = BloopRifle.startServer(
+            bloopConfig,
+            threads.startServerChecks,
+            logger.bloopRifleLogger,
+            bloopConfig.retainedBloopVersion.version.raw,
+            bloopConfig.javaPath
+          )
+          Await.result(spawned, bloopConfig.startCheckTimeout + 30.seconds)
+      }
+    finally threads.shutdown()
+  }
+
+  /** Suite fixture spawning the shared Bloop server before the suite's tests run, outside of
+    * munit's per-test timeout.
+    */
+  val fixture: munit.Fixture[Unit] = new munit.Fixture[Unit]("bloop-server") {
+    def apply(): Unit              = ()
+    override def beforeAll(): Unit = ensureRunning
+  }
+
+  /** Mix into suites compiling with the shared Bloop server. */
+  trait Suite extends munit.FunSuite {
+    override def munitFixtures: Seq[munit.AnyFixture[?]] = super.munitFixtures :+ fixture
+  }
 }

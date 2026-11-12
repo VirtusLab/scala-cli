@@ -15,7 +15,7 @@ import scala.build.options.{
 import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
 
-class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
+class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite with BloopServer.Suite {
 
   def expectAppWrapper(wrapperName: String, path: os.Path): Unit = {
     val generatedFileContent = os.read(path)

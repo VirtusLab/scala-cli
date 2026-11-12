@@ -7,7 +7,7 @@ import scala.build.options.{BuildOptions, InternalOptions, PackageType}
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 
-class PackagingUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
+class PackagingUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite with BloopServer.Suite {
   val buildThreads: BuildThreads            = BuildThreads.create()
   def bloopConfig: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
 

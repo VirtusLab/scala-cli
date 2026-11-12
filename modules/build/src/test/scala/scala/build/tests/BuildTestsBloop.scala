@@ -1,3 +1,5 @@
 package scala.build.tests
 
-class BuildTestsBloop extends BuildTests(server = true)
+import scala.build.tests.util.BloopServer
+
+class BuildTestsBloop extends BuildTests(server = true) with BloopServer.Suite

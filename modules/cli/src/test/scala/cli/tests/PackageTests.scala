@@ -17,7 +17,7 @@ import scala.cli.packaging.Library
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
-class PackageTests extends TestUtil.ScalaCliSuite {
+class PackageTests extends TestUtil.ScalaCliSuite with BloopServer.Suite {
   val buildThreads: BuildThreads    = BuildThreads.create()
   def bloopConfig: BloopRifleConfig = BloopServer.bloopConfig
 
