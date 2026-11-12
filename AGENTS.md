@@ -129,7 +129,8 @@ values.** To add a new directive, see [agentskills/adding-directives/](agentskil
 > CI resources are shared, and broken PRs waste maintainer time.
 
 **Unit tests**: munit, in each module’s `test` submodule. Run commands above; add tests in `modules/build/.../tests/` or
-`modules/cli/src/test/scala/`. Prefer unit over integration.
+`modules/cli/src/test/scala/`. Prefer unit over integration. Suites compiling with Bloop must mix in
+`BloopServer.Suite`; see [agentskills/unit-tests/](agentskills/unit-tests/SKILL.md).
 
 **Integration tests**: `modules/integration/`; they run the CLI as a subprocess.
 See [agentskills/integration-tests/](agentskills/integration-tests/SKILL.md) for structure and how to add tests.
