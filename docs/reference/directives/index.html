@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.2">
-<title data-rh="true">Directives | Scala CLI</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" name="twitter:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" property="og:url" content="https://scala-cli.virtuslab.org/docs/reference/directives"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Directives | Scala CLI"><meta data-rh="true" name="description" content="using directives"><meta data-rh="true" property="og:description" content="using directives"><link data-rh="true" rel="icon" href="/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://scala-cli.virtuslab.org/docs/reference/directives"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/directives" hreflang="en"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/directives" hreflang="x-default"><script data-rh="true">!function(e,t,a,n){e[n]=e[n]||[],e[n].push({"gtm.start":(new Date).getTime(),event:"gtm.js"});var g=t.getElementsByTagName(a)[0],m=t.createElement(a);m.async=!0,m.src="https://www.googletagmanager.com/gtm.js?id=GTM-5TZTCGF",g.parentNode.insertBefore(m,g)}(window,document,"script","dataLayer")</script><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Directives","item":"https://scala-cli.virtuslab.org/docs/reference/directives"}]}</script><link rel="stylesheet" href="/assets/css/styles.5f444e17.css">
-<script src="/assets/js/runtime~main.52d8c96f.js" defer="defer"></script>
+<title data-rh="true">Directives | Scala CLI</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" name="twitter:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" property="og:url" content="https://scala-cli.virtuslab.org/docs/reference/directives"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Directives | Scala CLI"><meta data-rh="true" name="description" content="using directives"><meta data-rh="true" property="og:description" content="using directives"><link data-rh="true" rel="icon" href="/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://scala-cli.virtuslab.org/docs/reference/directives"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/directives" hreflang="en"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/directives" hreflang="x-default"><script data-rh="true">!function(e,t,a,n){e[n]=e[n]||[],e[n].push({"gtm.start":(new Date).getTime(),event:"gtm.js"});var g=t.getElementsByTagName(a)[0],m=t.createElement(a);m.async=!0,m.src="https://www.googletagmanager.com/gtm.js?id=GTM-5TZTCGF",g.parentNode.insertBefore(m,g)}(window,document,"script","dataLayer")</script><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Directives","item":"https://scala-cli.virtuslab.org/docs/reference/directives"}]}</script><link rel="stylesheet" href="/assets/css/styles.01adc5c3.css">
+<script src="/assets/js/runtime~main.f90b8450.js" defer="defer"></script>
 <script src="/assets/js/main.7fd5a55c.js" defer="defer"></script>
 </head>
 <body>
@@ -169,6 +169,8 @@
 <p><code>//&gt; using packaging.dockerCmd</code> <em>docker-command</em></p>
 <p><code>//&gt; using packaging.dockerExtraDirectories</code> <em>directories</em>
 <code>//&gt; using packaging.dockerExtraDirectory</code> <em>directory</em></p>
+<p><code>//&gt; using packaging.dockerExposedPorts</code> <em>ports</em>
+<code>//&gt; using packaging.dockerExposedPort</code> <em>port</em></p>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="examples-16">Examples<a href="#examples-16" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples" translate="no">​</a></h4>
 <p><code>//&gt; using packaging.packageType assembly</code></p>
 <p><code>//&gt; using packaging.output foo</code></p>
@@ -185,6 +187,8 @@
 <p><code>//&gt; using packaging.dockerCmd node</code></p>
 <p><code>//&gt; using packaging.dockerExtraDirectories path/to/directory1 path/to/directory2</code></p>
 <p><code>//&gt; using packaging.dockerExtraDirectory path/to/directory</code></p>
+<p><code>//&gt; using packaging.dockerExposedPorts 8080 9000-9010 53/udp</code></p>
+<p><code>//&gt; using packaging.dockerExposedPort 8080</code></p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="platform">Platform<a href="#platform" class="hash-link" aria-label="Direct link to Platform" title="Direct link to Platform" translate="no">​</a></h3>
 <p>Set the default platform to Scala.js or Scala Native</p>
 <p><code>//&gt; using platform</code> (<code>jvm</code>|<code>scala-js</code>|<code>js</code>|<code>scala-native</code>|<code>native</code>)+</p>
@@ -390,9 +394,12 @@
 <p>Add WebAssembly options</p>
 <p><code>//&gt; using wasm</code> <em>true|false</em></p>
 <p><code>//&gt; using wasm</code></p>
+<p><code>//&gt; using wasmJspi</code> <em>true|false</em></p>
+<p><code>//&gt; using wasmJspi</code></p>
 <p><code>//&gt; using jsRuntime</code> <em>node|deno|bun</em></p>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="examples-32">Examples<a href="#examples-32" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples" translate="no">​</a></h4>
 <p><code>//&gt; using wasm</code></p>
+<p><code>//&gt; using wasmJspi</code></p>
 <p><code>//&gt; using jsRuntime node</code></p>
 <p><code>//&gt; using jsRuntime deno</code></p>
 <p><code>//&gt; using jsRuntime bun</code></p>
