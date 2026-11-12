@@ -1584,6 +1584,7 @@ def unitTests(): Command[(msg: String, results: Seq[TestResult])] = Task.Command
   core(Scala.defaultInternal).test.testForked()()
   directives(Scala.defaultInternal).test.testForked()()
   options(Scala.defaultInternal).test.testForked()()
+  runner(Scala.runnerScala3).test.testForked()()
 }
 
 def scala(args: Task[Args] = Task.Anon(Args())) = Task.Command {
