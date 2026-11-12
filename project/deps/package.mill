@@ -173,7 +173,7 @@ object Deps {
     def javaSemanticdb                    = "0.12.3"
     def javaClassName                     = "0.2.0"
     def bloop                             = "2.1.3"
-    def bouncycastle                      = "1.86"
+    def bouncycastle                      = "1.87"
     def sbt1Version                       = "1.12.5"
     def sbt2Version                       = "2.0.10"
     def sbtVersion                        = sbt2Version
