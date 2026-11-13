@@ -3,6 +3,8 @@ package scala.build.tests
 import munit.AnyFixture
 import munit.Assertions.assertEquals
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 
 import scala.build.options.{BuildOptions, Platform}
@@ -29,19 +31,25 @@ object TestUtil {
       override def beforeEach(context: BeforeEach): Unit = {
         val fileName = context.locationAbsolutePath.baseName
         System.err.println(
-          s">==== ${Console.CYAN}Running '${context.test.name}' from $fileName${Console.RESET}"
+          s">==== ${TestUtil.timestamp} ${Console.CYAN}Running '${context.test.name}' from $fileName${Console.RESET}"
         )
       }
 
       override def afterEach(context: AfterEach): Unit = {
         val fileName = context.locationAbsolutePath.baseName
         System.err.println(
-          s"X==== ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
+          s"X==== ${TestUtil.timestamp} ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
         )
       }
     }
     override def munitFixtures: Seq[AnyFixture[?]] = List(testStartEndLogger)
   }
+
+  private val timestampFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+
+  /** Current local time, used to prefix test start/end logs. */
+  def timestamp: String = LocalDateTime.now().format(timestampFormatter)
 
   val isCI: Boolean = System.getenv("CI") != null
 

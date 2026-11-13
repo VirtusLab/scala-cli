@@ -30,14 +30,14 @@ object TestUtil {
       override def beforeEach(context: BeforeEach): Unit = {
         val fileName = context.locationAbsolutePath.baseName
         System.err.println(
-          s">==== ${Console.CYAN}Running '${context.test.name}' from $fileName${Console.RESET}"
+          s">==== ${scala.build.tests.TestUtil.timestamp} ${Console.CYAN}Running '${context.test.name}' from $fileName${Console.RESET}"
         )
       }
 
       override def afterEach(context: AfterEach): Unit = {
         val fileName = context.locationAbsolutePath.baseName
         System.err.println(
-          s"X==== ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
+          s"X==== ${scala.build.tests.TestUtil.timestamp} ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
         )
       }
     }

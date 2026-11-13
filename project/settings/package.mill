@@ -44,8 +44,8 @@ def isCI = System.getenv("CI") != null
   *   the subjects of the removed certificates
   */
 def writeTrustStoreWithoutCompromisedCas(source: os.Path, dest: os.Path): Seq[String] =
-  val password = "changeit".toCharArray
-  val store    = KeyStore.getInstance(source.toIO, password)
+  val password                       = "changeit".toCharArray
+  val store                          = KeyStore.getInstance(source.toIO, password)
   def subject(alias: String): String =
     store.getCertificate(alias) match
       case cert: X509Certificate => cert.getSubjectX500Principal.getName
@@ -56,7 +56,9 @@ def writeTrustStoreWithoutCompromisedCas(source: os.Path, dest: os.Path): Seq[St
   val toRemove     = subjects.filter: (_, subject) =>
     subject.contains("emSign") || subject.contains("CN=AAA Certificate Services")
   if toRemove.exists(_._2.contains("CN=AAA Certificate Services")) && !hasUserTrust then
-    sys.error(s"No USERTrust root in $source, can't remove the AAA Certificate Services root safely")
+    sys.error(
+      s"No USERTrust root in $source, can't remove the AAA Certificate Services root safely"
+    )
   for (alias, _) <- toRemove do store.deleteEntry(alias)
   val out = os.write.over.outputStream(dest, createFolders = true)
   try store.store(out, password)

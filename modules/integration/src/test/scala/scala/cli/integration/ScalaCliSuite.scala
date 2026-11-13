@@ -34,7 +34,7 @@ abstract class ScalaCliSuite extends munit.FunSuite {
       resourceTracker.clear()
       val fileName = context.locationAbsolutePath.baseName
       System.err.println(
-        s">==== ${Console.CYAN}Running '${context.test.name}' from $fileName${Console.RESET}"
+        s">==== ${TestUtil.timestamp} ${Console.CYAN}Running '${context.test.name}' from $fileName${Console.RESET}"
       )
     }
 
@@ -44,7 +44,7 @@ abstract class ScalaCliSuite extends munit.FunSuite {
       System.err.flush()
       val fileName = context.locationAbsolutePath.baseName
       System.err.println(
-        s"X==== ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
+        s"X==== ${TestUtil.timestamp} ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
       )
     }
 
