@@ -5,6 +5,8 @@ import coursier.paths.CoursierPaths
 
 import java.io.File
 import java.net.ServerSocket
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, ThreadFactory}
 import java.util.{Locale, UUID}
@@ -17,6 +19,11 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Try}
 
 object TestUtil {
+  private val timestampFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+
+  /** Current local time, used to prefix test start/end logs. */
+  def timestamp: String = LocalDateTime.now().format(timestampFormatter)
 
   val cliKind: String               = sys.props("test.scala-cli.kind")
   val isNativeCli: Boolean          = cliKind.startsWith("native")
