@@ -18,7 +18,8 @@ import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   Diagnostic,
-  ParsingInputsException
+  ParsingInputsException,
+  Severity
 }
 import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.internal.Constants
@@ -214,6 +215,17 @@ final class BspImpl(
       val projectOptions = options0Test.orElse(options0Main)
       projectOptions.logActionableDiagnostics(persistentLogger)
     }
+
+    val activeOptions = Build.activeScopeOptions(
+      mainSources = sourcesMain,
+      mainOptions = options0Main,
+      testSources = sourcesTest,
+      testOptions = options0Test,
+      fallbackOptions = sharedOptions
+    )
+    for warningMsg <- Build.explicitCFilesOutsideNativeWarning(allInputs, activeOptions) do
+      logger.diagnostic(warningMsg, Severity.Warning)
+      if actualLocalClient != null then showGlobalWarningOnce(warningMsg)
 
     PreBuildProject(mainScope, testScope, persistentLogger.diagnostics)
   }
