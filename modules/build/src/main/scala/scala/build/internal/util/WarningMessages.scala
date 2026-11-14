@@ -189,4 +189,23 @@ object WarningMessages {
 
   val slothNonStandaloneBootstrapWarning: String =
     "Could not patch lazy vals in non-standalone bootstrap dependencies; use --standalone for batch patching."
+
+  private val MaxExplicitCFilesDisplayed = 5
+
+  def explicitCFilesOutsideNative(cFilePaths: Seq[String]): String = {
+    val distinctPaths = cFilePaths.distinct
+    val fileCount     = distinctPaths.length
+    val noun          = if fileCount == 1 then "file" else "files"
+    val fileList      =
+      if fileCount == 0 then "Explicitly passed C/header files"
+      else {
+        val displayed = distinctPaths.take(MaxExplicitCFilesDisplayed).mkString(", ")
+        val remaining = fileCount - MaxExplicitCFilesDisplayed
+        val details   =
+          if remaining > 0 then s"$displayed, and $remaining more"
+          else displayed
+        s"Explicitly passed C/header $noun ($details)"
+      }
+    s"$fileList will be ignored because the target platform is not Scala Native (use `--platform scala-native` or `//> using platform scala-native`)."
+  }
 }

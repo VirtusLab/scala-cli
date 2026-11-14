@@ -13,29 +13,36 @@ import scala.build.internals.FeatureType
 import scala.collection.mutable.ListBuffer
 import scala.scalanative.build as sn
 
-/** Logger that records all message(), log(), and debug() calls for test assertions. */
+/** Logger that records all message(), log(), debug(), and diagnostic calls for test assertions. */
 final class RecordingLogger(delegate: Logger = TestLogger()) extends Logger {
-  val messages: ListBuffer[String]      = ListBuffer.empty
-  val debugMessages: ListBuffer[String] = ListBuffer.empty
+  val messages: ListBuffer[String]        = ListBuffer.empty
+  val debugMessages: ListBuffer[String]   = ListBuffer.empty
+  val diagnostics: ListBuffer[Diagnostic] = ListBuffer.empty
+
+  def recordedDiagnostics: Seq[Diagnostic] =
+    diagnostics.synchronized(diagnostics.toVector)
 
   override def error(message: String): Unit      = delegate.error(message)
   override def message(message: => String): Unit = {
     val msg = message
-    messages += msg
+    messages.synchronized(messages += msg)
     delegate.message(msg)
   }
   override def log(s: => String): Unit = {
     val msg = s
-    messages += msg
+    messages.synchronized(messages += msg)
     delegate.log(msg)
   }
   override def log(s: => String, debug: => String): Unit = delegate.log(s, debug)
   override def debug(s: => String): Unit                 = {
     val msg = s
-    debugMessages += msg
+    debugMessages.synchronized(debugMessages += msg)
     delegate.debug(msg)
   }
-  override def log(diagnostics: Seq[Diagnostic]): Unit           = delegate.log(diagnostics)
+  override def log(diagnostics0: Seq[Diagnostic]): Unit = {
+    diagnostics.synchronized(diagnostics ++= diagnostics0)
+    delegate.log(diagnostics0)
+  }
   override def log(ex: BuildException): Unit                     = delegate.log(ex)
   override def debug(ex: BuildException): Unit                   = delegate.debug(ex)
   override def exit(ex: BuildException): Nothing                 = delegate.exit(ex)
