@@ -216,16 +216,13 @@ final class BspImpl(
       projectOptions.logActionableDiagnostics(persistentLogger)
     }
 
-    val activeOptions = Build.activeScopeOptions(
-      mainSources = sourcesMain,
-      mainOptions = options0Main,
-      testSources = sourcesTest,
-      testOptions = options0Test,
-      fallbackOptions = sharedOptions
-    )
-    for warningMsg <- Build.explicitCFilesOutsideNativeWarning(allInputs, activeOptions) do
-      logger.diagnostic(warningMsg, Severity.Warning)
-      if actualLocalClient != null then showGlobalWarningOnce(warningMsg)
+    for (warningMsg, positions) <- Build.explicitCFilesOutsideNativeWarning(
+        allInputs,
+        Seq(options0Main, options0Test)
+      )
+    do
+      persistentLogger.diagnostic(warningMsg, Severity.Warning, positions)
+      showGlobalWarningOnce(warningMsg)
 
     PreBuildProject(mainScope, testScope, persistentLogger.diagnostics)
   }

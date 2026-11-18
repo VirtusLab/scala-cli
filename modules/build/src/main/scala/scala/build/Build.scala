@@ -386,8 +386,7 @@ object Build {
     crossBuilds: Boolean,
     buildTests: Boolean,
     partial: Option[Boolean],
-    actionableDiagnostics: Option[Boolean],
-    warnExplicitCFiles: Boolean = true
+    actionableDiagnostics: Option[Boolean]
   )(using ScalaCliInvokeData): Either[BuildException, Builds] = either {
     val sharedOptions = crossSources.sharedOptions(options)
     val crossOptions  = sharedOptions.crossOptions
@@ -418,10 +417,7 @@ object Build {
       testDocOpt: Option[Build]
     )
 
-    def doBuild(
-      overrideOptions: BuildOptions,
-      isPrimaryBuild: Boolean = false
-    ): Either[BuildException, NonCrossBuilds] = either {
+    def doBuild(overrideOptions: BuildOptions): Either[BuildException, NonCrossBuilds] = either {
 
       val inputs0 = updateInputs(
         inputs,
@@ -439,20 +435,6 @@ object Build {
       val testSources: Sources =
         value(scopedSources.sources(Scope.Test, baseOptions, inputs.workspace, logger))
       val testOptions = testSources.buildOptions
-
-      if warnExplicitCFiles && isPrimaryBuild then {
-        val scopedOptions = activeScopeOptions(
-          mainSources = mainSources,
-          mainOptions = mainOptions,
-          testSources = testSources,
-          testOptions = testOptions,
-          fallbackOptions = baseOptions,
-          buildTests = buildTests
-        )
-        val allTargetOptions =
-          if crossBuilds then scopedOptions ++ crossOptions else scopedOptions
-        warnIfExplicitCFilesOutsideNative(inputs0, allTargetOptions, logger)
-      }
 
       def doBuildScope(
         options: BuildOptions,
@@ -554,12 +536,12 @@ object Build {
 
     def buildScopes(): Either[BuildException, Builds] =
       either {
-        val nonCrossBuilds = value(doBuild(BuildOptions(), isPrimaryBuild = true))
+        val nonCrossBuilds = value(doBuild(BuildOptions()))
 
         val (extraMainBuilds, extraTestBuilds, extraDocBuilds, extraDocTestBuilds) =
           if crossBuilds then {
             val extraBuilds = value {
-              val maybeBuilds = crossOptions.map(doBuild(_))
+              val maybeBuilds = crossOptions.map(doBuild)
               maybeBuilds
                 .sequence
                 .left.map(CompositeBuildException(_))
@@ -602,6 +584,12 @@ object Build {
       val projectOptions = builds.get(Scope.Test).getOrElse(builds.main).options
       projectOptions.logActionableDiagnostics(logger)
     }
+
+    warnIfExplicitCFilesOutsideNative(
+      inputs,
+      builds.all.map(_.options),
+      logger
+    )
 
     builds
   }
@@ -817,45 +805,37 @@ object Build {
     else Right(())
   }
 
-  private[build] def activeScopeOptions(
-    mainSources: Sources,
-    mainOptions: BuildOptions,
-    testSources: Sources,
-    testOptions: BuildOptions,
-    fallbackOptions: BuildOptions,
-    buildTests: Boolean = true
-  ): Seq[BuildOptions] = {
-    val mainActive = mainSources.paths.nonEmpty || mainSources.inMemory.nonEmpty
-    val testActive = buildTests && (testSources.paths.nonEmpty || testSources.inMemory.nonEmpty)
-    val scoped     =
-      (if mainActive then Seq(mainOptions) else Nil) ++
-        (if testActive then Seq(testOptions) else Nil)
-    if scoped.nonEmpty then scoped else Seq(fallbackOptions)
-  }
-
   private[build] def explicitCFilesOutsideNativeWarning(
     inputs: Inputs,
     buildOptions: Seq[BuildOptions]
-  ): Option[String] =
-    if buildOptions.exists(_.platform.value == Platform.Native) then None
+  ): Option[(String, Seq[Position.File])] = {
+    val shouldSuppress = buildOptions.exists { o =>
+      o.suppressWarningOptions.suppressExplicitCFilesOutsideNativeWarning.getOrElse(false) ||
+      o.platform.value == Platform.Native ||
+      o.scalaOptions.extraPlatforms.contains(Platform.Native)
+    }
+    if shouldSuppress then None
     else {
       val explicitCPaths = inputs.elements.collect { case c: CFile => c.path }.distinct
       if explicitCPaths.isEmpty then None
-      else
-        Some(
-          WarningMessages.explicitCFilesOutsideNative(
-            explicitCPaths.map(Util.printablePath).distinct
-          )
+      else {
+        val warningMsg = WarningMessages.explicitCFilesOutsideNative(
+          explicitCPaths.map(Util.printablePath).distinct
         )
+        val positions = explicitCPaths.map(p => Position.File(Right(p), (0, 0), (0, 0)))
+        Some((warningMsg, positions))
+      }
     }
+  }
 
   private[build] def warnIfExplicitCFilesOutsideNative(
     inputs: Inputs,
     buildOptions: Seq[BuildOptions],
     logger: Logger
   ): Unit =
-    explicitCFilesOutsideNativeWarning(inputs, buildOptions).foreach { msg =>
-      logger.diagnostic(msg, Severity.Warning)
+    explicitCFilesOutsideNativeWarning(inputs, buildOptions).foreach {
+      (msg, positions) =>
+        logger.diagnostic(msg, Severity.Warning, positions)
     }
 
   def watch(
@@ -1580,8 +1560,7 @@ object Build {
           crossBuilds = false,
           buildTests = buildTests,
           partial = None,
-          actionableDiagnostics = actionableDiagnostics,
-          warnExplicitCFiles = false
+          actionableDiagnostics = actionableDiagnostics
         )
       }
       Some(jmhBuilds.main)

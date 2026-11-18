@@ -2,15 +2,21 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+
+import scala.build.*
+import scala.build.bsp.{Bsp, BspReloadableOptions, BspThreads}
 import scala.build.compiler.SimpleScalaCompilerMaker
 import scala.build.errors.Severity
 import scala.build.input.{CFile, ScalaCliInvokeData}
 import scala.build.internal.util.WarningMessages
 import scala.build.options.*
 import scala.build.tests.TestUtil.*
-import scala.build.{Build, BuildThreads, CrossSources, Directories, LocalRepo, Sources}
+import scala.build.tests.util.BloopServer
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
 
-class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite {
+class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServer.Suite {
 
   private val buildThreads: BuildThreads = BuildThreads.create()
   private val extraRepoTmpDir: os.Path   = os.temp.dir(prefix = "scala-cli-tests-c-warnings-")
@@ -39,7 +45,7 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite {
     }
 
   test(
-    "WarningMessages.explicitCFilesOutsideNative handles singular, plural, truncation, and empty"
+    "WarningMessages.explicitCFilesOutsideNative handles singular, plural, all files, and empty"
   ) {
     val single = WarningMessages.explicitCFilesOutsideNative(Seq("./bindings.c"))
     expect(single.contains("C/header file (./bindings.c)"))
@@ -53,9 +59,8 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite {
       (1 to 7).map(i => s"./file$i.c")
     )
     expect(many.contains(
-      "C/header files (./file1.c, ./file2.c, ./file3.c, ./file4.c, ./file5.c, and 2 more)"
+      "C/header files (./file1.c, ./file2.c, ./file3.c, ./file4.c, ./file5.c, ./file6.c, ./file7.c)"
     ))
-    expect(!many.contains("./file6.c"))
 
     val empty = WarningMessages.explicitCFilesOutsideNative(Nil)
     expect(empty.contains("Explicitly passed C/header files will be ignored"))
@@ -76,12 +81,16 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite {
           |""".stripMargin
     )
     inputs.withBuild(defaultScala3Options, buildThreads, None, logger = Some(logger)) {
-      (_, _, maybeBuild) =>
+      (root, _, maybeBuild) =>
         assert(maybeBuild.isRight)
         val warnings = cFileWarnings(logger)
         assertEquals(warnings.length, 1)
         expect(warnings.head.message.contains("bindings.c"))
         expect(warnings.head.message.contains("C/header file "))
+        assertEquals(
+          warnings.head.positions,
+          Seq(Position.File(Right(root / "bindings.c"), (0, 0), (0, 0)))
+        )
     }
   }
 
@@ -203,19 +212,16 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite {
       assertEquals(mainSources.buildOptions.platform.value, Platform.Native)
       val testSources =
         scopedSources.sources(Scope.Test, sharedOptions, inputs0.workspace, logger).toTry.get
-      val activeOptions = Build.activeScopeOptions(
-        mainSources = mainSources,
-        mainOptions = mainSources.buildOptions,
-        testSources = testSources,
-        testOptions = testSources.buildOptions,
-        fallbackOptions = sharedOptions
+      Build.warnIfExplicitCFilesOutsideNative(
+        inputs0,
+        Seq(mainSources.buildOptions, testSources.buildOptions),
+        logger
       )
-      Build.warnIfExplicitCFilesOutsideNative(inputs0, activeOptions, logger)
       assertEquals(cFileWarnings(logger).length, 0)
     }
   }
 
-  test("warn when multi-platform directive includes Native without --cross enabled") {
+  test("do not warn when multi-platform directive includes Native as secondary platform") {
     val logger = new RecordingLogger()
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
@@ -229,23 +235,47 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite {
     inputs.withBuild(defaultScala3Options, buildThreads, None, logger = Some(logger)) {
       (_, _, maybeBuild) =>
         assert(maybeBuild.isRight)
-        val warnings = cFileWarnings(logger)
-        assertEquals(warnings.length, 1)
-        expect(warnings.head.message.contains("bindings.c"))
+        assertEquals(cFileWarnings(logger).length, 0)
     }
   }
 
-  test("deduplicate duplicate explicit .c inputs and respect active scopes and cross builds") {
+  test("do not warn when suppressExplicitCFilesOutsideNativeWarning is enabled") {
+    val logger  = new RecordingLogger()
+    val options = defaultScala3Options.copy(
+      suppressWarningOptions = SuppressWarningOptions(
+        suppressExplicitCFilesOutsideNativeWarning = Some(true)
+      )
+    )
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """@main def main() = println("hello")
+          |""".stripMargin,
+      os.rel / "bindings.c" ->
+        """void hello(void) {}
+          |""".stripMargin
+    )
+    inputs.withBuild(options, buildThreads, None, logger = Some(logger)) {
+      (_, _, maybeBuild) =>
+        assert(maybeBuild.isRight)
+        assertEquals(cFileWarnings(logger).length, 0)
+    }
+  }
+
+  test("deduplicate duplicate explicit .c inputs and attach file positions") {
     val logger = new RecordingLogger()
     val inputs = TestInputs(
       os.rel / "bindings.c" -> "void hello(void) {}\n"
     )
-    inputs.withInputs { (_, inputs0) =>
+    inputs.withInputs { (root, inputs0) =>
       val duplicateCInputs =
         inputs0.copy(elements = inputs0.elements ++ inputs0.elements.collect { case c: CFile => c })
       val warningOpt =
         Build.explicitCFilesOutsideNativeWarning(duplicateCInputs, Seq(defaultScala3Options))
-      expect(warningOpt.exists(_.contains("C/header file (")))
+      expect(warningOpt.exists(_._1.contains("C/header file (")))
+      assertEquals(
+        warningOpt.map(_._2),
+        Some(Seq(Position.File(Right(root / "bindings.c"), (0, 0), (0, 0))))
+      )
 
       expect(
         Build.explicitCFilesOutsideNativeWarning(
@@ -254,33 +284,56 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite {
         ).isEmpty
       )
 
-      val emptyMainSources = Sources(Nil, Nil, None, Nil, defaultScala3Options)
-      val testSources      = Sources(
-        Seq((inputs0.workspace / "Main.test.scala", os.rel / "Main.test.scala")),
-        Nil,
-        None,
-        Nil,
-        defaultScala3Options.enableNative
+      Build.warnIfExplicitCFilesOutsideNative(
+        inputs0,
+        Seq(defaultScala3Options, defaultScala3Options.enableNative),
+        logger
       )
-      val activeOptions = Build.activeScopeOptions(
-        mainSources = emptyMainSources,
-        mainOptions = defaultScala3Options,
-        testSources = testSources,
-        testOptions = defaultScala3Options.enableNative,
-        fallbackOptions = defaultScala3Options
-      )
-      Build.warnIfExplicitCFilesOutsideNative(inputs0, activeOptions, logger)
       assertEquals(cFileWarnings(logger).length, 0)
+    }
+  }
 
-      val fallbackOnlyOptions = Build.activeScopeOptions(
-        mainSources = emptyMainSources,
-        mainOptions = defaultScala3Options,
-        testSources = testSources,
-        testOptions = defaultScala3Options.enableNative,
-        fallbackOptions = defaultScala3Options.enableNative,
-        buildTests = false
+  test("emit warning diagnostic with file position in BSP prepareBuild") {
+    val logger = new RecordingLogger()
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """@main def main() = println("hello")
+          |""".stripMargin,
+      os.rel / "bindings.c" ->
+        """void hello(void) {}
+          |""".stripMargin
+    )
+    inputs.withInputs { (root, inputs0) =>
+      given ScalaCliInvokeData = ScalaCliInvokeData.dummy
+      BspThreads.withThreads { threads =>
+        val bspReloadableOptions = BspReloadableOptions(
+          buildOptions = defaultScala3Options,
+          bloopRifleConfig = BloopServer.bloopConfig,
+          logger = logger,
+          verbosity = 0
+        )
+        val bsp = Bsp.create(
+          argsToInputs = _ => Right(inputs0),
+          bspReloadableOptionsReference =
+            BspReloadableOptions.Reference(() => bspReloadableOptions),
+          threads = threads,
+          in = new ByteArrayInputStream(Array.emptyByteArray),
+          out = new ByteArrayOutputStream(),
+          actionableDiagnostics = Some(false)
+        )
+        try {
+          val future = bsp.run(inputs0, bspReloadableOptions)
+          Await.ready(future, 30.seconds)
+        }
+        finally bsp.shutdown()
+      }
+      val warnings = cFileWarnings(logger)
+      assertEquals(warnings.length, 1)
+      expect(warnings.head.message.contains("bindings.c"))
+      assertEquals(
+        warnings.head.positions,
+        Seq(Position.File(Right(root / "bindings.c"), (0, 0), (0, 0)))
       )
-      expect(Build.explicitCFilesOutsideNativeWarning(inputs0, fallbackOnlyOptions).isEmpty)
     }
   }
 
