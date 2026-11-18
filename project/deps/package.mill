@@ -332,7 +332,7 @@ def graalVmJavaVersion      = 25
 def graalVmCommunityVersion = s"$graalVmJavaVersion.0.2"
 // there are no GraalVM CE builds for macOS x64 past 25.0.1
 def graalVmCommunityMacosX64Version = s"$graalVmJavaVersion.0.1"
-def graalSvmVersion                 = "25.0.5.0.3"
+def graalSvmVersion                 = "25.0.5.1"
 def graalVmJvmId                    = {
   val version =
     val isArm = sys.props.getOrElse("os.arch", "").toLowerCase(Locale.ROOT) == "aarch64"
