@@ -811,16 +811,18 @@ object Build {
   ): Option[(String, Seq[Position.File])] = {
     val shouldSuppress = buildOptions.exists { o =>
       o.suppressWarningOptions.suppressExplicitCFilesOutsideNativeWarning.getOrElse(false) ||
-      o.platform.value == Platform.Native ||
-      o.scalaOptions.extraPlatforms.contains(Platform.Native)
+      o.platform.value == Platform.Native
     }
     if shouldSuppress then None
     else {
       val explicitCPaths = inputs.elements.collect { case c: CFile => c.path }.distinct
       if explicitCPaths.isEmpty then None
       else {
+        val nativeConfiguredInCross =
+          buildOptions.exists(_.scalaOptions.extraPlatforms.contains(Platform.Native))
         val warningMsg = WarningMessages.explicitCFilesOutsideNative(
-          explicitCPaths.map(Util.printablePath).distinct
+          explicitCPaths.map(Util.printablePath).distinct,
+          nativeConfiguredInCross = nativeConfiguredInCross
         )
         val positions = explicitCPaths.map(p => Position.File(Right(p), (0, 0), (0, 0)))
         Some((warningMsg, positions))

@@ -41,14 +41,23 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
   private def cFileWarnings(logger: RecordingLogger) =
     logger.recordedDiagnostics.filter { diag =>
       diag.severity == Severity.Warning &&
-      diag.message.contains("will be ignored because the target platform is not Scala Native")
+      diag.message.contains("Explicitly passed C/header ") &&
+      diag.message.contains("will be ignored because ")
     }
 
   test(
-    "WarningMessages.explicitCFilesOutsideNative handles singular, plural, all files, and empty"
+    "WarningMessages.explicitCFilesOutsideNative handles singular, plural, all files, cross, and empty"
   ) {
     val single = WarningMessages.explicitCFilesOutsideNative(Seq("./bindings.c"))
     expect(single.contains("C/header file (./bindings.c)"))
+    expect(single.contains("the target platform is not Scala Native"))
+
+    val crossMsg = WarningMessages.explicitCFilesOutsideNative(
+      Seq("./bindings.c"),
+      nativeConfiguredInCross = true
+    )
+    expect(crossMsg.contains("Scala Native is only configured as a secondary platform"))
+    expect(crossMsg.contains("pass `--cross` or `--platform scala-native`"))
 
     val multiple = WarningMessages.explicitCFilesOutsideNative(
       Seq("./bindings.c", "./bindings.h", "./bindings.c")
@@ -221,7 +230,7 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
     }
   }
 
-  test("do not warn when multi-platform directive includes Native as secondary platform") {
+  test("warn with cross hint when multi-platform directive includes Native as secondary platform") {
     val logger = new RecordingLogger()
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
@@ -233,9 +242,20 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
           |""".stripMargin
     )
     inputs.withBuild(defaultScala3Options, buildThreads, None, logger = Some(logger)) {
-      (_, _, maybeBuild) =>
+      (root, _, maybeBuild) =>
         assert(maybeBuild.isRight)
-        assertEquals(cFileWarnings(logger).length, 0)
+        val warnings = cFileWarnings(logger)
+        assertEquals(warnings.length, 1)
+        expect(warnings.head.message.contains("bindings.c"))
+        expect(
+          warnings.head.message.contains(
+            "Scala Native is only configured as a secondary platform and cross-building is disabled (pass `--cross` or `--platform scala-native`)"
+          )
+        )
+        assertEquals(
+          warnings.head.positions,
+          Seq(Position.File(Right(root / "bindings.c"), (0, 0), (0, 0)))
+        )
     }
   }
 

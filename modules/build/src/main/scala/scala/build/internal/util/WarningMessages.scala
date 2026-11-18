@@ -190,13 +190,21 @@ object WarningMessages {
   val slothNonStandaloneBootstrapWarning: String =
     "Could not patch lazy vals in non-standalone bootstrap dependencies; use --standalone for batch patching."
 
-  def explicitCFilesOutsideNative(cFilePaths: Seq[String]): String = {
+  def explicitCFilesOutsideNative(
+    cFilePaths: Seq[String],
+    nativeConfiguredInCross: Boolean = false
+  ): String = {
     val distinctPaths = cFilePaths.distinct
     val fileCount     = distinctPaths.length
     val noun          = if fileCount == 1 then "file" else "files"
     val fileList      =
       if fileCount == 0 then "Explicitly passed C/header files"
       else s"Explicitly passed C/header $noun (${distinctPaths.mkString(", ")})"
-    s"$fileList will be ignored because the target platform is not Scala Native (use `--platform scala-native` or `//> using platform scala-native`)."
+    val reason =
+      if nativeConfiguredInCross then
+        "Scala Native is only configured as a secondary platform and cross-building is disabled (pass `--cross` or `--platform scala-native`)"
+      else
+        "the target platform is not Scala Native (use `--platform scala-native` or `//> using platform scala-native`)"
+    s"$fileList will be ignored because $reason."
   }
 }
