@@ -87,7 +87,7 @@ jobs:
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
-        run: echo "Skipping JVM bootstrapped integration tests -- changes do not affect compiled code or CI."
+        run: echo "Skipping JVM bootstrapped integration tests (sanity) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
@@ -109,9 +109,10 @@ jobs:
         run: ./mill -i integration.test.jvmBootstrapped
         env:
           SCALA_CLI_IT_GROUP: 1
+          SCALA_CLI_IT_SANITY: true
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run: .github/scripts/generate-junit-reports.sc jvm-bootstrapped-tests-default 'Scala CLI JVM Bootstrapped Tests' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc jvm-bootstrapped-tests-default 'Scala CLI JVM Bootstrapped Tests (sanity)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
