@@ -38,42 +38,50 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
     )
   )
 
-  private def cFileWarnings(logger: RecordingLogger) =
+  private def cFilePositionWarnings(logger: RecordingLogger) =
     logger.recordedDiagnostics.filter { diag =>
       diag.severity == Severity.Warning &&
-      diag.message.contains("Explicitly passed C/header ") &&
-      diag.message.contains("will be ignored because ")
+      diag.message.startsWith("C/header file will be ignored: the target platform is ")
     }
 
+  private def cFileSummaryWarnings(logger: RecordingLogger) =
+    logger.recordedDiagnostics.filter { diag =>
+      diag.severity == Severity.Warning &&
+      diag.message.contains("explicitly passed C/header ") &&
+      diag.message.contains("will be ignored")
+    }
+
+  private def cFileWarnings(logger: RecordingLogger) =
+    cFilePositionWarnings(logger) ++ cFileSummaryWarnings(logger)
+
   test(
-    "WarningMessages.explicitCFilesOutsideNative handles singular, plural, all files, cross, and empty"
+    "WarningMessages formats per-file and summary warnings for singular, plural, and cross"
   ) {
-    val single = WarningMessages.explicitCFilesOutsideNative(Seq("./bindings.c"))
-    expect(single.contains("C/header file (./bindings.c)"))
-    expect(single.contains("the target platform is not Scala Native"))
+    val perFileJvm = WarningMessages.explicitCFileIgnored("JVM")
+    assertEquals(
+      perFileJvm,
+      "C/header file will be ignored: the target platform is JVM, not Scala Native."
+    )
+
+    val single = WarningMessages.explicitCFilesOutsideNative(1)
+    assertEquals(
+      single,
+      "1 explicitly passed C/header file will be ignored. To use it, build for Scala Native: `--platform scala-native` or `//> using platform scala-native`."
+    )
+
+    val multiple = WarningMessages.explicitCFilesOutsideNative(5)
+    assertEquals(
+      multiple,
+      "5 explicitly passed C/header files will be ignored. To use them, build for Scala Native: `--platform scala-native` or `//> using platform scala-native`."
+    )
 
     val crossMsg = WarningMessages.explicitCFilesOutsideNative(
-      Seq("./bindings.c"),
+      2,
       nativeConfiguredInCross = true
     )
+    expect(crossMsg.contains("2 explicitly passed C/header files will be ignored"))
     expect(crossMsg.contains("Scala Native is only configured as a secondary platform"))
     expect(crossMsg.contains("pass `--cross` or `--platform scala-native`"))
-
-    val multiple = WarningMessages.explicitCFilesOutsideNative(
-      Seq("./bindings.c", "./bindings.h", "./bindings.c")
-    )
-    expect(multiple.contains("C/header files (./bindings.c, ./bindings.h)"))
-
-    val many = WarningMessages.explicitCFilesOutsideNative(
-      (1 to 7).map(i => s"./file$i.c")
-    )
-    expect(many.contains(
-      "C/header files (./file1.c, ./file2.c, ./file3.c, ./file4.c, ./file5.c, ./file6.c, ./file7.c)"
-    ))
-
-    val empty = WarningMessages.explicitCFilesOutsideNative(Nil)
-    expect(empty.contains("Explicitly passed C/header files will be ignored"))
-    expect(!empty.contains("()"))
   }
 
   test("warn once when explicit .c file is passed on JVM with main and test scopes") {
@@ -92,14 +100,19 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
     inputs.withBuild(defaultScala3Options, buildThreads, None, logger = Some(logger)) {
       (root, _, maybeBuild) =>
         assert(maybeBuild.isRight)
-        val warnings = cFileWarnings(logger)
-        assertEquals(warnings.length, 1)
-        expect(warnings.head.message.contains("bindings.c"))
-        expect(warnings.head.message.contains("C/header file "))
+        val posWarnings     = cFilePositionWarnings(logger)
+        val summaryWarnings = cFileSummaryWarnings(logger)
+        assertEquals(posWarnings.length, 1)
+        assertEquals(summaryWarnings.length, 1)
+        expect(posWarnings.head.message.contains("the target platform is JVM, not Scala Native."))
         assertEquals(
-          warnings.head.positions,
+          posWarnings.head.positions,
           Seq(Position.File(Right(root / "bindings.c"), (0, 0), (0, 0)))
         )
+        expect(summaryWarnings.head.message.contains(
+          "1 explicitly passed C/header file will be ignored."
+        ))
+        assertEquals(summaryWarnings.head.positions, Nil)
     }
   }
 
@@ -114,15 +127,20 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
           |""".stripMargin
     )
     inputs.withBuild(defaultScala3Options, buildThreads, None, logger = Some(logger)) {
-      (_, _, maybeBuild) =>
+      (root, _, maybeBuild) =>
         assert(maybeBuild.isRight)
-        val warnings = cFileWarnings(logger)
-        assertEquals(warnings.length, 1)
-        expect(warnings.head.message.contains("bindings.h"))
+        val posWarnings     = cFilePositionWarnings(logger)
+        val summaryWarnings = cFileSummaryWarnings(logger)
+        assertEquals(posWarnings.length, 1)
+        assertEquals(summaryWarnings.length, 1)
+        assertEquals(
+          posWarnings.head.positions,
+          Seq(Position.File(Right(root / "bindings.h"), (0, 0), (0, 0)))
+        )
     }
   }
 
-  test("warn once listing all explicit .c and .h files on Scala.js") {
+  test("warn once for all explicit .c and .h files on Scala.js") {
     val logger = new RecordingLogger()
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
@@ -136,13 +154,23 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
           |""".stripMargin
     )
     inputs.withBuild(defaultScala3Options.enableJs, buildThreads, None, logger = Some(logger)) {
-      (_, _, maybeBuild) =>
+      (root, _, maybeBuild) =>
         assert(maybeBuild.isRight)
-        val warnings = cFileWarnings(logger)
-        assertEquals(warnings.length, 1)
-        expect(warnings.head.message.contains("bindings.c"))
-        expect(warnings.head.message.contains("bindings.h"))
-        expect(warnings.head.message.contains("C/header files "))
+        val posWarnings     = cFilePositionWarnings(logger)
+        val summaryWarnings = cFileSummaryWarnings(logger)
+        assertEquals(posWarnings.length, 1)
+        assertEquals(summaryWarnings.length, 1)
+        expect(posWarnings.head.message.contains("the target platform is JS, not Scala Native."))
+        assertEquals(
+          posWarnings.head.positions,
+          Seq(
+            Position.File(Right(root / "bindings.c"), (0, 0), (0, 0)),
+            Position.File(Right(root / "bindings.h"), (0, 0), (0, 0))
+          )
+        )
+        expect(summaryWarnings.head.message.contains(
+          "2 explicitly passed C/header files will be ignored."
+        ))
     }
   }
 
@@ -244,16 +272,17 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
     inputs.withBuild(defaultScala3Options, buildThreads, None, logger = Some(logger)) {
       (root, _, maybeBuild) =>
         assert(maybeBuild.isRight)
-        val warnings = cFileWarnings(logger)
-        assertEquals(warnings.length, 1)
-        expect(warnings.head.message.contains("bindings.c"))
+        val posWarnings     = cFilePositionWarnings(logger)
+        val summaryWarnings = cFileSummaryWarnings(logger)
+        assertEquals(posWarnings.length, 1)
+        assertEquals(summaryWarnings.length, 1)
         expect(
-          warnings.head.message.contains(
-            "Scala Native is only configured as a secondary platform and cross-building is disabled (pass `--cross` or `--platform scala-native`)"
+          summaryWarnings.head.message.contains(
+            "Scala Native is only configured as a secondary platform and cross-building is disabled. To use it, pass `--cross` or `--platform scala-native`."
           )
         )
         assertEquals(
-          warnings.head.positions,
+          posWarnings.head.positions,
           Seq(Position.File(Right(root / "bindings.c"), (0, 0), (0, 0)))
         )
     }
@@ -291,9 +320,9 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
         inputs0.copy(elements = inputs0.elements ++ inputs0.elements.collect { case c: CFile => c })
       val warningOpt =
         Build.explicitCFilesOutsideNativeWarning(duplicateCInputs, Seq(defaultScala3Options))
-      expect(warningOpt.exists(_._1.contains("C/header file (")))
+      expect(warningOpt.exists(_.summaryWarning.contains("1 explicitly passed C/header file ")))
       assertEquals(
-        warningOpt.map(_._2),
+        warningOpt.map(_.positions),
         Some(Seq(Position.File(Right(root / "bindings.c"), (0, 0), (0, 0))))
       )
 
@@ -347,11 +376,11 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
         }
         finally bsp.shutdown()
       }
-      val warnings = cFileWarnings(logger)
-      assertEquals(warnings.length, 1)
-      expect(warnings.head.message.contains("bindings.c"))
+      val posWarnings = cFilePositionWarnings(logger)
+      assertEquals(posWarnings.length, 1)
+      expect(posWarnings.head.message.contains("the target platform is JVM, not Scala Native."))
       assertEquals(
-        warnings.head.positions,
+        posWarnings.head.positions,
         Seq(Position.File(Right(root / "bindings.c"), (0, 0), (0, 0)))
       )
     }
@@ -376,16 +405,20 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
       inputArgs = Seq("src", "bindings.c")
     )
     inputs.withBuild(defaultScala3Options, buildThreads, None, logger = Some(logger)) {
-      (_, _, maybeBuild) =>
+      (root, _, maybeBuild) =>
         assert(maybeBuild.isRight)
-        val warnings = cFileWarnings(logger)
-        assertEquals(warnings.length, 1)
-        expect(warnings.head.message.contains("bindings.c"))
-        expect(!warnings.head.message.contains("passive.h"))
+        val posWarnings     = cFilePositionWarnings(logger)
+        val summaryWarnings = cFileSummaryWarnings(logger)
+        assertEquals(posWarnings.length, 1)
+        assertEquals(summaryWarnings.length, 1)
+        assertEquals(
+          posWarnings.head.positions,
+          Seq(Position.File(Right(root / "bindings.c"), (0, 0), (0, 0)))
+        )
     }
   }
 
-  test("subdirectory explicit .c warns with relative path and honors wildcard exclude") {
+  test("subdirectory explicit .c warns with file position and honors wildcard exclude") {
     val loggerWithWarning = new RecordingLogger()
     val subdirInputs      = TestInputs(
       os.rel / "Main.scala" ->
@@ -400,12 +433,16 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
       buildThreads,
       None,
       logger = Some(loggerWithWarning)
-    ) { (_, _, maybeBuild) =>
+    ) { (root, _, maybeBuild) =>
       assert(maybeBuild.isRight)
-      val warnings = cFileWarnings(loggerWithWarning)
-      assertEquals(warnings.length, 1)
-      val expectedRel = (os.rel / "csrc" / "bindings.c").toString
-      expect(warnings.head.message.contains(expectedRel))
+      val posWarnings     = cFilePositionWarnings(loggerWithWarning)
+      val summaryWarnings = cFileSummaryWarnings(loggerWithWarning)
+      assertEquals(posWarnings.length, 1)
+      assertEquals(summaryWarnings.length, 1)
+      assertEquals(
+        posWarnings.head.positions,
+        Seq(Position.File(Right(root / "csrc" / "bindings.c"), (0, 0), (0, 0)))
+      )
     }
 
     val loggerExcluded = new RecordingLogger()
@@ -448,11 +485,16 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
         """void hello(void);
           |""".stripMargin
     )
-    inputs.withBuild(options, buildThreads, None, logger = Some(logger)) { (_, _, maybeBuild) =>
+    inputs.withBuild(options, buildThreads, None, logger = Some(logger)) { (root, _, maybeBuild) =>
       assert(maybeBuild.isRight)
-      val warnings = cFileWarnings(logger)
-      assertEquals(warnings.length, 1)
-      expect(warnings.head.message.contains("bindings.h"))
+      val posWarnings     = cFilePositionWarnings(logger)
+      val summaryWarnings = cFileSummaryWarnings(logger)
+      assertEquals(posWarnings.length, 1)
+      assertEquals(summaryWarnings.length, 1)
+      assertEquals(
+        posWarnings.head.positions,
+        Seq(Position.File(Right(root / "bindings.h"), (0, 0), (0, 0)))
+      )
     }
   }
 
@@ -462,7 +504,7 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
         """void hello(void) {}
           |""".stripMargin
     )
-    inputs.withInputs { (_, inputs0) =>
+    inputs.withInputs { (root, inputs0) =>
       val jvmLogger = new RecordingLogger()
       val jvmBuilds = Build.build(
         inputs0,
@@ -476,9 +518,14 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
         actionableDiagnostics = None
       )(using ScalaCliInvokeData.dummy)
       assert(jvmBuilds.isRight)
-      val jvmWarnings = cFileWarnings(jvmLogger)
-      assertEquals(jvmWarnings.length, 1)
-      expect(jvmWarnings.head.message.contains("bindings.c"))
+      val posWarnings     = cFilePositionWarnings(jvmLogger)
+      val summaryWarnings = cFileSummaryWarnings(jvmLogger)
+      assertEquals(posWarnings.length, 1)
+      assertEquals(summaryWarnings.length, 1)
+      assertEquals(
+        posWarnings.head.positions,
+        Seq(Position.File(Right(root / "bindings.c"), (0, 0), (0, 0)))
+      )
 
       val stubNativeOptions = defaultScala3Options.enableNative.copy(
         scalaNativeOptions = ScalaNativeOptions(
@@ -519,7 +566,7 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
         """void hello(void) {}
           |""".stripMargin
     )
-    inputs.withInputs { (_, inputs0) =>
+    inputs.withInputs { (root, inputs0) =>
       val maybeBuilds = Build.build(
         inputs0,
         options,
@@ -534,9 +581,14 @@ class ExplicitCFilesWarningTests extends TestUtil.ScalaCliBuildSuite, BloopServe
       assert(maybeBuilds.isRight)
       val builds = maybeBuilds.toOption.get
       expect(builds.crossBuilds.nonEmpty)
-      val warnings = cFileWarnings(logger)
-      assertEquals(warnings.length, 1)
-      expect(warnings.head.message.contains("bindings.c"))
+      val posWarnings     = cFilePositionWarnings(logger)
+      val summaryWarnings = cFileSummaryWarnings(logger)
+      assertEquals(posWarnings.length, 1)
+      assertEquals(summaryWarnings.length, 1)
+      assertEquals(
+        posWarnings.head.positions,
+        Seq(Position.File(Right(root / "bindings.c"), (0, 0), (0, 0)))
+      )
     }
   }
 }

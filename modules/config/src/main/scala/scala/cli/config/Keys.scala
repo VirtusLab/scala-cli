@@ -110,6 +110,14 @@ object Keys {
       specificationLevel = SpecificationLevel.IMPLEMENTATION,
       description = "Globally suppresses warnings about deprecated features."
     )
+  val suppressExplicitCFilesOutsideNativeWarning =
+    new Key.BooleanEntry(
+      prefix = Seq("suppress-warning"),
+      name = "explicit-c-files-outside-native",
+      specificationLevel = SpecificationLevel.EXPERIMENTAL,
+      description =
+        "Globally suppresses warnings about C/header files passed explicitly outside Scala Native."
+    )
 
   val proxyAddress = new Key.StringEntry(
     prefix = Seq("httpProxy"),
@@ -202,6 +210,7 @@ object Keys {
     suppressOutdatedDependenciessWarning,
     suppressExperimentalFeatureWarning,
     suppressDeprecatedFeatureWarning,
+    suppressExplicitCFilesOutsideNativeWarning,
     offline,
     pgpPublicKey,
     pgpSecretKey,

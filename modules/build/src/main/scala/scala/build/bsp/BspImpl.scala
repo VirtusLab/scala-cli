@@ -216,13 +216,13 @@ final class BspImpl(
       projectOptions.logActionableDiagnostics(persistentLogger)
     }
 
-    for (warningMsg, positions) <- Build.explicitCFilesOutsideNativeWarning(
+    for warning <- Build.explicitCFilesOutsideNativeWarning(
         allInputs,
         Seq(options0Main, options0Test)
       )
     do
-      persistentLogger.diagnostic(warningMsg, Severity.Warning, positions)
-      showGlobalWarningOnce(warningMsg)
+      persistentLogger.diagnostic(warning.fileWarning, Severity.Warning, warning.positions)
+      showGlobalWarningOnce(warning.summaryWarning)
 
     PreBuildProject(mainScope, testScope, persistentLogger.diagnostics)
   }

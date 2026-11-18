@@ -587,7 +587,7 @@ object Build {
 
     warnIfExplicitCFilesOutsideNative(
       inputs,
-      builds.all.map(_.options),
+      builds.all.map(_.options) :+ sharedOptions,
       logger
     )
 
@@ -805,27 +805,37 @@ object Build {
     else Right(())
   }
 
+  private[build] final case class ExplicitCFilesWarning(
+    fileWarning: String,
+    summaryWarning: String,
+    positions: Seq[Position.File]
+  )
+
   private[build] def explicitCFilesOutsideNativeWarning(
     inputs: Inputs,
     buildOptions: Seq[BuildOptions]
-  ): Option[(String, Seq[Position.File])] = {
-    val shouldSuppress = buildOptions.exists { o =>
-      o.suppressWarningOptions.suppressExplicitCFilesOutsideNativeWarning.getOrElse(false) ||
-      o.platform.value == Platform.Native
-    }
+  ): Option[ExplicitCFilesWarning] = {
+    val shouldSuppress =
+      (buildOptions.nonEmpty && buildOptions.forall(
+        _.suppressWarningOptions.suppressExplicitCFilesOutsideNativeWarning.getOrElse(false)
+      )) ||
+      buildOptions.exists(_.platform.value == Platform.Native)
     if shouldSuppress then None
     else {
       val explicitCPaths = inputs.elements.collect { case c: CFile => c.path }.distinct
       if explicitCPaths.isEmpty then None
       else {
+        val targetPlatform =
+          buildOptions.headOption.map(_.platform.value.repr).getOrElse(Platform.JVM.repr)
         val nativeConfiguredInCross =
           buildOptions.exists(_.scalaOptions.extraPlatforms.contains(Platform.Native))
-        val warningMsg = WarningMessages.explicitCFilesOutsideNative(
-          explicitCPaths.map(Util.printablePath).distinct,
+        val fileWarning    = WarningMessages.explicitCFileIgnored(targetPlatform)
+        val summaryWarning = WarningMessages.explicitCFilesOutsideNative(
+          explicitCPaths.length,
           nativeConfiguredInCross = nativeConfiguredInCross
         )
         val positions = explicitCPaths.map(p => Position.File(Right(p), (0, 0), (0, 0)))
-        Some((warningMsg, positions))
+        Some(ExplicitCFilesWarning(fileWarning, summaryWarning, positions))
       }
     }
   }
@@ -835,9 +845,9 @@ object Build {
     buildOptions: Seq[BuildOptions],
     logger: Logger
   ): Unit =
-    explicitCFilesOutsideNativeWarning(inputs, buildOptions).foreach {
-      (msg, positions) =>
-        logger.diagnostic(msg, Severity.Warning, positions)
+    explicitCFilesOutsideNativeWarning(inputs, buildOptions).foreach { warning =>
+      logger.diagnostic(warning.fileWarning, Severity.Warning, warning.positions)
+      logger.diagnostic(warning.summaryWarning, Severity.Warning)
     }
 
   def watch(
@@ -1547,6 +1557,9 @@ object Build {
       val updatedOptions = build.options.copy(
         jmhOptions = build.options.jmhOptions.copy(
           runJmh = build.options.jmhOptions.runJmh.map(_ => false)
+        ),
+        suppressWarningOptions = build.options.suppressWarningOptions.copy(
+          suppressExplicitCFilesOutsideNativeWarning = Some(true)
         )
       )
       val (crossSources, inputs0) = value(allInputs(jmhInputs, updatedOptions, logger))

@@ -190,21 +190,18 @@ object WarningMessages {
   val slothNonStandaloneBootstrapWarning: String =
     "Could not patch lazy vals in non-standalone bootstrap dependencies; use --standalone for batch patching."
 
+  def explicitCFileIgnored(targetPlatform: String): String =
+    s"C/header file will be ignored: the target platform is $targetPlatform, not Scala Native."
+
   def explicitCFilesOutsideNative(
-    cFilePaths: Seq[String],
+    fileCount: Int,
     nativeConfiguredInCross: Boolean = false
   ): String = {
-    val distinctPaths = cFilePaths.distinct
-    val fileCount     = distinctPaths.length
-    val noun          = if fileCount == 1 then "file" else "files"
-    val fileList      =
-      if fileCount == 0 then "Explicitly passed C/header files"
-      else s"Explicitly passed C/header $noun (${distinctPaths.mkString(", ")})"
-    val reason =
-      if nativeConfiguredInCross then
-        "Scala Native is only configured as a secondary platform and cross-building is disabled (pass `--cross` or `--platform scala-native`)"
-      else
-        "the target platform is not Scala Native (use `--platform scala-native` or `//> using platform scala-native`)"
-    s"$fileList will be ignored because $reason."
+    val noun    = if fileCount == 1 then "file" else "files"
+    val pronoun = if fileCount == 1 then "it" else "them"
+    if nativeConfiguredInCross then
+      s"$fileCount explicitly passed C/header $noun will be ignored because Scala Native is only configured as a secondary platform and cross-building is disabled. To use $pronoun, pass `--cross` or `--platform scala-native`."
+    else
+      s"$fileCount explicitly passed C/header $noun will be ignored. To use $pronoun, build for Scala Native: `--platform scala-native` or `//> using platform scala-native`."
   }
 }
