@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@algolia/client-search": "^5.61.0",
+    "@algolia/client-search": "^5.64.0",
     "@docusaurus/core": "^3.10.2",
     "@docusaurus/plugin-content-docs": "^3.10.2",
     "@docusaurus/preset-classic": "^3.10.2",
@@ -32,12 +32,12 @@
     "@types/react": "^19.3.0",
     "clsx": "^2.1.1",
     "docusaurus-plugin-sass": "^0.2.7",
-    "lucide-react": "^1.70.0",
+    "lucide-react": "^1.72.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-loadable": "^5.5.0",
     "react-player": "^3.4.0",
-    "sass": "^1.108.0",
+    "sass": "^1.108.2",
     "search-insights": "^2.17.3",
     "tailwind-merge": "^3.7.0"
   },

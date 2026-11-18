@@ -9326,16 +9326,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^1.70.0":
-  version: 1.70.0
-  resolution: "lucide-react@npm:1.70.0"
+"lucide-react@npm:^1.72.0":
+  version: 1.72.0
+  resolution: "lucide-react@npm:1.72.0"
   peerDependencies:
     "@types/react": "*"
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10c0/bce0a8b5f77c78933a4b6c2037d4ce371d1eaff8986849ef7fb28da131be3fa6964e4d2459ff40c9ac719402cddced55311af3d34397b178449817d312dfa4c5
+  checksum: 10c0/ee2f41fef871f611256529acb5c2286781b5ce798e73fcb16e7131c56cdef4103cf417733d911bc208e7046706a5f4352766b0dd1efdd362d8ed160dbb2509ba
   languageName: node
   linkType: hard
 
@@ -12645,9 +12645,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:^1.108.0":
-  version: 1.108.0
-  resolution: "sass@npm:1.108.0"
+"sass@npm:^1.108.2":
+  version: 1.108.2
+  resolution: "sass@npm:1.108.2"
   dependencies:
     "@parcel/watcher": "npm:^2.4.1"
     chokidar: "npm:^5.0.0"
@@ -12658,7 +12658,7 @@ __metadata:
       optional: true
   bin:
     sass: sass.js
-  checksum: 10c0/c7282648376a3293b3d66dfd57306b3be3545d9bb80d45a1c7674773d575624c17ae2e18f8233a45748498842c2144cf900e134c71417091279e24775e139a8d
+  checksum: 10c0/957bc1d19bf06e2f5d9e6df3a6dc287aedc6b24ce5f343eaaba14a56c0fbe6c4fbfb536040a2e6b02076ccf0fc629c9c9947115157318c343ea416ad938012de
   languageName: node
   linkType: hard
 
@@ -14316,7 +14316,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "website@workspace:."
   dependencies:
-    "@algolia/client-search": "npm:^5.61.0"
+    "@algolia/client-search": "npm:^5.64.0"
     "@docusaurus/core": "npm:^3.10.2"
     "@docusaurus/plugin-content-docs": "npm:^3.10.2"
     "@docusaurus/preset-classic": "npm:^3.10.2"
@@ -14336,13 +14336,13 @@ __metadata:
     "@types/react-dom": "npm:^19.3.0"
     clsx: "npm:^2.1.1"
     docusaurus-plugin-sass: "npm:^0.2.7"
-    lucide-react: "npm:^1.70.0"
+    lucide-react: "npm:^1.72.0"
     postcss: "npm:^8.5.32"
     react: "npm:^19.3.1"
     react-dom: "npm:^19.3.1"
     react-loadable: "npm:^5.5.0"
     react-player: "npm:^3.4.0"
-    sass: "npm:^1.108.0"
+    sass: "npm:^1.108.2"
     search-insights: "npm:^2.17.3"
     tailwind-merge: "npm:^3.7.0"
     tailwindcss: "npm:^4.3.5"
