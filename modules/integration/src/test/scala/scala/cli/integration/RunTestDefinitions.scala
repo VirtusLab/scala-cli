@@ -580,7 +580,7 @@ abstract class RunTestDefinitions
   }
 
   if (Properties.isLinux && TestUtil.cliKind == "native-mostly-static")
-    test("simple distroless test") {
+    test("simple distroless test".sanity) {
       simpleScriptDistrolessImage()
     }
 

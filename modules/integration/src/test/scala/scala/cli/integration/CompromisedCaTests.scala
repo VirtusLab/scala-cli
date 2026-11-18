@@ -33,7 +33,7 @@ class CompromisedCaTests extends ScalaCliSuite:
   private val rejectionMessages = Seq("PKIX path building failed", "Untrusted certificate")
 
   if TestUtil.isNativeCli then
-    test("native launcher does not trust the compromised CAs"):
+    test("native launcher does not trust the compromised CAs".sanity):
       TestInputs(os.rel / "Main.scala" -> "object Main").fromRoot: root =>
         // a dependency that doesn't exist, so that coursier tries to download it from every repository
         val dep         = s"com.example::nonexistent:0.0.0-${UUID.randomUUID()}"
