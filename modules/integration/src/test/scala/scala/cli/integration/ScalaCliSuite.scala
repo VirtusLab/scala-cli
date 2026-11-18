@@ -109,6 +109,14 @@ abstract class ScalaCliSuite extends munit.FunSuite {
 
   override def munitFlakyOK: Boolean = TestUtil.isCI
 
+  // Mirrors munit's `.flaky`: `test("foo".sanity)` marks a test to be run in the sanity batch.
+  // Both overloads are needed, as Scala won't chain the `String => TestOptions` conversion
+  // with an extension method.
+  extension (options: munit.TestOptions)
+    def sanity: munit.TestOptions = options.tag(ScalaCliSuite.sanity)
+  extension (name: String)(using munit.Location)
+    def sanity: munit.TestOptions = munit.TestOptions(name).tag(ScalaCliSuite.sanity)
+
   def exitBloop: os.CommandResult = os.proc(TestUtil.cli, "--power", "bloop", "exit").call()
 
   val cleanBloopFixture =

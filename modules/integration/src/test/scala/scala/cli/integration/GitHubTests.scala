@@ -64,7 +64,7 @@ class GitHubTests extends ScalaCliSuite {
   }
 
   // tagged as sanity so that it runs on the macOS CI jobs too
-  test("create secret".tag(ScalaCliSuite.sanity))(TestUtil.retryOnCi()(createSecret()))
+  test("create secret".sanity)(TestUtil.retryOnCi()(createSecret()))
 
 }
 

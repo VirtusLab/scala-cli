@@ -53,7 +53,7 @@ abstract class RunTestDefinitions
       TestUtil.extraOptions
     )(cwd = root, check = check, mergeErrIntoOut = mergeErrIntoOut)
 
-  test("print command".tag(ScalaCliSuite.sanity)) {
+  test("print command".sanity) {
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs   = TestInputs(
