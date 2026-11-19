@@ -454,7 +454,11 @@ final case class SharedOptions(
               suppress.global.suppressExperimentalFeatureWarning,
               Keys.suppressExperimentalFeatureWarning
             ),
-            suppressDeprecatedFeatureWarning = shouldSuppressDeprecatedWarnings
+            suppressDeprecatedFeatureWarning = shouldSuppressDeprecatedWarnings,
+            suppressDuplicatedDirectivesWarning = getOptionOrFromConfig(
+              suppress.suppressDuplicatedDirectivesWarning,
+              Keys.suppressDuplicatedDirectivesWarning
+            )
           ),
         scalaOptions = scala.build.options.ScalaOptions(
           scalaVersion = scalaVersion

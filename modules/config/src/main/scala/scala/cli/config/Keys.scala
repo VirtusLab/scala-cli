@@ -110,6 +110,13 @@ object Keys {
       specificationLevel = SpecificationLevel.IMPLEMENTATION,
       description = "Globally suppresses warnings about deprecated features."
     )
+  val suppressDuplicatedDirectivesWarning =
+    new Key.BooleanEntry(
+      prefix = Seq("suppress-warning"),
+      name = "duplicated-directives",
+      specificationLevel = SpecificationLevel.EXPERIMENTAL,
+      description = "Globally suppresses warnings about duplicated using directives."
+    )
 
   val proxyAddress = new Key.StringEntry(
     prefix = Seq("httpProxy"),
@@ -202,6 +209,7 @@ object Keys {
     suppressOutdatedDependenciessWarning,
     suppressExperimentalFeatureWarning,
     suppressDeprecatedFeatureWarning,
+    suppressDuplicatedDirectivesWarning,
     offline,
     pgpPublicKey,
     pgpSecretKey,

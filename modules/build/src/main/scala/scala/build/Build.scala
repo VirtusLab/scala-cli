@@ -1505,6 +1505,9 @@ object Build {
       val updatedOptions = build.options.copy(
         jmhOptions = build.options.jmhOptions.copy(
           runJmh = build.options.jmhOptions.runJmh.map(_ => false)
+        ),
+        suppressWarningOptions = build.options.suppressWarningOptions.copy(
+          suppressDuplicatedDirectivesWarning = Some(true)
         )
       )
       val (crossSources, inputs0) = value(allInputs(jmhInputs, updatedOptions, logger))

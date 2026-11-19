@@ -189,4 +189,7 @@ object WarningMessages {
 
   val slothNonStandaloneBootstrapWarning: String =
     "Could not patch lazy vals in non-standalone bootstrap dependencies; use --standalone for batch patching."
+
+  def duplicatedUsingDirective(directive: String): String =
+    s"Duplicated using directive: $directive. It can be removed."
 }

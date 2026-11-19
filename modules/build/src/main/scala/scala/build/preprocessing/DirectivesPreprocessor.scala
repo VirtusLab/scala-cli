@@ -41,6 +41,13 @@ case class DirectivesPreprocessor(
     : Either[BuildException, PreprocessedDirectives] = either {
     val ExtractedDirectives(directives, directivesPositions) = extractedDirectives
 
+    DuplicateDirectives.issueWarnings(
+      path,
+      directives,
+      suppressWarningOptions,
+      logger
+    )
+
     val (
       buildOptionsWithoutRequirements: PartiallyProcessedDirectives[BuildOptions],
       buildOptionsWithTargetRequirements: PartiallyProcessedDirectives[

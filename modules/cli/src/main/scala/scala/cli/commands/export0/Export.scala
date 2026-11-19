@@ -212,10 +212,15 @@ object Export extends ScalaCommand[ExportOptions] {
         Scope.Main
       )
         .orExit(logger)
+    val testPrepareOptions = baseOptions.copy(
+      suppressWarningOptions = baseOptions.suppressWarningOptions.copy(
+        suppressDuplicatedDirectivesWarning = Some(true)
+      )
+    )
     val (sourcesTest, optionsTest0) =
       prepareBuild(
         inputs,
-        baseOptions,
+        testPrepareOptions,
         logger,
         options.shared.logging.verbosity,
         Scope.Test

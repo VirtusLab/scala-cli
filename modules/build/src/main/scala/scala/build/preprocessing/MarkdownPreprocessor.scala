@@ -223,7 +223,7 @@ final case class MarkdownPreprocessor(
         allowRestrictedFeatures,
         suppressWarningOptions,
         maybeRecoverOnError
-      ).preprocess(block.body)
+      ).preprocess(block.bodyWithLineOffset)
     }
     PreprocessedSource.InMemory(
       originalPath = reportingPath.map(subPath -> _),

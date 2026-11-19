@@ -55,6 +55,9 @@ case class MarkdownCodeBlock(
     *   snippets; Java snippets are always emitted as raw `.java` sources.
     */
   def isRaw: Boolean = isScala && info.contains("raw")
+
+  /** Body prefixed with blank lines to align line numbers with the original Markdown file. */
+  def bodyWithLineOffset: String = "\n" * startLine + body
 }
 
 object MarkdownCodeBlock {
