@@ -1851,6 +1851,10 @@ Suppress warnings about using directives in multiple files
 
 Suppress warnings about outdated dependencies in project
 
+### `--suppress-duplicated-directives-warning`
+
+Suppress warnings about duplicated using directives
+
 ## Test options
 
 Available in commands:

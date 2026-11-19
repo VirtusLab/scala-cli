@@ -24,7 +24,7 @@ object MarkdownCodeBlockProcessor {
         .map { cb =>
           value {
             ExtractedDirectives.from(
-              contentChars = cb.body.toIndexedSeq,
+              contentChars = cb.bodyWithLineOffset.toIndexedSeq,
               path = reportingPath,
               suppressWarningOptions = suppressWarningOptions,
               logger = logger,

@@ -15,6 +15,10 @@ final case class SuppressWarningOptions(
   @Tag(tags.implementation)
   @HelpMessage("Suppress warnings about outdated dependencies in project")
     suppressOutdatedDependencyWarning: Option[Boolean] = None,
+  @Group(HelpGroup.SuppressWarnings.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Suppress warnings about duplicated using directives")
+    suppressDuplicatedDirectivesWarning: Option[Boolean] = None,
   @Recurse
     global: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions()
 )

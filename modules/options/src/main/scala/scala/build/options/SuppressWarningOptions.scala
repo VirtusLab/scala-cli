@@ -4,7 +4,8 @@ final case class SuppressWarningOptions(
   suppressDirectivesInMultipleFilesWarning: Option[Boolean] = None,
   suppressOutdatedDependencyWarning: Option[Boolean] = None,
   suppressExperimentalFeatureWarning: Option[Boolean] = None,
-  suppressDeprecatedFeatureWarning: Option[Boolean] = None
+  suppressDeprecatedFeatureWarning: Option[Boolean] = None,
+  suppressDuplicatedDirectivesWarning: Option[Boolean] = None
 )
 
 object SuppressWarningOptions {
@@ -15,6 +16,7 @@ object SuppressWarningOptions {
     suppressDirectivesInMultipleFilesWarning = Some(true),
     suppressOutdatedDependencyWarning = Some(true),
     suppressExperimentalFeatureWarning = Some(true),
-    suppressDeprecatedFeatureWarning = Some(true)
+    suppressDeprecatedFeatureWarning = Some(true),
+    suppressDuplicatedDirectivesWarning = Some(true)
   )
 }

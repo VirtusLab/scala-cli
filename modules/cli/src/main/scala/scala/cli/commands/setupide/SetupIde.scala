@@ -129,12 +129,21 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val logger = options.shared.logger
 
-    if (buildOptions.classPathOptions.allExtraDependencies.toSeq.nonEmpty)
+    if (buildOptions.classPathOptions.allExtraDependencies.toSeq.nonEmpty) {
+      val downloadOptions =
+        if previousCommandName.nonEmpty then
+          buildOptions.copy(
+            suppressWarningOptions = buildOptions.suppressWarningOptions.copy(
+              suppressDuplicatedDirectivesWarning = Some(true)
+            )
+          )
+        else buildOptions
       value(downloadDeps(
         inputs,
-        buildOptions,
+        downloadOptions,
         logger
       ))
+    }
 
     val (bspName, bspJsonDestination) = bspDetails(inputs.workspace, options.bspFile)
     val scalaCliBspJsonDestination    =
