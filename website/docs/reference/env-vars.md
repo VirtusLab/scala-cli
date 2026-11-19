@@ -17,7 +17,6 @@ Some tools and libraries Scala CLI integrates with may have their own, which may
   - `SCALA_CLI_INTERACTIVE_INPUTS`: Interactive mode inputs
   - `SCALA_CLI_POWER`: Power mode toggle
   - `SCALA_CLI_PRINT_STACK_TRACES`: Print stack traces toggle
-  - `SCALA_CLI_SODIUM_JNI_ALLOW`: Allow to load libsodiumjni
   - `SCALA_CLI_VENDORED_ZIS`: Toggle io.github.scala_cli.zip.ZipInputStream
 
 ## Java
