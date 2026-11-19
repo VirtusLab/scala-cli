@@ -74,7 +74,7 @@ jobs:
     steps:
     - name: Log skip reason
       if: env.SHOULD_RUN != 'true'
-      run: echo "Skipping native mostly-static integration tests (default) -- changes do not affect compiled code or CI."
+      run: echo "Skipping native mostly-static integration tests (default, sanity) -- changes do not affect compiled code or CI."
     - uses: actions/checkout@v7
       if: env.SHOULD_RUN == 'true'
       with:
@@ -106,13 +106,14 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
+        SCALA_CLI_IT_SANITY: true
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Docker integration tests
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: ./mill integration.docker-slim.test
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
-      run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-default 'Scala CLI Native Mostly Static Tests (default)' test-report.xml out/
+      run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-default 'Scala CLI Native Mostly Static Tests (default, sanity)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -138,7 +139,7 @@ jobs:
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
-        run: echo "Skipping native mostly-static integration tests (RC) -- changes do not affect compiled code or CI."
+        run: echo "Skipping native mostly-static integration tests (RC, sanity) -- changes do not affect compiled code or CI."
       - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
@@ -167,10 +168,11 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 5
+          SCALA_CLI_IT_SANITY: true
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-rc 'Scala CLI Native Mostly Static Tests (5)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-rc 'Scala CLI Native Mostly Static Tests (5, sanity)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -187,7 +189,7 @@ jobs:
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
-        run: echo "Skipping native mostly-static integration tests (Scala 3.9 LTS) -- changes do not affect compiled code or CI, or [test_lts_all_platforms] was not requested."
+        run: echo "Skipping native mostly-static integration tests (Scala 3.9 LTS, sanity) -- changes do not affect compiled code or CI, or [test_lts_all_platforms] was not requested."
       - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
@@ -216,10 +218,11 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 4
+          SCALA_CLI_IT_SANITY: true
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-lts 'Scala CLI Native Mostly Static Tests (Scala 3.9 LTS)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-lts 'Scala CLI Native Mostly Static Tests (Scala 3.9 LTS, sanity)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -236,7 +239,7 @@ jobs:
     steps:
       - name: Log skip reason
         if: env.SHOULD_RUN != 'true'
-        run: echo "Skipping native mostly-static integration tests (Scala 3.3 LTS) -- changes do not affect compiled code or CI, or [test_legacy_lts] was not requested."
+        run: echo "Skipping native mostly-static integration tests (Scala 3.3 LTS, sanity) -- changes do not affect compiled code or CI, or [test_legacy_lts] was not requested."
       - uses: actions/checkout@v7
         if: env.SHOULD_RUN == 'true'
         with:
@@ -265,10 +268,11 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 6
+          SCALA_CLI_IT_SANITY: true
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-legacy-lts 'Scala CLI Native Mostly Static Tests (Scala 3.3 LTS)' test-report.xml out/
+        run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-legacy-lts 'Scala CLI Native Mostly Static Tests (Scala 3.3 LTS, sanity)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
         if: (success() || failure()) && env.SHOULD_RUN == 'true'

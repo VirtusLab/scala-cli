@@ -25,7 +25,7 @@ class NativePackagerTests extends ScalaCliSuite {
   private val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
 
   if (Properties.isMac) {
-    test("building pkg package".tag(ScalaCliSuite.sanity)) {
+    test("building pkg package".sanity) {
 
       testInputs.fromRoot { root =>
 

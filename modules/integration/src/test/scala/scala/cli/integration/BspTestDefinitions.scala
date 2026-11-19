@@ -2244,10 +2244,11 @@ abstract class BspTestDefinitions extends ScalaCliSuite
           f(Seq(TestUtil.cli))
     launcherString         = if (useScalaWrapper) s"scala wrapper ($scalaVersion)" else "Scala CLI"
     connectionJsonFileName = if (useScalaWrapper) "scala.json" else "scala-cli.json"
-  }
-    test(
+    testName               =
       s"setup-ide prepares valid BSP connection json with a valid launcher ($launcherString)"
-    ) {
+  }
+    // only the Scala CLI variant is tagged as sanity, to verify the BSP launcher of each Scala CLI launcher kind
+    test(if useScalaWrapper then munit.TestOptions(testName) else testName.sanity) {
       TestUtil.retryOnCi() {
         val scriptName = "example.sc"
         TestInputs(
@@ -2302,7 +2303,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
       }
     }
 
-  test("setup-ide passes Java props to the BSP configuration correctly") {
+  test("setup-ide passes Java props to the BSP configuration correctly".sanity) {
     val scriptName = "hello.sc"
     TestInputs(os.rel / scriptName -> s"""println("Hello")""").fromRoot { root =>
       val javaProps = List("-Dfoo=bar", "-Dbar=baz")

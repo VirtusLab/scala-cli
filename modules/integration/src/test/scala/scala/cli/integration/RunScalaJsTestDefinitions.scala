@@ -27,7 +27,7 @@ trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
     }
   }
 
-  test("simple script JS".tag(ScalaCliSuite.sanity)) {
+  test("simple script JS".sanity) {
     simpleJsTestOutput()
   }
 

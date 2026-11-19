@@ -53,7 +53,7 @@ abstract class RunTestDefinitions
       TestUtil.extraOptions
     )(cwd = root, check = check, mergeErrIntoOut = mergeErrIntoOut)
 
-  test("print command".tag(ScalaCliSuite.sanity)) {
+  test("print command".sanity) {
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs   = TestInputs(
@@ -580,7 +580,7 @@ abstract class RunTestDefinitions
   }
 
   if (Properties.isLinux && TestUtil.cliKind == "native-mostly-static")
-    test("simple distroless test") {
+    test("simple distroless test".sanity) {
       simpleScriptDistrolessImage()
     }
 
