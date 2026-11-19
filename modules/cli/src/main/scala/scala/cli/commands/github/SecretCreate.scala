@@ -73,6 +73,19 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
     readFromString(publicKeyRespBody)(using GitHubApi.publicKeyCodec)
   }
 
+  /** Maximum size of a GitHub secret value, as documented by GitHub (48 KB). */
+  val maxSecretSize: Int = 48 * 1024
+
+  def checkSecretSize(
+    secretName: String,
+    secretBytes: Array[Byte]
+  ): Either[GitHubApiError, Unit] =
+    if secretBytes.length <= maxSecretSize then Right(())
+    else
+      Left(new GitHubApiError(
+        s"Secret $secretName is too large (${secretBytes.length} bytes, GitHub secrets are limited to $maxSecretSize bytes)"
+      ))
+
   /** Encrypts a secret with the repository public key. */
   def encryptSecret(
     secretBytes: Array[Byte],
@@ -103,6 +116,8 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
   ): Either[GitHubApiError, Boolean] = either {
 
     val secretBytes = secretValue.value.getBytes(StandardCharsets.UTF_8)
+
+    value(checkSecretSize(secretName, secretBytes))
 
     val encryptedValue = value(encryptSecret(secretBytes, pubKey, repoOrg, repoName))
 

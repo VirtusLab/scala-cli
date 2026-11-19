@@ -3,9 +3,13 @@ package scala.cli.commands.github
 import libsodiumjni.internal.LoadLibrary
 import libsodiumjni.{Sodium, SodiumException}
 import munit.FunSuite
+import sttp.client3.testing.SttpBackendStub
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64
+
+import scala.build.tests.TestLogger
+import scala.cli.config.Secret
 
 final class SecretCreateTests extends FunSuite {
 
@@ -62,5 +66,35 @@ final class SecretCreateTests extends FunSuite {
       val decrypted = Sodium.sealOpen(encrypted, keyPair.getPubKey, keyPair.getSecKey)
       assertEquals(new String(decrypted, StandardCharsets.UTF_8), "1234")
     finally keyPair.destroy()
+  }
+
+  test("secrets up to GitHub's size limit are accepted") {
+    val secret = Array.fill[Byte](SecretCreate.maxSecretSize)(1)
+    assertEquals(SecretCreate.checkSecretSize("FOO", secret), Right(()))
+  }
+
+  test("secrets over GitHub's size limit are rejected") {
+    val res = SecretCreate.createOrUpdate(
+      "foo",
+      "bar",
+      Secret("token"),
+      "FOO",
+      Secret("a" * (SecretCreate.maxSecretSize + 1)),
+      publicKey(Array.fill[Byte](32)(1)),
+      dummy = true,
+      printRequest = false,
+      backend = SttpBackendStub.synchronous,
+      logger = TestLogger()
+    )
+    res match {
+      case Left(err) =>
+        assert(
+          err.getMessage.contains(
+            s"Secret FOO is too large (${SecretCreate.maxSecretSize + 1} bytes"
+          ),
+          clues(err.getMessage)
+        )
+      case Right(_) => fail("Expected an error")
+    }
   }
 }
