@@ -54,10 +54,13 @@ final class SecretCreateTests extends FunSuite {
 
   test("a valid public key encrypts the secret") {
     initSodium()
-    val keyPair   = Sodium.keyPair()
-    val encrypted = SecretCreate.encryptSecret(secret, publicKey(keyPair.getPubKey), "foo", "bar")
-      .fold(e => fail(s"Unexpected error: ${e.getMessage}"), identity)
-    val decrypted = Sodium.sealOpen(encrypted, keyPair.getPubKey, keyPair.getSecKey)
-    assertEquals(new String(decrypted, StandardCharsets.UTF_8), "1234")
+    val keyPair = Sodium.keyPair()
+    try
+      val encrypted =
+        SecretCreate.encryptSecret(secret, publicKey(keyPair.getPubKey), "foo", "bar")
+          .fold(e => fail(s"Unexpected error: ${e.getMessage}"), identity)
+      val decrypted = Sodium.sealOpen(encrypted, keyPair.getPubKey, keyPair.getSecKey)
+      assertEquals(new String(decrypted, StandardCharsets.UTF_8), "1234")
+    finally keyPair.destroy()
   }
 }
