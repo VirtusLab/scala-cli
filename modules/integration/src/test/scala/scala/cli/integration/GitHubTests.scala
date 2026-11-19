@@ -18,33 +18,36 @@ class GitHubTests extends ScalaCliSuite {
     val keyId   = "the-key-id"
     val keyPair = Sodium.keyPair()
     val value   = "1234"
-    TestInputs.empty.fromRoot { root =>
-      val pubKey = GitHubTests.PublicKey(keyId, Base64.getEncoder.encodeToString(keyPair.getPubKey))
-      os.write(root / "pub-key.json", writeToArray(pubKey))
+    try
+      TestInputs.empty.fromRoot { root =>
+        val pubKey =
+          GitHubTests.PublicKey(keyId, Base64.getEncoder.encodeToString(keyPair.getPubKey))
+        os.write(root / "pub-key.json", writeToArray(pubKey))
 
-      val res = os.proc(
-        TestUtil.cli,
-        "--power",
-        "github",
-        "secret",
-        "create",
-        "--repo",
-        "foo/foo",
-        s"FOO=value:$value",
-        "--dummy",
-        "--print-request",
-        "--pub-key",
-        root / "pub-key.json"
-      )
-        .call(cwd = root)
-      val output = readFromArray(res.out.bytes)(using GitHubTests.encryptedSecretCodec)
+        val res = os.proc(
+          TestUtil.cli,
+          "--power",
+          "github",
+          "secret",
+          "create",
+          "--repo",
+          "foo/foo",
+          s"FOO=value:$value",
+          "--dummy",
+          "--print-request",
+          "--pub-key",
+          root / "pub-key.json"
+        )
+          .call(cwd = root)
+        val output = readFromArray(res.out.bytes)(using GitHubTests.encryptedSecretCodec)
 
-      expect(output.key_id == keyId)
+        expect(output.key_id == keyId)
 
-      val decrypted      = Sodium.sealOpen(output.encrypted, keyPair.getPubKey, keyPair.getSecKey)
-      val decryptedValue = new String(decrypted, StandardCharsets.UTF_8)
-      expect(decryptedValue == value)
-    }
+        val decrypted      = Sodium.sealOpen(output.encrypted, keyPair.getPubKey, keyPair.getSecKey)
+        val decryptedValue = new String(decrypted, StandardCharsets.UTF_8)
+        expect(decryptedValue == value)
+      }
+    finally keyPair.destroy()
   }
 
   override def munitFlakyOK: Boolean = TestUtil.isCI
