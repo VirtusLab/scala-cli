@@ -808,7 +808,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 `SHOULD have` per Scala Runner specification
 
-The Scala.js version (1.22.0 by default).
+The Scala.js version (1.23.0 by default).
 
 ### `--js-mode`
 
