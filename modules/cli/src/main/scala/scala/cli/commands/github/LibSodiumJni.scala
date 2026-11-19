@@ -6,7 +6,7 @@ import coursier.util.Task
 
 import java.nio.charset.StandardCharsets
 
-import scala.build.EitherCps.either
+import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, FetchExternalBinary}
@@ -30,21 +30,22 @@ object LibSodiumJni {
 
   private def libsodiumjniVersion = Constants.libsodiumjniVersion
 
+  /** CPU architectures libsodiumjni publishes native libraries for. */
+  private val supportedArchs = Set("x86_64", "aarch64")
+
   /** Extension of the libsodiumjni shared library artifact for a given platform. */
   def jniLibExtension(platformSuffix: String): Either[String, String] =
     platformSuffix match {
-      case s"$_-pc-linux"     => Right("so")
-      case s"$_-apple-darwin" => Right("dylib")
-      case s"$_-pc-win32"     => Right("dll")
-      case other              => Left(s"libsodiumjni isn't supported on platform $other")
+      case s"$arch-pc-linux" if supportedArchs(arch)     => Right("so")
+      case s"$arch-apple-darwin" if supportedArchs(arch) => Right("dylib")
+      case s"$arch-pc-win32" if supportedArchs(arch)     => Right("dll")
+      case other => Left(s"libsodiumjni isn't supported on platform $other")
     }
 
-  private def jniLibArtifact(cache: Cache[Task], classifier: String) = {
+  private def jniLibArtifact(cache: Cache[Task], classifier: String, ext: String) = {
 
     import dependency._
     import scala.build.internal.Util.DependencyOps
-
-    val ext = jniLibExtension(classifier).fold(sys.error, identity)
 
     val dep =
       dep"org.virtuslab.scala-cli:libsodiumjni:$libsodiumjniVersion,intransitive,classifier=$classifier,ext=$ext,type=$ext"
@@ -81,12 +82,18 @@ object LibSodiumJni {
       Properties.isLinux && launcherKindOpt.contains("static")
 
     if !allStaticallyLinked then
-      val classifier = FetchExternalBinary.platformSuffix(supportsMusl = false)
-      val f          = jniLibArtifact(cache, classifier)
+      val classifier = value {
+        FetchExternalBinary.maybePlatformSuffix(supportsMusl = false)
+          .left.map(new LibSodiumJniUnsupportedPlatform(_))
+      }
+      val ext = value(jniLibExtension(classifier).left.map(new LibSodiumJniUnsupportedPlatform(_)))
+      val f   = jniLibArtifact(cache, classifier, ext)
       logger.debug(s"Loading libsodiumjni from $f")
       libsodiumjni.internal.LoadLibrary.initialize(f.toString)
 
     libsodiumjni.Sodium.init()
   }
+
+  final class LibSodiumJniUnsupportedPlatform(message: String) extends BuildException(message)
 
 }
