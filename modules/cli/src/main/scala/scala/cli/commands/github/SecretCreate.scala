@@ -3,7 +3,6 @@ package scala.cli.commands.github
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
 import com.github.plokhotnyuk.jsoniter_scala.core.*
-import coursier.cache.ArchiveCache
 import sttp.client3.*
 
 import java.nio.charset.StandardCharsets
@@ -173,10 +172,9 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
         ).orExit(logger)
     }
 
-    val cache        = options.coursier.coursierCache(logger)
-    val archiveCache = ArchiveCache().copy(cache = cache)
+    val cache = options.coursier.coursierCache(logger)
 
-    LibSodiumJni.init(cache, archiveCache, logger).orExit(logger)
+    LibSodiumJni.init(cache, logger).orExit(logger)
 
     for ((name, secretValue) <- secrets) {
 
