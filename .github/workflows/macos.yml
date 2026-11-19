@@ -111,7 +111,6 @@ jobs:
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_IT_SANITY: true
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc macos-tests-default 'Scala CLI MacOS Tests (sanity)' test-report.xml out/
@@ -161,7 +160,6 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 5
           SCALA_CLI_IT_SANITY: true
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc macos-tests-rc 'Scala CLI MacOS Tests (sanity)' test-report.xml out/
@@ -211,7 +209,6 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 4
           SCALA_CLI_IT_SANITY: true
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc macos-tests-lts 'Scala CLI MacOS Tests (Scala 3.9 LTS, sanity)' test-report.xml out/
@@ -261,7 +258,6 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 6
           SCALA_CLI_IT_SANITY: true
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc macos-tests-legacy-lts 'Scala CLI MacOS Tests (Scala 3.3 LTS, sanity)' test-report.xml out/
@@ -355,7 +351,6 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 1
           SCALA_CLI_IT_SANITY: true
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-default 'Scala CLI MacOS ARM64 Tests (sanity)' test-report.xml out/
@@ -405,7 +400,6 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 5
           SCALA_CLI_IT_SANITY: true
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-rc 'Scala CLI MacOS ARM64 Tests (sanity)' test-report.xml out/
@@ -455,7 +449,6 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 4
           SCALA_CLI_IT_SANITY: true
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-lts 'Scala CLI MacOS ARM64 Tests (Scala 3.9 LTS, sanity)' test-report.xml out/
@@ -505,7 +498,6 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 6
           SCALA_CLI_IT_SANITY: true
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc macos-arm64-tests-legacy-lts 'Scala CLI MacOS ARM64 Tests (Scala 3.3 LTS, sanity)' test-report.xml out/

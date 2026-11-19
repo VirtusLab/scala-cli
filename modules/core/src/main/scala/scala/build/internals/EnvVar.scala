@@ -132,7 +132,6 @@ object EnvVar {
       interactiveInputs,
       power,
       printStackTraces,
-      allowSodiumJni,
       vendoredZipInputStream
     )
     val config                 = EnvVar("SCALA_CLI_CONFIG", "Scala CLI configuration file path")
@@ -142,7 +141,6 @@ object EnvVar {
     val interactiveInputs      = EnvVar("SCALA_CLI_INTERACTIVE_INPUTS", "Interactive mode inputs")
     val power                  = EnvVar("SCALA_CLI_POWER", "Power mode toggle")
     val printStackTraces       = EnvVar("SCALA_CLI_PRINT_STACK_TRACES", "Print stack traces toggle")
-    val allowSodiumJni         = EnvVar("SCALA_CLI_SODIUM_JNI_ALLOW", "Allow to load libsodiumjni")
     val vendoredZipInputStream =
       EnvVar("SCALA_CLI_VENDORED_ZIS", "Toggle io.github.scala_cli.zip.ZipInputStream")
   }

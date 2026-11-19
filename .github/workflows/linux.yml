@@ -137,7 +137,6 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc linux-tests-default 'Scala CLI Linux Tests (default)' test-report.xml out/
@@ -186,7 +185,6 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 2
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc linux-tests-scala-2-13 'Scala CLI Linux Tests (Scala 2.13)' test-report.xml out/
@@ -235,7 +233,6 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 3
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: .github/scripts/generate-junit-reports.sc linux-tests-scala-2-12 'Scala CLI Linux Tests (Scala 2.12)' test-report.xml out/
@@ -284,7 +281,6 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 4
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc linux-tests-lts 'Scala CLI Linux Tests (Scala 3.9 LTS)' test-report.xml out/
@@ -333,7 +329,6 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 6
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc linux-tests-legacy-lts 'Scala CLI Linux Tests (Scala 3.3 LTS)' test-report.xml out/
@@ -382,7 +377,6 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 5
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc linux-tests-rc 'Scala CLI Linux Tests (5)' test-report.xml out/
@@ -504,7 +498,6 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 1
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc linux-tests-default 'Scala CLI Linux ARM 64 Tests (default)' test-report.xml out/
@@ -553,7 +546,6 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 5
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc linux-tests-rc 'Scala CLI Linux ARM64 Tests (5)' test-report.xml out/
@@ -602,7 +594,6 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 4
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc linux-arm64-tests-lts 'Scala CLI Linux ARM64 Tests (Scala 3.9 LTS)' test-report.xml out/
@@ -651,7 +642,6 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 6
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: .github/scripts/generate-junit-reports.sc linux-arm64-tests-legacy-lts 'Scala CLI Linux ARM64 Tests (Scala 3.3 LTS)' test-report.xml out/
