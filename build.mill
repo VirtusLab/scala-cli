@@ -606,7 +606,6 @@ trait Core extends ScalaCliCrossSbtModule
          |
          |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
          |
-         |  def libsodiumVersion = "${deps.libsodiumVersion}"
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.versionConstraint.asString}"
          |
          |  def scalaPyVersion = "${Deps.scalaPy.dep.versionConstraint.asString}"

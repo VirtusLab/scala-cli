@@ -2,7 +2,6 @@ package scala.cli.commands.publish
 
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
-import coursier.cache.ArchiveCache
 
 import java.nio.charset.StandardCharsets
 
@@ -207,8 +206,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
             s"Uploading ${missingSetSecrets.length} GitHub repository $name"
         }
 
-        LibSodiumJni.init(coursierCache, ArchiveCache().copy(cache = coursierCache), logger)
-          .orExit(logger)
+        LibSodiumJni.init(coursierCache, logger).orExit(logger)
 
         lazy val pubKey = SecretCreate.publicKey(
           ghRepoOrg,

@@ -346,8 +346,8 @@ def csDockerVersion = Deps.Versions.coursierCli
 def buildCsVersion = Deps.Versions.coursierCli
 
 // Native library used to encrypt GitHub secrets
-// libsodium MSVC build: statically linked in the Windows native launcher, and loaded at runtime
-// by the Windows JVM launchers (should match the libsodium version libsodiumjni is built against)
+// libsodium MSVC build, statically linked in the Windows native launcher (the libsodiumjni static
+// library doesn't include libsodium). Should match the libsodium version libsodiumjni is built against.
 def libsodiumVersion = "1.0.22"
 // static libsodium from Alpine, linked in the Linux static launcher
 def alpineLibsodiumVersion = "1.0.20"
