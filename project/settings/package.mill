@@ -190,7 +190,9 @@ trait CliLaunchers extends SbtModule { self =>
 
   def launcherTypeResourcePath: os.RelPath =
     os.rel / "scala" / "cli" / "internal" / "launcher-type.txt"
-  def defaultFilesResourcePath: os.RelPath = os.rel / "scala" / "cli" / "commands" / "publish"
+  def defaultFilesResourcePath: os.RelPath      = os.rel / "scala" / "cli" / "commands" / "publish"
+  def thirdPartyNoticesResourcePath: os.RelPath =
+    os.rel / "META-INF" / "scala-cli" / "THIRD-PARTY-NOTICES.txt"
 
   trait CliNativeImage extends NativeImage {
     override def generateNativeImageWithFileSystemChecker: Boolean = false
@@ -216,6 +218,7 @@ trait CliLaunchers extends SbtModule { self =>
         s"-H:IncludeResources=$localRepoResourcePath",
         s"-H:IncludeResources=$launcherTypeResourcePath",
         s"-H:IncludeResources=$defaultFilesResourcePath/.*",
+        s"-H:IncludeResources=$thirdPartyNoticesResourcePath",
         "-H:-ParseRuntimeOptions",
         s"-H:CLibraryPath=$cLibPath",
         s"-J-Djavax.net.ssl.trustStore=$trustStorePath",
