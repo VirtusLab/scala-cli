@@ -1174,7 +1174,6 @@ trait CliIntegration extends SbtModule
            |  def cs                           = "${settings.cs().replace("\\", "\\\\")}"
            |  def csVersion                    = "${Deps.Versions.coursierCli}"
            |  def workspaceDirName             = "$workspaceDirName"
-           |  def libsodiumVersion             = "${deps.libsodiumVersion}"
            |  def dockerArchLinuxImage         = "${TestDeps.archLinuxImage}"
            |  
            |  def toolkitVersion                 = "${Deps.toolkitVersion}"

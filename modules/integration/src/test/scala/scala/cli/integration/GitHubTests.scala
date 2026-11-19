@@ -3,15 +3,11 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
-import coursier.cache.ArchiveCache
-import coursier.util.Artifact
 import libsodiumjni.Sodium
 import libsodiumjni.internal.LoadLibrary
 
 import java.nio.charset.StandardCharsets
-import java.util.{Base64, Locale}
-
-import scala.util.Properties
+import java.util.Base64
 
 class GitHubTests extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
@@ -89,26 +85,7 @@ object GitHubTests {
   implicit val encryptedSecretCodec: JsonValueCodec[EncryptedSecret] =
     JsonCodecMaker.make
 
-  // Keep in sync with LibSodiumJni.libsodiumArchive in the cli module (not a dependency of
-  // the integration tests): since libsodiumjni 1.0.0, libsodium is statically linked in its
-  // Linux and macOS native libraries, while on Windows, libsodiumjni.dll needs libsodium.dll,
-  // which we take from the official libsodium MSVC archive.
-  private def libsodiumDllPathOpt: Option[os.Path] =
-    Option.when(Properties.isWin) {
-      val msvcArch = sys.props("os.arch").toLowerCase(Locale.ROOT) match {
-        case "aarch64" | "arm64" => "ARM64"
-        case _                   => "x64"
-      }
-      val url =
-        s"https://download.libsodium.org/libsodium/releases/libsodium-${Constants.libsodiumVersion}-stable-msvc.zip"
-      val archiveCache = ArchiveCache()
-      val dir          = archiveCache.get(Artifact(url)).unsafeRun()(using archiveCache.cache.ec)
-        .fold(e => throw new Exception(e), os.Path(_, os.pwd))
-      dir / "libsodium" / msvcArch / "Release" / "v143" / "dynamic" / "libsodium.dll"
-    }
-
   private def initSodium(): Unit = {
-    libsodiumDllPathOpt.foreach(lib => System.load(lib.toString))
     LoadLibrary.initializeFromResources()
     Sodium.init()
   }
