@@ -1,0 +1,31 @@
+name: Scala Steward
+on:
+  schedule:
+    # Late Saturday: 21:00 UTC (22:00 CET, 23:00 CEST)
+    - cron: '0 21 * * 6'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: scala-steward
+  cancel-in-progress: false
+
+jobs:
+  scala-steward:
+    name: Update dependencies
+    if: github.repository == 'VirtusLab/scala-cli'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Run Scala Steward
+        uses: scala-steward-org/scala-steward-action@v2
+        with:
+          # Covers Mill in .scala-steward.conf post-update hooks.
+          timeout: 45min
+          # A PAT with contents and pull-requests write makes the opened PRs
+          # trigger CI. Without SCALA_STEWARD_TOKEN, the default token still
+          # opens PRs, but those PRs do not start other workflows.
+          github-token: ${{ secrets.SCALA_STEWARD_TOKEN != '' && secrets.SCALA_STEWARD_TOKEN || secrets.GITHUB_TOKEN }}
