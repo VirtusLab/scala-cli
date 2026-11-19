@@ -364,6 +364,10 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-explicit-c-files-outside-native-warning**
+
+Suppress warnings about C/header files passed explicitly outside Scala Native
+
 **--suppress-experimental-feature-warning**
 
 Suppress warnings about using experimental features
@@ -1180,6 +1184,10 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-explicit-c-files-outside-native-warning**
+
+Suppress warnings about C/header files passed explicitly outside Scala Native
+
 **--suppress-experimental-feature-warning**
 
 Suppress warnings about using experimental features
@@ -1810,6 +1818,10 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 **--suppress-outdated-dependency-warning**
 
 Suppress warnings about outdated dependencies in project
+
+**--suppress-explicit-c-files-outside-native-warning**
+
+Suppress warnings about C/header files passed explicitly outside Scala Native
 
 **--suppress-experimental-feature-warning**
 
@@ -2482,6 +2494,10 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-explicit-c-files-outside-native-warning**
+
+Suppress warnings about C/header files passed explicitly outside Scala Native
+
 **--suppress-experimental-feature-warning**
 
 Suppress warnings about using experimental features
@@ -3152,6 +3168,10 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-explicit-c-files-outside-native-warning**
+
+Suppress warnings about C/header files passed explicitly outside Scala Native
+
 **--suppress-experimental-feature-warning**
 
 Suppress warnings about using experimental features
@@ -3779,6 +3799,10 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 **--suppress-outdated-dependency-warning**
 
 Suppress warnings about outdated dependencies in project
+
+**--suppress-explicit-c-files-outside-native-warning**
+
+Suppress warnings about C/header files passed explicitly outside Scala Native
 
 **--suppress-experimental-feature-warning**
 
@@ -4485,6 +4509,10 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 **--suppress-outdated-dependency-warning**
 
 Suppress warnings about outdated dependencies in project
+
+**--suppress-explicit-c-files-outside-native-warning**
+
+Suppress warnings about C/header files passed explicitly outside Scala Native
 
 **--suppress-experimental-feature-warning**
 
@@ -5201,6 +5229,10 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 **--suppress-outdated-dependency-warning**
 
 Suppress warnings about outdated dependencies in project
+
+**--suppress-explicit-c-files-outside-native-warning**
+
+Suppress warnings about C/header files passed explicitly outside Scala Native
 
 **--suppress-experimental-feature-warning**
 
@@ -6200,6 +6232,10 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 **--suppress-outdated-dependency-warning**
 
 Suppress warnings about outdated dependencies in project
+
+**--suppress-explicit-c-files-outside-native-warning**
+
+Suppress warnings about C/header files passed explicitly outside Scala Native
 
 **--suppress-experimental-feature-warning**
 

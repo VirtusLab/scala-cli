@@ -114,7 +114,7 @@ object Keys {
     new Key.BooleanEntry(
       prefix = Seq("suppress-warning"),
       name = "explicit-c-files-outside-native",
-      specificationLevel = SpecificationLevel.EXPERIMENTAL,
+      specificationLevel = SpecificationLevel.IMPLEMENTATION,
       description =
         "Globally suppresses warnings about C/header files passed explicitly outside Scala Native."
     )
