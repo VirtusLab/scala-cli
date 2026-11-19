@@ -7,8 +7,6 @@ import munit.FunSuite
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
-import scala.util.Properties
-
 final class SecretCreateTests extends FunSuite {
 
   private val secret = "1234".getBytes(StandardCharsets.UTF_8)
@@ -16,9 +14,7 @@ final class SecretCreateTests extends FunSuite {
   private def publicKey(bytes: Array[Byte]) =
     GitHubApi.PublicKey("the-key-id", Base64.getEncoder.encodeToString(bytes))
 
-  // On Windows, the libsodiumjni library bundled in its JAR needs a libsodium.dll
   private def initSodium(): Unit = {
-    assume(!Properties.isWin, "libsodium.dll isn't available in unit tests on Windows")
     LoadLibrary.initializeFromResources()
     Sodium.init()
   }
