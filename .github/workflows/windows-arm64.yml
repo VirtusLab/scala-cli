@@ -173,7 +173,9 @@ jobs:
       run: |
         $PSNativeCommandUseErrorActionPreference = $true
         $wixBin = Join-Path $env:WIX bin
-        $license = (Get-Content LICENSE | ForEach-Object { $_ -replace '([\\{}])', '\$1' }) -join "\par`r`n"
+        # Scala CLI license, followed by the third-party notices
+        $licenseLines = @(Get-Content LICENSE) + '' + @(Get-Content THIRD-PARTY-NOTICES.txt)
+        $license = ($licenseLines | ForEach-Object { $_ -replace '([\\{}])', '\$1' }) -join "\par`r`n"
         Set-Content license.rtf "{\rtf1\ansi\deff0{\fonttbl{\f0 Consolas;}}\f0\fs16 $license\par}"
         & "$wixBin\heat.exe" dir app-image\scala-cli -ag -srd -sfrag -sreg -scom -cg AppFiles -dr INSTALLDIR -var var.AppImage -out app-files.wxs
         & "$wixBin\candle.exe" -arch arm64 -ext WixUIExtension "-dVersion=$(Get-Content jvm-launcher\version)" "-dAppImage=app-image\scala-cli" "-dLicenseRtf=license.rtf" .github\scripts\scala-cli-aarch64-pc-win32.wxs app-files.wxs
