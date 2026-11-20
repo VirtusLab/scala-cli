@@ -111,8 +111,8 @@ object CoursierScalaInstallationTestHelper {
     s"$winOverrideStart[\\s\\S]*?$winOverrideEnd\\r?\\n?".r
   private val winCliCommonPattern: Regex =
     """(?im)^call "%_PROG_HOME%\\libexec\\cli-common-platform.bat".*$""".r
-  // coursier < 2.1.26 wrappers: SET CMDLINE="…\bin\scala.bat" %CMD_LINE_ARGS%
-  // coursier >= 2.1.26 wrappers: SET RUN_CMD="…\bin\scala.bat"
+  // coursier < 2.1.27 wrappers: SET CMDLINE="…\bin\scala.bat" %CMD_LINE_ARGS%
+  // coursier >= 2.1.27 wrappers: SET RUN_CMD="…\bin\scala.bat"
   private val winWrapperTargetPattern: Regex =
     """(?im)^SET (?:CMDLINE|RUN_CMD)="(.*\\bin\\scala\.bat)"""".r
 
