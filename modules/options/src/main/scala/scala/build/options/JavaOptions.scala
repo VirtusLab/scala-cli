@@ -1,7 +1,7 @@
 package scala.build.options
 
 import bloop.rifle.VersionUtil.jvmRelease
-import coursier.cache.{ArchiveCache, FileCache}
+import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.util.Task
 import dependency.AnyDependency
@@ -38,15 +38,36 @@ final case class JavaOptions(
     cache: FileCache[Task],
     verbosity: Int
   ): JavaHome = {
-    val indexOs      = finalJvmIndexOs
-    val indexArch    = jvmIndexArch.getOrElse(JvmChannel.defaultArchitecture())
-    val indexChannel = JavaOptions.jvmIndexChannel(jvmIndexOpt, indexOs, indexArch)
-    val indexTask    = {
+    val indexOs            = finalJvmIndexOs
+    val indexArch          = jvmIndexArch.getOrElse(JvmChannel.defaultArchitecture())
+    val indexChannel       = JavaOptions.jvmIndexChannel(jvmIndexOpt, indexOs, indexArch)
+    val fallbackChannelOpt =
+      JavaOptions.offlineJvmIndexFallback(
+        jvmIndexOpt,
+        indexChannel,
+        isOffline = JavaOptions.isOffline(cache)
+      )
+    val indexTask = {
       val msg    = if (verbosity > 0) "Downloading JVM index" else ""
       val cache0 = cache.withMessage(msg)
+      // repositories are only used by module-based channels, which jvmIndexChannel never returns
+      def load(channel: JvmChannel): Task[JvmIndex] =
+        JvmIndex.load(cache0, Nil, channel, Some(indexOs), Some(indexArch))
       cache0.logger.using {
-        // repositories are only used by module-based channels, which jvmIndexChannel never returns
-        JvmIndex.load(cache0, Nil, indexChannel, Some(indexOs), Some(indexArch))
+        fallbackChannelOpt match {
+          case None                  => load(indexChannel)
+          case Some(fallbackChannel) =>
+            load(indexChannel).attempt.flatMap {
+              case Right(index) => Task.point(index)
+              case Left(ex)     =>
+                load(fallbackChannel).attempt.flatMap {
+                  case Right(index)     => Task.point(index)
+                  case Left(fallbackEx) =>
+                    ex.addSuppressed(fallbackEx)
+                    Task.fail(ex)
+                }
+            }
+        }
       }
     }
     val jvmCache = JvmCache()
@@ -190,4 +211,24 @@ object JavaOptions {
     */
   def jvmIndexChannel(jvmIndexOpt: Option[String], os: String, arch: String): JvmChannel =
     jvmIndexOpt.fold(JvmChannel.default(os, arch))(JvmChannel.url)
+
+  /** JVM index to fall back to if `indexChannel` can't be loaded.
+    *
+    * Only in offline mode, when users didn't pass a JVM index, and the default index is the per-OS
+    * / CPU one: caches populated by Scala CLI versions using coursier < 2.1.27 (or the coursier CLI
+    * < 2.1.27) only have the legacy index, which this falls back to so that JVMs already in the
+    * cache can still be used offline. When online, the per-OS / CPU index is always used, as only
+    * it allows to check the checksums of JVM archives.
+    */
+  def offlineJvmIndexFallback(
+    jvmIndexOpt: Option[String],
+    indexChannel: JvmChannel,
+    isOffline: Boolean
+  ): Option[JvmChannel] =
+    val legacyChannel = JvmChannel.gitHub()
+    Option.when(isOffline && jvmIndexOpt.isEmpty && indexChannel != legacyChannel)(legacyChannel)
+
+  /** Whether `cache` is in offline mode, i.e. only reads from the local cache */
+  def isOffline(cache: FileCache[Task]): Boolean =
+    cache.cachePolicies.nonEmpty && cache.cachePolicies.forall(_ == CachePolicy.LocalOnly)
 }
