@@ -42,6 +42,9 @@ trait Logger {
 
   def verbosity: Int
 
+  /** Whether interactive progress output (ANSI escape codes, cursor moves) can be used. */
+  def useProgressOutput: Boolean = coursier.paths.Util.useAnsiOutput()
+
   /** Since we have a lot of experimental warnings all over the build process, this method can be
     * used to accumulate them for a better UX
     */

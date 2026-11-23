@@ -2,6 +2,7 @@ package scala.cli.commands.publish
 
 import coursier.cache.ArchiveCache
 
+import java.io.{OutputStream, OutputStreamWriter}
 import java.net.URI
 import java.time.Instant
 import java.util.function.Supplier
@@ -18,12 +19,38 @@ import scala.cli.errors.MissingPublishOptionError
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.concurrent.ExecutionContextExecutorService
-import scala.publish.checksum.logger.ChecksumLogger
+import scala.concurrent.duration.*
+import scala.publish.checksum.logger.{ChecksumLogger, InteractiveChecksumLogger}
 import scala.publish.checksum.{ChecksumType, Checksums}
 import scala.publish.fileset.FileSet
+import scala.publish.signing.logger.{InteractiveSignerLogger, SignerLogger}
 import scala.publish.signing.{GpgSigner, Signer}
+import scala.publish.upload.logger.{InteractiveUploadLogger, UploadLogger}
+import scala.publish.upload.{HttpURLConnectionUpload, Upload}
 
 object PublishUtils {
+
+  /** Whether `repositoryRoot` points at a local (non-HTTP) repository. */
+  def isLocalRepository(repositoryRoot: String): Boolean =
+    !repositoryRoot.startsWith("http://") && !repositoryRoot.startsWith("https://")
+
+  def httpUpload(
+    connectionTimeoutSeconds: Option[Int],
+    responseTimeoutSeconds: Option[Int]
+  ): Upload =
+    HttpURLConnectionUpload.create(
+      readTimeoutMs = responseTimeoutSeconds.map(_.seconds.toMillis.toInt),
+      connectionTimeoutMs = connectionTimeoutSeconds.map(_.seconds.toMillis.toInt)
+    )
+
+  def signerLogger(out: OutputStream, logger: Logger): SignerLogger =
+    new InteractiveSignerLogger(out = new OutputStreamWriter(out), verbosity = logger.verbosity)
+
+  def checksumLogger(out: OutputStream, logger: Logger): ChecksumLogger =
+    new InteractiveChecksumLogger(new OutputStreamWriter(out), verbosity = logger.verbosity)
+
+  def uploadLogger(out: OutputStream, dummy: Boolean, isLocal: Boolean): UploadLogger =
+    InteractiveUploadLogger.create(out, dummy = dummy, isLocal = isLocal)
 
   /** Compute checksum files for the given [[FileSet]].
     *

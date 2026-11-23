@@ -2,7 +2,12 @@ package scala.cli.errors
 
 import scala.build.errors.BuildException
 
-final class WrongSonatypeServerError(legacyChosen: Boolean)
+final class WrongSonatypeServerError(isCentralPortal: Boolean)
     extends BuildException(
-      s"Wrong Sonatype server, try ${if legacyChosen then "'central-s01'" else "'central'"}"
+      if isCentralPortal then
+        """Access denied by the Sonatype Central Portal.
+          |Make sure the namespace you publish under is verified for your account at https://central.sonatype.com,
+          |and that you're using a Central Portal user token as credentials""".stripMargin
+      else
+        "Wrong Sonatype server, legacy OSSRH servers are EOL since 2025-06-30, try 'central'"
     )

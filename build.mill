@@ -987,7 +987,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
     Deps.caseApp,
     Deps.coursierLauncher,
-    Deps.scalaPublish.exclude((organization, "config_2.13")).exclude((organization, "config_3")),
+    Deps.scalaPublish.exclude((organization, "config_3")),
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore,
@@ -995,7 +995,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
     Deps.metaconfigTypesafe,
     Deps.pythonNativeLibs,
     Deps.scalaPackager.exclude("com.lihaoyi" -> "os-lib_2.13"),
-    Deps.signingCli.exclude((organization, "config_2.13")).exclude((organization, "config_3")),
+    Deps.signingCli.exclude((organization, "config_3")),
     Deps.slf4jNop, // to silence jgit
     Deps.sttp,
     Deps.scalafixInterfaces,

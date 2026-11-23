@@ -4,7 +4,7 @@ import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
 import coursier.core.{Authentication, Configuration, ModuleName, Organization}
 
-import java.io.{File, OutputStreamWriter}
+import java.io.File
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
@@ -63,14 +63,10 @@ import scala.cli.packaging.Library
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 import scala.cli.util.ConfigPasswordOptionHelpers.*
-import scala.concurrent.duration.DurationInt
 import scala.publish.checksum.ChecksumType
-import scala.publish.checksum.logger.InteractiveChecksumLogger
 import scala.publish.fileset.{FileSet, Path}
-import scala.publish.signing.logger.InteractiveSignerLogger
 import scala.publish.signing.{NopSigner, Signer}
-import scala.publish.upload.logger.InteractiveUploadLogger
-import scala.publish.upload.{DummyUpload, FileUpload, HttpURLConnectionUpload, Upload}
+import scala.publish.upload.{DummyUpload, FileUpload, Upload}
 import scala.publish.{Content, Hooks, Pom}
 import scala.util.control.NonFatal
 import scala.xml.transform.{RewriteRule, RuleTransformer}
@@ -829,10 +825,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val ec = builds.head.options.finalCache.ec
 
-    def authOpt(
-      repo: String,
-      isLegacySonatype: Boolean
-    ): Either[BuildException, Option[Authentication]] =
+    def authOpt(repo: String): Either[BuildException, Option[Authentication]] =
       either {
         val publishCredentials: () => Option[PublishCredentials] =
           () => value(PublishUtils.getPublishCredentials(repo, configDb))
@@ -851,7 +844,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           .orElse {
             publishCredentials()
               .flatMap(_.realm)
-              .orElse(if isLegacySonatype then Some("Sonatype Nexus Repository Manager") else None)
+              .orElse(RepoParams.defaultRealm(repo))
           }
           .map(auth.withRealm)
           .getOrElse(auth)
@@ -972,8 +965,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         Right(NopSigner)
     }
 
-    val signerLogger =
-      new InteractiveSignerLogger(out = new OutputStreamWriter(System.err), verbosity = 1)
+    val signerLogger = PublishUtils.signerLogger(System.err, logger)
     val signRes: Either[(Path, Content, String), FileSet] = value(signer).signatures(
       fileSet = fileSet0,
       now = now,
@@ -996,9 +988,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
     }
 
-    val checksumLogger =
-      new InteractiveChecksumLogger(new OutputStreamWriter(System.err), verbosity = 1)
-    val checksumTypes = publishOptions.contextual(isCi).checksums match {
+    val checksumLogger = PublishUtils.checksumLogger(System.err, logger)
+    val checksumTypes  = publishOptions.contextual(isCi).checksums match {
       case None =>
         if repoParams.acceptsChecksums then Seq(ChecksumType.MD5, ChecksumType.SHA1)
         else Nil
@@ -1026,10 +1017,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
     if isSnapshot0 then logger.message("Publishing a SNAPSHOT version...")
-    val authOpt0: Option[Authentication] = value(authOpt(
-      repo = repoParams.repo.repo(isSnapshot0).root,
-      isLegacySonatype = repoParams.isSonatype
-    ))
+    val authOpt0: Option[Authentication] =
+      value(authOpt(repo = repoParams.repo.repo(isSnapshot0).root))
     val asciiRegex        = """[\u0000-\u007f]*""".r
     val usernameOnlyAscii = authOpt0.exists(_.userOpt.exists(asciiRegex.matches))
     val passwordOnlyAscii = authOpt0.exists(_.passwordOpt.exists(asciiRegex.matches))
@@ -1040,23 +1029,19 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         Severity.Warning
       )
     val repoParams0: RepoParams = repoParams.withAuth(authOpt0)
-    val isLegacySonatype        =
-      repoParams0.isSonatype && !repoParams0.repo.releaseRepo.root.contains("s01")
-    val hooksDataOpt = Option.when(!dummy) {
+    val hooksDataOpt            = Option.when(!dummy) {
       try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(using ec)
       catch {
         case NonFatal(e)
-            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 403,".r
-              .unanchored.matches(
-                e.getMessage
-              ) =>
-          logger.exit(new WrongSonatypeServerError(isLegacySonatype))
+            if RepoParams.sonatypeStagingProfilesHttpStatus(e.getMessage).contains(403) =>
+          logger.exit(new WrongSonatypeServerError(repoParams0.isCentralPortal))
         case NonFatal(e)
-            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 401,".r
-              .unanchored.matches(
-                e.getMessage
-              ) =>
-          logger.exit(new InvalidSonatypePublishCredentials(usernameOnlyAscii, passwordOnlyAscii))
+            if RepoParams.sonatypeStagingProfilesHttpStatus(e.getMessage).contains(401) =>
+          logger.exit(new InvalidSonatypePublishCredentials(
+            usernameIsAscii = usernameOnlyAscii,
+            passwordIsAscii = passwordOnlyAscii,
+            isCentralPortal = repoParams0.isCentralPortal
+          ))
         case NonFatal(e) =>
           throw new Exception(e)
       }
@@ -1070,21 +1055,19 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           .getOrElse(repoParams0.repo.repo(isSnapshot0))
     }
 
+    val isLocal    = PublishUtils.isLocalRepository(retainedRepo.root)
     val baseUpload =
-      if retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://") then
-        HttpURLConnectionUpload.create(
-          publishOptions.contextual(isCi)
-            .connectionTimeoutSeconds.map(_.seconds.toMillis.toInt),
-          publishOptions.contextual(isCi)
-            .responseTimeoutSeconds.map(_.seconds.toMillis.toInt)
+      if !isLocal then
+        PublishUtils.httpUpload(
+          connectionTimeoutSeconds = publishOptions.contextual(isCi).connectionTimeoutSeconds,
+          responseTimeoutSeconds = publishOptions.contextual(isCi).responseTimeoutSeconds
         )
       else
         FileUpload(Paths.get(new URI(retainedRepo.root)))
 
     val upload = if dummy then DummyUpload(baseUpload) else baseUpload
 
-    val isLocal      = true
-    val uploadLogger = InteractiveUploadLogger.create(System.err, dummy = dummy, isLocal = isLocal)
+    val uploadLogger = PublishUtils.uploadLogger(System.err, dummy = dummy, isLocal = isLocal)
 
     val errors =
       try
@@ -1131,8 +1114,10 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
              |Uploading files failed!
              |Possible causes:
              |- incorrect Sonatype credentials
-             |- incorrect Sonatype server was used, try ${
-              if isLegacySonatype then "'central-s01'" else "'central'"
+             |${
+              if repoParams0.isCentralPortal then
+                "- credentials are not a Central Portal user token"
+              else "- incorrect Sonatype server was used, try 'central'"
             }
              | -> consult publish subcommand documentation
              |""".stripMargin

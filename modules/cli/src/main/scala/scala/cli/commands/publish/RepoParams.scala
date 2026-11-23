@@ -44,11 +44,11 @@ final case class RepoParams(
     )
   def withAuth(authOpt: Option[Authentication]): RepoParams = authOpt.fold(this)(withAuth)
 
-  lazy val isSonatype: Boolean =
-    Option(new URI(repo.snapshotRepo.root))
-      .filter(_.getScheme == "https")
-      .map(_.getHost)
-      .exists(sonatypeHosts.contains)
+  lazy val isSonatype: Boolean = httpsHost(repo.snapshotRepo.root).exists(isSonatypeHost)
+
+  /** Whether this targets the Sonatype Central Portal (via its OSSRH Staging API). */
+  lazy val isCentralPortal: Boolean =
+    httpsHost(repo.releaseRepo.root).contains(new URI(sonatypeOssrhStagingApiBase).getHost)
 }
 
 object RepoParams {
@@ -63,6 +63,32 @@ object RepoParams {
       sonatypeS01LegacyBase,
       sonatypeOssrhStagingApiBase
     ).map(new URI(_).getHost)
+
+  private def httpsHost(url: String): Option[String] =
+    Option(new URI(url)).filter(_.getScheme == "https").flatMap(uri => Option(uri.getHost))
+
+  def isSonatypeHost(host: String): Boolean = sonatypeHosts.contains(host)
+
+  /** The default authentication realm for a repository, if it's a known Sonatype one. */
+  def defaultRealm(repoUrl: String): Option[String] =
+    httpsHost(repoUrl).filter(isSonatypeHost).map { host =>
+      // realms as advertised in the WWW-Authenticate header of each server
+      if host == new URI(sonatypeOssrhStagingApiBase).getHost then "OSSRH Staging API Service"
+      else "Sonatype Nexus Repository Manager"
+    }
+
+  private val stagingProfilesErrorRegex =
+    """Failed to get https://([^/\s]+)/\S*/staging/profiles \(http status: (\d+),""".r.unanchored
+
+  /** Extracts the HTTP status code from a Sonatype API error about listing staging profiles.
+    *
+    * The message format comes from scala-publish (`HttpClientUtil` / `SonatypeApi`): `Failed to get
+    * <url> (http status: <code>, response: <body>)`.
+    */
+  def sonatypeStagingProfilesHttpStatus(errorMessage: String): Option[Int] =
+    Option(errorMessage).collect {
+      case stagingProfilesErrorRegex(host, code) if isSonatypeHost(host) => code.toInt
+    }
 
   def apply(
     repo: String,
@@ -183,7 +209,8 @@ object RepoParams {
       api = api,
       out = logger.compilerOutputStream, // meh
       verbosity = logger.verbosity,
-      batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
+      // batch = true selects the line-by-line logger, batch = false the interactive one
+      batch = !logger.useProgressOutput,
       es = es
     )
     RepoParams(
