@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@algolia/client-search": "^5.64.0",
+    "@algolia/client-search": "^5.65.0",
     "@docusaurus/core": "^3.10.2",
     "@docusaurus/plugin-content-docs": "^3.10.2",
     "@docusaurus/preset-classic": "^3.10.2",
@@ -27,19 +27,19 @@
     "@fontsource-variable/merriweather": "^5.3.0",
     "@mdx-js/react": "^3.1.1",
     "@svta/cml-cta": "1.0.10",
-    "@svta/cml-structured-field-values": "1.1.7",
-    "@svta/cml-utils": "1.7.0",
+    "@svta/cml-structured-field-values": "1.1.8",
+    "@svta/cml-utils": "1.8.0",
     "@types/react": "^19.3.0",
     "clsx": "^2.1.1",
     "docusaurus-plugin-sass": "^0.2.7",
-    "lucide-react": "^1.72.0",
+    "lucide-react": "^1.77.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-loadable": "^5.5.0",
     "react-player": "^3.4.0",
     "sass": "^1.108.2",
     "search-insights": "^2.17.3",
-    "tailwind-merge": "^3.7.0"
+    "tailwind-merge": "^3.7.1"
   },
   "resolutions": {
     "react-loadable": "^5.5.0",
@@ -47,8 +47,8 @@
     "@algolia/client-search": "^5.48.1",
     "@types/react": "^19.3.0",
     "@svta/cml-cta": "1.0.10",
-    "@svta/cml-structured-field-values": "1.1.7",
-    "@svta/cml-utils": "1.7.0"
+    "@svta/cml-structured-field-values": "1.1.8",
+    "@svta/cml-utils": "1.8.0"
   },
   "browserslist": {
     "production": [
@@ -67,7 +67,7 @@
     "@tailwindcss/postcss": "^4.3.5",
     "@types/node": "^26.6.6",
     "@types/react-dom": "^19.3.0",
-    "postcss": "^8.5.32",
+    "postcss": "^8.5.33",
     "tailwindcss": "^4.3.5",
     "typescript": "~7.0.2"
   }
