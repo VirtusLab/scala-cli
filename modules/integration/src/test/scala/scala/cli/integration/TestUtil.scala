@@ -39,13 +39,18 @@ object TestUtil {
   val ltsEqualsNext: Boolean        = Constants.scala3LegacyLts `equals` Constants.scala3Next
 
   /** JDK versions for which coursier's default JVM provider (Temurin on most platforms) has no
-    * release, mapped to a provider which does have one.
+    * usable release, mapped to a provider which does have one.
     *
     * Coursier resolves a bare version such as `27` through its default provider, so tests asking
     * for such a version have to pin an explicit one instead. Entries can be dropped once the
     * default provider catches up.
+    *
+    *   - 27: no Temurin release yet
+    *   - 8 (Windows only): GitHub serves a broken archive for the latest Temurin 8 Windows x64 JDK
+    *     (jdk8u512-b09), which fails coursier's checksum validation
     */
-  private val pinnedJvmProviders: Map[Int, String] = Map(27 -> "zulu")
+  private val pinnedJvmProviders: Map[Int, String] =
+    Map(27 -> "zulu") ++ (if Properties.isWin then Map(8 -> "zulu") else Map.empty)
 
   /** JVM id to pass to `--jvm`, `//> using jvm` or `cs java-home --jvm` for `javaVersion`.
     *

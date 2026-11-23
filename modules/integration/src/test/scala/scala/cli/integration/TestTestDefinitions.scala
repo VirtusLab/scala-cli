@@ -363,7 +363,9 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     test("successful test JVM 8") {
       successfulTestInputs().fromRoot { root =>
         val output =
-          os.proc(TestUtil.cli, "test", "--jvm", "8", extraOptions, ".").call(cwd = root).out.text()
+          os.proc(TestUtil.cli, "test", "--jvm", TestUtil.jvmId(8), extraOptions, ".").call(cwd =
+            root
+          ).out.text()
         expect(output.contains("Hello from tests"))
       }
     }

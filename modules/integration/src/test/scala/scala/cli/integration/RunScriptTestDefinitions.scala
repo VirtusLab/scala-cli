@@ -900,7 +900,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
         else 8
       val oldJavaHome =
         os.Path(
-          stableStdoutOf(TestUtil.cs, "java-home", "--jvm", jvmIndex)(),
+          stableStdoutOf(TestUtil.cs, "java-home", "--jvm", TestUtil.jvmId(jvmIndex))(),
           os.pwd
         )
 
