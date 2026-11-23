@@ -1,13 +1,12 @@
 package scala.build.postprocessing
 
-import coursier.cache.FileCache
 import dependency.*
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, SlothAgentError}
-import scala.build.internal.Constants
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.util.WarningMessages
+import scala.build.internal.{Constants, CoursierUserAgent}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.BuildOptions
 import scala.build.{Artifacts, Logger, Positioned}
@@ -37,7 +36,7 @@ object SlothAgent:
     logger: Logger
   ): Either[BuildException, os.Path] =
     either:
-      val cache        = options.internal.cache.getOrElse(FileCache())
+      val cache        = options.internal.cache.getOrElse(CoursierUserAgent.defaultCache())
       val repositories = value(options.finalRepositories)
       val dependency   =
         dep"${Constants.slothAgentOrganization}:${Constants.slothAgentModuleName}:${Constants.slothAgentVersion}"

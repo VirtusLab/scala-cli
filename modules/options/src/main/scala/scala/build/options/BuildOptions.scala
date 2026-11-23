@@ -23,7 +23,7 @@ import scala.build.internal.Regexes.{
   scala3RcNicknameRegex,
   scala3RcRegex
 }
-import scala.build.internal.{Constants, OsLibc, Util}
+import scala.build.internal.{Constants, CoursierUserAgent, OsLibc, Util}
 import scala.build.internals.EnvVar
 import scala.build.options.ScalaOptions.*
 import scala.build.options.validation.BuildOptionsRule
@@ -263,7 +263,7 @@ final case class BuildOptions(
     else None
   }
 
-  lazy val finalCache: FileCache[Task] = internal.cache.getOrElse(FileCache())
+  lazy val finalCache: FileCache[Task] = internal.cache.getOrElse(CoursierUserAgent.defaultCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
 
   lazy val archiveCache: ArchiveCache[Task] = ArchiveCache().copy(cache = finalCache)

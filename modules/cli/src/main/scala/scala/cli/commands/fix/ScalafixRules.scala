@@ -1,12 +1,10 @@
 package scala.cli.commands.fix
 
-import coursier.cache.FileCache
-
 import scala.build.EitherCps.{either, value}
 import scala.build.compiler.ScalaCompilerMaker
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData}
-import scala.build.internal.{Constants, Runner}
+import scala.build.internal.{Constants, CoursierUserAgent, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.BuildOptions
 import scala.build.postprocessing.{SlothAgent, SlothPatcher}
@@ -106,7 +104,7 @@ object ScalafixRules extends CommandHelpers {
                   .flatMap(_.options.classPathOptions.scalafixDependencies.values.flatten),
                 value(buildOptions.finalRepositories),
                 logger,
-                buildOptions.internal.cache.getOrElse(FileCache())
+                buildOptions.internal.cache.getOrElse(CoursierUserAgent.defaultCache())
               )
             )
 

@@ -78,6 +78,7 @@ object LibSodiumJni {
     val dep =
       dep"org.virtuslab.scala-cli:libsodiumjni:$libsodiumjniVersion,intransitive,classifier=$classifier,ext=$ext,type=$ext"
     val fetch = coursier.Fetch()
+      .withCache(cache)
       .addDependencies(dep.toCs)
       .addArtifactTypes(Type(ext))
     val files = cache.loggerOpt.getOrElse(CacheLogger.nop).use {
