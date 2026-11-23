@@ -2200,6 +2200,9 @@ abstract class RunTestDefinitions
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
 
       TestUtil.serveFilesInHttpServer(repoPath, user, password, realm) { (host, port) =>
+        // coursier only sends credentials with a bare host over HTTPS,
+        // so we need to pass the scheme and port explicitly for a plain HTTP repository
+        val credentialsHost = s"http://$host:$port"
         // This codeblock represents test("No repository credentials passed to coursier")
         {
           val resWithNoCreds = os.proc(
@@ -2238,7 +2241,7 @@ abstract class RunTestDefinitions
             env = Map(
               "USER"                 -> user,
               "PASSWORD"             -> password,
-              "COURSIER_CREDENTIALS" -> s"$host $user:$password"
+              "COURSIER_CREDENTIALS" -> s"$credentialsHost $user:$password"
             ),
             mergeErrIntoOut = true
           )
@@ -2252,7 +2255,7 @@ abstract class RunTestDefinitions
             configFile,
             s"""{
                |"repositories.credentials": [
-               |{"host":"$host","user":"value:$user","password":"value:$password","matchHost":true}
+               |{"host":"$credentialsHost","user":"value:$user","password":"value:$password","matchHost":true}
                |]
                |}""".stripMargin
           )
@@ -2278,7 +2281,10 @@ abstract class RunTestDefinitions
 
         // This codeblock represents test("Repository credentials passed to coursier - java properties")
         {
-          os.write(root / ".scala-jvmopts", s"-Dcoursier.credentials=$host $user:$password\n")
+          os.write(
+            root / ".scala-jvmopts",
+            s"-Dcoursier.credentials=$credentialsHost $user:$password\n"
+          )
 
           val resWithProps = os.proc(
             TestUtil.cli,

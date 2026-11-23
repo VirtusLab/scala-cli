@@ -3,7 +3,6 @@ package scala.build.tests
 import com.eed3si9n.expecty.Expecty.assert as expect
 import coursier.Repositories
 import coursier.cache.FileCache
-import coursier.maven.MavenRepository
 import coursier.version.Version
 import dependency.ScalaParameters
 

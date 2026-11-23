@@ -475,12 +475,15 @@ class ConfigTests extends ScalaCliSuite {
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
 
       TestUtil.serveFilesInHttpServer(repoPath, user, password, realm) { (host, port) =>
+        // coursier only sends credentials with a bare host over HTTPS,
+        // so we need to pass the scheme and port explicitly for a plain HTTP repository
+        val credentialsHost = s"http://$host:$port"
         os.proc(
           TestUtil.cli,
           "--power",
           "config",
           "repositories.credentials",
-          host,
+          credentialsHost,
           s"value:$user",
           s"value:$password",
           realm
@@ -494,7 +497,7 @@ class ConfigTests extends ScalaCliSuite {
         )(cwd = root, env = extraEnv)
         val linePrefix                  = "configRepo0"
         val expectedCredentialsAsString =
-          s"""$linePrefix.host=$host
+          s"""$linePrefix.host=$credentialsHost
              |$linePrefix.username=value:$user
              |$linePrefix.password=value:$password
              |$linePrefix.realm=$realm
