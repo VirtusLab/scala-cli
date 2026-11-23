@@ -38,20 +38,23 @@ final case class JavaOptions(
     cache: FileCache[Task],
     verbosity: Int
   ): JavaHome = {
-    val indexUrl  = jvmIndexOpt.getOrElse(JvmChannel.gitHubIndexUrl)
-    val indexTask = {
+    val indexOs      = finalJvmIndexOs
+    val indexArch    = jvmIndexArch.getOrElse(JvmChannel.defaultArchitecture())
+    val indexChannel = JavaOptions.jvmIndexChannel(jvmIndexOpt, indexOs, indexArch)
+    val indexTask    = {
       val msg    = if (verbosity > 0) "Downloading JVM index" else ""
       val cache0 = cache.withMessage(msg)
       cache0.logger.using {
-        JvmIndex.load(cache0, indexUrl)
+        // repositories are only used by module-based channels, which jvmIndexChannel never returns
+        JvmIndex.load(cache0, Nil, indexChannel, Some(indexOs), Some(indexArch))
       }
     }
     val jvmCache = JvmCache()
       .withIndex(indexTask)
       .copy(
         archiveCache = archiveCache.copy(cache = cache.withMessage("Downloading JVM")),
-        os = finalJvmIndexOs,
-        architecture = jvmIndexArch.getOrElse(JvmChannel.defaultArchitecture())
+        os = indexOs,
+        architecture = indexArch
       )
     JavaHome().withCache(jvmCache)
   }
@@ -179,4 +182,12 @@ final case class JavaOptions(
 object JavaOptions {
   implicit val hasHashData: HasHashData[JavaOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[JavaOptions]     = ConfigMonoid.derive
+
+  /** The JVM index to use: the one passed by users if any, else the coursier default for the passed
+    * OS and CPU architecture (the per-OS / CPU index with checksums when there's one, the legacy
+    * index else), same as the coursier CLI. Using the same index as the coursier CLI also allows to
+    * use JVMs fetched by it in offline mode.
+    */
+  def jvmIndexChannel(jvmIndexOpt: Option[String], os: String, arch: String): JvmChannel =
+    jvmIndexOpt.fold(JvmChannel.default(os, arch))(JvmChannel.url)
 }
