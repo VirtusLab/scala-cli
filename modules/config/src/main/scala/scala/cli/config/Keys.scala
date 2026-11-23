@@ -114,7 +114,7 @@ object Keys {
     new Key.BooleanEntry(
       prefix = Seq("suppress-warning"),
       name = "duplicated-directives",
-      specificationLevel = SpecificationLevel.EXPERIMENTAL,
+      specificationLevel = SpecificationLevel.IMPLEMENTATION,
       description = "Globally suppresses warnings about duplicated using directives."
     )
 

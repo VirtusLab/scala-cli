@@ -1302,6 +1302,12 @@ Suppress warnings about using directives in multiple files
 
 Suppress warnings about outdated dependencies in project
 
+### `--suppress-duplicated-directives-warning`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Suppress warnings about duplicated using directives
+
 ## Test options
 
 Available in commands:
