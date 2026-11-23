@@ -97,6 +97,9 @@ jobs:
       uses: ./.github/actions/windows-reg-import
       with:
         reg-file: .github/ci/windows/custom.reg
+    - name: Install LLVM required by the MSVC STL
+      if: env.SHOULD_RUN == 'true'
+      uses: ./.github/actions/windows-llvm
     - name: Set up Python
       if: env.SHOULD_RUN == 'true'
       uses: actions/setup-python@v7
@@ -162,6 +165,9 @@ jobs:
         uses: ./.github/actions/windows-reg-import
         with:
           reg-file: .github/ci/windows/custom.reg
+      - name: Install LLVM required by the MSVC STL
+        if: env.SHOULD_RUN == 'true'
+        uses: ./.github/actions/windows-llvm
       - name: Set up Python
         if: env.SHOULD_RUN == 'true'
         uses: actions/setup-python@v7
@@ -227,6 +233,9 @@ jobs:
         uses: ./.github/actions/windows-reg-import
         with:
           reg-file: .github/ci/windows/custom.reg
+      - name: Install LLVM required by the MSVC STL
+        if: env.SHOULD_RUN == 'true'
+        uses: ./.github/actions/windows-llvm
       - name: Set up Python
         if: env.SHOULD_RUN == 'true'
         uses: actions/setup-python@v7
@@ -292,6 +301,9 @@ jobs:
         uses: ./.github/actions/windows-reg-import
         with:
           reg-file: .github/ci/windows/custom.reg
+      - name: Install LLVM required by the MSVC STL
+        if: env.SHOULD_RUN == 'true'
+        uses: ./.github/actions/windows-llvm
       - name: Set up Python
         if: env.SHOULD_RUN == 'true'
         uses: actions/setup-python@v7
