@@ -1302,6 +1302,12 @@ Suppress warnings about using directives in multiple files
 
 Suppress warnings about outdated dependencies in project
 
+### `--suppress-explicit-c-files-outside-native-warning`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Suppress warnings about C/header files passed explicitly outside Scala Native
+
 ## Test options
 
 Available in commands:

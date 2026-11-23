@@ -454,7 +454,11 @@ final case class SharedOptions(
               suppress.global.suppressExperimentalFeatureWarning,
               Keys.suppressExperimentalFeatureWarning
             ),
-            suppressDeprecatedFeatureWarning = shouldSuppressDeprecatedWarnings
+            suppressDeprecatedFeatureWarning = shouldSuppressDeprecatedWarnings,
+            suppressExplicitCFilesOutsideNativeWarning = getOptionOrFromConfig(
+              suppress.suppressExplicitCFilesOutsideNativeWarning,
+              Keys.suppressExplicitCFilesOutsideNativeWarning
+            )
           ),
         scalaOptions = scala.build.options.ScalaOptions(
           scalaVersion = scalaVersion

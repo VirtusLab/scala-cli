@@ -189,4 +189,19 @@ object WarningMessages {
 
   val slothNonStandaloneBootstrapWarning: String =
     "Could not patch lazy vals in non-standalone bootstrap dependencies; use --standalone for batch patching."
+
+  def explicitCFileIgnored(targetPlatform: String): String =
+    s"C/header file will be ignored: the target platform is $targetPlatform, not Scala Native."
+
+  def explicitCFilesOutsideNative(
+    fileCount: Int,
+    nativeConfiguredInCross: Boolean = false
+  ): String = {
+    val noun    = if fileCount == 1 then "file" else "files"
+    val pronoun = if fileCount == 1 then "it" else "them"
+    if nativeConfiguredInCross then
+      s"$fileCount explicitly passed C/header $noun will be ignored because Scala Native is only configured as a secondary platform and cross-building is disabled. To use $pronoun, pass `--cross` or `--platform scala-native`."
+    else
+      s"$fileCount explicitly passed C/header $noun will be ignored. To use $pronoun, build for Scala Native: `--platform scala-native` or `//> using platform scala-native`."
+  }
 }
