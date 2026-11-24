@@ -24,6 +24,12 @@ on:
         type: string
         required: true
 
+env:
+  # coursier User-Agent for the released Scala CLI installed by scala-cli-setup, which doesn't send
+  # a Scala CLI-specific one yet (versions are left out, so that it doesn't go stale). Drop this, and
+  # the -Dcoursier.http.agent=… arguments using it, once the CI uses a Scala CLI release that does.
+  SCALA_CLI_CI_USER_AGENT: "Scala-CLI (+https://github.com/VirtusLab/scala-cli; ci) Coursier"
+
 jobs:
   generate-windows-launcher:
     timeout-minutes: 120
@@ -137,7 +143,7 @@ jobs:
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
-      run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-default 'Scala CLI Windows Tests (default)' test-report.xml out/
+      run:  scala-cli "-Dcoursier.http.agent=$env:SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc windows-tests-default 'Scala CLI Windows Tests (default)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -205,7 +211,7 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-lts 'Scala CLI Windows Tests (Scala 3.9 LTS)' test-report.xml out/
+        run:  scala-cli "-Dcoursier.http.agent=$env:SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc windows-tests-lts 'Scala CLI Windows Tests (Scala 3.9 LTS)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -273,7 +279,7 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-legacy-lts 'Scala CLI Windows Tests (Scala 3.3 LTS)' test-report.xml out/
+        run:  scala-cli "-Dcoursier.http.agent=$env:SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc windows-tests-legacy-lts 'Scala CLI Windows Tests (Scala 3.3 LTS)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -341,7 +347,7 @@ jobs:
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
-        run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-rc 'Scala CLI Windows Tests (5)' test-report.xml out/
+        run:  scala-cli "-Dcoursier.http.agent=$env:SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc windows-tests-rc 'Scala CLI Windows Tests (5)' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v7
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
