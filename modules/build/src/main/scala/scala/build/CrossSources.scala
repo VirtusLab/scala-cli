@@ -32,7 +32,7 @@ import scala.util.chaining.*
   * and build options from using directives
   *
   * @param paths
-  *   paths and realtive paths to sources on disk, wrapped in their build requirements
+  *   paths and relative paths to sources on disk, wrapped in their build requirements
   * @param inMemory
   *   in memory sources (e.g. snippets) wrapped in their build requirements
   * @param defaultMainClass

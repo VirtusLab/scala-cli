@@ -15,7 +15,7 @@ trait DirectiveHandler[+T] { self =>
   def usageMd: String       = s"`$usage`"
   def examples: Seq[String] = Nil
 
-  /** Is this directive an advanved feature, that will not be accessible when running scala-cli as
+  /** Is this directive an advanced feature, that will not be accessible when running scala-cli as
     * `scala`
     */
   def scalaSpecificationLevel: SpecificationLevel

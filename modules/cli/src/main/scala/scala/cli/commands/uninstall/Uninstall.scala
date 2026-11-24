@@ -58,7 +58,7 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
       logger.message("Uninstalled successfully.")
     }
     else {
-      logger.error(s"Could't find $baseRunnerName binary at $destBinPath.")
+      logger.error(s"Couldn't find $baseRunnerName binary at $destBinPath.")
       sys.exit(1)
     }
   }

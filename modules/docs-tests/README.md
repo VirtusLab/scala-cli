@@ -9,14 +9,14 @@ Sclicheck extracts commands from `.md` file and then run this commands as define
 Currently following commands are supported:
  - [Write code](#write-code) - stores snippet into a file
  - [Run code](#run-code) - runs provided commands as a bash script
- - [Check output](#check-output) - check if lates optput contains provided patterns
+ - [Check output](#check-output) - check if latest output contains provided patterns
  - [Clear](#clear) - clears all file in workspace
 
 Usually, within a doc one want to first define a code, then run some commands (e.g. compilation) to test it and then check the output from last command (e.g. compilation).
 
 Sclicheck accepts following arguments: `[--dest <dest>] [--step] [--stopAtFailure] <files>` where:
  - `<files>` - list of `.md` files or directories to check. In case of directories Sclicheck will recusievly check all `.md` files
- - `--dest <dest>`- Sclicheck after checking given file (`<name.md>`) store all of the generated sources as well as `<name.md>` (as `Readme.md`) file in `<dest>/<name>`. This is usefull to generate examples directly from documents
+ - `--dest <dest>`- Sclicheck after checking given file (`<name.md>`) store all of the generated sources as well as `<name.md>` (as `Readme.md`) file in `<dest>/<name>`. This is useful to generate examples directly from documents
  - `--step` - stops after each command. Useful for debugging.
  - `--stopAtFailure` - stops after each failed command. Useful for debugging.
 
@@ -63,9 +63,9 @@ no_a_file
 For the example above Sclicheck will:
  - write a file `a.txt` with `A text` as content
  - runs `cat a.txt` and store output (`A text`)
- - check if a patten `A text` exisits in output from last command (`A text`)
+ - check if a pattern `A text` exists in output from last command (`A text`)
  - runs `cat no_a_file` (expecting that command will fail)
- - check if a patten `no_a_file` exisits in output from last command (`ls: cannot access 'no_a_file': No such file or directory`)
+ - check if a pattern `no_a_file` exists in output from last command (`ls: cannot access 'no_a_file': No such file or directory`)
 
 ## Actions
 
