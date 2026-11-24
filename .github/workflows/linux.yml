@@ -95,6 +95,9 @@ jobs:
       with:
         name: linux-launchers
         path: artifacts/
+    # shared with the containers testing the packages, see test-os-packages.sh
+    - uses: coursier/cache-action@v9
+      if: env.SHOULD_RUN == 'true'
     - name: Test OS packages (.deb, .rpm)
       if: env.SHOULD_RUN == 'true'
       run: .github/scripts/test-os-packages.sh
@@ -462,6 +465,9 @@ jobs:
         with:
           name: linux-aarch64-launchers
           path: artifacts/
+      # shared with the containers testing the packages, see test-os-packages.sh
+      - uses: coursier/cache-action@v9
+        if: env.SHOULD_RUN == 'true'
       - name: Test OS packages (.deb, .rpm)
         if: env.SHOULD_RUN == 'true'
         run: .github/scripts/test-os-packages.sh
