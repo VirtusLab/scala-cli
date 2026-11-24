@@ -115,7 +115,36 @@ object TestUtil {
       .map(_.getAbsolutePath)
   }
 
-  def cs: String = Constants.cs
+  /** Path of the coursier CLI launcher. Prefer [[cs]] to run it. */
+  def csPath: String = Constants.cs
+
+  private def majorMinor(version: String): Option[String] =
+    version.split("[.-]", 3).toSeq match
+      case Seq(major, minor, _*)
+          if major.nonEmpty && minor.nonEmpty && (major + minor).forall(_.isDigit) =>
+        Some(s"$major.$minor")
+      case _ => None
+
+  /** `User-Agent` of the coursier CLI when run by the tests: Scala CLI's own one (see
+    * `scala.build.internal.CoursierUserAgent`), with a `cs` comment token, so that repositories
+    * like Maven Central can tell this traffic apart from generic coursier one
+    */
+  lazy val csUserAgent: String =
+    def product(name: String, version: String) = majorMinor(version).fold(name)(v => s"$name/$v")
+    val comments                               =
+      Seq(s"+https://github.com/${Constants.ghOrg}/${Constants.ghName}") ++
+        (if isCI then Seq("ci") else Nil) ++
+        Seq("cs")
+    s"${product("Scala-CLI", Constants.cliVersion)} (${comments.mkString("; ")}) " +
+      product("Coursier", Constants.csVersion)
+
+  /** Argument making the coursier CLI send [[csUserAgent]] (the coursier CLI native launchers
+    * handle `-J-D…` arguments themselves, wherever they are on the command line)
+    */
+  def csUserAgentArg: String = s"-J-Dcoursier.http.agent=$csUserAgent"
+
+  /** Command running the coursier CLI, sending [[csUserAgent]] */
+  def cs: Seq[String] = Seq(csPath, csUserAgentArg)
 
   def threadPool(prefix: String, size: Int): ExecutorService =
     Executors.newFixedThreadPool(size, daemonThreadFactory(prefix))
@@ -390,7 +419,7 @@ object TestUtil {
       if (!os.exists(dest)) {
         val script =
           s"""@echo off
-             |"${TestUtil.cs}" %*
+             |"${TestUtil.csPath}" "${TestUtil.csUserAgentArg}" %*
              |""".stripMargin
         os.write(dest, script, createFolders = true)
       }
@@ -400,7 +429,7 @@ object TestUtil {
       if (!os.exists(dest)) {
         val script =
           s"""#!/usr/bin/env bash
-             |exec "${TestUtil.cs}" "$$@"
+             |exec "${TestUtil.csPath}" "${TestUtil.csUserAgentArg}" "$$@"
              |""".stripMargin
         os.write(dest, script, "rwxr-xr-x", createFolders = true)
       }
