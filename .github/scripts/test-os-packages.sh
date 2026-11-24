@@ -27,7 +27,8 @@ test_package() {
   local package=$3
 
   echo "Testing $package on $image"
-  docker run --rm -v "$ARTIFACTS_DIR:/artifacts:ro" "$image" \
+  # pass CI through, so that the coursier User-Agent of Scala CLI marks these downloads as CI ones
+  docker run --rm -e CI -v "$ARTIFACTS_DIR:/artifacts:ro" "$image" \
     bash -euo pipefail -c "$installCommand /artifacts/$package
 $SMOKE_TEST"
 }
