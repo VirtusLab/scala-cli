@@ -60,6 +60,16 @@ object TestUtil {
   def jvmId(javaVersion: Int): String =
     pinnedJvmProviders.get(javaVersion).fold(javaVersion.toString)(p => s"$p:$javaVersion")
 
+  /** Options needed to link with Scala Native 0.4.x on Windows since Visual Studio 18 (MSVC 14.52).
+    *
+    * Its static C++ runtime (`libcpmt.lib`) defines `_Sinh` and `_FSinh`, like the static UCRT of
+    * the Windows SDK (`libucrt.lib`) does, so linking fails with duplicate symbols. Scala Native
+    * already ignores these with `/force:multiple`, but only when LTO is enabled, see
+    * https://github.com/scala-native/scala-native/issues/2372. Scala Native 0.5.x isn't affected.
+    */
+  def scalaNative04LinkingOptions: Seq[String] =
+    if Properties.isWin then Seq("--native-linking", "-Wl,/force:multiple") else Nil
+
   lazy val legacyScalaVersionsOnePerMinor: Seq[String] =
     Constants.legacyScala3Versions.sorted.reverse.distinctBy(_.split('.').take(2).mkString("."))
 

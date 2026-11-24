@@ -589,7 +589,15 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   if !isScala310OrNewer then
     test("scalacheck from cats") {
       successfulScalaCheckFromCatsNativeInputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
+        // these inputs use Scala Native 0.4.x
+        val output = os.proc(
+          TestUtil.cli,
+          "test",
+          extraOptions,
+          ".",
+          "--native",
+          TestUtil.scalaNative04LinkingOptions
+        )
           .call(cwd = root)
           .out.text()
         expect(output.contains("Hello from tests"))
@@ -808,7 +816,8 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           val scalaTestExtraArgs =
             if platformName == "native" then
               // FIXME: revert to using default Scala Native version when scalatest supports 0.5.x
-              Seq("--native-version", Constants.scalaNativeVersion04)
+              Seq("--native-version", Constants.scalaNativeVersion04) ++
+                TestUtil.scalaNative04LinkingOptions
             else Nil
           val baseRes =
             os.proc(TestUtil.cli, "test", extraOptions, platformArgs, scalaTestExtraArgs, ".")
