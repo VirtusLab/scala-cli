@@ -13,13 +13,25 @@ runs:
     - name: Install LLVM ${{ inputs.version }}
       shell: pwsh
       run: |
-        choco upgrade llvm --version="${{ inputs.version }}" --allow-downgrade -y --no-progress
-        if ($LASTEXITCODE -ne 0) { throw "Installing LLVM ${{ inputs.version }} failed" }
+        $expected = "${{ inputs.version }}"
         $llvmBin = "C:\Program Files\LLVM\bin"
+        function Get-ClangVersion {
+          if (Test-Path "$llvmBin\clang.exe") { & "$llvmBin\clang.exe" --version | Select-Object -First 1 } else { "" }
+        }
+        # The Chocolatey community feed is sometimes unreachable from the CI, and choco can exit
+        # successfully without installing anything then, so check the installed version instead
+        $maxAttempts = 4
+        for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+          choco upgrade llvm --version="$expected" --allow-downgrade -y --no-progress
+          $version = Get-ClangVersion
+          if ($version -match "clang version $([regex]::Escape($expected))") { break }
+          if ($attempt -eq $maxAttempts) {
+            throw "Expected clang $expected after $maxAttempts attempts, got: $version"
+          }
+          $delay = 15 * $attempt
+          Write-Warning "LLVM $expected not installed (attempt $attempt/$maxAttempts, found: $version), retrying in $delay s"
+          Start-Sleep -Seconds $delay
+        }
+        Write-Host "Installed: $version"
         # Scala Native looks for clang / clang++ in LLVM_BIN first
         "LLVM_BIN=$llvmBin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        $version = & "$llvmBin\clang.exe" --version | Select-Object -First 1
-        Write-Host "Installed: $version"
-        if ($version -notmatch "clang version ${{ inputs.version }}") {
-          throw "Expected clang ${{ inputs.version }}, got: $version"
-        }
