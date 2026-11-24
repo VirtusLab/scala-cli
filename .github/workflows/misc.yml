@@ -179,6 +179,9 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
+        # this job doesn't run Mill: keep its cache apart from the one of the jobs that do,
+        # so that it doesn't save a cache lacking Mill, Bloop, etc. under their key first
+        extraKey: no-mill
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
     - run: scala-cli fmt . --check
@@ -268,6 +271,9 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
+        # this job doesn't run Mill: keep its cache apart from the one of the jobs that do,
+        # so that it doesn't save a cache lacking Mill, Bloop, etc. under their key first
+        extraKey: no-mill
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
