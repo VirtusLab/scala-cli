@@ -114,6 +114,7 @@ jobs:
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.jvmBootstrapped
         env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_GROUP: 1
           SCALA_CLI_IT_SANITY: true
       - name: Convert Mill test reports to JUnit XML format
@@ -159,6 +160,7 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.jvm
       env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_GROUP: 1
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -203,6 +205,7 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.jvm
       env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_GROUP: 2
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -247,6 +250,7 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       run: ./mill -i integration.test.jvm
       env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_GROUP: 3
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -291,6 +295,7 @@ jobs:
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.jvm
         env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_GROUP: 4
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -335,6 +340,7 @@ jobs:
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.jvm
         env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_GROUP: 6
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -379,6 +385,7 @@ jobs:
         if: env.SHOULD_RUN == 'true'
         run: ./mill -i integration.test.jvm
         env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_GROUP: 5
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
