@@ -150,3 +150,25 @@ scala-cli --power config repositories.mirrors maven:https://nexus.company.com/re
 ```bash ignore
 scala-cli --power config repositories.credentials nexus.company.com value:username value:password
 ```
+
+## User-Agent
+
+Repositories like Maven Central ask tools to identify themselves when they download artifacts, so that they don't
+mistake their traffic for that of a misbehaving client
+(see [Sonatype's FAQ](https://central.sonatype.org/faq/429-tooling-provider/)).
+So Scala CLI sends a `User-Agent` header like
+```text
+Scala-CLI/1.19 (+https://github.com/VirtusLab/scala-cli) Coursier/2.1
+```
+with the dependency resolution and download requests it makes through Coursier, naming the `major.minor` versions of
+Scala CLI and Coursier. On CI (when the `CI` environment variable is set), a `ci` token is added, as in
+`Scala-CLI/1.19 (+https://github.com/VirtusLab/scala-cli; ci) Coursier/2.1`.
+
+To send another `User-Agent`, for example if your repository manager filters requests on it, set the
+`coursier.http.agent` Java property (see [how to pass Java properties](../advanced/java-properties.md)):
+```bash ignore
+scala-cli '-Dcoursier.http.agent=MyCompany-Build/1.0' compile .
+```
+
+Requests made when publishing use another property, see the
+[`publish` command documentation](../../commands/publishing/publish.md#user-agent).

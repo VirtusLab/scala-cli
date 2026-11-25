@@ -315,6 +315,23 @@ on CI.
 If publishing to Sonatype fails with status `500` and message `"Staging repository is already transitioning"`,
 try to increase the staging repository transition attempts and wait time.
 
+### User-Agent
+
+The HTTP requests made when publishing (uploads, and the Sonatype API) identify Scala CLI and the
+[scala-publish](https://github.com/scala/scala-publish) library it publishes with, via a `User-Agent` header like
+```text
+Scala-CLI/1.19 (+https://github.com/VirtusLab/scala-cli) scala-publish/1.1 (+https://github.com/scala/scala-publish)
+```
+On CI (when the `CI` environment variable is set), a `ci` token is added after the Scala CLI URL.
+
+To send another `User-Agent`, set the `scala.publish.http.agent` Java property
+(see [how to pass Java properties](../../guides/advanced/java-properties.md)), e.g.
+```bash ignore
+scala-cli '-Dscala.publish.http.agent=MyCompany-Release/1.0' --power publish .
+```
+Dependency downloads use another property, see
+[the repositories guide](../../guides/power/repositories.md#user-agent).
+
 ## Publishing
 
 Once all the necessary settings are set, publish a Scala CLI project with a command
