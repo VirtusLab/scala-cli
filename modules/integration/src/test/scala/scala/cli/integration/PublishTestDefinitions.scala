@@ -404,6 +404,40 @@ abstract class PublishTestDefinitions
     }
   }
 
+  test("checksums passed by extension, including SHA-256 and SHA-512") {
+    val expectedArtifacts = Seq(
+      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.pom",
+      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.jar"
+    )
+      .flatMap(n => Seq("", ".sha1", ".md5", ".sha256", ".sha512").map(n + _))
+      .map(os.rel / _)
+      .toSet
+
+    TestCase.testInputs().fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        extraOptions,
+        "--with-sources=false",
+        "--doc=false",
+        "--checksum",
+        "sha1,md5",
+        "--checksum",
+        "sha256,SHA512",
+        "project",
+        "-R",
+        "test-repo"
+      ).call(cwd = root)
+
+      val files = os.walk(root / "test-repo")
+        .filter(os.isFile(_))
+        .map(_.relativeTo(root / "test-repo" / TestCase.expectedArtifactsDir))
+        .toSet
+      expect(files == expectedArtifacts)
+    }
+  }
+
   test("correctly list main classes") {
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val scriptsDir                           = "scripts"

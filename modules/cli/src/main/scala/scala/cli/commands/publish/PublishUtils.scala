@@ -104,6 +104,12 @@ object PublishUtils {
       s"Publishing to Sonatype, but: $error$hint."
     }
 
+  /** Supported checksum types, as listed by `--checksum list`, with their alternative spelling */
+  def checksumTypeDescriptions: Seq[String] =
+    ChecksumType.all.map { t =>
+      if t.name == t.extension then t.name else s"${t.name} (or ${t.extension})"
+    }
+
   /** Compute checksum files for the given [[FileSet]].
     *
     * Signature files (`.asc`) are excluded — only raw artifacts should carry checksums.

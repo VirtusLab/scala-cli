@@ -204,15 +204,18 @@ with `--gpg-option` or `//>using publish.gpgOptions --opt1 --opt2`, like
 Scala CLI can generate checksums of the artifacts it publishes.
 
 By default, Scala CLI generates SHA-1 and MD5 checksums. To disable checksums,
-pass `--checksum none`. To generate checksum formats to generate, pass them via
+pass `--checksum none`. To choose the checksum types to generate, pass them via
 `--checksum`, separating the checksum values with `,` or using `--checksum` multiple
 times:
 ```text
 --checksum sha1,md5
 --checksum sha1 --checksum md5
+--checksum sha1,md5,sha256,sha512
 ```
 
-To list supported checksum types, pass `--checksum list`.
+Supported checksum types are SHA-1, MD5, SHA-256 and SHA-512. Each can be passed either by
+name (like `sha-256`) or by file extension (like `sha256`).
+To list them, pass `--checksum list`.
 
 ### CI overrides
 

@@ -213,8 +213,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
   def maybePrintChecksumsAndExit(options: SharedPublishOptions): Unit =
     if options.checksum.contains("list") then {
-      for (t <- ChecksumType.all)
-        println(t.name)
+      PublishUtils.checksumTypeDescriptions.foreach(println)
       sys.exit(0)
     }
 

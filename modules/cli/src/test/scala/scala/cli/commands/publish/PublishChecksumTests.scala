@@ -1,5 +1,7 @@
 package scala.cli.commands.publish
 
+import com.eed3si9n.expecty.Expecty.expect
+
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.concurrent.Executors
@@ -54,5 +56,21 @@ class PublishChecksumTests extends munit.FunSuite {
     }
     finally
       pool.shutdown()
+  }
+
+  test("checksum types are listed with their extensions") {
+    expect(
+      PublishUtils.checksumTypeDescriptions == Seq(
+        "sha-1 (or sha1)",
+        "md5",
+        "sha-256 (or sha256)",
+        "sha-512 (or sha512)"
+      )
+    )
+  }
+
+  test("checksum types can be referred to by name or extension") {
+    for (t <- ChecksumType.all; input <- Seq(t.name, t.extension, t.extension.toUpperCase))
+      expect(ChecksumType.parse(input) == Right(t))
   }
 }
