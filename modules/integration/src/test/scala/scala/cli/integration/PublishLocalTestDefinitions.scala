@@ -520,6 +520,11 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
       expect(ivyXml.contains(s"<m:url>$devUrl</m:url>"))
 
       expect(pomXml.contains(s"<name>$pomProjectName</name>"))
+      expect(pomXml.replaceAll("\\s+", "").contains(
+        s"<developer><id>$devId</id><name>$devName</name><url>$devUrl</url></developer>"
+          .replaceAll("\\s+", "")
+      ))
+      expect(!pomXml.contains("<email>"))
     }
   }
 

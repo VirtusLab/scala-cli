@@ -22,7 +22,7 @@ abstract class PublishTestDefinitions
     val version            = "0.2.0-SNAPSHOT"
     val url                = "https://github.com/VirtusLab/scala-cli"
     val license            = "Apache 2.0:http://opensource.org/licenses/Apache-2.0"
-    val developer          = "someone|Someone||https://github.com/someone"
+    val developer          = "someone|Someone|https://github.com/someone|someone@example.com"
     val testScopeMainClass = "HelloFromTestScope"
     def testInputs(useTestScope: Boolean = false): TestInputs = {
       val inputs = TestInputs(
@@ -141,6 +141,19 @@ abstract class PublishTestDefinitions
         expect((files0 -- expectedArtifacts).isEmpty)
         expect((expectedArtifacts -- files0).isEmpty)
         expect(files0 == expectedArtifacts) // just in case…
+
+        val pom = os.read(
+          root / "test-repo" / TestCase.expectedArtifactsDir /
+            s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.pom"
+        ).replaceAll("\\s+", "")
+        val expectedDeveloper =
+          """<developer>
+            |  <id>someone</id>
+            |  <name>Someone</name>
+            |  <email>someone@example.com</email>
+            |  <url>https://github.com/someone</url>
+            |</developer>""".stripMargin.replaceAll("\\s+", "")
+        expect(pom.contains(expectedDeveloper))
 
         val repoArgs =
           Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
