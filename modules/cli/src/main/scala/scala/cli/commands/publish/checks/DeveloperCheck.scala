@@ -34,7 +34,7 @@ final case class DeveloperCheck(
             case (Some(name), Some(email), Some(url)) =>
               logger.message("developers:")
               logger.message(s"  using $name <$email> ($url) from config")
-              s"$name|$email|$url"
+              DeveloperCheck.directiveValue(name = name, email = email, url = url)
             case _ =>
               value {
                 Left {
@@ -57,4 +57,19 @@ final case class DeveloperCheck(
 
       OptionCheck.DefaultValue.simple(strValue, Nil, Nil)
     }
+}
+
+object DeveloperCheck {
+  private val gitHubProfileUrl = "https?://(?:www\\.)?github\\.com/([^/]+)/?".r
+
+  /** The developer ID to publish: the GitHub login if `url` is a GitHub profile, else `name` */
+  def developerId(name: String, url: String): String =
+    url.trim match {
+      case gitHubProfileUrl(login) => login
+      case _                       => name
+    }
+
+  /** A `publish.developer` directive value, in its `id|name|URL|email` format */
+  def directiveValue(name: String, email: String, url: String): String =
+    s"${developerId(name, url)}|$name|$url|$email"
 }
