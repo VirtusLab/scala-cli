@@ -2,16 +2,21 @@ package scala.cli.commands.publish
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.{OutputStream, PrintStream}
 import java.util.concurrent.Executors
 
 import scala.build.Logger
 import scala.cli.commands.publish.RepoParams.SonatypeConnectionParams
+import scala.cli.internal.CliLogger
 import scala.publish.Hooks
 import scala.publish.util.EmaRetryParams
 
 class RepoParamsTests extends munit.FunSuite {
 
-  private def sonatypeHooks(connection: SonatypeConnectionParams): Hooks.Sonatype = {
+  private def sonatypeHooks(
+    connection: SonatypeConnectionParams,
+    logger: Logger = Logger.nop
+  ): Hooks.Sonatype = {
     val es = Executors.newSingleThreadScheduledExecutor()
     try
       RepoParams.centralRepo(
@@ -19,7 +24,7 @@ class RepoParamsTests extends munit.FunSuite {
         useLegacySnapshots = false,
         connection = connection,
         es = es,
-        logger = Logger.nop
+        logger = logger
       ).hooks match {
         case hooks: Hooks.Sonatype => hooks
         case other                 => fail(s"Unexpected hooks: $other")
@@ -52,4 +57,15 @@ class RepoParamsTests extends munit.FunSuite {
         EmaRetryParams(50, 400L, Hooks.Sonatype.defaultStatusPollParams.factor)
     )
   }
+
+  for (interactive <- Seq(true, false))
+    test(s"Sonatype status logger is ${if interactive then "interactive" else "batch"}") {
+      val logger = new CliLogger(
+        verbosity = 0,
+        quiet = false,
+        progress = Some(interactive),
+        out = new PrintStream(OutputStream.nullOutputStream())
+      )
+      expect(sonatypeHooks(SonatypeConnectionParams(), logger).batch == !interactive)
+    }
 }

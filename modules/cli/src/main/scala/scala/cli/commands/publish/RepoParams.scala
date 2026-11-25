@@ -233,7 +233,8 @@ object RepoParams {
       api = api,
       out = logger.compilerOutputStream, // meh
       verbosity = logger.verbosity,
-      batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
+      // batch = true prints one line per status change, while false updates lines in place
+      batch = !logger.useInteractiveProgress,
       es = es,
       statusPollParams = connection.statusPollParams
     )

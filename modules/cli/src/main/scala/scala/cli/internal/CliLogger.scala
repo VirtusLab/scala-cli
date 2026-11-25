@@ -142,10 +142,13 @@ class CliLogger(
     else
       throw new Exception(ex)
 
+  override def useInteractiveProgress: Boolean =
+    progress.getOrElse(coursier.paths.Util.useAnsiOutput())
+
   def coursierLogger(printBefore: String) =
     if (quiet)
       CacheLogger.nop
-    else if (progress.getOrElse(coursier.paths.Util.useAnsiOutput()))
+    else if (useInteractiveProgress)
       RefreshLogger.create(
         CustomProgressBarRefreshDisplay.create(
           keepOnScreen = verbosity >= 1,
