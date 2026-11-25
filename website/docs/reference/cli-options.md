@@ -1360,7 +1360,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 ### `--js-version`
 
-The Scala.js version (1.22.0 by default).
+The Scala.js version (1.23.0 by default).
 
 ### `--js-mode`
 
@@ -1441,7 +1441,7 @@ Path to the Scala.js linker
 ### `--js-cli-version`
 
 [Internal]
-Scala.js CLI version to use for linking (1.22.0.3 by default).
+Scala.js CLI version to use for linking (1.23.0 by default).
 
 ### `--js-cli-java-arg`
 
