@@ -2365,7 +2365,7 @@ Connection timeout, in seconds.
 ### `--connection-timeout-retries`
 
 [Internal]
-How many times to retry establishing the connection on timeout.
+How many times to attempt Sonatype API requests failing with a transient error (connection failure, HTTP 5xx, or a timeout for requests that don't change anything). Client errors (HTTP 4xx) are not retried.
 
 ### `--response-timeout-seconds`
 
@@ -2375,7 +2375,7 @@ Waiting for response timeout, in seconds.
 ### `--staging-repo-retries`
 
 [Internal]
-How many times to retry the staging repository operations on failure.
+How many times to attempt the Sonatype staging repository operations (close, promote, drop) failing with a transient error (connection failure, HTTP 5xx). Client errors (HTTP 4xx) are not retried.
 
 ### `--staging-repo-wait-time-milis`
 

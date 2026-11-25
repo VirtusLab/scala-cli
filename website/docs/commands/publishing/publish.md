@@ -293,11 +293,11 @@ and the [CI overrides](#ci-overrides).
 When publishing large packages or when the internet connection is spotty one may use the following options to configure the connection parameters:
 - `--connection-timeout-seconds` - the connection timeout in seconds
 - `--response-timeout-seconds` - the response timeout in seconds
-- `--connection-timeout-retries` - the number of times to retry the connection on timeout
+- `--connection-timeout-retries` - the number of attempts of Sonatype API requests failing with a transient error (connection failure, HTTP 5xx, or a timeout for requests that don't change anything); client errors (HTTP 4xx) are not retried
 
 Publishing to Sonatype uses a staging repository which may sometimes cause problems when transitioning through states.
-If a publishing process fails with status `500` and message `"Staging repository is already transitioning"` you can try to tweak the following parameters taht are Sonatype specific:
-- `--staging-repo-retries` - the number of times to retry the staging repository transition
+If a publishing process fails with status `500` and message `"Staging repository is already transitioning"` you can try to tweak the following parameters that are Sonatype specific:
+- `--staging-repo-retries` - the number of attempts of staging repository transitions (close, promote, drop) failing with a transient error (connection failure, HTTP 5xx); client errors (HTTP 4xx) are not retried
 - `--staging-repo-wait-time-milis` - the base time to wait between retries in milliseconds
 
 ## Publishing

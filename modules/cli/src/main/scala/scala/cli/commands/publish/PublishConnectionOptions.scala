@@ -14,7 +14,7 @@ final case class PublishConnectionOptions(
     connectionTimeoutSeconds: Option[Int] = None,
 
   @Group(HelpGroup.Publishing.toString)
-  @HelpMessage("How many times to retry establishing the connection on timeout.")
+  @HelpMessage("How many times to attempt Sonatype API requests failing with a transient error (connection failure, HTTP 5xx, or a timeout for requests that don't change anything). Client errors (HTTP 4xx) are not retried.")
   @Tag(tags.restricted)
   @Hidden
     connectionTimeoutRetries: Option[Int] = None,
@@ -26,7 +26,7 @@ final case class PublishConnectionOptions(
     responseTimeoutSeconds: Option[Int] = None,
 
   @Group(HelpGroup.Publishing.toString)
-  @HelpMessage("How many times to retry the staging repository operations on failure.")
+  @HelpMessage("How many times to attempt the Sonatype staging repository operations (close, promote, drop) failing with a transient error (connection failure, HTTP 5xx). Client errors (HTTP 4xx) are not retried.")
   @Tag(tags.restricted)
   @Hidden
     stagingRepoRetries: Option[Int] = None,
