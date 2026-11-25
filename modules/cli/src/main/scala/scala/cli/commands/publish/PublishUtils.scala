@@ -18,12 +18,32 @@ import scala.cli.errors.MissingPublishOptionError
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.concurrent.ExecutionContextExecutorService
+import scala.concurrent.duration.DurationInt
 import scala.publish.checksum.logger.ChecksumLogger
 import scala.publish.checksum.{ChecksumType, Checksums}
 import scala.publish.fileset.FileSet
 import scala.publish.signing.{GpgSigner, Signer}
+import scala.publish.upload.{HttpURLConnectionUpload, Upload}
 
 object PublishUtils {
+
+  /** The [[Upload]] used for HTTP(S) repositories.
+    *
+    * @param connectionTimeoutSeconds
+    *   timeout for establishing the connection (`--connection-timeout-seconds`)
+    * @param responseTimeoutSeconds
+    *   timeout for reading the response once connected (`--response-timeout-seconds`)
+    */
+  def httpUpload(
+    connectionTimeoutSeconds: Option[Int],
+    responseTimeoutSeconds: Option[Int]
+  ): Upload =
+    HttpURLConnectionUpload.create(
+      HttpURLConnectionUpload.Timeouts(
+        connect = connectionTimeoutSeconds.map(_.seconds),
+        read = responseTimeoutSeconds.map(_.seconds)
+      )
+    )
 
   /** Compute checksum files for the given [[FileSet]].
     *

@@ -63,14 +63,13 @@ import scala.cli.packaging.Library
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 import scala.cli.util.ConfigPasswordOptionHelpers.*
-import scala.concurrent.duration.DurationInt
 import scala.publish.checksum.ChecksumType
 import scala.publish.checksum.logger.InteractiveChecksumLogger
 import scala.publish.fileset.{FileSet, Path}
 import scala.publish.signing.logger.InteractiveSignerLogger
 import scala.publish.signing.{NopSigner, Signer}
 import scala.publish.upload.logger.InteractiveUploadLogger
-import scala.publish.upload.{DummyUpload, HttpURLConnectionUpload, Upload}
+import scala.publish.upload.{DummyUpload, Upload}
 import scala.publish.{Content, Hooks, Pom}
 import scala.util.control.NonFatal
 import scala.xml.transform.{RewriteRule, RuleTransformer}
@@ -1072,11 +1071,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val baseUpload =
       if retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://") then
-        HttpURLConnectionUpload.create(
-          publishOptions.contextual(isCi)
-            .connectionTimeoutSeconds.map(_.seconds.toMillis.toInt),
-          publishOptions.contextual(isCi)
-            .responseTimeoutSeconds.map(_.seconds.toMillis.toInt)
+        PublishUtils.httpUpload(
+          connectionTimeoutSeconds = publishOptions.contextual(isCi).connectionTimeoutSeconds,
+          responseTimeoutSeconds = publishOptions.contextual(isCi).responseTimeoutSeconds
         )
       else
         InPlaceFileUpload(Paths.get(new URI(retainedRepo.root)))
