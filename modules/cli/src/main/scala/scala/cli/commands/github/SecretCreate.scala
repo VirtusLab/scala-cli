@@ -3,7 +3,6 @@ package scala.cli.commands.github
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
 import com.github.plokhotnyuk.jsoniter_scala.core.*
-import coursier.cache.ArchiveCache
 import sttp.client3.*
 
 import java.nio.charset.StandardCharsets
@@ -74,6 +73,19 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
     readFromString(publicKeyRespBody)(using GitHubApi.publicKeyCodec)
   }
 
+  /** Maximum size of a GitHub secret value, as documented by GitHub (48 KB). */
+  val maxSecretSize: Int = 48 * 1024
+
+  def checkSecretSize(
+    secretName: String,
+    secretBytes: Array[Byte]
+  ): Either[GitHubApiError, Unit] =
+    if secretBytes.length <= maxSecretSize then Right(())
+    else
+      Left(new GitHubApiError(
+        s"Secret $secretName is too large (${secretBytes.length} bytes, GitHub secrets are limited to $maxSecretSize bytes)"
+      ))
+
   /** Encrypts a secret with the repository public key. */
   def encryptSecret(
     secretBytes: Array[Byte],
@@ -104,6 +116,8 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
   ): Either[GitHubApiError, Boolean] = either {
 
     val secretBytes = secretValue.value.getBytes(StandardCharsets.UTF_8)
+
+    value(checkSecretSize(secretName, secretBytes))
 
     val encryptedValue = value(encryptSecret(secretBytes, pubKey, repoOrg, repoName))
 
@@ -173,10 +187,9 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
         ).orExit(logger)
     }
 
-    val cache        = options.coursier.coursierCache(logger)
-    val archiveCache = ArchiveCache().copy(cache = cache)
+    val cache = options.coursier.coursierCache(logger)
 
-    LibSodiumJni.init(cache, archiveCache, logger).orExit(logger)
+    LibSodiumJni.init(cache, logger).orExit(logger)
 
     for ((name, secretValue) <- secrets) {
 

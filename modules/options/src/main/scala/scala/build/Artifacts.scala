@@ -34,6 +34,7 @@ import scala.build.internal.Util.{PositionedScalaDependencyOps, safeFullDetailed
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.ScalaOptions
 import scala.collection.mutable
+import scala.concurrent.duration.DurationInt
 
 final case class Artifacts(
   javacPluginDependencies: Seq[(AnyDependency, String, os.Path)],
@@ -372,15 +373,18 @@ object Artifacts {
             )
             Some {
               val (_, res) = value {
-                fetchCsDependencies(
-                  dependencies = dependency.map(Positioned.none),
-                  extraRepositories = allExtraRepositories,
-                  forceScalaVersionOpt = None,
-                  forcedVersions = forcedVersions,
-                  logger = logger,
-                  cache = cache.withMessage("Downloading Scala.js CLI"),
-                  classifiersOpt = None
-                )
+                withCacheRefreshOnFailure(cache.withMessage("Downloading Scala.js CLI"), logger) {
+                  cache =>
+                    fetchCsDependencies(
+                      dependencies = dependency.map(Positioned.none),
+                      extraRepositories = allExtraRepositories,
+                      forceScalaVersionOpt = None,
+                      forcedVersions = forcedVersions,
+                      logger = logger,
+                      cache = cache,
+                      classifiersOpt = None
+                    )
+                }
               }
               res
             }
@@ -975,6 +979,19 @@ object Artifacts {
           case Some((forkModule, forkVersion)) =>
             dep.copy(module = forkModule, versionConstraint = forkVersion)
           case None => dep
+
+  /** Runs `fetch`, and if it fails, runs it again with the cache refreshed (TTL 0).
+    *
+    * Version ranges (like `1.23.0+`) are resolved from cached version listings, which can predate
+    * the release of the version needed, until the cache TTL (24h by default) expires.
+    */
+  def withCacheRefreshOnFailure[E, T](cache: FileCache[Task], logger: Logger)(
+    fetch: FileCache[Task] => Either[E, T]
+  ): Either[E, T] =
+    fetch(cache).left.flatMap { _ =>
+      logger.debug("Fetching failed, trying again with a refreshed cache")
+      fetch(cache.withTtl(0.seconds))
+    }
 
   def fetchCsDependencies(
     dependencies: Seq[Positioned[coursier.Dependency]],

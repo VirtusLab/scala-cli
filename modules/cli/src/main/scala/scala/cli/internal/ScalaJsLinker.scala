@@ -68,17 +68,19 @@ object ScalaJsLinker {
         options.finalUseJvm match {
           case Right(()) =>
             val (_, linkerRes) = value {
-              scala.build.Artifacts.fetchCsDependencies(
-                dependencies = Seq(Positioned.none(scalaJsCliDep.toCs)),
-                extraRepositories = extraRepos,
-                forceScalaVersionOpt = None,
-                forcedVersions = forcedVersions.map { case (m, v) =>
-                  (m.toCs, VersionConstraint(v))
-                },
-                logger = logger,
-                cache = cache,
-                classifiersOpt = None
-              )
+              scala.build.Artifacts.withCacheRefreshOnFailure(cache, logger) { cache =>
+                scala.build.Artifacts.fetchCsDependencies(
+                  dependencies = Seq(Positioned.none(scalaJsCliDep.toCs)),
+                  extraRepositories = extraRepos,
+                  forceScalaVersionOpt = None,
+                  forcedVersions = forcedVersions.map { case (m, v) =>
+                    (m.toCs, VersionConstraint(v))
+                  },
+                  logger = logger,
+                  cache = cache,
+                  classifiersOpt = None
+                )
+              }
             }
             val linkerClassPath = linkerRes.files
 

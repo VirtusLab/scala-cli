@@ -113,7 +113,6 @@ jobs:
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_IT_SANITY: true
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Docker integration tests
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run: ./mill integration.docker.test
@@ -178,7 +177,6 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 5
           SCALA_CLI_IT_SANITY: true
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: scala-cli "-Dcoursier.http.agent=$SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc native-static-tests-rc 'Scala CLI Native Static Tests (5, sanity)' test-report.xml out/
@@ -231,7 +229,6 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 4
           SCALA_CLI_IT_SANITY: true
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: scala-cli "-Dcoursier.http.agent=$SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc native-static-tests-lts 'Scala CLI Native Static Tests (Scala 3.9 LTS, sanity)' test-report.xml out/
@@ -284,7 +281,6 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 6
           SCALA_CLI_IT_SANITY: true
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run: scala-cli "-Dcoursier.http.agent=$SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc native-static-tests-legacy-lts 'Scala CLI Native Static Tests (Scala 3.3 LTS, sanity)' test-report.xml out/
