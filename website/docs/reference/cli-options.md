@@ -2382,6 +2382,16 @@ How many times to attempt the Sonatype staging repository operations (close, pro
 [Internal]
 Time to wait between staging repository operation retries, in milliseconds.
 
+### `--upload-retries`
+
+[Internal]
+How many times to attempt uploading a file to an HTTP repository, when that fails with a transient error (HTTP 5xx). 3 by default.
+
+### `--upload-retry-wait-time-millis`
+
+[Internal]
+Time to wait before retrying a failed upload, in milliseconds, doubled before each subsequent retry. 1000 by default.
+
 ### Semantic db options
 
 Available in commands:

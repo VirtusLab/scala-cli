@@ -24,7 +24,8 @@ import scala.publish.checksum.logger.ChecksumLogger
 import scala.publish.checksum.{ChecksumType, Checksums}
 import scala.publish.fileset.FileSet
 import scala.publish.signing.{GpgSigner, Signer}
-import scala.publish.upload.{HttpURLConnectionUpload, Upload}
+import scala.publish.upload.{HttpURLConnectionUpload, RetryingUpload, Upload}
+import scala.publish.util.EmaRetryParams
 
 object PublishUtils {
 
@@ -34,16 +35,40 @@ object PublishUtils {
     *   timeout for establishing the connection (`--connection-timeout-seconds`)
     * @param responseTimeoutSeconds
     *   timeout for reading the response once connected (`--response-timeout-seconds`)
+    * @param retries
+    *   how many times to attempt uploads failing with transient errors (`--upload-retries`)
+    * @param retryWaitTimeMillis
+    *   time to wait before the first retry (`--upload-retry-wait-time-millis`)
     */
   def httpUpload(
     connectionTimeoutSeconds: Option[Int],
-    responseTimeoutSeconds: Option[Int]
+    responseTimeoutSeconds: Option[Int],
+    retries: Option[Int] = None,
+    retryWaitTimeMillis: Option[Int] = None
   ): Upload =
-    HttpURLConnectionUpload.create(
-      HttpURLConnectionUpload.Timeouts(
-        connect = connectionTimeoutSeconds.map(_.seconds),
-        read = responseTimeoutSeconds.map(_.seconds)
+    RetryingUpload(
+      underlying = HttpURLConnectionUpload.create(
+        HttpURLConnectionUpload.Timeouts(
+          connect = connectionTimeoutSeconds.map(_.seconds),
+          read = responseTimeoutSeconds.map(_.seconds)
+        )
+      ),
+      retryParams = retryParams(
+        defaults = RetryingUpload.defaultRetryParams,
+        attempts = retries,
+        initialWaitDurationMs = retryWaitTimeMillis
       )
+    )
+
+  /** `defaults`, with the passed values overridden */
+  def retryParams(
+    defaults: EmaRetryParams,
+    attempts: Option[Int],
+    initialWaitDurationMs: Option[Int]
+  ): EmaRetryParams =
+    defaults.copy(
+      attempts = attempts.getOrElse(defaults.attempts),
+      initialWaitDurationMs = initialWaitDurationMs.fold(defaults.initialWaitDurationMs)(_.toLong)
     )
 
   /** Using directives setting the POM fields reported by [[Pom.centralRequirementErrors]] */

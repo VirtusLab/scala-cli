@@ -137,7 +137,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       connectionTimeoutSeconds = publishConnection.connectionTimeoutSeconds,
       responseTimeoutSeconds = publishConnection.responseTimeoutSeconds,
       stagingRepoRetries = publishConnection.stagingRepoRetries,
-      stagingRepoWaitTimeMilis = publishConnection.stagingRepoWaitTimeMilis
+      stagingRepoWaitTimeMilis = publishConnection.stagingRepoWaitTimeMilis,
+      uploadRetries = publishConnection.uploadRetries,
+      uploadRetryWaitTimeMillis = publishConnection.uploadRetryWaitTimeMillis
     )
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
@@ -1028,7 +1030,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       if retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://") then
         PublishUtils.httpUpload(
           connectionTimeoutSeconds = publishOptions.contextual(isCi).connectionTimeoutSeconds,
-          responseTimeoutSeconds = publishOptions.contextual(isCi).responseTimeoutSeconds
+          responseTimeoutSeconds = publishOptions.contextual(isCi).responseTimeoutSeconds,
+          retries = publishOptions.contextual(isCi).uploadRetries,
+          retryWaitTimeMillis = publishOptions.contextual(isCi).uploadRetryWaitTimeMillis
         )
       else
         InPlaceFileUpload(Paths.get(new URI(retainedRepo.root)))

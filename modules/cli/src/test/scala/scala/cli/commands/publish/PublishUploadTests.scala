@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext
 import scala.publish.Content
 import scala.publish.fileset.{FileSet, Path}
 import scala.publish.upload.logger.UploadLogger
-import scala.publish.upload.{FileUpload, HttpURLConnectionUpload}
+import scala.publish.upload.{FileUpload, HttpURLConnectionUpload, RetryingUpload}
 
 class PublishUploadTests extends munit.FunSuite {
 
@@ -20,18 +20,34 @@ class PublishUploadTests extends munit.FunSuite {
       connectionTimeoutSeconds = Some(12),
       responseTimeoutSeconds = Some(34)
     ) match {
-      case upload: HttpURLConnectionUpload =>
+      case RetryingUpload(upload: HttpURLConnectionUpload, _, _) =>
         expect(upload.connectTimeoutMsOpt == Some(12000))
         expect(upload.readTimeoutMsOpt == Some(34000))
       case other => fail(s"Unexpected upload: $other")
     }
   }
 
-  test("no timeouts by default") {
+  test("no timeouts and default upload retries by default") {
     PublishUtils.httpUpload(connectionTimeoutSeconds = None, responseTimeoutSeconds = None) match {
-      case upload: HttpURLConnectionUpload =>
+      case RetryingUpload(upload: HttpURLConnectionUpload, retryParams, _) =>
         expect(upload.connectTimeoutMsOpt.isEmpty)
         expect(upload.readTimeoutMsOpt.isEmpty)
+        expect(retryParams == RetryingUpload.defaultRetryParams)
+      case other => fail(s"Unexpected upload: $other")
+    }
+  }
+
+  test("upload retries can be customized") {
+    PublishUtils.httpUpload(
+      connectionTimeoutSeconds = None,
+      responseTimeoutSeconds = None,
+      retries = Some(5),
+      retryWaitTimeMillis = Some(200)
+    ) match {
+      case RetryingUpload(_: HttpURLConnectionUpload, retryParams, _) =>
+        expect(retryParams.attempts == 5)
+        expect(retryParams.initialWaitDurationMs == 200L)
+        expect(retryParams.factor == RetryingUpload.defaultRetryParams.factor)
       case other => fail(s"Unexpected upload: $other")
     }
   }

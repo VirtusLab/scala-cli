@@ -35,7 +35,19 @@ final case class PublishConnectionOptions(
   @HelpMessage("Time to wait between staging repository operation retries, in milliseconds.")
   @Tag(tags.restricted)
   @Hidden
-    stagingRepoWaitTimeMilis: Option[Int] = None
+    stagingRepoWaitTimeMilis: Option[Int] = None,
+
+  @Group(HelpGroup.Publishing.toString)
+  @HelpMessage("How many times to attempt uploading a file to an HTTP repository, when that fails with a transient error (HTTP 5xx). 3 by default.")
+  @Tag(tags.experimental)
+  @Hidden
+    uploadRetries: Option[Int] = None,
+
+  @Group(HelpGroup.Publishing.toString)
+  @HelpMessage("Time to wait before retrying a failed upload, in milliseconds, doubled before each subsequent retry. 1000 by default.")
+  @Tag(tags.experimental)
+  @Hidden
+    uploadRetryWaitTimeMillis: Option[Int] = None
 )
   // format: on
 
