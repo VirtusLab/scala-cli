@@ -38,6 +38,24 @@ final case class PublishConnectionOptions(
     stagingRepoWaitTimeMilis: Option[Int] = None,
 
   @Group(HelpGroup.Publishing.toString)
+  @HelpMessage("Time to wait before retrying a failed Sonatype API request, in milliseconds, doubled before each subsequent retry. 1000 by default.")
+  @Tag(tags.experimental)
+  @Hidden
+    connectionRetryWaitTimeMillis: Option[Int] = None,
+
+  @Group(HelpGroup.Publishing.toString)
+  @HelpMessage("How many times to check whether the Sonatype staging repository got closed or released, before giving up. 20 by default.")
+  @Tag(tags.experimental)
+  @Hidden
+    stagingRepoStatusPollAttempts: Option[Int] = None,
+
+  @Group(HelpGroup.Publishing.toString)
+  @HelpMessage("Time to wait before checking the Sonatype staging repository status again, in milliseconds, multiplied by 1.5 before each subsequent check. 3000 by default.")
+  @Tag(tags.experimental)
+  @Hidden
+    stagingRepoStatusPollWaitTimeMillis: Option[Int] = None,
+
+  @Group(HelpGroup.Publishing.toString)
   @HelpMessage("How many times to attempt uploading a file to an HTTP repository, when that fails with a transient error (HTTP 5xx). 3 by default.")
   @Tag(tags.experimental)
   @Hidden

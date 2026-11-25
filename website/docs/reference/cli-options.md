@@ -2382,6 +2382,21 @@ How many times to attempt the Sonatype staging repository operations (close, pro
 [Internal]
 Time to wait between staging repository operation retries, in milliseconds.
 
+### `--connection-retry-wait-time-millis`
+
+[Internal]
+Time to wait before retrying a failed Sonatype API request, in milliseconds, doubled before each subsequent retry. 1000 by default.
+
+### `--staging-repo-status-poll-attempts`
+
+[Internal]
+How many times to check whether the Sonatype staging repository got closed or released, before giving up. 20 by default.
+
+### `--staging-repo-status-poll-wait-time-millis`
+
+[Internal]
+Time to wait before checking the Sonatype staging repository status again, in milliseconds, multiplied by 1.5 before each subsequent check. 3000 by default.
+
 ### `--upload-retries`
 
 [Internal]

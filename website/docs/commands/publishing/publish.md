@@ -294,6 +294,7 @@ When publishing large packages or when the internet connection is spotty one may
 - `--connection-timeout-seconds` - the connection timeout in seconds
 - `--response-timeout-seconds` - the response timeout in seconds
 - `--connection-timeout-retries` - the number of attempts of Sonatype API requests failing with a transient error (connection failure, HTTP 5xx, or a timeout for requests that don't change anything); client errors (HTTP 4xx) are not retried
+- `--connection-retry-wait-time-millis` - the time to wait before retrying a Sonatype API request in milliseconds, doubled before each subsequent retry (1000 by default)
 
 Uploads to HTTP repositories failing with a transient error (HTTP 5xx) are retried. This can be tweaked with:
 - `--upload-retries` - the number of attempts of each upload (3 by default)
@@ -303,6 +304,11 @@ Publishing to Sonatype uses a staging repository which may sometimes cause probl
 If a publishing process fails with status `500` and message `"Staging repository is already transitioning"` you can try to tweak the following parameters that are Sonatype specific:
 - `--staging-repo-retries` - the number of attempts of staging repository transitions (close, promote, drop) failing with a transient error (connection failure, HTTP 5xx); client errors (HTTP 4xx) are not retried
 - `--staging-repo-wait-time-milis` - the base time to wait between retries in milliseconds
+
+Once uploaded, Scala CLI waits for Sonatype to close and release the staging repository, checking its status
+repeatedly, with increasing waits in between. This can be tweaked with:
+- `--staging-repo-status-poll-attempts` - how many times to check the staging repository status (20 by default)
+- `--staging-repo-status-poll-wait-time-millis` - the time to wait before checking the status again in milliseconds, multiplied by 1.5 before each subsequent check (3000 by default)
 
 ## Publishing
 

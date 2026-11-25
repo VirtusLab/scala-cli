@@ -25,6 +25,9 @@ final case class PublishContextualOptions(
   responseTimeoutSeconds: Option[Int] = None,
   stagingRepoRetries: Option[Int] = None,
   stagingRepoWaitTimeMilis: Option[Int] = None,
+  connectionRetryWaitTimeMillis: Option[Int] = None,
+  stagingRepoStatusPollAttempts: Option[Int] = None,
+  stagingRepoStatusPollWaitTimeMillis: Option[Int] = None,
   uploadRetries: Option[Int] = None,
   uploadRetryWaitTimeMillis: Option[Int] = None
 )

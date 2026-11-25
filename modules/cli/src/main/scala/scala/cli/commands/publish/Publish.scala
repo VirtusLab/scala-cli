@@ -138,6 +138,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       responseTimeoutSeconds = publishConnection.responseTimeoutSeconds,
       stagingRepoRetries = publishConnection.stagingRepoRetries,
       stagingRepoWaitTimeMilis = publishConnection.stagingRepoWaitTimeMilis,
+      connectionRetryWaitTimeMillis = publishConnection.connectionRetryWaitTimeMillis,
+      stagingRepoStatusPollAttempts = publishConnection.stagingRepoStatusPollAttempts,
+      stagingRepoStatusPollWaitTimeMillis = publishConnection.stagingRepoStatusPollWaitTimeMillis,
       uploadRetries = publishConnection.uploadRetries,
       uploadRetryWaitTimeMillis = publishConnection.uploadRetryWaitTimeMillis
     )
@@ -833,10 +836,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
                   publishOptions.contextual(isCi).repositoryIsIvy2LocalLike.getOrElse(false),
                 es = es,
                 logger = logger,
-                connectionTimeoutRetries = publishOptions.contextual(isCi).connectionTimeoutRetries,
-                connectionTimeoutSeconds = publishOptions.contextual(isCi).connectionTimeoutSeconds,
-                stagingRepoRetries = publishOptions.contextual(isCi).stagingRepoRetries,
-                stagingRepoWaitTimeMilis = publishOptions.contextual(isCi).stagingRepoWaitTimeMilis
+                sonatypeConnection =
+                  RepoParams.SonatypeConnectionParams(publishOptions.contextual(isCi))
               )
           }
         }
