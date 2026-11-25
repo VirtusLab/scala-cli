@@ -26,6 +26,8 @@ jobs:
       test_all: ${{ needs.changes.outputs.test_all }}
       test_integration: ${{ needs.changes.outputs.test_integration }}
       test_skip: ${{ needs.changes.outputs.test_skip }}
+      test_all_scala_2_12: ${{ needs.changes.outputs.test_all_scala_2_12 }}
+      test_all_scala_2_13: ${{ needs.changes.outputs.test_all_scala_2_13 }}
 
   linux:
     needs: [changes]
@@ -40,6 +42,8 @@ jobs:
       test_skip: ${{ needs.changes.outputs.test_skip }}
       test_legacy_lts: ${{ needs.changes.outputs.test_legacy_lts }}
       test_lts_all_platforms: ${{ needs.changes.outputs.test_lts_all_platforms }}
+      test_all_scala_2_12: ${{ needs.changes.outputs.test_all_scala_2_12 }}
+      test_all_scala_2_13: ${{ needs.changes.outputs.test_all_scala_2_13 }}
 
   macos:
     needs: [changes]

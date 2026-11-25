@@ -47,6 +47,12 @@ on:
       test_lts_all_platforms:
         description: 'test_lts_all_platforms override flag (PRs only)'
         value: ${{ jobs.changes.outputs.test_lts_all_platforms }}
+      test_all_scala_2_12:
+        description: 'test_all_scala_2_12 override flag (all Scala 2.12 tests, not just sanity)'
+        value: ${{ jobs.changes.outputs.test_all_scala_2_12 }}
+      test_all_scala_2_13:
+        description: 'test_all_scala_2_13 override flag (all Scala 2.13 tests, not just sanity)'
+        value: ${{ jobs.changes.outputs.test_all_scala_2_13 }}
 
 jobs:
   changes:
@@ -68,6 +74,8 @@ jobs:
       test_skip: ${{ steps.overrides.outputs.test_skip }}
       test_legacy_lts: ${{ steps.overrides.outputs.test_legacy_lts }}
       test_lts_all_platforms: ${{ steps.overrides.outputs.test_lts_all_platforms }}
+      test_all_scala_2_12: ${{ steps.overrides.outputs.test_all_scala_2_12 }}
+      test_all_scala_2_13: ${{ steps.overrides.outputs.test_all_scala_2_13 }}
     steps:
     - uses: actions/checkout@v7
       with:

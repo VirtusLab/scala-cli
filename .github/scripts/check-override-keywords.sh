@@ -7,7 +7,7 @@ set -euo pipefail
 
 if [[ "$EVENT_NAME" != "pull_request" ]]; then
   echo "Non-PR event, setting all overrides to true (except test_skip)"
-  for override in test_all test_native test_integration test_docs test_format; do
+  for override in test_all test_native test_integration test_docs test_format test_all_scala_2_12 test_all_scala_2_13; do
     echo "$override=true" >> "$GITHUB_OUTPUT"
   done
   echo "test_skip=false" >> "$GITHUB_OUTPUT"
@@ -20,6 +20,7 @@ fi
 
 TEST_ALL=false; TEST_NATIVE=false; TEST_INTEGRATION=false; TEST_DOCS=false; TEST_FORMAT=false; TEST_SKIP=false
 TEST_LEGACY_LTS=false; TEST_LTS_ALL_PLATFORMS=false
+TEST_ALL_SCALA_2=false; TEST_ALL_SCALA_2_12=false; TEST_ALL_SCALA_2_13=false
 
 check_override() {
   local keyword="$1"
@@ -38,11 +39,20 @@ check_override "[test_format]" "TEST_FORMAT"
 check_override "[test_skip]" "TEST_SKIP"
 check_override "[test_legacy_lts]" "TEST_LEGACY_LTS"
 check_override "[test_lts_all_platforms]" "TEST_LTS_ALL_PLATFORMS"
+check_override "[test_all_scala_2]" "TEST_ALL_SCALA_2"
+check_override "[test_all_scala_2_12]" "TEST_ALL_SCALA_2_12"
+check_override "[test_all_scala_2_13]" "TEST_ALL_SCALA_2_13"
 
 # [test_all] also enables the opt-in jobs
 if [[ "$TEST_ALL" == "true" ]]; then
   TEST_LEGACY_LTS=true
   TEST_LTS_ALL_PLATFORMS=true
+fi
+
+# The Scala 2.12 and 2.13 jobs only run sanity tests, unless all of their tests were requested
+if [[ "$TEST_ALL" == "true" || "$TEST_ALL_SCALA_2" == "true" ]]; then
+  TEST_ALL_SCALA_2_12=true
+  TEST_ALL_SCALA_2_13=true
 fi
 
 echo "Override keywords:"
@@ -54,6 +64,8 @@ echo "  test_format=$TEST_FORMAT"
 echo "  test_skip=$TEST_SKIP"
 echo "  test_legacy_lts=$TEST_LEGACY_LTS"
 echo "  test_lts_all_platforms=$TEST_LTS_ALL_PLATFORMS"
+echo "  test_all_scala_2_12=$TEST_ALL_SCALA_2_12"
+echo "  test_all_scala_2_13=$TEST_ALL_SCALA_2_13"
 
 echo "test_all=$TEST_ALL" >> "$GITHUB_OUTPUT"
 echo "test_native=$TEST_NATIVE" >> "$GITHUB_OUTPUT"
@@ -63,6 +75,8 @@ echo "test_format=$TEST_FORMAT" >> "$GITHUB_OUTPUT"
 echo "test_skip=$TEST_SKIP" >> "$GITHUB_OUTPUT"
 echo "test_legacy_lts=$TEST_LEGACY_LTS" >> "$GITHUB_OUTPUT"
 echo "test_lts_all_platforms=$TEST_LTS_ALL_PLATFORMS" >> "$GITHUB_OUTPUT"
+echo "test_all_scala_2_12=$TEST_ALL_SCALA_2_12" >> "$GITHUB_OUTPUT"
+echo "test_all_scala_2_13=$TEST_ALL_SCALA_2_13" >> "$GITHUB_OUTPUT"
 
 echo "## Override keywords" >> "$GITHUB_STEP_SUMMARY"
 echo "| Keyword | Active |" >> "$GITHUB_STEP_SUMMARY"
@@ -75,3 +89,5 @@ echo "| [test_format] | $TEST_FORMAT |" >> "$GITHUB_STEP_SUMMARY"
 echo "| [test_skip] | $TEST_SKIP |" >> "$GITHUB_STEP_SUMMARY"
 echo "| [test_legacy_lts] | $TEST_LEGACY_LTS |" >> "$GITHUB_STEP_SUMMARY"
 echo "| [test_lts_all_platforms] | $TEST_LTS_ALL_PLATFORMS |" >> "$GITHUB_STEP_SUMMARY"
+echo "| [test_all_scala_2_12] (or [test_all_scala_2]) | $TEST_ALL_SCALA_2_12 |" >> "$GITHUB_STEP_SUMMARY"
+echo "| [test_all_scala_2_13] (or [test_all_scala_2]) | $TEST_ALL_SCALA_2_13 |" >> "$GITHUB_STEP_SUMMARY"

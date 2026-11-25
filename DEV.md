@@ -325,6 +325,9 @@ these keywords anywhere in the PR body (description):
 | `[test_format]` | Force format and scalafix checks |
 | `[test_legacy_lts]` | Run Scala 3.3 (legacy) LTS native integration tests on all platforms (the JVM ones always run). PRs only; also enabled by `[test_all]` |
 | `[test_lts_all_platforms]` | Run Scala 3.9 LTS native integration tests on platforms other than Linux and Windows. PRs only; also enabled by `[test_all]` |
+| `[test_all_scala_2]` | Run all the integration tests in the Scala 2.12 and 2.13 jobs, rather than just the sanity ones. Also enabled by `[test_all]` and on non-PR builds |
+| `[test_all_scala_2_12]` | Run all the integration tests in the Scala 2.12 jobs, rather than just the sanity ones |
+| `[test_all_scala_2_13]` | Run all the integration tests in the Scala 2.13 jobs, rather than just the sanity ones |
 
 For example, if your PR only touches documentation, but you want to verify native
 launchers still build, add `[test_native]` to the PR description.
