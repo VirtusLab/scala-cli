@@ -786,7 +786,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     def authOpt(
       repo: String,
-      isLegacySonatype: Boolean
+      defaultRealm: Option[String]
     ): Either[BuildException, Option[Authentication]] =
       either {
         val publishCredentials: () => Option[PublishCredentials] =
@@ -806,7 +806,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           .orElse {
             publishCredentials()
               .flatMap(_.realm)
-              .orElse(if isLegacySonatype then Some("Sonatype Nexus Repository Manager") else None)
+              .orElse(defaultRealm)
           }
           .map(auth.withRealm)
           .getOrElse(auth)
@@ -981,7 +981,10 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     if isSnapshot0 then logger.message("Publishing a SNAPSHOT version...")
     val authOpt0: Option[Authentication] = value(authOpt(
       repo = repoParams.repo.repo(isSnapshot0).root,
-      isLegacySonatype = repoParams.isSonatype
+      // scala-publish sends credentials whatever the realm, so this is mostly informative
+      defaultRealm = Option.when(repoParams.sonatypeServerOpt.exists(_.isLegacy)) {
+        "Sonatype Nexus Repository Manager"
+      }
     ))
     val asciiRegex        = """[\u0000-\u007f]*""".r
     val usernameOnlyAscii = authOpt0.exists(_.userOpt.exists(asciiRegex.matches))
