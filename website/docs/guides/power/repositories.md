@@ -49,6 +49,16 @@ Repository authentication is also supported and there are a couple ways of using
   scala-cli --power config repositories.credentials maven.pkg.github.com value:PrivateToken env:GH_TOKEN
 ```
 
+:::note
+Credentials specified with a bare host (like `my_domain.com`) are only sent over HTTPS.
+To use credentials with a plain HTTP repository, either specify the host with its scheme and port
+(e.g. `http://my_domain.com:8081 MyUserName:myPasswOrd`, which is the safer option),
+or pass `--https-only=false` when adding the config entry, e.g.
+```bash ignore
+scala-cli --power config repositories.credentials --https-only=false my_domain.com value:MyUserName value:myPasswOrd
+```
+:::
+
 ## Default repositories
 
 You can override the default Coursier repositories (Maven Central and local Ivy) globally by invoking:

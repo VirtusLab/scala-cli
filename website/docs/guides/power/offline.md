@@ -146,7 +146,7 @@ scala-cli run Main.scala --jvm 11 --offline
 cs install scala:3.3.0 scalac:3.3.0
 
 # Could fail with:
-# Error while getting https://github.com/coursier/jvm-index/raw/master/index.json
+# Error while getting https://github.com/coursier/jvm-index/raw/master/indices-v2/<os>-<arch>.json
 # But may also pass on MacOS ('/usr/libexec/java_home -v' is tried)
 # or if a JVM is cached in coursier's archive cache (this cache's location can't be overridden), you may want to clear it, see section below
 scala-cli run Main.scala --jvm 11 --offline
