@@ -641,38 +641,31 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val pomProjectName = publishOptions.pomProjectNameForMaven(moduleName)
 
-    val pomContent = Pom.create(
+    val pomProject = Pom.Project(
       organization = coursier.Organization(org),
       moduleName = coursier.ModuleName(moduleName),
       version = ver,
-      packaging = None,
+      description = Some(description),
       url = url,
       name = Some(pomProjectName),
-      dependencies = dependencies,
-      description = Some(description),
-      license = license,
+      dependencies = dependencies.map { (depOrg, depName, depVersion, config, exclusions) =>
+        Pom.Dependency(
+          organization = depOrg,
+          name = depName,
+          version = depVersion,
+          scope = config,
+          exclusions = exclusions
+        )
+      },
+      licenses = license.toSeq,
       scm = scm,
-      developers = developers
+      developers = developers,
+      organizationUrl = url
     )
+    val pomContent = Pom.create(pomProject)
 
-    if isSonatype then {
-      if url.isEmpty then
-        logger.diagnostic(
-          "Publishing to Sonatype, but project URL is empty (set it with the '//> using publish.url' directive)."
-        )
-      if license.isEmpty then
-        logger.diagnostic(
-          "Publishing to Sonatype, but license is empty (set it with the '//> using publish.license' directive)."
-        )
-      if scm.isEmpty then
-        logger.diagnostic(
-          "Publishing to Sonatype, but SCM details are empty (set them with the '//> using publish.scm' directive)."
-        )
-      if developers.isEmpty then
-        logger.diagnostic(
-          "Publishing to Sonatype, but developer details are empty (set them with the '//> using publish.developer' directive)."
-        )
-    }
+    if isSonatype then
+      PublishUtils.centralRequirementDiagnostics(pomProject).foreach(logger.diagnostic(_))
 
     def ivyContent = Ivy.create(
       organization = coursier.Organization(org),

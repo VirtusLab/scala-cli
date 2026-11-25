@@ -19,6 +19,7 @@ import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.DurationInt
+import scala.publish.Pom
 import scala.publish.checksum.logger.ChecksumLogger
 import scala.publish.checksum.{ChecksumType, Checksums}
 import scala.publish.fileset.FileSet
@@ -44,6 +45,25 @@ object PublishUtils {
         read = responseTimeoutSeconds.map(_.seconds)
       )
     )
+
+  /** Using directives setting the POM fields reported by [[Pom.centralRequirementErrors]] */
+  private val centralRequirementDirectives = Map(
+    "Missing project name"        -> "publish.name",
+    "Missing project description" -> "publish.description",
+    "Missing project URL"         -> "publish.url",
+    "Missing license"             -> "publish.license",
+    "Missing developer"           -> "publish.developer",
+    "Missing SCM information"     -> "publish.scm"
+  )
+
+  /** Warnings about the fields of `project` that Maven Central requires, but which are missing */
+  def centralRequirementDiagnostics(project: Pom.Project): Seq[String] =
+    Pom.centralRequirementErrors(project).map { error =>
+      val hint = centralRequirementDirectives
+        .get(error)
+        .fold("")(directive => s" (set it with the '//> using $directive' directive)")
+      s"Publishing to Sonatype, but: $error$hint."
+    }
 
   /** Compute checksum files for the given [[FileSet]].
     *

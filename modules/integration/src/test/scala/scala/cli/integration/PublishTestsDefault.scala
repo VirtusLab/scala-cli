@@ -175,10 +175,10 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
     )
     def checkWarnings(output: String, hasWarnings: Boolean): Unit = {
       val lines = Seq(
-        "project URL is empty",
-        "license is empty",
-        "SCM details are empty",
-        "developer details are empty"
+        "Missing project URL",
+        "Missing license",
+        "Missing SCM information",
+        "Missing developer"
       )
       for (line <- lines)
         if (hasWarnings)
