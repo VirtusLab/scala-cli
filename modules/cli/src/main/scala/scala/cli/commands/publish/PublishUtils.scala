@@ -1,6 +1,6 @@
 package scala.cli.commands.publish
 
-import coursier.cache.{ArchiveCache, FileCache}
+import coursier.cache.ArchiveCache
 
 import java.net.URI
 import java.time.Instant
@@ -8,6 +8,7 @@ import java.util.function.Supplier
 
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.internal.CoursierUserAgent
 import scala.build.options.{BuildOptions, ComputeVersion, PublishContextualOptions, PublishOptions}
 import scala.build.{Logger, ScalaArtifacts}
 import scala.cli.commands.pgp.PgpExternalCommand
@@ -57,9 +58,9 @@ object PublishUtils {
     logger: Logger
   ): Signer = {
     val getLauncher: Supplier[Array[String]] = { () =>
+      val fileCache    = buildOptions.map(_.finalCache).getOrElse(CoursierUserAgent.defaultCache())
       val archiveCache = buildOptions.map(_.archiveCache)
-        .getOrElse(ArchiveCache())
-      val fileCache = buildOptions.map(_.finalCache).getOrElse(FileCache())
+        .getOrElse(ArchiveCache().copy(cache = fileCache))
       PgpExternalCommand.launcher(
         fileCache,
         archiveCache,

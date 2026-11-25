@@ -1,0 +1,37 @@
+name: windows-llvm
+description: Install the LLVM version required by the MSVC STL of the runner, for Scala Native
+inputs:
+  version:
+    description: "LLVM version to install with Chocolatey"
+    required: false
+    # The MSVC STL shipped with Visual Studio 18 (14.52+) requires Clang 22 or newer
+    # (error STL1000), while the windows-2025 runner image comes with an older LLVM.
+    default: "22.1.8"
+runs:
+  using: "composite"
+  steps:
+    - name: Install LLVM ${{ inputs.version }}
+      shell: pwsh
+      run: |
+        $expected = "${{ inputs.version }}"
+        $llvmBin = "C:\Program Files\LLVM\bin"
+        function Get-ClangVersion {
+          if (Test-Path "$llvmBin\clang.exe") { & "$llvmBin\clang.exe" --version | Select-Object -First 1 } else { "" }
+        }
+        # The Chocolatey community feed is sometimes unreachable from the CI, and choco can exit
+        # successfully without installing anything then, so check the installed version instead
+        $maxAttempts = 4
+        for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+          choco upgrade llvm --version="$expected" --allow-downgrade -y --no-progress
+          $version = Get-ClangVersion
+          if ($version -match "clang version $([regex]::Escape($expected))") { break }
+          if ($attempt -eq $maxAttempts) {
+            throw "Expected clang $expected after $maxAttempts attempts, got: $version"
+          }
+          $delay = 15 * $attempt
+          Write-Warning "LLVM $expected not installed (attempt $attempt/$maxAttempts, found: $version), retrying in $delay s"
+          Start-Sleep -Seconds $delay
+        }
+        Write-Host "Installed: $version"
+        # Scala Native looks for clang / clang++ in LLVM_BIN first
+        "LLVM_BIN=$llvmBin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append

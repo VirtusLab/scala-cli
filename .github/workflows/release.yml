@@ -359,6 +359,9 @@ jobs:
       - uses: coursier/cache-action@v9
         with:
           ignoreJob: true
+          # this job doesn't run Mill: keep its cache apart from the one of the jobs that do,
+          # so that it doesn't save a cache lacking Mill, Bloop, etc. under their key first
+          extraKey: no-mill
       - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "zulu:25"

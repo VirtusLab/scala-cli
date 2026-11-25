@@ -1,0 +1,5 @@
+# Hashed into the keys of the coursier/cache-action caches of all the CI jobs (see
+# .github/cs-cache-files). Bump the number below to invalidate those caches, e.g. when one was
+# saved without things most jobs need (like Mill's daemon, coursier, Bloop), as caches are only
+# saved again when their key changes.
+2

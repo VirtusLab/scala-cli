@@ -39,13 +39,18 @@ object TestUtil {
   val ltsEqualsNext: Boolean        = Constants.scala3LegacyLts `equals` Constants.scala3Next
 
   /** JDK versions for which coursier's default JVM provider (Temurin on most platforms) has no
-    * release, mapped to a provider which does have one.
+    * usable release, mapped to a provider which does have one.
     *
     * Coursier resolves a bare version such as `27` through its default provider, so tests asking
     * for such a version have to pin an explicit one instead. Entries can be dropped once the
     * default provider catches up.
+    *
+    *   - 27: no Temurin release yet
+    *   - 8 (Windows only): GitHub serves a broken archive for the latest Temurin 8 Windows x64 JDK
+    *     (jdk8u512-b09), which fails coursier's checksum validation
     */
-  private val pinnedJvmProviders: Map[Int, String] = Map(27 -> "zulu")
+  private val pinnedJvmProviders: Map[Int, String] =
+    Map(27 -> "zulu") ++ (if Properties.isWin then Map(8 -> "zulu") else Map.empty)
 
   /** JVM id to pass to `--jvm`, `//> using jvm` or `cs java-home --jvm` for `javaVersion`.
     *
@@ -54,6 +59,16 @@ object TestUtil {
     */
   def jvmId(javaVersion: Int): String =
     pinnedJvmProviders.get(javaVersion).fold(javaVersion.toString)(p => s"$p:$javaVersion")
+
+  /** Options needed to link with Scala Native 0.4.x on Windows since Visual Studio 18 (MSVC 14.52).
+    *
+    * Its static C++ runtime (`libcpmt.lib`) defines `_Sinh` and `_FSinh`, like the static UCRT of
+    * the Windows SDK (`libucrt.lib`) does, so linking fails with duplicate symbols. Scala Native
+    * already ignores these with `/force:multiple`, but only when LTO is enabled, see
+    * https://github.com/scala-native/scala-native/issues/2372. Scala Native 0.5.x isn't affected.
+    */
+  def scalaNative04LinkingOptions: Seq[String] =
+    if Properties.isWin then Seq("--native-linking", "-Wl,/force:multiple") else Nil
 
   lazy val legacyScalaVersionsOnePerMinor: Seq[String] =
     Constants.legacyScala3Versions.sorted.reverse.distinctBy(_.split('.').take(2).mkString("."))
@@ -110,7 +125,36 @@ object TestUtil {
       .map(_.getAbsolutePath)
   }
 
-  def cs: String = Constants.cs
+  /** Path of the coursier CLI launcher. Prefer [[cs]] to run it. */
+  def csPath: String = Constants.cs
+
+  private def majorMinor(version: String): Option[String] =
+    version.split("[.-]", 3).toSeq match
+      case Seq(major, minor, _*)
+          if major.nonEmpty && minor.nonEmpty && (major + minor).forall(_.isDigit) =>
+        Some(s"$major.$minor")
+      case _ => None
+
+  /** `User-Agent` of the coursier CLI when run by the tests: Scala CLI's own one (see
+    * `scala.build.internal.CoursierUserAgent`), with a `cs` comment token, so that repositories
+    * like Maven Central can tell this traffic apart from generic coursier one
+    */
+  lazy val csUserAgent: String =
+    def product(name: String, version: String) = majorMinor(version).fold(name)(v => s"$name/$v")
+    val comments                               =
+      Seq(s"+https://github.com/${Constants.ghOrg}/${Constants.ghName}") ++
+        (if isCI then Seq("ci") else Nil) ++
+        Seq("cs")
+    s"${product("Scala-CLI", Constants.cliVersion)} (${comments.mkString("; ")}) " +
+      product("Coursier", Constants.csVersion)
+
+  /** Argument making the coursier CLI send [[csUserAgent]] (the coursier CLI native launchers
+    * handle `-J-D…` arguments themselves, wherever they are on the command line)
+    */
+  def csUserAgentArg: String = s"-J-Dcoursier.http.agent=$csUserAgent"
+
+  /** Command running the coursier CLI, sending [[csUserAgent]] */
+  def cs: Seq[String] = Seq(csPath, csUserAgentArg)
 
   def threadPool(prefix: String, size: Int): ExecutorService =
     Executors.newFixedThreadPool(size, daemonThreadFactory(prefix))
@@ -385,7 +429,7 @@ object TestUtil {
       if (!os.exists(dest)) {
         val script =
           s"""@echo off
-             |"${TestUtil.cs}" %*
+             |"${TestUtil.csPath}" "${TestUtil.csUserAgentArg}" %*
              |""".stripMargin
         os.write(dest, script, createFolders = true)
       }
@@ -395,7 +439,7 @@ object TestUtil {
       if (!os.exists(dest)) {
         val script =
           s"""#!/usr/bin/env bash
-             |exec "${TestUtil.cs}" "$$@"
+             |exec "${TestUtil.csPath}" "${TestUtil.csUserAgentArg}" "$$@"
              |""".stripMargin
         os.write(dest, script, "rwxr-xr-x", createFolders = true)
       }

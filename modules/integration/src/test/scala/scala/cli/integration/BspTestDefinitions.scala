@@ -2259,7 +2259,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               val jvmIndex = if (TestUtil.isJvmCli) Constants.minimumLauncherJavaVersion else 8
               val javaHome =
                 os.Path(
-                  stableStdoutOf(TestUtil.cs, "java-home", "--jvm", jvmIndex)(),
+                  stableStdoutOf(TestUtil.cs, "java-home", "--jvm", TestUtil.jvmId(jvmIndex))(),
                   os.pwd
                 )
               os.proc(launcher, "setup-ide", scriptName, extraOptions)

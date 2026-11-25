@@ -386,9 +386,14 @@ trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
 
       test(s"native ($nativeVersionStr) & scala toolkit ($scalaToolkitVersion) $titleStr") {
         TestUtil.retryOnCi() {
+          val linkingOpts =
+            if (explicitNativeVersion.contains(Constants.scalaNativeVersion04))
+              TestUtil.scalaNative04LinkingOptions
+            else Nil
           val cmdLineOpts =
-            if (useDirectives) Nil
-            else Seq("--toolkit", scalaToolkitVersion, "--native") ++ nativeVersionOpts
+            (if (useDirectives) Nil
+             else Seq("--toolkit", scalaToolkitVersion, "--native") ++ nativeVersionOpts) ++
+              linkingOpts
           val directivesStr =
             if (useDirectives)
               s"""//> using toolkit $scalaToolkitVersion

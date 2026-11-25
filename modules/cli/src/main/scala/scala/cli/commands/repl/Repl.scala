@@ -1,7 +1,6 @@
 package scala.cli.commands.repl
 import caseapp.*
 import caseapp.core.help.HelpFormat
-import coursier.cache.FileCache
 import dependency.*
 
 import java.io.File
@@ -10,7 +9,7 @@ import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, MultipleScalaVersionsError}
 import scala.build.input.Inputs
-import scala.build.internal.{Constants, Runner}
+import scala.build.internal.{Constants, CoursierUserAgent, Runner}
 import scala.build.options.ScalacOpt.{filterScalacOptionKeys, noDashPrefixes}
 import scala.build.options.{BuildOptions, JavaOpt, Scope}
 import scala.build.postprocessing.{SlothAgent, SlothPatcher}
@@ -296,7 +295,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
   ): Either[BuildException, Unit] = either {
     val setupPython = options.notForBloopOptions.python.getOrElse(false)
 
-    val cache             = options.internal.cache.getOrElse(FileCache())
+    val cache             = options.internal.cache.getOrElse(CoursierUserAgent.defaultCache())
     val explicitJshellOpt = options.notForBloopOptions.replOptions.useJshellOpt
     val isPureJavaProject =
       successfulBuilds.nonEmpty &&

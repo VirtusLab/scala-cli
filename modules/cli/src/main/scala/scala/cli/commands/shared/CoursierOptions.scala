@@ -7,6 +7,7 @@ import coursier.cache.{CacheLogger, CachePolicy, FileCache}
 import coursier.util.Task
 
 import scala.build.Logger
+import scala.build.internal.CoursierUserAgent
 import scala.build.internals.EnvVar
 import scala.cli.commands.tags
 import scala.cli.config.Keys
@@ -44,7 +45,7 @@ final case class CoursierOptions(
     coursierValidateChecksums.getOrElse(true)
 
   def coursierCache(logger: Logger, cacheLogger: CacheLogger): FileCache[Task] = {
-    var baseCache = FileCache().copy(logger = cacheLogger)
+    var baseCache = CoursierUserAgent.defaultCache().copy(logger = cacheLogger)
     if (!validateChecksums)
       baseCache = baseCache.copy(checksums = Nil)
     val ttlOpt = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_))

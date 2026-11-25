@@ -1,16 +1,11 @@
 package cli.tests
 import com.eed3si9n.expecty.Expecty.expect
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
-import scala.build.Ops.*
 import scala.build.internal.Constants
 import scala.build.tests.{TestInputs, TestLogger}
 import scala.cli.commands.fmt.{FmtOptions, FmtUtil}
-import scala.util.control.NonFatal
 
 class ScalafmtTests extends TestUtil.ScalaCliSuite {
-  import ScalafmtTests.*
   private lazy val defaultScalafmtVersion = Constants.defaultScalafmtVersion
 
   test("readVersionFromFile with non-default scalafmt version") {
@@ -37,46 +32,26 @@ class ScalafmtTests extends TestUtil.ScalaCliSuite {
   }
 
   test(s"check native launcher availability for scalafmt $defaultScalafmtVersion") {
-    lazy val releaseCodec: JsonValueCodec[Release] = JsonCodecMaker.make
-    val url                                        =
-      s"https://api.github.com/repos/scalameta/scalafmt/releases/tags/v$defaultScalafmtVersion"
-
-    val expectedAssets = Seq(
-      "scalafmt-x86_64-apple-darwin.zip",
-      "scalafmt-x86_64-pc-linux.zip",
-      "scalafmt-x86_64-pc-win32.zip",
-      "scalafmt-aarch64-apple-darwin.zip",
-      "scalafmt-aarch64-pc-linux.zip"
+    // checks the download URLs Scala CLI uses, rather than the release from the GitHub API, as
+    // the latter is rate-limited (60 requests per hour per IP address without authentication),
+    // which made this test fail often on the CI
+    val platforms = Seq(
+      "x86_64-apple-darwin",
+      "x86_64-pc-linux",
+      "x86_64-pc-win32",
+      "aarch64-apple-darwin",
+      "aarch64-pc-linux"
     )
-    val errorMsg =
-      s"""scalafmt native images missing for v$defaultScalafmtVersion at https://github.com/scalameta/scalafmt
-         |Ensure that all expected assets are available in the release:
-         |  ${expectedAssets.mkString(", ")}
-         |under tag v$defaultScalafmtVersion.""".stripMargin
-    try {
-      val resp    = TestUtil.downloadFile(url).orThrow
-      val release = readFromArray(resp)(using releaseCodec)
-      val assets  = release.assets.map(_.name)
-
-      assert(
-        expectedAssets.forall(assets.contains),
-        clue = errorMsg
-      )
+    val urls = platforms.map { platform =>
+      FmtOptions(osArchSuffix = Some(platform)).binaryUrl(defaultScalafmtVersion)._1
     }
-    catch {
-      case e: JsonReaderException => throw new Exception(s"Error reading $url", e)
-      case NonFatal(e)            => throw new Exception(
-          s"""Failed to check for the ScalaFmt $defaultScalafmtVersion native launcher assets: ${e.getMessage}
-             |
-             |$errorMsg
-             |""".stripMargin,
-          e
-        )
-    }
+    val missing = urls.filterNot(TestUtil.remoteFileExists(_))
+    assert(
+      missing.isEmpty,
+      clue =
+        s"""scalafmt native images missing for v$defaultScalafmtVersion:
+           |  ${missing.mkString(System.lineSeparator() + "  ")}
+           |Ensure that all the native launchers are available in the scalafmt release.""".stripMargin
+    )
   }
-}
-
-object ScalafmtTests {
-  private final case class Asset(name: String)
-  private final case class Release(tag_name: String, assets: List[Asset])
 }

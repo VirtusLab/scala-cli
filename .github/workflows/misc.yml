@@ -36,6 +36,12 @@ on:
         type: string
         required: true
 
+env:
+  # coursier User-Agent for the released Scala CLI installed by scala-cli-setup, which doesn't send
+  # a Scala CLI-specific one yet (versions are left out, so that it doesn't go stale). Drop this, and
+  # the -Dcoursier.http.agent=… arguments using it, once the CI uses a Scala CLI release that does.
+  SCALA_CLI_CI_USER_AGENT: "Scala-CLI (+https://github.com/VirtusLab/scala-cli; ci) Coursier"
+
 jobs:
   test-fish-shell:
     timeout-minutes: 120
@@ -113,7 +119,7 @@ jobs:
       run: ./mill -i 'docs-tests[]'.test
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
-      run: .github/scripts/generate-junit-reports.sc docs-tests 'Scala CLI Docs Tests' test-report.xml out/
+      run: scala-cli "-Dcoursier.http.agent=$SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc docs-tests 'Scala CLI Docs Tests' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -179,6 +185,9 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
+        # this job doesn't run Mill: keep its cache apart from the one of the jobs that do,
+        # so that it doesn't save a cache lacking Mill, Bloop, etc. under their key first
+        extraKey: no-mill
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
     - run: scala-cli fmt . --check
@@ -268,6 +277,9 @@ jobs:
       if: env.SHOULD_RUN == 'true'
       with:
         ignoreJob: true
+        # this job doesn't run Mill: keep its cache apart from the one of the jobs that do,
+        # so that it doesn't save a cache lacking Mill, Bloop, etc. under their key first
+        extraKey: no-mill
     - uses: VirtusLab/scala-cli-setup@v1
       if: env.SHOULD_RUN == 'true'
       with:
