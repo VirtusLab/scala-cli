@@ -7,12 +7,13 @@ set -euo pipefail
 
 if [[ "$EVENT_NAME" != "pull_request" ]]; then
   echo "Non-PR event, setting all overrides to true (except test_skip)"
-  for override in test_all test_native test_integration test_docs test_format test_all_scala_2_12 test_all_scala_2_13; do
+  for override in test_all test_native test_integration test_docs test_format; do
     echo "$override=true" >> "$GITHUB_OUTPUT"
   done
   echo "test_skip=false" >> "$GITHUB_OUTPUT"
   # opt-in jobs only run on PRs, never on pushes to main or tags
-  for override in test_legacy_lts test_lts_all_platforms; do
+  # likewise, the Scala 2 jobs only run sanity tests outside of PRs, like the macOS and static ones
+  for override in test_legacy_lts test_lts_all_platforms test_all_scala_2_12 test_all_scala_2_13; do
     echo "$override=false" >> "$GITHUB_OUTPUT"
   done
   exit 0

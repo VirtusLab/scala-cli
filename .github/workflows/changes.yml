@@ -48,10 +48,10 @@ on:
         description: 'test_lts_all_platforms override flag (PRs only)'
         value: ${{ jobs.changes.outputs.test_lts_all_platforms }}
       test_all_scala_2_12:
-        description: 'test_all_scala_2_12 override flag (all Scala 2.12 tests, not just sanity)'
+        description: 'test_all_scala_2_12 override flag (all Scala 2.12 tests, not just sanity; PRs only)'
         value: ${{ jobs.changes.outputs.test_all_scala_2_12 }}
       test_all_scala_2_13:
-        description: 'test_all_scala_2_13 override flag (all Scala 2.13 tests, not just sanity)'
+        description: 'test_all_scala_2_13 override flag (all Scala 2.13 tests, not just sanity; PRs only)'
         value: ${{ jobs.changes.outputs.test_all_scala_2_13 }}
 
 jobs:

@@ -310,6 +310,9 @@ Just add it to your PATH to get the already-released-scala-cli experience.
 On pull requests, the CI workflow detects which files changed and skips jobs that are not relevant.
 Pushes to `main`, `v*` tags, and manual dispatches run everything, except for the opt-in jobs
 listed below (`[test_legacy_lts]`, `[test_lts_all_platforms]`), which only ever run on pull requests.
+Sanity jobs (macOS, static, mostly-static, JVM bootstrapped, Scala 2.12 and 2.13) only run tests
+tagged as sanity there as well; the Scala 2 ones can be made to run everything on pull requests only,
+with the `[test_all_scala_2*]` keywords below.
 
 ### Override keywords
 
@@ -325,9 +328,9 @@ these keywords anywhere in the PR body (description):
 | `[test_format]` | Force format and scalafix checks |
 | `[test_legacy_lts]` | Run Scala 3.3 (legacy) LTS native integration tests on all platforms (the JVM ones always run). PRs only; also enabled by `[test_all]` |
 | `[test_lts_all_platforms]` | Run Scala 3.9 LTS native integration tests on platforms other than Linux and Windows. PRs only; also enabled by `[test_all]` |
-| `[test_all_scala_2]` | Run all the integration tests in the Scala 2.12 and 2.13 jobs, rather than just the sanity ones. Also enabled by `[test_all]` and on non-PR builds |
-| `[test_all_scala_2_12]` | Run all the integration tests in the Scala 2.12 jobs, rather than just the sanity ones |
-| `[test_all_scala_2_13]` | Run all the integration tests in the Scala 2.13 jobs, rather than just the sanity ones |
+| `[test_all_scala_2]` | Run all the integration tests in the Scala 2.12 and 2.13 jobs, rather than just the sanity ones. PRs only; also enabled by `[test_all]` |
+| `[test_all_scala_2_12]` | Run all the integration tests in the Scala 2.12 jobs, rather than just the sanity ones. PRs only |
+| `[test_all_scala_2_13]` | Run all the integration tests in the Scala 2.13 jobs, rather than just the sanity ones. PRs only |
 
 For example, if your PR only touches documentation, but you want to verify native
 launchers still build, add `[test_native]` to the PR description.
