@@ -606,7 +606,6 @@ trait Core extends ScalaCliCrossSbtModule
          |
          |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
          |
-         |  def libsodiumVersion = "${deps.libsodiumVersion}"
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.versionConstraint.asString}"
          |
          |  def scalaPyVersion = "${Deps.scalaPy.dep.versionConstraint.asString}"
@@ -966,7 +965,20 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
     }
     PathRef(dir)
   }
-  override def resources: T[Seq[PathRef]] = super.resources() ++ Seq(defaultFilesResources())
+  def thirdPartyNoticesSource: T[PathRef] =
+    Task.Source(BuildCtx.workspaceRoot / "THIRD-PARTY-NOTICES.txt")
+  // Embeds the third-party notices in the launchers, which include some third-party software
+  def thirdPartyNoticesResources: T[PathRef] = Task {
+    val dir = Task.dest / "resources"
+    os.copy.over(
+      thirdPartyNoticesSource().path,
+      dir / thirdPartyNoticesResourcePath,
+      createFolders = true
+    )
+    PathRef(dir)
+  }
+  override def resources: T[Seq[PathRef]] =
+    super.resources() ++ Seq(defaultFilesResources(), thirdPartyNoticesResources())
 
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion) ++ Seq("-deprecation") ++
@@ -1175,7 +1187,6 @@ trait CliIntegration extends SbtModule
            |  def cs                           = "${settings.cs().replace("\\", "\\\\")}"
            |  def csVersion                    = "${Deps.Versions.coursierCli}"
            |  def workspaceDirName             = "$workspaceDirName"
-           |  def libsodiumVersion             = "${deps.libsodiumVersion}"
            |  def dockerArchLinuxImage         = "${TestDeps.archLinuxImage}"
            |  
            |  def toolkitVersion                 = "${Deps.toolkitVersion}"

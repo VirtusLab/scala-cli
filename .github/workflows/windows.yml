@@ -140,7 +140,6 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
-        SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
       run:  scala-cli "-Dcoursier.http.agent=$env:SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc windows-tests-default 'Scala CLI Windows Tests (default)' test-report.xml out/
@@ -208,7 +207,6 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 4
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run:  scala-cli "-Dcoursier.http.agent=$env:SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc windows-tests-lts 'Scala CLI Windows Tests (Scala 3.9 LTS)' test-report.xml out/
@@ -276,7 +274,6 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 6
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run:  scala-cli "-Dcoursier.http.agent=$env:SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc windows-tests-legacy-lts 'Scala CLI Windows Tests (Scala 3.3 LTS)' test-report.xml out/
@@ -344,7 +341,6 @@ jobs:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_IT_GROUP: 5
-          SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
         if: (success() || failure()) && env.SHOULD_RUN == 'true'
         run:  scala-cli "-Dcoursier.http.agent=$env:SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc windows-tests-rc 'Scala CLI Windows Tests (5)' test-report.xml out/

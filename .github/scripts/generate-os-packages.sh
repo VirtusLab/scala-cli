@@ -114,6 +114,9 @@ generate_msi() {
   # see https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html
   "$mill" -i ci.writeWixConfigExtra --dest wix-visual-cpp-redist.xml
 
+  # Scala CLI license, followed by the third-party notices (the launcher includes libsodium)
+  { cat ./LICENSE; echo; cat ./THIRD-PARTY-NOTICES.txt; } > msi-license.txt
+
   packager \
     --msi \
     --version "$(shortVersion)" \
@@ -122,13 +125,13 @@ generate_msi() {
     --product-name "Scala CLI" \
     --maintainer "scala-cli@virtuslab.com" \
     --launcher-app "scala-cli" \
-    --license-path "./LICENSE" \
+    --license-path "./msi-license.txt" \
     --exit-dialog "To run Scala CLI, open a Command window, and type scala-cli + Enter. If scala-cli cannot be found, ensure that the Command window was opened after Scala CLI was installed." \
     --logo-path "./logo.png" \
     --suppress-validation \
     --extra-configs wix-visual-cpp-redist.xml \
     --wix-upgrade-code-guid "C74FC9A1-9381-40A6-882F-9044C603ABD9"
-  rm -f "$ARTIFACTS_DIR/"*.wixpdb || true
+  rm -f "$ARTIFACTS_DIR/"*.wixpdb msi-license.txt || true
 }
 
 generate_sdk() {
