@@ -447,6 +447,8 @@ Set CI parameters for publishing
 
 `//> using publish.ci.secretKey env:PUBLISH_SECRET_KEY`
 
+`//> using publish.ci.stagingRepoStatusPollAttempts 40`
+
 ### Publish (contextual)
 
 Set contextual parameters for publishing
@@ -459,6 +461,8 @@ Set contextual parameters for publishing
 
 `//> using publish.doc` boolean
 
+`//> using publish.uploadRetries` value
+
 
 
 #### Examples
@@ -469,6 +473,8 @@ Set contextual parameters for publishing
 `//> using publish.secretKey env:PUBLISH_SECRET_KEY`
 
 `//> using publish.doc false`
+
+`//> using publish.uploadRetries 5`
 
 ### Python
 
