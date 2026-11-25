@@ -70,7 +70,7 @@ import scala.publish.fileset.{FileSet, Path}
 import scala.publish.signing.logger.InteractiveSignerLogger
 import scala.publish.signing.{NopSigner, Signer}
 import scala.publish.upload.logger.InteractiveUploadLogger
-import scala.publish.upload.{DummyUpload, FileUpload, HttpURLConnectionUpload, Upload}
+import scala.publish.upload.{DummyUpload, HttpURLConnectionUpload, Upload}
 import scala.publish.{Content, Hooks, Pom}
 import scala.util.control.NonFatal
 import scala.xml.transform.{RewriteRule, RuleTransformer}
@@ -1079,7 +1079,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             .responseTimeoutSeconds.map(_.seconds.toMillis.toInt)
         )
       else
-        FileUpload(Paths.get(new URI(retainedRepo.root)))
+        InPlaceFileUpload(Paths.get(new URI(retainedRepo.root)))
 
     val upload = if dummy then DummyUpload(baseUpload) else baseUpload
 
