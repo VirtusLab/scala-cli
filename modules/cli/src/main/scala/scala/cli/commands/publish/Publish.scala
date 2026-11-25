@@ -2,7 +2,7 @@ package scala.cli.commands.publish
 
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
-import coursier.core.{Authentication, Configuration, ModuleName, Organization}
+import coursier.core.{Authentication, Configuration}
 
 import java.io.{File, OutputStreamWriter}
 import java.net.URI
@@ -72,8 +72,6 @@ import scala.publish.upload.logger.InteractiveUploadLogger
 import scala.publish.upload.{DummyUpload, Upload}
 import scala.publish.{Content, Hooks, Pom}
 import scala.util.control.NonFatal
-import scala.xml.transform.{RewriteRule, RuleTransformer}
-import scala.xml.{Elem, Node, PrettyPrinter, XML}
 
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
@@ -462,37 +460,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
   }
 
-  private def withDependencyExclusions(
-    pom: String,
-    exclusions: Map[(String, String), Seq[(Organization, ModuleName)]]
-  ): String =
-    if exclusions.forall(_._2.isEmpty) then pom
-    else {
-      val addExclusions = new RewriteRule {
-        override def transform(node: Node): Seq[Node] = node match {
-          case e: Elem if e.label == "dependency" =>
-            val module = ((e \ "groupId").text.trim, (e \ "artifactId").text.trim)
-            exclusions.getOrElse(module, Nil) match {
-              case Nil      => e
-              case excluded =>
-                val nodes = excluded.map { (excludedOrg, excludedName) =>
-                  <exclusion>
-                    <groupId>{excludedOrg.value}</groupId>
-                    <artifactId>{excludedName.value}</artifactId>
-                  </exclusion>
-                }
-                val withoutExclusions = e.child.filterNot(_.label == "exclusions")
-                e.copy(child = withoutExclusions :+ <exclusions>{nodes}</exclusions>)
-            }
-          case other => other
-        }
-      }
-      val rewritten   = new RuleTransformer(addExclusions).transform(XML.loadString(pom))
-      val declaration = pom.linesIterator.takeWhile(_.trim.startsWith("<?")).mkString("\n")
-      val body        = new PrettyPrinter(Int.MaxValue, 2).formatNodes(rewritten)
-      if declaration.isEmpty then body else s"$declaration\n$body\n"
-    }
-
   private def buildFileSet(
     builds: Seq[Build.Successful],
     docBuilds: Seq[Build.Successful],
@@ -674,23 +641,18 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val pomProjectName = publishOptions.pomProjectNameForMaven(moduleName)
 
-    val pomContent = withDependencyExclusions(
-      Pom.create(
-        organization = coursier.Organization(org),
-        moduleName = coursier.ModuleName(moduleName),
-        version = ver,
-        packaging = None,
-        url = url,
-        name = Some(pomProjectName),
-        dependencies = dependencies,
-        description = Some(description),
-        license = license,
-        scm = scm,
-        developers = developers
-      ),
-      dependencies.map { case (depOrg, depName, _, _, exclusions) =>
-        (depOrg.value, depName.value) -> exclusions.toSet().toSeq.sorted
-      }.toMap
+    val pomContent = Pom.create(
+      organization = coursier.Organization(org),
+      moduleName = coursier.ModuleName(moduleName),
+      version = ver,
+      packaging = None,
+      url = url,
+      name = Some(pomProjectName),
+      dependencies = dependencies,
+      description = Some(description),
+      license = license,
+      scm = scm,
+      developers = developers
     )
 
     if isSonatype then {
