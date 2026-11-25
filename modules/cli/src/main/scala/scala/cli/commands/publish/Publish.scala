@@ -56,8 +56,8 @@ import scala.cli.errors.{
   InvalidSonatypePublishCredentials,
   MalformedChecksumsError,
   MissingPublishOptionError,
-  UploadError,
-  WrongSonatypeServerError
+  SonatypeAccessDeniedError,
+  UploadError
 }
 import scala.cli.packaging.Library
 import scala.cli.util.ArgHelpers.*
@@ -993,23 +993,21 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         Severity.Warning
       )
     val repoParams0: RepoParams = repoParams.withAuth(authOpt0)
-    val isLegacySonatype        =
-      repoParams0.isSonatype && !repoParams0.repo.releaseRepo.root.contains("s01")
-    val hooksDataOpt = Option.when(!dummy) {
+    val sonatypeServerOpt       = repoParams0.sonatypeServerOpt
+    val hooksDataOpt            = Option.when(!dummy) {
       try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(using ec)
       catch {
-        case NonFatal(e)
-            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 403,".r
-              .unanchored.matches(
-                e.getMessage
-              ) =>
-          logger.exit(new WrongSonatypeServerError(isLegacySonatype))
-        case NonFatal(e)
-            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 401,".r
-              .unanchored.matches(
-                e.getMessage
-              ) =>
-          logger.exit(new InvalidSonatypePublishCredentials(usernameOnlyAscii, passwordOnlyAscii))
+        case NonFatal(e) if sonatypeServerOpt.nonEmpty =>
+          PublishUtils.sonatypeProfilesErrorStatus(e) match {
+            case Some(403) =>
+              logger.exit(new SonatypeAccessDeniedError(sonatypeServerOpt.get))
+            case Some(401) =>
+              logger.exit(
+                new InvalidSonatypePublishCredentials(usernameOnlyAscii, passwordOnlyAscii)
+              )
+            case _ =>
+              throw new Exception(e)
+          }
         case NonFatal(e) =>
           throw new Exception(e)
       }
@@ -1087,8 +1085,10 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
              |Uploading files failed!
              |Possible causes:
              |- incorrect Sonatype credentials
-             |- incorrect Sonatype server was used, try ${
-              if isLegacySonatype then "'central-s01'" else "'central'"
+             |- ${
+              if sonatypeServerOpt.exists(_.isLegacy) then
+                "legacy Sonatype servers reached end of life, publish to 'central' instead"
+              else "credentials that aren't a Sonatype Central Portal user token"
             }
              | -> consult publish subcommand documentation
              |""".stripMargin

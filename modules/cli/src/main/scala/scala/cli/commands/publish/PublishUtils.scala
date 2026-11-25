@@ -47,6 +47,21 @@ object PublishUtils {
     if !sys.props.contains(UserAgent.property) then
       sys.props(UserAgent.property) = scalaPublishUserAgent()
 
+  private val sonatypeProfilesErrorRegex =
+    """Failed to get \S+/staging/profiles \(http status: (\d{3}),""".r.unanchored
+
+  /** The HTTP status code of a failed request listing the Sonatype staging profiles, if `e` (or one
+    * of its causes) is such a failure
+    *
+    * scala-publish reports those like `Failed to get <URL>/staging/profiles (http status: 401,
+    * response: …)`.
+    */
+  def sonatypeProfilesErrorStatus(e: Throwable): Option[Int] =
+    Iterator.iterate(e)(_.getCause)
+      .takeWhile(_ != null)
+      .flatMap(t => Option(t.getMessage))
+      .collectFirst { case sonatypeProfilesErrorRegex(status) => status.toInt }
+
   /** Whether `root` is the URL of a remote, HTTP(S), repository (rather than a local one) */
   def isHttpRepository(root: String): Boolean =
     root.startsWith("http://") || root.startsWith("https://")

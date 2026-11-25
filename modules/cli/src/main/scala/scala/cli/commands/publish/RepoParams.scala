@@ -50,6 +50,14 @@ final case class RepoParams(
       .filter(_.getScheme == "https")
       .map(_.getHost)
       .exists(sonatypeHosts.contains)
+
+  /** The Sonatype server publishing goes to, if any */
+  lazy val sonatypeServerOpt: Option[SonatypeServer] =
+    Option.when(isSonatype) {
+      val host = new URI(repo.releaseRepo.root).getHost
+      SonatypeServer.values.find(server => server.isLegacy && server.host == host)
+        .getOrElse(SonatypeServer.CentralPortal)
+    }
 }
 
 object RepoParams {
@@ -119,7 +127,18 @@ object RepoParams {
   private val sonatypeSnapshotsBase       = s"${RepositoryUtils.snapshotsRepositoryUrl}/"
   private val sonatypeLegacyBase          = "https://oss.sonatype.org"
   private val sonatypeS01LegacyBase       = "https://s01.oss.sonatype.org"
-  private def sonatypeHosts: Seq[String]  =
+
+  /** Sonatype servers scala-cli can publish to */
+  enum SonatypeServer(base: String) {
+    case CentralPortal extends SonatypeServer(sonatypeOssrhStagingApiBase)
+    case Legacy        extends SonatypeServer(sonatypeLegacyBase)
+    case LegacyS01     extends SonatypeServer(sonatypeS01LegacyBase)
+
+    def host: String      = new URI(base).getHost
+    def isLegacy: Boolean = this != CentralPortal
+  }
+
+  private def sonatypeHosts: Seq[String] =
     Seq(
       sonatypeLegacyBase,
       sonatypeSnapshotsBase,

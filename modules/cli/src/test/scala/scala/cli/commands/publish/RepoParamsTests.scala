@@ -6,7 +6,7 @@ import java.io.{OutputStream, PrintStream}
 import java.util.concurrent.Executors
 
 import scala.build.Logger
-import scala.cli.commands.publish.RepoParams.SonatypeConnectionParams
+import scala.cli.commands.publish.RepoParams.{SonatypeConnectionParams, SonatypeServer}
 import scala.cli.internal.CliLogger
 import scala.publish.Hooks
 import scala.publish.util.EmaRetryParams
@@ -68,4 +68,50 @@ class RepoParamsTests extends munit.FunSuite {
       )
       expect(sonatypeHooks(SonatypeConnectionParams(), logger).batch == !interactive)
     }
+
+  for (
+    (repo, expected) <- Seq(
+      "central"                         -> Some(SonatypeServer.CentralPortal),
+      "central-legacy"                  -> Some(SonatypeServer.Legacy),
+      "central-s01"                     -> Some(SonatypeServer.LegacyS01),
+      "https://repo.example.com/maven2" -> None
+    )
+  )
+    test(s"Sonatype server of '$repo'") {
+      val es = Executors.newSingleThreadScheduledExecutor()
+      try {
+        val params = RepoParams(
+          repo = repo,
+          vcsUrlOpt = None,
+          workspace = os.pwd,
+          ivy2HomeOpt = None,
+          isIvy2LocalLike = false,
+          es = es,
+          logger = Logger.nop
+        ).toOption.get
+        expect(params.sonatypeServerOpt == expected)
+      }
+      finally es.shutdown()
+    }
+
+  for (
+    base <- Seq(
+      "https://ossrh-staging-api.central.sonatype.com",
+      "https://oss.sonatype.org",
+      "https://s01.oss.sonatype.org"
+    );
+    status <- Seq(401, 403)
+  )
+    test(s"Sonatype staging profiles error status ($status, $base)") {
+      val e = new java.io.FileNotFoundException(
+        s"Failed to get $base/service/local/staging/profiles (http status: $status, response: nope)"
+      )
+      expect(PublishUtils.sonatypeProfilesErrorStatus(e).contains(status))
+      expect(PublishUtils.sonatypeProfilesErrorStatus(new Exception(e)).contains(status))
+    }
+
+  test("other errors aren't Sonatype staging profiles errors") {
+    expect(PublishUtils.sonatypeProfilesErrorStatus(new Exception("boom")).isEmpty)
+    expect(PublishUtils.sonatypeProfilesErrorStatus(new Exception(null: String)).isEmpty)
+  }
 }
