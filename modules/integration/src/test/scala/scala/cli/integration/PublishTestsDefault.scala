@@ -2,11 +2,113 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
 import java.nio.file.Paths
 
 import scala.cli.integration.TestUtil.stableStdoutOf
+import scala.util.Properties
 
 class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
+
+  /** The directory of the `gpg` executable, if any
+    *
+    * Windows CI runners don't have `gpg` on their `PATH`, but Git for Windows comes with one.
+    */
+  private lazy val gpgDirOpt: Option[os.Path] = {
+    val executable = if Properties.isWin then "gpg.exe" else "gpg"
+    val pathDirs   = Option(System.getenv("PATH")).toSeq
+      .flatMap(_.split(File.pathSeparator))
+      .filter(_.nonEmpty)
+      .flatMap(dir => scala.util.Try(os.Path(dir, os.pwd)).toOption)
+    val gitForWindowsDirs =
+      if Properties.isWin then
+        Seq("ProgramFiles", "ProgramW6432")
+          .flatMap(v => Option(System.getenv(v)))
+          .map(dir => os.Path(dir) / "Git" / "usr" / "bin")
+      else Nil
+    (pathDirs ++ gitForWindowsDirs).find(dir => os.isFile(dir / executable))
+  }
+
+  /** `path`, as the `gpg` in `gpgDir` understands it
+    *
+    * MSYS2 programs, like the `gpg` of Git for Windows, take `/c/…` paths as absolute, but not
+    * `C:\…` ones.
+    */
+  private def gpgPath(gpgDir: os.Path, path: os.Path): String =
+    if os.isFile(gpgDir / "msys-2.0.dll") then
+      path.toString.replace('\\', '/') match {
+        case s"$drive:/$rest" if drive.length == 1 => s"/${drive.toLowerCase}/$rest"
+        case other                                 => other
+      }
+    else path.toString
+
+  test("sign with gpg") {
+    assume(gpgDirOpt.isDefined, "gpg not found")
+    val gpgDir = gpgDirOpt.get
+    TestCase.testInputs().fromRoot { root =>
+      // outside of root, as gpg-agent sockets live there, and their paths can't be too long
+      val gnupgHome = os.temp.dir(prefix = "scala-cli-gpg", deleteOnExit = false)
+      if !Properties.isWin then os.perms.set(gnupgHome, "rwx------")
+      val env = Map(
+        "GNUPGHOME" -> gpgPath(gpgDir, gnupgHome),
+        "PATH"      -> (gpgDir.toString + File.pathSeparator + System.getenv("PATH"))
+      )
+      def gpg(args: os.Shellable*): os.CommandResult =
+        os.proc(gpgDir / (if Properties.isWin then "gpg.exe" else "gpg"), "--batch", args)
+          .call(cwd = root, env = env, mergeErrIntoOut = true)
+
+      try {
+        gpg(
+          "--pinentry-mode",
+          "loopback",
+          "--passphrase",
+          "",
+          "--quick-generate-key",
+          "Scala CLI Tests <scala-cli-tests@example.com>",
+          "default",
+          "sign",
+          "never"
+        )
+        val keyId = gpg("--list-secret-keys", "--with-colons").out.lines()
+          .collectFirst { case line if line.startsWith("fpr:") => line.split(':')(9) }
+          .getOrElse(sys.error("No GPG key generated"))
+
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          extraOptions,
+          "--signer",
+          "gpg",
+          "--gpg-key",
+          keyId,
+          "--gpg-option",
+          "--batch",
+          "project",
+          "-R",
+          "test-repo"
+        ).call(cwd = root, env = env, stdout = os.Inherit)
+
+        val artifactsDir  = root / "test-repo" / TestCase.expectedArtifactsDir
+        val files         = os.list(artifactsDir).map(_.last).toSet
+        val expectedFiles = expectedArtifacts.map(_.last)
+        expect(files == expectedFiles)
+
+        for (signature <- expectedFiles.filter(_.endsWith(".asc"))) {
+          val res =
+            gpg("--verify", artifactsDir / signature, artifactsDir / signature.stripSuffix(".asc"))
+          expect(res.exitCode == 0)
+        }
+      }
+      finally {
+        // gpg-agent keeps files open in GNUPGHOME, which prevents deleting it on Windows
+        val gpgconf = gpgDir / (if Properties.isWin then "gpgconf.exe" else "gpgconf")
+        if os.isFile(gpgconf) then
+          os.proc(gpgconf, "--kill", "all").call(cwd = root, env = env, check = false)
+        scala.util.Try(os.remove.all(gnupgHome))
+      }
+    }
+  }
   test("Pure Java") {
     val testOrg     = "test-org.foo"
     val testName    = "foo"
