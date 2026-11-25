@@ -816,6 +816,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           .getOrElse(auth)
       }
 
+    PublishUtils.setScalaPublishUserAgent()
+
     val repoParams: RepoParams = {
       lazy val es =
         Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))

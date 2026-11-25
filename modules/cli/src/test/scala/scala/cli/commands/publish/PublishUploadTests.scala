@@ -12,6 +12,7 @@ import scala.publish.Content
 import scala.publish.fileset.{FileSet, Path}
 import scala.publish.upload.logger.UploadLogger
 import scala.publish.upload.{FileUpload, HttpURLConnectionUpload, RetryingUpload}
+import scala.publish.util.UserAgent
 
 class PublishUploadTests extends munit.FunSuite {
 
@@ -80,5 +81,11 @@ class PublishUploadTests extends munit.FunSuite {
       }
     }
     finally os.remove.all(tmpDir)
+  }
+
+  test("scala-publish User-Agent identifies Scala CLI, then scala-publish") {
+    val userAgent = PublishUtils.scalaPublishUserAgent("Scala-CLI/1.19 (+https://example.com)")
+    expect(userAgent == s"Scala-CLI/1.19 (+https://example.com) ${UserAgent.default}")
+    expect(UserAgent.default.startsWith("scala-publish/"))
   }
 }

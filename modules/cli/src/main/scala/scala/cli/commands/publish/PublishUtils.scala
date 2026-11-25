@@ -25,9 +25,23 @@ import scala.publish.checksum.{ChecksumType, Checksums}
 import scala.publish.fileset.FileSet
 import scala.publish.signing.{GpgSigner, Signer}
 import scala.publish.upload.{HttpURLConnectionUpload, RetryingUpload, Upload}
-import scala.publish.util.EmaRetryParams
+import scala.publish.util.{EmaRetryParams, UserAgent}
 
 object PublishUtils {
+
+  /** The `User-Agent` scala-publish should send: Scala CLI's, followed by scala-publish's own, like
+    * `Scala-CLI/1.19 (+https://github.com/VirtusLab/scala-cli) scala-publish/1.1
+    * (+https://github.com/scala/scala-publish)`
+    */
+  def scalaPublishUserAgent(scalaCliProduct: String = CoursierUserAgent.scalaCliProduct()): String =
+    s"$scalaCliProduct ${UserAgent.default}"
+
+  /** Makes scala-publish identify Scala CLI in its HTTP requests, unless users set the
+    * `scala.publish.http.agent` Java property themselves
+    */
+  def setScalaPublishUserAgent(): Unit =
+    if !sys.props.contains(UserAgent.property) then
+      sys.props(UserAgent.property) = scalaPublishUserAgent()
 
   /** The [[Upload]] used for HTTP(S) repositories.
     *

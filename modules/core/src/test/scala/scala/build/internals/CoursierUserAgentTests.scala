@@ -26,6 +26,14 @@ class CoursierUserAgentTests extends munit.FunSuite {
     )
   }
 
+  test("Scala CLI product token") {
+    expect(CoursierUserAgent.scalaCliProduct("1.19.1", isCi = false) ==
+      s"Scala-CLI/1.19 ($contact)")
+    expect(
+      CoursierUserAgent.scalaCliProduct("1.19.1", isCi = true) == s"Scala-CLI/1.19 ($contact; ci)"
+    )
+  }
+
   test("major.minor") {
     expect(CoursierUserAgent.majorMinor("1.19.1-SNAPSHOT").contains("1.19"))
     expect(CoursierUserAgent.majorMinor("2.1-RC1").contains("2.1"))
