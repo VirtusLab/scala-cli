@@ -347,7 +347,7 @@ scala-cli --power publish .
 ```text
 Publishing io.github.scala-cli:hello-scala-cli_3:0.1.0-SNAPSHOT
  ✔ Computed 8 checksums
- 🚚 Wrote 12 files
+ 🚚 Uploaded 12 files
 
  👀 Check results at
   https://s01.oss.sonatype.org/content/repositories/snapshots/io/github/scala-cli/hello-scala-cli_3/0.1.0-SNAPSHOT

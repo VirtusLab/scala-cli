@@ -4,7 +4,7 @@ import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
 import coursier.core.{Authentication, Configuration}
 
-import java.io.{File, OutputStreamWriter}
+import java.io.File
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
@@ -64,11 +64,8 @@ import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.publish.checksum.ChecksumType
-import scala.publish.checksum.logger.InteractiveChecksumLogger
 import scala.publish.fileset.{FileSet, Path}
-import scala.publish.signing.logger.InteractiveSignerLogger
 import scala.publish.signing.{NopSigner, Signer}
-import scala.publish.upload.logger.InteractiveUploadLogger
 import scala.publish.upload.{DummyUpload, Upload}
 import scala.publish.{Content, Hooks, Pom}
 import scala.util.control.NonFatal
@@ -930,8 +927,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         Right(NopSigner)
     }
 
-    val signerLogger =
-      new InteractiveSignerLogger(out = new OutputStreamWriter(System.err), verbosity = 1)
+    val signerLogger                                      = PublishUtils.signerLogger(logger)
     val signRes: Either[(Path, Content, String), FileSet] = value(signer).signatures(
       fileSet = fileSet0,
       now = now,
@@ -954,9 +950,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
     }
 
-    val checksumLogger =
-      new InteractiveChecksumLogger(new OutputStreamWriter(System.err), verbosity = 1)
-    val checksumTypes = publishOptions.contextual(isCi).checksums match {
+    val checksumLogger = PublishUtils.checksumLogger(logger)
+    val checksumTypes  = publishOptions.contextual(isCi).checksums match {
       case None =>
         if repoParams.acceptsChecksums then Seq(ChecksumType.MD5, ChecksumType.SHA1)
         else Nil
@@ -1029,7 +1024,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
 
     val baseUpload =
-      if retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://") then
+      if PublishUtils.isHttpRepository(retainedRepo.root) then
         PublishUtils.httpUpload(
           connectionTimeoutSeconds = publishOptions.contextual(isCi).connectionTimeoutSeconds,
           responseTimeoutSeconds = publishOptions.contextual(isCi).responseTimeoutSeconds,
@@ -1041,8 +1036,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val upload = if dummy then DummyUpload(baseUpload) else baseUpload
 
-    val isLocal      = true
-    val uploadLogger = InteractiveUploadLogger.create(System.err, dummy = dummy, isLocal = isLocal)
+    val uploadLogger = PublishUtils.uploadLogger(
+      logger = logger,
+      dummy = dummy,
+      isLocal = !PublishUtils.isHttpRepository(retainedRepo.root)
+    )
 
     val errors =
       try

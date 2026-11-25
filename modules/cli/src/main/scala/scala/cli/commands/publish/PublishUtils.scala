@@ -20,10 +20,14 @@ import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.DurationInt
 import scala.publish.Pom
-import scala.publish.checksum.logger.ChecksumLogger
+import scala.publish.checksum.logger.{
+  BatchChecksumLogger, ChecksumLogger, InteractiveChecksumLogger
+}
 import scala.publish.checksum.{ChecksumType, Checksums}
 import scala.publish.fileset.FileSet
+import scala.publish.signing.logger.{BatchSignerLogger, InteractiveSignerLogger, SignerLogger}
 import scala.publish.signing.{GpgSigner, Signer}
+import scala.publish.upload.logger.{BatchUploadLogger, InteractiveUploadLogger, UploadLogger}
 import scala.publish.upload.{HttpURLConnectionUpload, RetryingUpload, Upload}
 import scala.publish.util.{EmaRetryParams, UserAgent}
 
@@ -42,6 +46,37 @@ object PublishUtils {
   def setScalaPublishUserAgent(): Unit =
     if !sys.props.contains(UserAgent.property) then
       sys.props(UserAgent.property) = scalaPublishUserAgent()
+
+  /** Whether `root` is the URL of a remote, HTTP(S), repository (rather than a local one) */
+  def isHttpRepository(root: String): Boolean =
+    root.startsWith("http://") || root.startsWith("https://")
+
+  /** Reports signing progress: nothing in quiet mode, else interactive progress bars, or one line
+    * per file when output isn't interactive (CI, no ANSI support)
+    */
+  def signerLogger(logger: Logger): SignerLogger =
+    if logger.verbosity < 0 then SignerLogger.nop
+    else if logger.useInteractiveProgress then
+      InteractiveSignerLogger.create(System.err, logger.verbosity)
+    else new BatchSignerLogger(System.err, logger.verbosity)
+
+  /** Reports checksum computation progress, like [[signerLogger]] */
+  def checksumLogger(logger: Logger): ChecksumLogger =
+    if logger.verbosity < 0 then new ChecksumLogger {}
+    else if logger.useInteractiveProgress then
+      InteractiveChecksumLogger.create(System.err, logger.verbosity)
+    else new BatchChecksumLogger(System.err, logger.verbosity)
+
+  /** Reports upload progress, like [[signerLogger]]
+    *
+    * @param isLocal
+    *   whether files are written to a local repository, rather than uploaded
+    */
+  def uploadLogger(logger: Logger, dummy: Boolean, isLocal: Boolean): UploadLogger =
+    if logger.verbosity < 0 then new UploadLogger {}
+    else if logger.useInteractiveProgress then
+      InteractiveUploadLogger.create(System.err, dummy = dummy, isLocal = isLocal)
+    else new BatchUploadLogger(System.err, dummy = dummy, isLocal = isLocal)
 
   /** The [[Upload]] used for HTTP(S) repositories.
     *
