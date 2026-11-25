@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.StringOps
 
 class TestTests212 extends TestTestDefinitions with Test212 {
-  test(s"run a simple test with Scala $actualScalaVersion (legacy)") {
+  test(s"run a simple test with Scala $actualScalaVersion (legacy)".scala2Sanity) {
     val expectedMessage = "Hello, world!"
     TestInputs(os.rel / "example.test.scala" ->
       s"""//> using dep com.novocode:junit-interface:0.11

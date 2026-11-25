@@ -25,3 +25,5 @@ This disables test parallelism, so the run mirrors how the tests behave on CI. I
 3. Assert on stdout/stderr.
 
 **Helpers**: `TestInputs(...).fromRoot`, `TestUtil.cli`. Test groups (CI): `SCALA_CLI_IT_GROUP=1..6`; see `modules/integration/` for group mapping.
+
+**Sanity batches**: with `SCALA_CLI_IT_SANITY=true` (macOS, static, bootstrapped and Scala 2.12/2.13 CI jobs), only tagged tests run. Tag via `test("foo".sanity)` (all such jobs), `.scala2Sanity` (Scala 2.12 & 2.13 jobs), `.scala212Sanity` or `.scala213Sanity`. Keep these lists very short; on Scala 2 jobs, tag only tests likely to catch Scala 2 bump issues (e.g. artifacts published per full Scala version, Scala 2-only code paths).

@@ -78,7 +78,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
-  test(s"$dryRunPrefix default")(dryRun())
+  test(s"$dryRunPrefix default".scala2Sanity)(dryRun())
 
   test(s"$dryRunPrefix with main scope sources") {
     dryRun(

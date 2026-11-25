@@ -70,8 +70,12 @@ trait SemanticDbTestDefinitions { this: CompileTestDefinitions =>
       case it            => it
     }
   } {
-    test(
+    val testName =
       s"$inputTypeString SemanticDB${semanticDbTargetDir.map(_ => " with forced target root").getOrElse("")}"
+    // semanticdb-scalac is published per full Scala 2 version, so it's worth checking on Scala 2 bumps
+    test(
+      if inputType == "Scala" && semanticDbTargetDir.isEmpty then testName.scala2Sanity
+      else munit.TestOptions(testName)
     ) {
       val sourceFileName =
         if (inputType == "Java") "Test.java"
