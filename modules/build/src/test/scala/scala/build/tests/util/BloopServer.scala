@@ -3,6 +3,7 @@ package scala.build.tests.util
 import bloop.rifle.{BloopRifle, BloopRifleConfig}
 import coursier.cache.FileCache
 
+import scala.build.internal.CoursierUserAgent
 import scala.build.internals.EnvVar
 import scala.build.tests.TestLogger
 import scala.build.{Bloop, BuildThreads, Logger, retry}
@@ -23,7 +24,12 @@ object BloopServer {
   val bloopConfig = {
     val base = BloopRifleConfig.default(
       bloopAddress,
-      v => Bloop.bloopClassPath(Logger.nop, FileCache(), v).map(_.map(_.toPath)),
+      v =>
+        Bloop.bloopClassPath(
+          Logger.nop,
+          FileCache().withUserAgent(CoursierUserAgent.value),
+          v
+        ).map(_.map(_.toPath)),
       directories.bloopWorkingDir.toNIO
     )
     base.copy(

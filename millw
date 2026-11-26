@@ -173,8 +173,18 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
     exit 0
   fi
 
+  # Maven Central answers a generic User-Agent, such as curl's, with 429.
+  # https://central.sonatype.org/faq/429-error/
+  # https://github.com/coursier/coursier/discussions/3841
+  # Same identity as scala.build.internal.CoursierUserAgent, without versions this script doesn't know.
+  if [ -n "${CI:-}" ]; then
+    MILL_DOWNLOAD_USER_AGENT="Scala-CLI (+https://github.com/VirtusLab/scala-cli; ci) Coursier"
+  else
+    MILL_DOWNLOAD_USER_AGENT="Scala-CLI (+https://github.com/VirtusLab/scala-cli) Coursier"
+  fi
+
   echo "Downloading mill ${MILL_VERSION} from ${MILL_DOWNLOAD_URL} ..." 1>&2
-  curl -f -L -o "${MILL_TEMP_DOWNLOAD_FILE}" "${MILL_DOWNLOAD_URL}"
+  curl -f -L -A "${MILL_DOWNLOAD_USER_AGENT}" -o "${MILL_TEMP_DOWNLOAD_FILE}" "${MILL_DOWNLOAD_URL}"
 
   chmod +x "${MILL_TEMP_DOWNLOAD_FILE}"
 
