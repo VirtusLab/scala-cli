@@ -191,7 +191,7 @@ class PgpTests extends ScalaCliSuite {
         os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", "new_key.pub", tmpFileAsc)
           .call(cwd = root, mergeErrIntoOut = true)
 
-      expect(verifyProc.out.text().contains(s"$tmpFileAsc: valid signature"))
+      expect(verifyProc.out.text().contains(s"${tmpFileAsc.toPlatformString}: valid signature"))
     }
   }
 
@@ -228,7 +228,7 @@ class PgpTests extends ScalaCliSuite {
         os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", "new_key.pub", tmpFileAsc)
           .call(cwd = root, mergeErrIntoOut = true)
 
-      expect(verifyProc.out.text().contains(s"$tmpFileAsc: valid signature"))
+      expect(verifyProc.out.text().contains(s"${tmpFileAsc.toPlatformString}: valid signature"))
     }
   }
 

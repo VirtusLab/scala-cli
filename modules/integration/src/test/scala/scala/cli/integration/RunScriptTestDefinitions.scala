@@ -496,7 +496,7 @@ trait RunScriptTestDefinitions { this: RunTestDefinitions =>
   }
 
   if (actualScalaVersion.startsWith("2."))
-    test("stack traces in script") {
+    test("stack traces in script".scala2Sanity) {
       stackTraceInScriptScala2()
     }
 

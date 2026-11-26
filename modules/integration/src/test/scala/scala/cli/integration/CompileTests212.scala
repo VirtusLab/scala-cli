@@ -17,7 +17,7 @@ class CompileTests212 extends CompileTestDefinitions with Test212 {
 
   val kindProjectPlugin = "org.typelevel:::kind-projector:0.13.4"
 
-  test("should compile with compiler plugin") {
+  test("should compile with compiler plugin".scala212Sanity) {
     pluginInputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,

@@ -4,7 +4,7 @@ import scala.util.Properties
 
 class CompileTests213 extends CompileTestDefinitions with Test213 {
 
-  test("test-macro-output") {
+  test("test-macro-output".scala213Sanity) {
     val triple = "\"\"\""
     TestInputs(
       os.rel / "Main.scala" ->

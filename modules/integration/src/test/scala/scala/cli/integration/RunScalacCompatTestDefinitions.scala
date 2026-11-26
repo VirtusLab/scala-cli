@@ -552,7 +552,7 @@ trait RunScalacCompatTestDefinitions {
     }
 
   if (actualScalaVersion.startsWith("2.13"))
-    test("ensure -with-compiler is supported for Scala 2.13") {
+    test("ensure -with-compiler is supported for Scala 2.13".scala213Sanity) {
       TestInputs(os.rel / "s.sc" -> "println(scala.tools.nsc.Properties.versionString)")
         .fromRoot { root =>
           val res = stableStdoutOf(TestUtil.cli, "-with-compiler", "s.sc", extraOptions)(cwd = root)

@@ -155,7 +155,7 @@ class MarkdownTests extends ScalaCliSuite {
         s"""# Sample Markdown file
            |A simple scala script snippet.
            |```scala
-           |//> using dep com.lihaoyi::os-lib:0.8.1
+           |//> using dep com.lihaoyi::os-lib:${Constants.osLibVersion}
            |println(os.pwd)
            |```
            |""".stripMargin
@@ -171,7 +171,7 @@ class MarkdownTests extends ScalaCliSuite {
         s"""# Sample Markdown file
            |A simple scala raw snippet.
            |```scala raw
-           |//> using dep com.lihaoyi::os-lib:0.8.1
+           |//> using dep com.lihaoyi::os-lib:${Constants.osLibVersion}
            |object Hello extends App {
            |  println(os.pwd)
            |}
@@ -213,7 +213,7 @@ class MarkdownTests extends ScalaCliSuite {
            |And then on `os-lib`, just because.
            |And let's reset the scope for good measure, too.
            |```scala reset
-           |//> using dep com.lihaoyi::os-lib:0.8.1
+           |//> using dep com.lihaoyi::os-lib:${Constants.osLibVersion}
            |val msg = os.pwd.toString
            |println(msg)
            |```
@@ -267,7 +267,7 @@ class MarkdownTests extends ScalaCliSuite {
            |And then on `os-lib`, just because.
            |And let's reset the scope for good measure, too.
            |```scala raw
-           |//> using dep com.lihaoyi::os-lib:0.8.1
+           |//> using dep com.lihaoyi::os-lib:${Constants.osLibVersion}
            |
            |object OsLibSnippet extends App {
            |  CirceSnippet.printStuff()

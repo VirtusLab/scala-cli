@@ -93,7 +93,7 @@ abstract class ScalaCliSuite extends munit.FunSuite {
     else result.future
 
   override def munitFixtures: List[Fixture[Unit]] = List(testStartEndLogger)
-  def group: ScalaCliSuite.TestGroup              = ScalaCliSuite.TestGroup.Third
+  def group: ScalaCliSuite.TestGroup              = ScalaCliSuite.TestGroup.First
 
   override def munitIgnore: Boolean =
     Option(System.getenv("SCALA_CLI_IT_GROUP"))
@@ -103,19 +103,33 @@ abstract class ScalaCliSuite extends munit.FunSuite {
   private def sanityOnly: Boolean =
     Option(System.getenv("SCALA_CLI_IT_SANITY")).exists(_.equalsIgnoreCase("true"))
 
+  /** Tags selecting the tests of this suite which are run in the sanity batch. */
+  def sanityTags: Set[munit.Tag] = Set(ScalaCliSuite.sanity)
+
+  private[integration] def selectSanityTests(tests: Seq[Test]): Seq[Test] =
+    tests.filter(_.tags.exists(sanityTags.contains))
+
   override def munitTests(): Seq[Test] =
     val all = super.munitTests()
-    if sanityOnly then all.filter(_.tags.contains(ScalaCliSuite.sanity)) else all
+    if sanityOnly then selectSanityTests(all) else all
 
   override def munitFlakyOK: Boolean = TestUtil.isCI
 
   // Mirrors munit's `.flaky`: `test("foo".sanity)` marks a test to be run in the sanity batch.
+  // `.scala2Sanity`, `.scala212Sanity` and `.scala213Sanity` mark tests to be run in the sanity
+  // batch of suites testing Scala 2 (any), 2.12 and 2.13, respectively.
   // Both overloads are needed, as Scala won't chain the `String => TestOptions` conversion
   // with an extension method.
   extension (options: munit.TestOptions)
-    def sanity: munit.TestOptions = options.tag(ScalaCliSuite.sanity)
+    def sanity: munit.TestOptions         = options.tag(ScalaCliSuite.sanity)
+    def scala2Sanity: munit.TestOptions   = options.tag(ScalaCliSuite.scala2Sanity)
+    def scala212Sanity: munit.TestOptions = options.tag(ScalaCliSuite.scala212Sanity)
+    def scala213Sanity: munit.TestOptions = options.tag(ScalaCliSuite.scala213Sanity)
   extension (name: String)(using munit.Location)
-    def sanity: munit.TestOptions = munit.TestOptions(name).tag(ScalaCliSuite.sanity)
+    def sanity: munit.TestOptions         = munit.TestOptions(name).sanity
+    def scala2Sanity: munit.TestOptions   = munit.TestOptions(name).scala2Sanity
+    def scala212Sanity: munit.TestOptions = munit.TestOptions(name).scala212Sanity
+    def scala213Sanity: munit.TestOptions = munit.TestOptions(name).scala213Sanity
 
   def exitBloop: os.CommandResult = os.proc(TestUtil.cli, "--power", "bloop", "exit").call()
 
@@ -124,7 +138,10 @@ abstract class ScalaCliSuite extends munit.FunSuite {
 }
 
 object ScalaCliSuite {
-  val sanity: munit.Tag = new munit.Tag("sanity")
+  val sanity: munit.Tag         = new munit.Tag("sanity")
+  val scala2Sanity: munit.Tag   = new munit.Tag("scala2Sanity")
+  val scala212Sanity: munit.Tag = new munit.Tag("scala212Sanity")
+  val scala213Sanity: munit.Tag = new munit.Tag("scala213Sanity")
 
   private final class TestBodyThread(name: String, body: () => Unit) extends Thread(name) {
     setDaemon(true)

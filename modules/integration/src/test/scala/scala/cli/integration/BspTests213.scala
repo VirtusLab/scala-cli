@@ -11,7 +11,9 @@ import scala.jdk.CollectionConverters.*
 
 class BspTests213 extends BspTestDefinitions with BspTests2Definitions with Test213 {
   List(".sc", ".scala").foreach { filetype =>
-    test(s"bsp should report actionable diagnostic from bloop for $filetype files (Scala 2.13)") {
+    val testName =
+      s"bsp should report actionable diagnostic from bloop for $filetype files (Scala 2.13)"
+    test(if filetype == ".scala" then testName.scala213Sanity else munit.TestOptions(testName)) {
       val fileName = s"Hello$filetype"
       val inputs   = TestInputs(
         os.rel / fileName ->

@@ -14,6 +14,15 @@ trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
       ScalaCliSuite.TestGroup.Fifth
     else ScalaCliSuite.TestGroup.First
 
+  override def sanityTags: Set[munit.Tag] =
+    super.sanityTags ++ (
+      if actualScalaVersion.startsWith("2.12.") then
+        Set(ScalaCliSuite.scala2Sanity, ScalaCliSuite.scala212Sanity)
+      else if actualScalaVersion.startsWith("2.13.") then
+        Set(ScalaCliSuite.scala2Sanity, ScalaCliSuite.scala213Sanity)
+      else Set.empty
+    )
+
   lazy val scalaVersionArgs: Seq[String] = scalaVersionOpt match {
     case None     => Nil
     case Some(sv) => Seq("--scala", sv)

@@ -154,7 +154,8 @@ object `scala-cli-bsp` extends JavaModule
 object integration extends CliIntegration {
   object test extends IntegrationScalaTests {
     override def testForkGrouping: T[Seq[Seq[String]]] =
-      if isCI && System.getenv("SCALA_CLI_IT_SANITY") == null then
+      if isCI && !Option(System.getenv("SCALA_CLI_IT_SANITY")).exists(_.equalsIgnoreCase("true"))
+      then
         discoveredTestClasses().grouped(1).toSeq
       else super.testForkGrouping()
     override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
@@ -1176,6 +1177,7 @@ trait CliIntegration extends SbtModule
            |  def bloopVersion                 = "${Deps.bloopRifle.dep.versionConstraint.asString}"
            |  def pprintVersion                = "${TestDeps.pprint.dep.versionConstraint.asString}"
            |  def munitVersion                 = "${TestDeps.munit.dep.versionConstraint.asString}"
+           |  def osLibVersion                 = "${Deps.osLib.dep.versionConstraint.asString}"
            |  def jupiterInterfaceVersion      = "${Deps.jupiterInterface.dep.versionConstraint.asString}"
            |  def dockerTestImage              = "${Docker.testImage}"
            |  def dockerAlpineTestImage        = "${Docker.alpineTestImage}"

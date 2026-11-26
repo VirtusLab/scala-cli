@@ -15,8 +15,9 @@ abstract class DocTestDefinitions
     scopeOpts        = if (useTestScope) Seq("--test", "--power") else Nil
     scopeDirective   = if (useTestScope) "//> using target.scope test" else ""
     scopeDescription = scopeOpts.headOption.getOrElse("main")
+    testName         = s"generate static scala doc ($scopeDescription)"
   }
-    test(s"generate static scala doc ($scopeDescription)") {
+    test(if useTestScope then munit.TestOptions(testName) else testName.scala2Sanity) {
       val dest   = os.rel / "doc-static"
       val inputs = TestInputs(
         os.rel / "lib" / "Messages.scala" ->

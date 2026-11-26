@@ -26,6 +26,12 @@ on:
       test_lts_all_platforms:
         type: string
         required: true
+      test_all_scala_2_12:
+        type: string
+        required: true
+      test_all_scala_2_13:
+        type: string
+        required: true
 
 env:
   # coursier User-Agent for the released Scala CLI installed by scala-cli-setup, which doesn't send
@@ -194,9 +200,10 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 2
+        SCALA_CLI_IT_SANITY: ${{ inputs.test_all_scala_2_13 != 'true' }}
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
-      run: scala-cli "-Dcoursier.http.agent=$SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc linux-tests-scala-2-13 'Scala CLI Linux Tests (Scala 2.13)' test-report.xml out/
+      run: scala-cli "-Dcoursier.http.agent=$SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc linux-tests-scala-2-13 'Scala CLI Linux Tests (Scala 2.13${{ inputs.test_all_scala_2_13 != 'true' && ', sanity' || '' }})' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
@@ -242,9 +249,10 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 3
+        SCALA_CLI_IT_SANITY: ${{ inputs.test_all_scala_2_12 != 'true' }}
     - name: Convert Mill test reports to JUnit XML format
       if: (success() || failure()) && env.SHOULD_RUN == 'true'
-      run: scala-cli "-Dcoursier.http.agent=$SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc linux-tests-scala-2-12 'Scala CLI Linux Tests (Scala 2.12)' test-report.xml out/
+      run: scala-cli "-Dcoursier.http.agent=$SCALA_CLI_CI_USER_AGENT" shebang .github/scripts/generate-junit-reports.sc linux-tests-scala-2-12 'Scala CLI Linux Tests (Scala 2.12${{ inputs.test_all_scala_2_12 != 'true' && ', sanity' || '' }})' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v7
       if: (success() || failure()) && env.SHOULD_RUN == 'true'

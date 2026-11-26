@@ -201,7 +201,7 @@ trait FixScalafixRulesTestDefinitions {
     }
   }
 
-  test("semantic rule") {
+  test("semantic rule".scala2Sanity) {
     val semanticRuleInputs: TestInputs = TestInputs(
       os.rel / scalafixConfFileName -> removeUnusedRuleConf,
       os.rel / "Hello.scala"        -> unusedValueInput("package foo")
