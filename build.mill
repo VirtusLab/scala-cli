@@ -1177,6 +1177,7 @@ trait CliIntegration extends SbtModule
            |  def bloopVersion                 = "${Deps.bloopRifle.dep.versionConstraint.asString}"
            |  def pprintVersion                = "${TestDeps.pprint.dep.versionConstraint.asString}"
            |  def munitVersion                 = "${TestDeps.munit.dep.versionConstraint.asString}"
+           |  def osLibVersion                 = "${Deps.osLib.dep.versionConstraint.asString}"
            |  def jupiterInterfaceVersion      = "${Deps.jupiterInterface.dep.versionConstraint.asString}"
            |  def dockerTestImage              = "${Docker.testImage}"
            |  def dockerAlpineTestImage        = "${Docker.alpineTestImage}"
