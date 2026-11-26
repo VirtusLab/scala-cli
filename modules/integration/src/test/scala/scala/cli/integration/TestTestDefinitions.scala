@@ -1,7 +1,6 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import munit.TestOptions
 
 import scala.annotation.tailrec
 import scala.cli.integration.Constants.{jupiterInterfaceVersion, munitVersion}
@@ -18,11 +17,6 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   private def zioSpecType                      =
     if isScala310OrNewer then "Spec[TestEnvironment & Scope, Any]"
     else "Spec[TestEnvironment with Scope, Any]"
-
-  // TODO: remove once scala/scala3#27625 is fixed
-  private def skipZioOnJsForScala3102Rc1(name: String, platformOptions: Seq[String]): TestOptions =
-    if platformOptions.contains("--js") && actualScalaVersion == "3.10.2-RC1" then name.ignore
-    else name
 
   def successfulTestInputs(directivesString: String =
     s"//> using dep org.scalameta::munit::$munitVersion"): TestInputs = TestInputs(
@@ -1174,7 +1168,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     )
     platformDescription = platformOptions.headOption.map(o => s" ($o)").getOrElse(" (JVM)")
   } {
-    test(skipZioOnJsForScala3102Rc1(s"zio-test$platformDescription", platformOptions)) {
+    test(s"zio-test$platformDescription") {
       TestUtil.retryOnCi() {
         val expectedMessage = "Hello from zio"
         TestInputs(os.rel / "Zio.test.scala" ->
@@ -1208,10 +1202,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       }
     }
 
-    test(skipZioOnJsForScala3102Rc1(
-      s"multiple test frameworks$platformDescription",
-      platformOptions
-    )) {
+    test(s"multiple test frameworks$platformDescription") {
       TestUtil.retryOnCi() {
         val expectedMessages @ Seq(scalatestMessage, munitMessage, utestMessage, zioMessage) =
           Seq("Hello from ScalaTest", "Hello from Munit", "Hello from utest", "Hello from zio")
