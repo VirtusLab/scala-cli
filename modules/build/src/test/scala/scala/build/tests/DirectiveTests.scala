@@ -448,6 +448,63 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite with BloopServer.Suite 
     }
   }
 
+  test("publish connection settings directives") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using publish.connectionTimeoutSeconds 11
+          |//> using publish.connectionTimeoutRetries 12
+          |//> using publish.connectionRetryWaitTimeMillis 13
+          |//> using publish.responseTimeoutSeconds 14
+          |//> using publish.stagingRepoRetries 15
+          |//> using publish.stagingRepoWaitTimeMillis 16
+          |//> using publish.stagingRepoStatusPollAttempts 17
+          |//> using publish.stagingRepoStatusPollWaitTimeMillis 18
+          |//> using publish.uploadRetries 19
+          |//> using publish.uploadRetryWaitTimeMillis 20
+          |//> using publish.ci.uploadRetries 21
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (_, _, maybeBuild) =>
+        val publishOptions = maybeBuild.orThrow.options.notForBloopOptions.publishOptions
+        val local          = publishOptions.contextual(isCi = false)
+        expect(local.connectionTimeoutSeconds.contains(11))
+        expect(local.connectionTimeoutRetries.contains(12))
+        expect(local.connectionRetryWaitTimeMillis.contains(13))
+        expect(local.responseTimeoutSeconds.contains(14))
+        expect(local.stagingRepoRetries.contains(15))
+        expect(local.stagingRepoWaitTimeMilis.contains(16))
+        expect(local.stagingRepoStatusPollAttempts.contains(17))
+        expect(local.stagingRepoStatusPollWaitTimeMillis.contains(18))
+        expect(local.uploadRetries.contains(19))
+        expect(local.uploadRetryWaitTimeMillis.contains(20))
+        expect(publishOptions.contextual(isCi = true).uploadRetries.contains(21))
+    }
+  }
+
+  test("malformed publish connection settings directives") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using publish.uploadRetries 0
+          |//> using publish.uploadRetryWaitTimeMillis soon
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (_, _, maybeBuild) =>
+        val errors = maybeBuild.left.toOption.toSeq.flatMap {
+          case e: CompositeBuildException => e.exceptions
+          case e                          => Seq(e)
+        }
+        expect(errors.length == 2)
+        expect(errors.forall {
+          case _: MalformedInputError => true
+          case _                      => false
+        })
+        expect(errors.exists(_.message.contains("publish.uploadRetries")))
+        expect(errors.exists(_.message.contains("publish.uploadRetryWaitTimeMillis")))
+    }
+  }
+
   test("dependency parsing error with position") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->

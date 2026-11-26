@@ -85,7 +85,7 @@ class PublishSetupTests extends ScalaCliSuite {
     val expectedDirectives = Map(
       "publish.versionControl" -> Seq(s"github:$ghUserName/tests"),
       "publish.organization"   -> Seq(s"io.github.$ghUserName"),
-      "publish.developer"      -> Seq(s"$devName|$devMail|$devUrl"),
+      "publish.developer"      -> Seq(s"$devName|$devName|$devUrl|$devMail"),
       "publish.repository"     -> Seq("central-s01"),
       "publish.url"            -> Seq(s"https://github.com/$ghUserName/tests"),
       "publish.name"           -> Seq(projName),
@@ -127,7 +127,7 @@ class PublishSetupTests extends ScalaCliSuite {
     val expectedDirectives = Map(
       "publish.versionControl"    -> List(s"github:$ghUserName/tests"),
       "publish.organization"      -> List(s"io.github.$ghUserName"),
-      "publish.developer"         -> List(s"$devName|$devMail|$devUrl"),
+      "publish.developer"         -> List(s"$devName|$devName|$devUrl|$devMail"),
       "publish.name"              -> List(projName),
       "publish.license"           -> List("Apache-2.0"),
       "publish.url"               -> List(s"https://github.com/$ghUserName/tests"),
@@ -196,7 +196,7 @@ class PublishSetupTests extends ScalaCliSuite {
     val expectedDirectives = Map(
       "publish.versionControl"    -> List(s"github:$ghUserName/tests"),
       "publish.organization"      -> List(s"io.github.$ghUserName"),
-      "publish.developer"         -> List(s"$devName|$devMail|$devUrl"),
+      "publish.developer"         -> List(s"$devName|$devName|$devUrl|$devMail"),
       "publish.name"              -> List(projName),
       "publish.license"           -> List("Apache-2.0"),
       "publish.url"               -> List(s"https://github.com/$ghUserName/tests"),
@@ -258,7 +258,7 @@ class PublishSetupTests extends ScalaCliSuite {
     val expectedDirectives = Map(
       "publish.versionControl" -> Seq(s"github:$ghUserName/tests"),
       "publish.organization"   -> Seq(s"io.github.$ghUserName"),
-      "publish.developer"      -> Seq(s"$devName|$devMail|$devUrl"),
+      "publish.developer"      -> Seq(s"$devName|$devName|$devUrl|$devMail"),
       "publish.repository"     -> Seq("github"),
       "publish.url"            -> Seq(s"https://github.com/$ghUserName/tests"),
       "publish.name"           -> Seq(projName),
@@ -300,7 +300,7 @@ class PublishSetupTests extends ScalaCliSuite {
       "publish.versionControl"    -> List(s"github:$ghUserName/tests"),
       "publish.organization"      -> List(s"io.github.$ghUserName"),
       "publish.ci.user"           -> List("env:PUBLISH_USER"),
-      "publish.developer"         -> List(s"$devName|$devMail|$devUrl"),
+      "publish.developer"         -> List(s"$devName|$devName|$devUrl|$devMail"),
       "publish.ci.password"       -> List("env:PUBLISH_PASSWORD"),
       "publish.name"              -> List(projName),
       "publish.license"           -> List("Apache-2.0"),
@@ -343,7 +343,7 @@ class PublishSetupTests extends ScalaCliSuite {
     val expectedDirectives = Map(
       "publish.versionControl"    -> Seq(s"github:$ghUserName/tests"),
       "publish.organization"      -> Seq(s"io.github.$ghUserName"),
-      "publish.developer"         -> Seq(s"$devName|$devMail|$devUrl"),
+      "publish.developer"         -> Seq(s"$devName|$devName|$devUrl|$devMail"),
       "publish.repository"        -> Seq("central-s01"),
       "publish.url"               -> Seq(s"https://github.com/$ghUserName/tests"),
       "publish.name"              -> Seq(projName),
@@ -426,7 +426,7 @@ class PublishSetupTests extends ScalaCliSuite {
     val expectedDirectives = Map(
       "publish.versionControl" -> Seq(s"github:$ghUserName/tests"),
       "publish.organization"   -> Seq(s"io.github.$ghUserName"),
-      "publish.developer"      -> Seq(s"$devName|$devMail|$devUrl"),
+      "publish.developer"      -> Seq(s"$devName|$devName|$devUrl|$devMail"),
       "publish.repository"     -> Seq("central-s01"),
       "publish.url"            -> Seq(s"https://github.com/$ghUserName/tests"),
       "publish.name"           -> Seq(projName),
@@ -536,7 +536,7 @@ class PublishSetupTests extends ScalaCliSuite {
     val expectedDirectives = Map(
       "publish.versionControl" -> Seq(s"github:$ghUserName/tests"),
       "publish.organization"   -> Seq(s"io.github.$ghUserName"),
-      "publish.developer"      -> Seq(s"$devName|$devMail|$devUrl"),
+      "publish.developer"      -> Seq(s"$devName|$devName|$devUrl|$devMail"),
       "publish.repository"     -> Seq("central-s01"),
       "publish.url"            -> Seq(s"https://github.com/$ghUserName/tests"),
       "publish.name"           -> Seq(projName),

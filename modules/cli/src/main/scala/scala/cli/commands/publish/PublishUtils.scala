@@ -18,12 +18,147 @@ import scala.cli.errors.MissingPublishOptionError
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.concurrent.ExecutionContextExecutorService
-import scala.publish.checksum.logger.ChecksumLogger
+import scala.concurrent.duration.DurationInt
+import scala.publish.Pom
+import scala.publish.checksum.logger.{
+  BatchChecksumLogger, ChecksumLogger, InteractiveChecksumLogger
+}
 import scala.publish.checksum.{ChecksumType, Checksums}
 import scala.publish.fileset.FileSet
+import scala.publish.signing.logger.{BatchSignerLogger, InteractiveSignerLogger, SignerLogger}
 import scala.publish.signing.{GpgSigner, Signer}
+import scala.publish.upload.logger.{BatchUploadLogger, InteractiveUploadLogger, UploadLogger}
+import scala.publish.upload.{HttpURLConnectionUpload, RetryingUpload, Upload}
+import scala.publish.util.{EmaRetryParams, UserAgent}
 
 object PublishUtils {
+
+  /** The `User-Agent` scala-publish should send: Scala CLI's, followed by scala-publish's own, like
+    * `Scala-CLI/1.19 (+https://github.com/VirtusLab/scala-cli) scala-publish/1.1
+    * (+https://github.com/scala/scala-publish)`
+    */
+  def scalaPublishUserAgent(scalaCliProduct: String = CoursierUserAgent.scalaCliProduct()): String =
+    s"$scalaCliProduct ${UserAgent.default}"
+
+  /** Makes scala-publish identify Scala CLI in its HTTP requests, unless users set the
+    * `scala.publish.http.agent` Java property themselves
+    */
+  def setScalaPublishUserAgent(): Unit =
+    if !sys.props.contains(UserAgent.property) then
+      sys.props(UserAgent.property) = scalaPublishUserAgent()
+
+  private val sonatypeProfilesErrorRegex =
+    """Failed to get \S+/staging/profiles \(http status: (\d{3}),""".r.unanchored
+
+  /** The HTTP status code of a failed request listing the Sonatype staging profiles, if `e` (or one
+    * of its causes) is such a failure
+    *
+    * scala-publish reports those like `Failed to get <URL>/staging/profiles (http status: 401,
+    * response: …)`.
+    */
+  def sonatypeProfilesErrorStatus(e: Throwable): Option[Int] =
+    Iterator.iterate(e)(_.getCause)
+      .takeWhile(_ != null)
+      .flatMap(t => Option(t.getMessage))
+      .collectFirst { case sonatypeProfilesErrorRegex(status) => status.toInt }
+
+  /** Whether `root` is the URL of a remote, HTTP(S), repository (rather than a local one) */
+  def isHttpRepository(root: String): Boolean =
+    root.startsWith("http://") || root.startsWith("https://")
+
+  /** Reports signing progress: nothing in quiet mode, else interactive progress bars, or one line
+    * per file when output isn't interactive (CI, no ANSI support)
+    */
+  def signerLogger(logger: Logger): SignerLogger =
+    if logger.verbosity < 0 then SignerLogger.nop
+    else if logger.useInteractiveProgress then
+      InteractiveSignerLogger.create(System.err, logger.verbosity)
+    else new BatchSignerLogger(System.err, logger.verbosity)
+
+  /** Reports checksum computation progress, like [[signerLogger]] */
+  def checksumLogger(logger: Logger): ChecksumLogger =
+    if logger.verbosity < 0 then new ChecksumLogger {}
+    else if logger.useInteractiveProgress then
+      InteractiveChecksumLogger.create(System.err, logger.verbosity)
+    else new BatchChecksumLogger(System.err, logger.verbosity)
+
+  /** Reports upload progress, like [[signerLogger]]
+    *
+    * @param isLocal
+    *   whether files are written to a local repository, rather than uploaded
+    */
+  def uploadLogger(logger: Logger, dummy: Boolean, isLocal: Boolean): UploadLogger =
+    if logger.verbosity < 0 then new UploadLogger {}
+    else if logger.useInteractiveProgress then
+      InteractiveUploadLogger.create(System.err, dummy = dummy, isLocal = isLocal)
+    else new BatchUploadLogger(System.err, dummy = dummy, isLocal = isLocal)
+
+  /** The [[Upload]] used for HTTP(S) repositories.
+    *
+    * @param connectionTimeoutSeconds
+    *   timeout for establishing the connection (`--connection-timeout-seconds`)
+    * @param responseTimeoutSeconds
+    *   timeout for reading the response once connected (`--response-timeout-seconds`)
+    * @param retries
+    *   how many times to attempt uploads failing with transient errors (`--upload-retries`)
+    * @param retryWaitTimeMillis
+    *   time to wait before the first retry (`--upload-retry-wait-time-millis`)
+    */
+  def httpUpload(
+    connectionTimeoutSeconds: Option[Int],
+    responseTimeoutSeconds: Option[Int],
+    retries: Option[Int] = None,
+    retryWaitTimeMillis: Option[Int] = None
+  ): Upload =
+    RetryingUpload(
+      underlying = HttpURLConnectionUpload.create(
+        HttpURLConnectionUpload.Timeouts(
+          connect = connectionTimeoutSeconds.map(_.seconds),
+          read = responseTimeoutSeconds.map(_.seconds)
+        )
+      ),
+      retryParams = retryParams(
+        defaults = RetryingUpload.defaultRetryParams,
+        attempts = retries,
+        initialWaitDurationMs = retryWaitTimeMillis
+      )
+    )
+
+  /** `defaults`, with the passed values overridden */
+  def retryParams(
+    defaults: EmaRetryParams,
+    attempts: Option[Int],
+    initialWaitDurationMs: Option[Int]
+  ): EmaRetryParams =
+    defaults.copy(
+      attempts = attempts.getOrElse(defaults.attempts),
+      initialWaitDurationMs = initialWaitDurationMs.fold(defaults.initialWaitDurationMs)(_.toLong)
+    )
+
+  /** Using directives setting the POM fields reported by [[Pom.centralRequirementErrors]] */
+  private val centralRequirementDirectives = Map(
+    "Missing project name"        -> "publish.name",
+    "Missing project description" -> "publish.description",
+    "Missing project URL"         -> "publish.url",
+    "Missing license"             -> "publish.license",
+    "Missing developer"           -> "publish.developer",
+    "Missing SCM information"     -> "publish.scm"
+  )
+
+  /** Warnings about the fields of `project` that Maven Central requires, but which are missing */
+  def centralRequirementDiagnostics(project: Pom.Project): Seq[String] =
+    Pom.centralRequirementErrors(project).map { error =>
+      val hint = centralRequirementDirectives
+        .get(error)
+        .fold("")(directive => s" (set it with the '//> using $directive' directive)")
+      s"Publishing to Sonatype, but: $error$hint."
+    }
+
+  /** Supported checksum types, as listed by `--checksum list`, with their alternative spelling */
+  def checksumTypeDescriptions: Seq[String] =
+    ChecksumType.all.map { t =>
+      if t.name == t.extension then t.name else s"${t.name} (or ${t.extension})"
+    }
 
   /** Compute checksum files for the given [[FileSet]].
     *

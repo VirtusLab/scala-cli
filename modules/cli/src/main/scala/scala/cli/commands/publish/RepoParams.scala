@@ -9,6 +9,7 @@ import java.util.concurrent.ScheduledExecutorService
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
+import scala.build.options.PublishContextualOptions
 import scala.build.{Logger, RepositoryUtils}
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.publish.sonatype.SonatypeApi
@@ -49,14 +50,95 @@ final case class RepoParams(
       .filter(_.getScheme == "https")
       .map(_.getHost)
       .exists(sonatypeHosts.contains)
+
+  /** The Sonatype server publishing goes to, if any */
+  lazy val sonatypeServerOpt: Option[SonatypeServer] =
+    Option.when(isSonatype) {
+      val host = new URI(repo.releaseRepo.root).getHost
+      SonatypeServer.values.find(server => server.isLegacy && server.host == host)
+        .getOrElse(SonatypeServer.CentralPortal)
+    }
 }
 
 object RepoParams {
+
+  /** Settings of the connections to the Sonatype API
+    *
+    * @param connectionTimeoutRetries
+    *   attempts of API requests failing with transient errors (`--connection-timeout-retries`)
+    * @param connectionTimeoutSeconds
+    *   connection timeout (`--connection-timeout-seconds`)
+    * @param connectionRetryWaitTimeMillis
+    *   wait before retrying a failed API request (`--connection-retry-wait-time-millis`)
+    * @param stagingRepoRetries
+    *   attempts of staging repository operations (`--staging-repo-retries`)
+    * @param stagingRepoWaitTimeMilis
+    *   wait before retrying a staging repository operation (`--staging-repo-wait-time-milis`)
+    * @param stagingRepoStatusPollAttempts
+    *   how many times to check if the staging repository got closed or released
+    *   (`--staging-repo-status-poll-attempts`)
+    * @param stagingRepoStatusPollWaitTimeMillis
+    *   wait before checking the staging repository status again
+    *   (`--staging-repo-status-poll-wait-time-millis`)
+    */
+  final case class SonatypeConnectionParams(
+    connectionTimeoutRetries: Option[Int] = None,
+    connectionTimeoutSeconds: Option[Int] = None,
+    connectionRetryWaitTimeMillis: Option[Int] = None,
+    stagingRepoRetries: Option[Int] = None,
+    stagingRepoWaitTimeMilis: Option[Int] = None,
+    stagingRepoStatusPollAttempts: Option[Int] = None,
+    stagingRepoStatusPollWaitTimeMillis: Option[Int] = None
+  ) {
+
+    /** Retry parameters of the API requests, if they differ from the scala-publish defaults
+      * (derived from [[connectionTimeoutRetries]])
+      */
+    def requestRetryParams: Option[EmaRetryParams] =
+      connectionRetryWaitTimeMillis.map { waitTime =>
+        EmaRetryParams(
+          attempts = connectionTimeoutRetries.getOrElse(3),
+          initialWaitDurationMs = waitTime.toLong,
+          factor = 2.0f
+        )
+      }
+
+    def statusPollParams: EmaRetryParams =
+      PublishUtils.retryParams(
+        defaults = Hooks.Sonatype.defaultStatusPollParams,
+        attempts = stagingRepoStatusPollAttempts,
+        initialWaitDurationMs = stagingRepoStatusPollWaitTimeMillis
+      )
+  }
+
+  object SonatypeConnectionParams {
+    def apply(options: PublishContextualOptions): SonatypeConnectionParams =
+      SonatypeConnectionParams(
+        connectionTimeoutRetries = options.connectionTimeoutRetries,
+        connectionTimeoutSeconds = options.connectionTimeoutSeconds,
+        connectionRetryWaitTimeMillis = options.connectionRetryWaitTimeMillis,
+        stagingRepoRetries = options.stagingRepoRetries,
+        stagingRepoWaitTimeMilis = options.stagingRepoWaitTimeMilis,
+        stagingRepoStatusPollAttempts = options.stagingRepoStatusPollAttempts,
+        stagingRepoStatusPollWaitTimeMillis = options.stagingRepoStatusPollWaitTimeMillis
+      )
+  }
   private val sonatypeOssrhStagingApiBase = "https://ossrh-staging-api.central.sonatype.com"
   private val sonatypeSnapshotsBase       = s"${RepositoryUtils.snapshotsRepositoryUrl}/"
   private val sonatypeLegacyBase          = "https://oss.sonatype.org"
   private val sonatypeS01LegacyBase       = "https://s01.oss.sonatype.org"
-  private def sonatypeHosts: Seq[String]  =
+
+  /** Sonatype servers scala-cli can publish to */
+  enum SonatypeServer(base: String) {
+    case CentralPortal extends SonatypeServer(sonatypeOssrhStagingApiBase)
+    case Legacy        extends SonatypeServer(sonatypeLegacyBase)
+    case LegacyS01     extends SonatypeServer(sonatypeS01LegacyBase)
+
+    def host: String      = new URI(base).getHost
+    def isLegacy: Boolean = this != CentralPortal
+  }
+
+  private def sonatypeHosts: Seq[String] =
     Seq(
       sonatypeLegacyBase,
       sonatypeSnapshotsBase,
@@ -72,10 +154,7 @@ object RepoParams {
     isIvy2LocalLike: Boolean,
     es: ScheduledExecutorService,
     logger: Logger,
-    connectionTimeoutRetries: Option[Int] = None,
-    connectionTimeoutSeconds: Option[Int] = None,
-    stagingRepoRetries: Option[Int] = None,
-    stagingRepoWaitTimeMilis: Option[Int] = None
+    sonatypeConnection: SonatypeConnectionParams = SonatypeConnectionParams()
   ): Either[BuildException, RepoParams] = either {
     repo match {
       case "ivy2-local" =>
@@ -87,10 +166,7 @@ object RepoParams {
         RepoParams.centralRepo(
           base = sonatypeOssrhStagingApiBase,
           useLegacySnapshots = false,
-          connectionTimeoutRetries = connectionTimeoutRetries,
-          connectionTimeoutSeconds = connectionTimeoutSeconds,
-          stagingRepoRetries = stagingRepoRetries,
-          stagingRepoWaitTimeMilis = stagingRepoWaitTimeMilis,
+          connection = sonatypeConnection,
           es = es,
           logger = logger
         )
@@ -100,10 +176,7 @@ object RepoParams {
         RepoParams.centralRepo(
           base = sonatypeLegacyBase,
           useLegacySnapshots = true,
-          connectionTimeoutRetries = connectionTimeoutRetries,
-          connectionTimeoutSeconds = connectionTimeoutSeconds,
-          stagingRepoRetries = stagingRepoRetries,
-          stagingRepoWaitTimeMilis = stagingRepoWaitTimeMilis,
+          connection = sonatypeConnection,
           es = es,
           logger = logger
         )
@@ -113,10 +186,7 @@ object RepoParams {
         RepoParams.centralRepo(
           base = sonatypeS01LegacyBase,
           useLegacySnapshots = true,
-          connectionTimeoutRetries = connectionTimeoutRetries,
-          connectionTimeoutSeconds = connectionTimeoutSeconds,
-          stagingRepoRetries = stagingRepoRetries,
-          stagingRepoWaitTimeMilis = stagingRepoWaitTimeMilis,
+          connection = sonatypeConnection,
           es = es,
           logger = logger
         )
@@ -153,10 +223,7 @@ object RepoParams {
   def centralRepo(
     base: String,
     useLegacySnapshots: Boolean,
-    connectionTimeoutRetries: Option[Int],
-    connectionTimeoutSeconds: Option[Int],
-    stagingRepoRetries: Option[Int],
-    stagingRepoWaitTimeMilis: Option[Int],
+    connection: SonatypeConnectionParams,
     es: ScheduledExecutorService,
     logger: Logger
   ): RepoParams = {
@@ -164,27 +231,31 @@ object RepoParams {
       base = MavenRepository(base),
       useLegacySnapshots = useLegacySnapshots
     )
-    val backend = ScalaCliSttpBackend.httpURLConnection(logger, connectionTimeoutSeconds)
-    val api     = SonatypeApi(
+    val backend =
+      ScalaCliSttpBackend.httpURLConnection(logger, connection.connectionTimeoutSeconds)
+    val api = SonatypeApi(
       backend = backend,
       base = base + "/service/local",
       authentication = None,
       verbosity = logger.verbosity,
-      retryOnTimeout = connectionTimeoutRetries.getOrElse(3),
+      retryOnTimeout = connection.connectionTimeoutRetries.getOrElse(3),
       stagingRepoRetryParams =
         EmaRetryParams(
-          attempts = stagingRepoRetries.getOrElse(3),
-          initialWaitDurationMs = stagingRepoWaitTimeMilis.getOrElse(10 * 1000),
+          attempts = connection.stagingRepoRetries.getOrElse(3),
+          initialWaitDurationMs = connection.stagingRepoWaitTimeMilis.getOrElse(10 * 1000),
           factor = 2.0f
-        )
+        ),
+      requestRetryParams = connection.requestRetryParams
     )
     val hooks0 = Hooks.sonatype(
       repo = repo0,
       api = api,
       out = logger.compilerOutputStream, // meh
       verbosity = logger.verbosity,
-      batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
-      es = es
+      // batch = true prints one line per status change, while false updates lines in place
+      batch = !logger.useInteractiveProgress,
+      es = es,
+      statusPollParams = connection.statusPollParams
     )
     RepoParams(
       repo = repo0,

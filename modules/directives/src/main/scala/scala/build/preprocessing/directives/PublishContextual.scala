@@ -22,6 +22,17 @@ trait PublishContextual {
   def password: Option[Positioned[String]]
   def realm: Option[String]
   def doc: Option[Boolean]
+  def directivePrefix: String
+  def connectionTimeoutSeconds: Option[Positioned[String]]
+  def connectionTimeoutRetries: Option[Positioned[String]]
+  def connectionRetryWaitTimeMillis: Option[Positioned[String]]
+  def responseTimeoutSeconds: Option[Positioned[String]]
+  def stagingRepoRetries: Option[Positioned[String]]
+  def stagingRepoWaitTimeMillis: Option[Positioned[String]]
+  def stagingRepoStatusPollAttempts: Option[Positioned[String]]
+  def stagingRepoStatusPollWaitTimeMillis: Option[Positioned[String]]
+  def uploadRetries: Option[Positioned[String]]
+  def uploadRetryWaitTimeMillis: Option[Positioned[String]]
 
   def buildOptions(isCi: Boolean): Either[BuildException, BuildOptions] = either {
 
@@ -75,6 +86,28 @@ trait PublishContextual {
         .left.map(CompositeBuildException(_))
     }
 
+    val integers: Map[String, Int] = value {
+      import PublishContextual.IntKind.*
+      Seq(
+        ("connectionTimeoutSeconds", connectionTimeoutSeconds, NonNegative),
+        ("connectionTimeoutRetries", connectionTimeoutRetries, Positive),
+        ("connectionRetryWaitTimeMillis", connectionRetryWaitTimeMillis, NonNegative),
+        ("responseTimeoutSeconds", responseTimeoutSeconds, NonNegative),
+        ("stagingRepoRetries", stagingRepoRetries, Positive),
+        ("stagingRepoWaitTimeMillis", stagingRepoWaitTimeMillis, NonNegative),
+        ("stagingRepoStatusPollAttempts", stagingRepoStatusPollAttempts, Positive),
+        ("stagingRepoStatusPollWaitTimeMillis", stagingRepoStatusPollWaitTimeMillis, NonNegative),
+        ("uploadRetries", uploadRetries, Positive),
+        ("uploadRetryWaitTimeMillis", uploadRetryWaitTimeMillis, NonNegative)
+      )
+        .flatMap { (name, input, kind) =>
+          input.map(PublishContextual.parseInt(directivePrefix + name, _, kind).map(name -> _))
+        }
+        .sequence
+        .left.map(CompositeBuildException(_))
+        .map(_.toMap)
+    }
+
     val publishContextualOptions = PublishContextualOptions(
       computeVersion = computeVersionOpt,
       repository = repository,
@@ -86,7 +119,17 @@ trait PublishContextual {
       publicKey = publicKeyOpt,
       repoUser = userOpt,
       repoPassword = passwordOpt,
-      repoRealm = realm
+      repoRealm = realm,
+      connectionTimeoutSeconds = integers.get("connectionTimeoutSeconds"),
+      connectionTimeoutRetries = integers.get("connectionTimeoutRetries"),
+      connectionRetryWaitTimeMillis = integers.get("connectionRetryWaitTimeMillis"),
+      responseTimeoutSeconds = integers.get("responseTimeoutSeconds"),
+      stagingRepoRetries = integers.get("stagingRepoRetries"),
+      stagingRepoWaitTimeMilis = integers.get("stagingRepoWaitTimeMillis"),
+      stagingRepoStatusPollAttempts = integers.get("stagingRepoStatusPollAttempts"),
+      stagingRepoStatusPollWaitTimeMillis = integers.get("stagingRepoStatusPollWaitTimeMillis"),
+      uploadRetries = integers.get("uploadRetries"),
+      uploadRetryWaitTimeMillis = integers.get("uploadRetryWaitTimeMillis")
     )
 
     val publishOptions =
@@ -109,6 +152,7 @@ object PublishContextual {
   @DirectiveExamples("//> using publish.repository central-s01")
   @DirectiveExamples("//> using publish.secretKey env:PUBLISH_SECRET_KEY")
   @DirectiveExamples("//> using publish.doc false")
+  @DirectiveExamples("//> using publish.uploadRetries 5")
   @DirectiveUsage(
     "//> using publish.(computeVersion|repository|secretKey|…) [value]",
     """`//> using publish.computeVersion` value
@@ -118,6 +162,8 @@ object PublishContextual {
       |`//> using publish.secretKey` value
       |
       |`//> using publish.doc` boolean
+      |
+      |`//> using publish.uploadRetries` value
       |
       |""".stripMargin
   )
@@ -135,9 +181,20 @@ object PublishContextual {
     user: Option[Positioned[String]] = None,
     password: Option[Positioned[String]] = None,
     realm: Option[String] = None,
-    doc: Option[Boolean] = None
+    doc: Option[Boolean] = None,
+    connectionTimeoutSeconds: Option[Positioned[String]] = None,
+    connectionTimeoutRetries: Option[Positioned[String]] = None,
+    connectionRetryWaitTimeMillis: Option[Positioned[String]] = None,
+    responseTimeoutSeconds: Option[Positioned[String]] = None,
+    stagingRepoRetries: Option[Positioned[String]] = None,
+    stagingRepoWaitTimeMillis: Option[Positioned[String]] = None,
+    stagingRepoStatusPollAttempts: Option[Positioned[String]] = None,
+    stagingRepoStatusPollWaitTimeMillis: Option[Positioned[String]] = None,
+    uploadRetries: Option[Positioned[String]] = None,
+    uploadRetryWaitTimeMillis: Option[Positioned[String]] = None
   ) extends HasBuildOptions with PublishContextual {
     // format: on
+    def directivePrefix: String                            = "publish."
     def buildOptions: Either[BuildException, BuildOptions] =
       buildOptions(isCi = false)
   }
@@ -151,6 +208,7 @@ object PublishContextual {
   @DirectiveExamples("//> using publish.ci.computeVersion git:tag")
   @DirectiveExamples("//> using publish.ci.repository central-s01")
   @DirectiveExamples("//> using publish.ci.secretKey env:PUBLISH_SECRET_KEY")
+  @DirectiveExamples("//> using publish.ci.stagingRepoStatusPollAttempts 40")
   @DirectiveUsage(
     "//> using publish.[.ci](computeVersion|repository|secretKey|…) [value]",
     """`//> using publish.ci.computeVersion` value
@@ -175,9 +233,20 @@ object PublishContextual {
     user: Option[Positioned[String]] = None,
     password: Option[Positioned[String]] = None,
     realm: Option[String] = None,
-    doc: Option[Boolean] = None
+    doc: Option[Boolean] = None,
+    connectionTimeoutSeconds: Option[Positioned[String]] = None,
+    connectionTimeoutRetries: Option[Positioned[String]] = None,
+    connectionRetryWaitTimeMillis: Option[Positioned[String]] = None,
+    responseTimeoutSeconds: Option[Positioned[String]] = None,
+    stagingRepoRetries: Option[Positioned[String]] = None,
+    stagingRepoWaitTimeMillis: Option[Positioned[String]] = None,
+    stagingRepoStatusPollAttempts: Option[Positioned[String]] = None,
+    stagingRepoStatusPollWaitTimeMillis: Option[Positioned[String]] = None,
+    uploadRetries: Option[Positioned[String]] = None,
+    uploadRetryWaitTimeMillis: Option[Positioned[String]] = None
   ) extends HasBuildOptions with PublishContextual {
     // format: on
+    def directivePrefix: String                            = "publish.ci."
     def buildOptions: Either[BuildException, BuildOptions] =
       buildOptions(isCi = true)
   }
@@ -185,6 +254,22 @@ object PublishContextual {
   object CI {
     val handler: DirectiveHandler[CI] = DirectiveHandler.derive
   }
+
+  private enum IntKind(val min: Int, val description: String) {
+    case NonNegative extends IntKind(0, "a non-negative integer")
+    case Positive    extends IntKind(1, "a positive integer")
+  }
+
+  private def parseInt(
+    name: String,
+    input: Positioned[String],
+    kind: IntKind
+  ): Either[BuildException, Int] =
+    input.value.trim.toIntOption
+      .filter(_ >= kind.min)
+      .toRight {
+        new MalformedInputError(name, input.value, kind.description, positions = input.positions)
+      }
 
   private def parsePasswordOption(input: Positioned[String])
     : Either[BuildException, PasswordOption] =

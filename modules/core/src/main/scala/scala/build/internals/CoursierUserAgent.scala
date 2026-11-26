@@ -29,16 +29,25 @@ object CoursierUserAgent:
         Some(s"$major.$minor")
       case _ => None
 
+  private def product(name: String, version: String): String =
+    majorMinor(version).fold(name)(v => s"$name/$v")
+
+  private def runningOnCi: Boolean = System.getenv("CI") != null
+
+  /** The Scala CLI part of `User-Agent`s, like `Scala-CLI/1.19 (+https://github.com/…; ci)` */
+  def scalaCliProduct(
+    scalaCliVersion: String = Constants.version,
+    isCi: Boolean = runningOnCi
+  ): String =
+    val comments = s"+$projectUrl" +: (if isCi then Seq("ci") else Nil)
+    s"${product("Scala-CLI", scalaCliVersion)} (${comments.mkString("; ")})"
+
   private[internal] def userAgent(
     scalaCliVersion: String,
     coursierVersion: String,
     isCi: Boolean
   ): String =
-    def product(name: String, version: String): String =
-      majorMinor(version).fold(name)(v => s"$name/$v")
-    val comments = s"+$projectUrl" +: (if isCi then Seq("ci") else Nil)
-    s"${product("Scala-CLI", scalaCliVersion)} (${comments.mkString("; ")}) " +
-      product("Coursier", coursierVersion)
+    s"${scalaCliProduct(scalaCliVersion, isCi)} ${product("Coursier", coursierVersion)}"
 
   /** The `User-Agent` to send, honouring the `coursier.http.agent` Java property */
   lazy val value: String =
@@ -47,7 +56,7 @@ object CoursierUserAgent:
       userAgent(
         scalaCliVersion = Constants.version,
         coursierVersion = coursier.util.Properties.version,
-        isCi = System.getenv("CI") != null
+        isCi = runningOnCi
       )
     )
 

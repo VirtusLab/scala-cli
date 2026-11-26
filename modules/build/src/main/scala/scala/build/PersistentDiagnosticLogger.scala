@@ -35,6 +35,7 @@ class PersistentDiagnosticLogger(parent: Logger) extends Logger {
     parent.coursierLogger(printBefore)
   def bloopRifleLogger: BloopRifleLogger                = parent.bloopRifleLogger
   def scalaJsLogger: ScalaJsLogger                      = parent.scalaJsLogger
+  override def useInteractiveProgress: Boolean          = parent.useInteractiveProgress
   def scalaNativeTestLogger: sn.Logger                  = parent.scalaNativeTestLogger
   def scalaNativeCliInternalLoggerOptions: List[String] = parent.scalaNativeCliInternalLoggerOptions
 

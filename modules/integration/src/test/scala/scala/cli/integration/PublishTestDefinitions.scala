@@ -22,7 +22,7 @@ abstract class PublishTestDefinitions
     val version            = "0.2.0-SNAPSHOT"
     val url                = "https://github.com/VirtusLab/scala-cli"
     val license            = "Apache 2.0:http://opensource.org/licenses/Apache-2.0"
-    val developer          = "someone|Someone||https://github.com/someone"
+    val developer          = "someone|Someone|https://github.com/someone|someone@example.com"
     val testScopeMainClass = "HelloFromTestScope"
     def testInputs(useTestScope: Boolean = false): TestInputs = {
       val inputs = TestInputs(
@@ -141,6 +141,19 @@ abstract class PublishTestDefinitions
         expect((files0 -- expectedArtifacts).isEmpty)
         expect((expectedArtifacts -- files0).isEmpty)
         expect(files0 == expectedArtifacts) // just in case…
+
+        val pom = os.read(
+          root / "test-repo" / TestCase.expectedArtifactsDir /
+            s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.pom"
+        ).replaceAll("\\s+", "")
+        val expectedDeveloper =
+          """<developer>
+            |  <id>someone</id>
+            |  <name>Someone</name>
+            |  <email>someone@example.com</email>
+            |  <url>https://github.com/someone</url>
+            |</developer>""".stripMargin.replaceAll("\\s+", "")
+        expect(pom.contains(expectedDeveloper))
 
         val repoArgs =
           Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
@@ -401,6 +414,40 @@ abstract class PublishTestDefinitions
       expect((files0 -- expectedArtifacts).isEmpty)
       expect((expectedArtifacts -- files0).isEmpty)
       expect(files0 == expectedArtifacts) // just in case…
+    }
+  }
+
+  test("checksums passed by extension, including SHA-256 and SHA-512") {
+    val expectedArtifacts = Seq(
+      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.pom",
+      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.jar"
+    )
+      .flatMap(n => Seq("", ".sha1", ".md5", ".sha256", ".sha512").map(n + _))
+      .map(os.rel / _)
+      .toSet
+
+    TestCase.testInputs().fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        extraOptions,
+        "--with-sources=false",
+        "--doc=false",
+        "--checksum",
+        "sha1,md5",
+        "--checksum",
+        "sha256,SHA512",
+        "project",
+        "-R",
+        "test-repo"
+      ).call(cwd = root)
+
+      val files = os.walk(root / "test-repo")
+        .filter(os.isFile(_))
+        .map(_.relativeTo(root / "test-repo" / TestCase.expectedArtifactsDir))
+        .toSet
+      expect(files == expectedArtifacts)
     }
   }
 

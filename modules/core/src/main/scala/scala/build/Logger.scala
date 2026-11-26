@@ -42,6 +42,11 @@ trait Logger {
 
   def verbosity: Int
 
+  /** Whether progress can be reported interactively, by updating lines in place, rather than by
+    * printing new lines
+    */
+  def useInteractiveProgress: Boolean = false
+
   /** Since we have a lot of experimental warnings all over the build process, this method can be
     * used to accumulate them for a better UX
     */

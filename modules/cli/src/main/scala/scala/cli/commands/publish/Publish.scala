@@ -2,9 +2,9 @@ package scala.cli.commands.publish
 
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
-import coursier.core.{Authentication, Configuration, ModuleName, Organization}
+import coursier.core.{Authentication, Configuration}
 
-import java.io.{File, OutputStreamWriter}
+import java.io.File
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
@@ -56,25 +56,19 @@ import scala.cli.errors.{
   InvalidSonatypePublishCredentials,
   MalformedChecksumsError,
   MissingPublishOptionError,
-  UploadError,
-  WrongSonatypeServerError
+  SonatypeAccessDeniedError,
+  UploadError
 }
 import scala.cli.packaging.Library
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 import scala.cli.util.ConfigPasswordOptionHelpers.*
-import scala.concurrent.duration.DurationInt
 import scala.publish.checksum.ChecksumType
-import scala.publish.checksum.logger.InteractiveChecksumLogger
 import scala.publish.fileset.{FileSet, Path}
-import scala.publish.signing.logger.InteractiveSignerLogger
 import scala.publish.signing.{NopSigner, Signer}
-import scala.publish.upload.logger.InteractiveUploadLogger
-import scala.publish.upload.{DummyUpload, FileUpload, HttpURLConnectionUpload, Upload}
+import scala.publish.upload.{DummyUpload, Upload}
 import scala.publish.{Content, Hooks, Pom}
 import scala.util.control.NonFatal
-import scala.xml.transform.{RewriteRule, RuleTransformer}
-import scala.xml.{Elem, Node, PrettyPrinter, XML}
 
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
@@ -140,7 +134,12 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       connectionTimeoutSeconds = publishConnection.connectionTimeoutSeconds,
       responseTimeoutSeconds = publishConnection.responseTimeoutSeconds,
       stagingRepoRetries = publishConnection.stagingRepoRetries,
-      stagingRepoWaitTimeMilis = publishConnection.stagingRepoWaitTimeMilis
+      stagingRepoWaitTimeMilis = publishConnection.stagingRepoWaitTimeMilis,
+      connectionRetryWaitTimeMillis = publishConnection.connectionRetryWaitTimeMillis,
+      stagingRepoStatusPollAttempts = publishConnection.stagingRepoStatusPollAttempts,
+      stagingRepoStatusPollWaitTimeMillis = publishConnection.stagingRepoStatusPollWaitTimeMillis,
+      uploadRetries = publishConnection.uploadRetries,
+      uploadRetryWaitTimeMillis = publishConnection.uploadRetryWaitTimeMillis
     )
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
@@ -211,8 +210,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
   def maybePrintChecksumsAndExit(options: SharedPublishOptions): Unit =
     if options.checksum.contains("list") then {
-      for (t <- ChecksumType.all)
-        println(t.name)
+      PublishUtils.checksumTypeDescriptions.foreach(println)
       sys.exit(0)
     }
 
@@ -463,37 +461,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
   }
 
-  private def withDependencyExclusions(
-    pom: String,
-    exclusions: Map[(String, String), Seq[(Organization, ModuleName)]]
-  ): String =
-    if exclusions.forall(_._2.isEmpty) then pom
-    else {
-      val addExclusions = new RewriteRule {
-        override def transform(node: Node): Seq[Node] = node match {
-          case e: Elem if e.label == "dependency" =>
-            val module = ((e \ "groupId").text.trim, (e \ "artifactId").text.trim)
-            exclusions.getOrElse(module, Nil) match {
-              case Nil      => e
-              case excluded =>
-                val nodes = excluded.map { (excludedOrg, excludedName) =>
-                  <exclusion>
-                    <groupId>{excludedOrg.value}</groupId>
-                    <artifactId>{excludedName.value}</artifactId>
-                  </exclusion>
-                }
-                val withoutExclusions = e.child.filterNot(_.label == "exclusions")
-                e.copy(child = withoutExclusions :+ <exclusions>{nodes}</exclusions>)
-            }
-          case other => other
-        }
-      }
-      val rewritten   = new RuleTransformer(addExclusions).transform(XML.loadString(pom))
-      val declaration = pom.linesIterator.takeWhile(_.trim.startsWith("<?")).mkString("\n")
-      val body        = new PrettyPrinter(Int.MaxValue, 2).formatNodes(rewritten)
-      if declaration.isEmpty then body else s"$declaration\n$body\n"
-    }
-
   private def buildFileSet(
     builds: Seq[Build.Successful],
     docBuilds: Seq[Build.Successful],
@@ -675,43 +642,31 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val pomProjectName = publishOptions.pomProjectNameForMaven(moduleName)
 
-    val pomContent = withDependencyExclusions(
-      Pom.create(
-        organization = coursier.Organization(org),
-        moduleName = coursier.ModuleName(moduleName),
-        version = ver,
-        packaging = None,
-        url = url,
-        name = Some(pomProjectName),
-        dependencies = dependencies,
-        description = Some(description),
-        license = license,
-        scm = scm,
-        developers = developers
-      ),
-      dependencies.map { case (depOrg, depName, _, _, exclusions) =>
-        (depOrg.value, depName.value) -> exclusions.toSet().toSeq.sorted
-      }.toMap
+    val pomProject = Pom.Project(
+      organization = coursier.Organization(org),
+      moduleName = coursier.ModuleName(moduleName),
+      version = ver,
+      description = Some(description),
+      url = url,
+      name = Some(pomProjectName),
+      dependencies = dependencies.map { (depOrg, depName, depVersion, config, exclusions) =>
+        Pom.Dependency(
+          organization = depOrg,
+          name = depName,
+          version = depVersion,
+          scope = config,
+          exclusions = exclusions
+        )
+      },
+      licenses = license.toSeq,
+      scm = scm,
+      developers = developers,
+      organizationUrl = url
     )
+    val pomContent = Pom.create(pomProject)
 
-    if isSonatype then {
-      if url.isEmpty then
-        logger.diagnostic(
-          "Publishing to Sonatype, but project URL is empty (set it with the '//> using publish.url' directive)."
-        )
-      if license.isEmpty then
-        logger.diagnostic(
-          "Publishing to Sonatype, but license is empty (set it with the '//> using publish.license' directive)."
-        )
-      if scm.isEmpty then
-        logger.diagnostic(
-          "Publishing to Sonatype, but SCM details are empty (set them with the '//> using publish.scm' directive)."
-        )
-      if developers.isEmpty then
-        logger.diagnostic(
-          "Publishing to Sonatype, but developer details are empty (set them with the '//> using publish.developer' directive)."
-        )
-    }
+    if isSonatype then
+      PublishUtils.centralRequirementDiagnostics(pomProject).foreach(logger.diagnostic(_))
 
     def ivyContent = Ivy.create(
       organization = coursier.Organization(org),
@@ -831,7 +786,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     def authOpt(
       repo: String,
-      isLegacySonatype: Boolean
+      defaultRealm: Option[String]
     ): Either[BuildException, Option[Authentication]] =
       either {
         val publishCredentials: () => Option[PublishCredentials] =
@@ -851,11 +806,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           .orElse {
             publishCredentials()
               .flatMap(_.realm)
-              .orElse(if isLegacySonatype then Some("Sonatype Nexus Repository Manager") else None)
+              .orElse(defaultRealm)
           }
           .map(auth.withRealm)
           .getOrElse(auth)
       }
+
+    PublishUtils.setScalaPublishUserAgent()
 
     val repoParams: RepoParams = {
       lazy val es =
@@ -877,10 +834,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
                   publishOptions.contextual(isCi).repositoryIsIvy2LocalLike.getOrElse(false),
                 es = es,
                 logger = logger,
-                connectionTimeoutRetries = publishOptions.contextual(isCi).connectionTimeoutRetries,
-                connectionTimeoutSeconds = publishOptions.contextual(isCi).connectionTimeoutSeconds,
-                stagingRepoRetries = publishOptions.contextual(isCi).stagingRepoRetries,
-                stagingRepoWaitTimeMilis = publishOptions.contextual(isCi).stagingRepoWaitTimeMilis
+                sonatypeConnection =
+                  RepoParams.SonatypeConnectionParams(publishOptions.contextual(isCi))
               )
           }
         }
@@ -972,8 +927,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         Right(NopSigner)
     }
 
-    val signerLogger =
-      new InteractiveSignerLogger(out = new OutputStreamWriter(System.err), verbosity = 1)
+    val signerLogger                                      = PublishUtils.signerLogger(logger)
     val signRes: Either[(Path, Content, String), FileSet] = value(signer).signatures(
       fileSet = fileSet0,
       now = now,
@@ -996,9 +950,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
     }
 
-    val checksumLogger =
-      new InteractiveChecksumLogger(new OutputStreamWriter(System.err), verbosity = 1)
-    val checksumTypes = publishOptions.contextual(isCi).checksums match {
+    val checksumLogger = PublishUtils.checksumLogger(logger)
+    val checksumTypes  = publishOptions.contextual(isCi).checksums match {
       case None =>
         if repoParams.acceptsChecksums then Seq(ChecksumType.MD5, ChecksumType.SHA1)
         else Nil
@@ -1028,7 +981,10 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     if isSnapshot0 then logger.message("Publishing a SNAPSHOT version...")
     val authOpt0: Option[Authentication] = value(authOpt(
       repo = repoParams.repo.repo(isSnapshot0).root,
-      isLegacySonatype = repoParams.isSonatype
+      // scala-publish sends credentials whatever the realm, so this is mostly informative
+      defaultRealm = Option.when(repoParams.sonatypeServerOpt.exists(_.isLegacy)) {
+        "Sonatype Nexus Repository Manager"
+      }
     ))
     val asciiRegex        = """[\u0000-\u007f]*""".r
     val usernameOnlyAscii = authOpt0.exists(_.userOpt.exists(asciiRegex.matches))
@@ -1040,23 +996,21 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         Severity.Warning
       )
     val repoParams0: RepoParams = repoParams.withAuth(authOpt0)
-    val isLegacySonatype        =
-      repoParams0.isSonatype && !repoParams0.repo.releaseRepo.root.contains("s01")
-    val hooksDataOpt = Option.when(!dummy) {
+    val sonatypeServerOpt       = repoParams0.sonatypeServerOpt
+    val hooksDataOpt            = Option.when(!dummy) {
       try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(using ec)
       catch {
-        case NonFatal(e)
-            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 403,".r
-              .unanchored.matches(
-                e.getMessage
-              ) =>
-          logger.exit(new WrongSonatypeServerError(isLegacySonatype))
-        case NonFatal(e)
-            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 401,".r
-              .unanchored.matches(
-                e.getMessage
-              ) =>
-          logger.exit(new InvalidSonatypePublishCredentials(usernameOnlyAscii, passwordOnlyAscii))
+        case NonFatal(e) if sonatypeServerOpt.nonEmpty =>
+          PublishUtils.sonatypeProfilesErrorStatus(e) match {
+            case Some(403) =>
+              logger.exit(new SonatypeAccessDeniedError(sonatypeServerOpt.get))
+            case Some(401) =>
+              logger.exit(
+                new InvalidSonatypePublishCredentials(usernameOnlyAscii, passwordOnlyAscii)
+              )
+            case _ =>
+              throw new Exception(e)
+          }
         case NonFatal(e) =>
           throw new Exception(e)
       }
@@ -1071,20 +1025,23 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
 
     val baseUpload =
-      if retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://") then
-        HttpURLConnectionUpload.create(
-          publishOptions.contextual(isCi)
-            .connectionTimeoutSeconds.map(_.seconds.toMillis.toInt),
-          publishOptions.contextual(isCi)
-            .responseTimeoutSeconds.map(_.seconds.toMillis.toInt)
+      if PublishUtils.isHttpRepository(retainedRepo.root) then
+        PublishUtils.httpUpload(
+          connectionTimeoutSeconds = publishOptions.contextual(isCi).connectionTimeoutSeconds,
+          responseTimeoutSeconds = publishOptions.contextual(isCi).responseTimeoutSeconds,
+          retries = publishOptions.contextual(isCi).uploadRetries,
+          retryWaitTimeMillis = publishOptions.contextual(isCi).uploadRetryWaitTimeMillis
         )
       else
-        FileUpload(Paths.get(new URI(retainedRepo.root)))
+        InPlaceFileUpload(Paths.get(new URI(retainedRepo.root)))
 
     val upload = if dummy then DummyUpload(baseUpload) else baseUpload
 
-    val isLocal      = true
-    val uploadLogger = InteractiveUploadLogger.create(System.err, dummy = dummy, isLocal = isLocal)
+    val uploadLogger = PublishUtils.uploadLogger(
+      logger = logger,
+      dummy = dummy,
+      isLocal = !PublishUtils.isHttpRepository(retainedRepo.root)
+    )
 
     val errors =
       try
@@ -1131,8 +1088,10 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
              |Uploading files failed!
              |Possible causes:
              |- incorrect Sonatype credentials
-             |- incorrect Sonatype server was used, try ${
-              if isLegacySonatype then "'central-s01'" else "'central'"
+             |- ${
+              if sonatypeServerOpt.exists(_.isLegacy) then
+                "legacy Sonatype servers reached end of life, publish to 'central' instead"
+              else "credentials that aren't a Sonatype Central Portal user token"
             }
              | -> consult publish subcommand documentation
              |""".stripMargin

@@ -127,7 +127,7 @@ provided as a convenience.
 | License | `publish.license` | `--license` | `Apache-2.0`, `MIT`, `Foo:https://foo.com/license.txt`, … | Run `scala-cli publish --license list` to list pre-defined licenses |
 | URL | `publish.url` | `--url` | | |
 | VCS | `publish.vcs` | `--vcs` | `github:VirtusLab/scala-cli`, `https://github.com/VirtusLab/scala-cli.git` |scm:git:github.com/VirtusLab/scala-cli.git|scm:git:git@github.com:VirtusLab/scala-cli.git` | |
-| Developers | `publish.developer` | `--developer` | <code>alexme&vert;Alex Me&vert;https://alex.me</code> | Can be specified multiple times, using directives and CLI values add up |
+| Developers | `publish.developer` | `--developer` | <code>alexme&vert;Alex Me&vert;https://alex.me</code> | Format is <code>id&vert;name&vert;URL</code>, optionally followed by <code>&vert;email</code> (published in POMs). Can be specified multiple times, using directives and CLI values add up |
 | Docs       | `publish.doc`       | `--doc`             | `--doc=false`, `//> using doc false`                                       | Use to disable publishing docs jar.                                     |
 
 ### Signing
@@ -204,15 +204,18 @@ with `--gpg-option` or `//>using publish.gpgOptions --opt1 --opt2`, like
 Scala CLI can generate checksums of the artifacts it publishes.
 
 By default, Scala CLI generates SHA-1 and MD5 checksums. To disable checksums,
-pass `--checksum none`. To generate checksum formats to generate, pass them via
+pass `--checksum none`. To choose the checksum types to generate, pass them via
 `--checksum`, separating the checksum values with `,` or using `--checksum` multiple
 times:
 ```text
 --checksum sha1,md5
 --checksum sha1 --checksum md5
+--checksum sha1,md5,sha256,sha512
 ```
 
-To list supported checksum types, pass `--checksum list`.
+Supported checksum types are SHA-1, MD5, SHA-256 and SHA-512. Each can be passed either by
+name (like `sha-256`) or by file extension (like `sha256`).
+To list them, pass `--checksum list`.
 
 ### CI overrides
 
@@ -290,15 +293,44 @@ and the [CI overrides](#ci-overrides).
 
 ### Connection parameters configuration
 
-When publishing large packages or when the internet connection is spotty one may use the following options to configure the connection parameters:
-- `--connection-timeout-seconds` - the connection timeout in seconds
-- `--response-timeout-seconds` - the response timeout in seconds
-- `--connection-timeout-retries` - the number of times to retry the connection on timeout
+When publishing large packages, or when the internet connection is spotty, the connection parameters can be tweaked
+with the settings below. Each can be set with a using directive, or from the command line. Like the
+[CI overrides](#ci-overrides), the `publish.ci.` variants of the directives (e.g. `publish.ci.uploadRetries`) only apply
+on CI.
 
-Publishing to Sonatype uses a staging repository which may sometimes cause problems when transitioning through states.
-If a publishing process fails with status `500` and message `"Staging repository is already transitioning"` you can try to tweak the following parameters taht are Sonatype specific:
-- `--staging-repo-retries` - the number of times to retry the staging repository transition
-- `--staging-repo-wait-time-milis` - the base time to wait between retries in milliseconds
+<!-- TODO Automatically generate that? -->
+|          | `using` directive | Command-line option | Notes |
+|----------|-------------------|---------------------|-------|
+| Connection timeout | `publish.connectionTimeoutSeconds` | `--connection-timeout-seconds` | In seconds |
+| Response timeout | `publish.responseTimeoutSeconds` | `--response-timeout-seconds` | In seconds |
+| Upload attempts | `publish.uploadRetries` | `--upload-retries` | Number of attempts of uploads to HTTP repositories failing with a transient error (HTTP 5xx). 3 by default |
+| Upload retry wait time | `publish.uploadRetryWaitTimeMillis` | `--upload-retry-wait-time-millis` | Time to wait before retrying an upload, in milliseconds, doubled before each subsequent retry. 1000 by default |
+| Sonatype API request attempts | `publish.connectionTimeoutRetries` | `--connection-timeout-retries` | Number of attempts of Sonatype API requests failing with a transient error (connection failure, HTTP 5xx, or a timeout for requests that don't change anything). Client errors (HTTP 4xx) are not retried. 3 by default |
+| Sonatype API retry wait time | `publish.connectionRetryWaitTimeMillis` | `--connection-retry-wait-time-millis` | Time to wait before retrying a Sonatype API request, in milliseconds, doubled before each subsequent retry. 1000 by default |
+| Staging repository transition attempts | `publish.stagingRepoRetries` | `--staging-repo-retries` | Number of attempts of staging repository transitions (close, promote, drop) failing with a transient error (connection failure, HTTP 5xx). Client errors (HTTP 4xx) are not retried. 3 by default |
+| Staging repository transition retry wait time | `publish.stagingRepoWaitTimeMillis` | `--staging-repo-wait-time-milis` | Time to wait before retrying a staging repository transition, in milliseconds, doubled before each subsequent retry. 10000 by default |
+| Staging repository status checks | `publish.stagingRepoStatusPollAttempts` | `--staging-repo-status-poll-attempts` | How many times to check whether the staging repository got closed or released. 20 by default |
+| Staging repository status check wait time | `publish.stagingRepoStatusPollWaitTimeMillis` | `--staging-repo-status-poll-wait-time-millis` | Time to wait before checking the staging repository status again, in milliseconds, multiplied by 1.5 before each subsequent check. 3000 by default |
+
+If publishing to Sonatype fails with status `500` and message `"Staging repository is already transitioning"`,
+try to increase the staging repository transition attempts and wait time.
+
+### User-Agent
+
+The HTTP requests made when publishing (uploads, and the Sonatype API) identify Scala CLI and the
+[scala-publish](https://github.com/scala/scala-publish) library it publishes with, via a `User-Agent` header like
+```text
+Scala-CLI/1.19 (+https://github.com/VirtusLab/scala-cli) scala-publish/1.1 (+https://github.com/scala/scala-publish)
+```
+On CI (when the `CI` environment variable is set), a `ci` token is added after the Scala CLI URL.
+
+To send another `User-Agent`, set the `scala.publish.http.agent` Java property
+(see [how to pass Java properties](../../guides/advanced/java-properties.md)), e.g.
+```bash ignore
+scala-cli '-Dscala.publish.http.agent=MyCompany-Release/1.0' --power publish .
+```
+Dependency downloads use another property, see
+[the repositories guide](../../guides/power/repositories.md#user-agent).
 
 ## Publishing
 
@@ -315,7 +347,7 @@ scala-cli --power publish .
 ```text
 Publishing io.github.scala-cli:hello-scala-cli_3:0.1.0-SNAPSHOT
  ✔ Computed 8 checksums
- 🚚 Wrote 12 files
+ 🚚 Uploaded 12 files
 
  👀 Check results at
   https://s01.oss.sonatype.org/content/repositories/snapshots/io/github/scala-cli/hello-scala-cli_3/0.1.0-SNAPSHOT

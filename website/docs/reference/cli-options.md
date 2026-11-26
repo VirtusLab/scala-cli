@@ -2299,7 +2299,7 @@ Available in commands:
 ### `--signing-cli-version`
 
 [Internal]
-scala-cli-signing version when running externally (0.6.0 by default)
+scala-cli-signing version when running externally (0.6.1 by default)
 
 ### `--signing-cli-java-arg`
 
@@ -2365,7 +2365,7 @@ Connection timeout, in seconds.
 ### `--connection-timeout-retries`
 
 [Internal]
-How many times to retry establishing the connection on timeout.
+How many times to attempt Sonatype API requests failing with a transient error (connection failure, HTTP 5xx, or a timeout for requests that don't change anything). Client errors (HTTP 4xx) are not retried.
 
 ### `--response-timeout-seconds`
 
@@ -2375,12 +2375,37 @@ Waiting for response timeout, in seconds.
 ### `--staging-repo-retries`
 
 [Internal]
-How many times to retry the staging repository operations on failure.
+How many times to attempt the Sonatype staging repository operations (close, promote, drop) failing with a transient error (connection failure, HTTP 5xx). Client errors (HTTP 4xx) are not retried.
 
 ### `--staging-repo-wait-time-milis`
 
 [Internal]
 Time to wait between staging repository operation retries, in milliseconds.
+
+### `--connection-retry-wait-time-millis`
+
+[Internal]
+Time to wait before retrying a failed Sonatype API request, in milliseconds, doubled before each subsequent retry. 1000 by default.
+
+### `--staging-repo-status-poll-attempts`
+
+[Internal]
+How many times to check whether the Sonatype staging repository got closed or released, before giving up. 20 by default.
+
+### `--staging-repo-status-poll-wait-time-millis`
+
+[Internal]
+Time to wait before checking the Sonatype staging repository status again, in milliseconds, multiplied by 1.5 before each subsequent check. 3000 by default.
+
+### `--upload-retries`
+
+[Internal]
+How many times to attempt uploading a file to an HTTP repository, when that fails with a transient error (HTTP 5xx). 3 by default.
+
+### `--upload-retry-wait-time-millis`
+
+[Internal]
+Time to wait before retrying a failed upload, in milliseconds, doubled before each subsequent retry. 1000 by default.
 
 ### Semantic db options
 
