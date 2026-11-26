@@ -14,6 +14,7 @@ import scala.build.Ops.*
 import scala.build.Position.File
 import scala.build.actionable.ActionableDiagnostic.*
 import scala.build.actionable.ActionablePreprocessor
+import scala.build.internal.CoursierUserAgent
 import scala.build.options.{BuildOptions, InternalOptions, SuppressWarningOptions}
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.jdk.CollectionConverters.*
@@ -71,7 +72,9 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
     val dir = os.temp.dir(prefix = "scala-cli-actionable-diagnostic-coursier-")
     opts.copy(internal =
       opts.internal.copy(
-        cache = Some(FileCache().withLocation(dir.toString))
+        cache = Some(
+          FileCache().withLocation(dir.toString).withUserAgent(CoursierUserAgent.value)
+        )
       )
     )
 

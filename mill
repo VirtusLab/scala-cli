@@ -67,13 +67,24 @@ function to_bash_syntax {
     echo "$S" | sed -E -e 's#^set #export #' -e 's#%([A-Z_][A-Z_0-9]*)%#${\1}#g' | tr '\\' '/'
   done
 }
+
+# Identify this coursier (it fetches the JVM below) to Maven Central. A generic
+# agent is answered with 429. https://central.sonatype.org/faq/429-error/
+# Same identity as scala.build.internal.CoursierUserAgent, without versions this script doesn't know.
+if [ -n "${CI:-}" ]; then
+  cs_http_agent="Scala-CLI (+https://github.com/VirtusLab/scala-cli; ci) Coursier"
+else
+  cs_http_agent="Scala-CLI (+https://github.com/VirtusLab/scala-cli) Coursier"
+fi
+cs_http_agent_arg="-J-Dcoursier.http.agent=${cs_http_agent}"
+
 if [[ $IS_WINDOWS ]]; then
   # needed for coursier version < 2.1.8, harmless otherwise
   IFS=$'\n'
-  eval "$(to_bash_syntax `"$cs" java --env --jvm zulu:25`)"
+  eval "$(to_bash_syntax `"$cs" "$cs_http_agent_arg" java --env --jvm zulu:25`)"
   unset IFS
 else
-  eval "$("$cs" java --env --jvm zulu:25)"
+  eval "$("$cs" "$cs_http_agent_arg" java --env --jvm zulu:25)"
 fi
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"

@@ -14,6 +14,7 @@ import scala.build.errors.{
   UnsupportedScalaVersionError
 }
 import scala.build.internal.Constants.*
+import scala.build.internal.CoursierUserAgent
 import scala.build.internal.Regexes.scala2NightlyRegex
 import scala.build.options.*
 import scala.build.tests.util.BloopServer
@@ -346,7 +347,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite with BloopServer.Sui
           scalaVersion = prefix.map(MaybeScalaVersion(_))
         ),
         internal = InternalOptions(
-          cache = Some(FileCache().withTtl(0.seconds))
+          cache = Some(FileCache().withTtl(0.seconds).withUserAgent(CoursierUserAgent.value))
         )
       )
       val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
@@ -357,7 +358,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite with BloopServer.Sui
     }
 
   {
-    val cache        = FileCache().withTtl(0.seconds)
+    val cache        = FileCache().withTtl(0.seconds).withUserAgent(CoursierUserAgent.value)
     val repositories = BuildOptions(
       internal = InternalOptions(cache = Some(cache)),
       classPathOptions =

@@ -149,6 +149,14 @@ set MILL=%MILL_FINAL_DOWNLOAD_FOLDER%\!MILL_FULL_VERSION!!MILL_DOWNLOAD_EXT!
 
 set MILL_RESOLVE_DOWNLOAD=
 
+rem Maven Central answers a generic User-Agent, such as curl's, with 429.
+rem https://central.sonatype.org/faq/429-error/
+rem https://github.com/coursier/coursier/discussions/3841
+rem Same identity as scala.build.internal.CoursierUserAgent, without versions this script doesn't know.
+rem Set outside the download block: a parenthesis in the agent would close that block.
+set "MILL_DOWNLOAD_USER_AGENT=Scala-CLI (+https://github.com/VirtusLab/scala-cli) Coursier"
+if defined CI set "MILL_DOWNLOAD_USER_AGENT=Scala-CLI (+https://github.com/VirtusLab/scala-cli; ci) Coursier"
+
 if not exist "%MILL%" (
   set MILL_RESOLVE_DOWNLOAD=true
 ) else (
@@ -251,7 +259,7 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
 
     echo Downloading mill !MILL_VERSION! from !MILL_DOWNLOAD_URL! ... 1>&2
 
-    curl -f -L "!MILL_DOWNLOAD_URL!" -o "!MILL_TEMP_DOWNLOAD_FILE!"
+    curl -f -L -A "!MILL_DOWNLOAD_USER_AGENT!" "!MILL_DOWNLOAD_URL!" -o "!MILL_TEMP_DOWNLOAD_FILE!"
 
     if not exist "%MILL_FINAL_DOWNLOAD_FOLDER%" mkdir "%MILL_FINAL_DOWNLOAD_FOLDER%"
     move /y "!MILL_TEMP_DOWNLOAD_FILE!" "%MILL%"
