@@ -21,7 +21,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   // TODO: remove once scala/scala3#27625 is fixed
   private def skipZioOnJsForScala3102Rc1(name: String, platformOptions: Seq[String]): TestOptions =
-    if platformOptions.contains("--js") && actualScalaVersion == "3.10.2-RC1" then name.ignore
+    if platformOptions.contains("--js") && actualScalaVersion == "3.10.2-RC2" then name.ignore
     else name
 
   def successfulTestInputs(directivesString: String =
