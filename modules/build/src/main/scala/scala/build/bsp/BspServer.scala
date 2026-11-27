@@ -56,7 +56,7 @@ class BspServer(
     val sw = new StringWriter()
     throwable.printStackTrace(new PrintWriter(sw))
     val message =
-      s"Fatal error has occured within $context. Shutting down the server:\n ${sw.toString}"
+      s"Fatal error has occurred within $context. Shutting down the server:\n ${sw.toString}"
     System.err.println(message)
     client.foreach(_.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, message)))
 

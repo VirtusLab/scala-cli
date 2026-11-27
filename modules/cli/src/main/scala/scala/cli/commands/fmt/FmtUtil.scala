@@ -160,7 +160,7 @@ object FmtUtil {
       if (doc.hasPath("version"))
         doc.withValueText("version", s"\"$v\"").render
       else {
-        // prepend to the beggining of file
+        // prepend to the beginning of file
         val sb = new StringBuilder
         sb.append(s"""version = "$v"""")
         sb.append(System.lineSeparator)

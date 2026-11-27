@@ -251,7 +251,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     if options.sharedRun.watch.watchMode then {
 
       /** A handle to the Runner processes, used to kill the process if it's still alive when a
-        * change occured and restarts are allowed or to wait for it if restarts are not allowed
+        * change occurred and restarts are allowed or to wait for it if restarts are not allowed
         */
       val processesRef = AtomicReference(Seq.empty[(Process, CompletableFuture[?])])
 
