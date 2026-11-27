@@ -291,7 +291,7 @@ abstract class RunTestDefinitions
              |${tab}at Throws$$.main(Throws.scala:5)
              |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
-        else if actualScalaVersion.coursierVersion >= "3.10.2-RC1".coursierVersion then
+        else if actualScalaVersion.coursierVersion >= "3.10.2-RC2".coursierVersion then
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
              |${tab}at Throws$$.main(Throws.scala:8)
              |${tab}at Throws.main(Throws.scala)
